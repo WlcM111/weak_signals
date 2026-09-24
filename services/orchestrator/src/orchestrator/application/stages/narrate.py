@@ -10,7 +10,7 @@ import re
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 
-from orchestrator.application.dto import CandidateView, DocumentView
+from orchestrator.application.dto import CandidateView, DocumentView, JudgeVerdictView
 from orchestrator.application.ports import (
     AnalyzerClient,
     CollectorClient,
@@ -18,7 +18,7 @@ from orchestrator.application.ports import (
     ResultRepository,
 )
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem, SourceRow
-from orchestrator.domain.errors import UpstreamUnavailable
+from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
 from orchestrator.domain.values import Decision, NarrativeStatus, SummaryKind
 from ws_common.logging import get_logger
 
@@ -39,6 +39,9 @@ class NarrateConfig:
     prompt_version: str = "insight_v1"
     # Хватает ли времени до срока задания на ещё один вызов LLM; None — срок не ограничивает.
     llm_allowed: Callable[[], bool] | None = None
+    # Смысловая оценка кандидатов перед нарративом (WS_CANDIDATE_JUDGE_ENABLED) и размер оцениваемого пула.
+    judge_enabled: bool = True
+    judge_pool: int = 30
 
 
 @dataclass(slots=True)
@@ -50,6 +53,8 @@ class NarrateOutcome:
     narratives_fallback: int = 0
     # Карточки, собранные экстрактивно потому, что до срока задания не хватало времени на LLM.
     deadline_fallbacks: int = 0
+    # Кандидаты, исключённые смысловой оценкой (обзор, общее понятие, чужая тема, шум, зрелое).
+    judge_rejected: int = 0
     excluded_written: int = 0
     candidates_found: int = 0
     weak_signals_total: int = 0
@@ -178,7 +183,30 @@ async def run_narrate(
             for item in excluded
         ],
     )
-    for candidate in weak[: config.top_n]:
+    verdicts = await _judge(insight, query_text, weak, config)
+    reordered = bool(verdicts)
+    if reordered:
+        weak, rejected = apply_judgement(weak, verdicts)
+        outcome.judge_rejected = len(rejected)
+        outcome.weak_signals_total = len(weak)
+        outcome.weak_signals_confident = sum(1 for item in weak if item.score >= 0.75)
+        outcome.excluded_written += await results.add_excluded(
+            job_id,
+            [
+                ExcludedCandidate(
+                    candidate_id=item.candidate_id,
+                    title_auto=item.title_auto,
+                    score=item.score,
+                    decision=JUDGE_DECISIONS.get(verdict.verdict, Decision.OFF_TOPIC),
+                    decision_reason="SEMANTIC_JUDGE",
+                    decision_explanation_ru=f"Смысловая оценка: {VERDICTS_RU.get(verdict.verdict, verdict.verdict)}. "
+                    f"{verdict.reason_ru}".strip(),
+                    document_count=item.document_count,
+                )
+                for item, verdict in rejected
+            ],
+        )
+    for position, candidate in enumerate(weak[: config.top_n], 1):
         await check()
         documents = await _load_documents(collector, candidate, outcome)
         use_llm = config.llm_allowed is None or config.llm_allowed()
@@ -191,7 +219,7 @@ async def run_narrate(
         )
         item = ResultItem(
             job_id=job_id,
-            rank=candidate.rank,
+            rank=position if reordered else candidate.rank,
             candidate_id=candidate.candidate_id,
             title_ru=(narrative.title_ru or candidate.title_auto)[:200],
             title_auto=candidate.title_auto,
@@ -227,6 +255,66 @@ async def run_narrate(
         excluded=outcome.excluded_written,
     )
     return outcome
+
+
+# Вердикты, при которых кандидат не попадает в выдачу, и решение, под которым он виден среди исключённых.
+JUDGE_DECISIONS = {
+    "MATURE_TECHNOLOGY": Decision.MATURE,
+    "OVERVIEW": Decision.INSUFFICIENT_EVIDENCE,
+    "GENERIC_CONCEPT": Decision.INSUFFICIENT_EVIDENCE,
+    "OFF_TOPIC": Decision.OFF_TOPIC,
+    "NOISE": Decision.HYPE_OR_NOISE,
+}
+VERDICTS_RU = {
+    "MATURE_TECHNOLOGY": "зрелая технология",
+    "OVERVIEW": "обзор или аналитика без конкретной технологии",
+    "GENERIC_CONCEPT": "общее понятие",
+    "OFF_TOPIC": "не относится к запросу",
+    "NOISE": "шум или псевдонаука",
+    "EMERGING_TECHNOLOGY": "ранняя технология, но не отвечает запросу",
+}
+
+
+async def _judge(
+    insight: InsightClient | None, query_text: str, weak: list[CandidateView], config: NarrateConfig
+) -> dict[str, JudgeVerdictView]:
+    """Один пакетный вызов оценки; недоступность или нехватка времени — пустой результат и прежнее поведение."""
+    if insight is None or not config.judge_enabled or not weak:
+        return {}
+    if config.llm_allowed is not None and not config.llm_allowed():
+        return {}
+    pool = weak[: config.judge_pool]
+    try:
+        verdicts = await insight.judge_candidates(query_text, pool)
+    except (UpstreamUnavailable, StageFailed) as error:
+        log.warning("stage.narrate.judge_failed", error=str(error)[:200])
+        return {}
+    log.info("stage.narrate.judged", pool=len(pool), judged=len(verdicts))
+    return verdicts
+
+
+def apply_judgement(
+    weak: list[CandidateView], verdicts: dict[str, JudgeVerdictView]
+) -> tuple[list[CandidateView], list[tuple[CandidateView, JudgeVerdictView]]]:
+    """Отсев по вердиктам и порядок: оценённые — по убыванию релевантности, затем исходный ранг; неоценённые — после.
+
+    Ранняя технология с релевантностью 0 не отвечает запросу и исключается как чужая тема.
+    """
+    kept: list[CandidateView] = []
+    rejected: list[tuple[CandidateView, JudgeVerdictView]] = []
+    for candidate in weak:
+        verdict = verdicts.get(candidate.candidate_id)
+        if verdict is not None and (verdict.verdict in JUDGE_DECISIONS or verdict.relevance <= 0):
+            rejected.append((candidate, verdict))
+        else:
+            kept.append(candidate)
+
+    def order(candidate: CandidateView) -> tuple[int, int, int]:
+        verdict = verdicts.get(candidate.candidate_id)
+        return (0, -verdict.relevance, candidate.rank) if verdict is not None else (1, 0, candidate.rank)
+
+    kept.sort(key=order)
+    return kept, rejected
 
 
 async def _load_documents(

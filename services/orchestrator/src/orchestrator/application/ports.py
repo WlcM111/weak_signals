@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Protocol
 
 from orchestrator.application.dto import (
+    JudgeVerdictView,
     AnalysisView,
     CandidateView,
     CollectionView,
@@ -148,6 +149,11 @@ class InsightClient(Protocol):
     async def generate_insight(self, idempotency_key: str, candidate: CandidateView, query_text: str,
                                evidence: Sequence[DocumentView], prompt_version: str) -> NarrativeView:
         """Генерирует нарратив кандидата на переданных доказательствах."""
+
+    async def judge_candidates(
+        self, query_text: str, candidates: Sequence[CandidateView]
+    ) -> dict[str, JudgeVerdictView]:
+        """Смысловая оценка кандидатов; пустой словарь — оценка недоступна."""
 
 
 class MetricsSink(Protocol):

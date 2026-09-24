@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdicts"
+  ],
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "verdict",
+          "relevance",
+          "reason_ru"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "maxLength": 8
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "EMERGING_TECHNOLOGY",
+              "MATURE_TECHNOLOGY",
+              "OVERVIEW",
+              "GENERIC_CONCEPT",
+              "OFF_TOPIC",
+              "NOISE"
+            ]
+          },
+          "relevance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "reason_ru": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      }
+    }
+  }
+}

@@ -34,6 +34,7 @@ export const DECISION_RU: Record<string, string> = {
 
 export const DECISION_REASON_RU: Record<string, string> = {
   MODEL_SCORE: "Решение калиброванной модели",
+  SEMANTIC_JUDGE: "Смысловая оценка кандидата моделью",
   LOW_QUERY_RELEVANCE: "Низкая релевантность запросу",
   NO_TRUSTED_SOURCE: "Нет ни одного доверенного источника",
   SINGLE_SOURCE: "Единственный источник",

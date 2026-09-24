@@ -12,6 +12,7 @@ from weaksignals.insight.v1 import insight_pb2, insight_pb2_grpc
 
 from orchestrator.adapters.outbound.grpc import mappers
 from orchestrator.application.dto import (
+    JudgeVerdictView,
     AnalysisView,
     CandidateView,
     CollectionView,
@@ -32,6 +33,8 @@ DOCUMENTS_DEADLINE = 15.0
 CANDIDATES_DEADLINE = 15.0
 EXPAND_DEADLINE = 30.0
 INSIGHT_DEADLINE = 120.0
+# Один пакетный вызов LLM на до 30 кандидатов; GigaChat отвечает на такой запрос за 10–60 с.
+JUDGE_DEADLINE = 150.0
 log = get_logger("orchestrator.upstream")
 
 
@@ -213,6 +216,33 @@ class GrpcInsightClient:
             domain_tags=tuple(response.domain_tags),
             used_fallback=response.used_fallback,
         )
+
+    async def judge_candidates(
+        self, query_text: str, candidates: Sequence[CandidateView]
+    ) -> dict[str, JudgeVerdictView]:
+        """Смысловая оценка кандидатов; ответ с used_fallback даёт пустой словарь."""
+        request = insight_pb2.JudgeCandidatesRequest(
+            query_text=query_text,
+            items=[
+                insight_pb2.JudgeItem(
+                    candidate_id=candidate.candidate_id,
+                    title=candidate.title_auto,
+                    keyphrases=list(candidate.keyphrases[:8]),
+                    evidence=[item.snippet[:300] for item in candidate.evidence[:3]],
+                )
+                for candidate in candidates
+            ],
+        )
+        try:
+            response = await self._stub.JudgeCandidates(request, timeout=JUDGE_DEADLINE, metadata=_md())
+        except grpc.aio.AioRpcError as error:
+            raise _fail("JudgeCandidates", error) from error
+        return {
+            verdict.candidate_id: JudgeVerdictView(
+                verdict.candidate_id, verdict.verdict, verdict.relevance, verdict.reason_ru
+            )
+            for verdict in response.verdicts
+        }
 
     async def generate_insight(
         self,

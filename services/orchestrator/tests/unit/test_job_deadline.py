@@ -1,18 +1,19 @@
 """Сквозной срок задания 20 минут: от приёма запроса до сохранённого результата.
 
-Проверяются три механизма (docs/quality/LATENCY_20_MIN.md): отказ до старта после ожидания в
-очереди; ограничение лимитов стадий оставшимся временем; прекращение вызовов LLM перед сроком
-с экстрактивным завершением карточек и честной причиной неполноты.
+Проверяются: включение и выключение срока переменной `WS_JOB_DEADLINE_ENABLED`; опоздавшее задание
+не завершается пустым отказом, а отдаёт собранное — карточки из найденных источников без LLM;
+ограничение сбора оставшимся временем; прекращение вызовов LLM перед сроком с честной причиной неполноты.
 """
 
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from orchestrator.domain.deadline import JobDeadline
 from orchestrator.domain.rules import decide_completion
-from orchestrator.domain.values import JobErrorCode, JobStatus
+from orchestrator.domain.values import JobStatus
 
 from .test_run_job import RunJobHarness
 
@@ -71,15 +72,25 @@ class DeadlineStatusTest(unittest.TestCase):
 class JobDeadlineFlowTest(RunJobHarness):
     """Поведение задания на границах срока."""
 
-    async def test_job_started_after_deadline_fails_without_work(self) -> None:
-        run_job, job, query = self.build()
+    async def test_job_started_after_deadline_returns_collected_results(self) -> None:
+        run_job, job, query = self.build(top_n=2)
         stored = await self.jobs.insert(query, job, "key-d001:submit", "hash", self.clock.now())
-        self.clock.advance(20 * 60)
+        self.clock.advance(25 * 60)
         status = await run_job.execute(stored, "worker-1")
-        self.assertIs(status, JobStatus.FAILED)
-        self.assertEqual(stored.error_code, JobErrorCode.DEADLINE_EXCEEDED.value)
-        self.assertEqual(insight_calls(self), 0)
-        self.assertEqual(self.insight.calls, [], "задание после срока не должно даже расширять запрос")
+        self.assertIs(status, JobStatus.PARTIAL, "опоздавшее задание отдаёт собранное, а не отказ")
+        self.assertGreater(len(self.results.items.get(stored.job_id, [])), 0, "карточки должны быть записаны")
+        self.assertEqual(insight_calls(self), 0, "после срока LLM для карточек не вызывается")
+        self.assertIn("deadline_reached", stored.error_message or "")
+
+    async def test_deadline_disabled_ignores_time(self) -> None:
+        run_job, job, query = self.build(top_n=2)
+        # То же, что WS_JOB_DEADLINE_ENABLED=false в .env.
+        run_job._config = replace(run_job._config, deadline_enabled=False)  # noqa: SLF001
+        stored = await self.jobs.insert(query, job, "key-d004:submit", "hash", self.clock.now())
+        self.clock.advance(25 * 60)
+        await run_job.execute(stored, "worker-1")
+        self.assertGreater(insight_calls(self), 0, "без срока LLM вызывается как обычно")
+        self.assertNotIn("deadline_reached", stored.error_message or "")
 
     async def test_llm_not_called_when_no_time_left_for_a_call(self) -> None:
         run_job, job, query = self.build(top_n=2)
@@ -88,9 +99,7 @@ class JobDeadlineFlowTest(RunJobHarness):
         status = await run_job.execute(stored, "worker-1")
         self.assertIs(status, JobStatus.PARTIAL)
         self.assertEqual(insight_calls(self), 0)
-        items = await self.results.list_items(stored.job_id) if hasattr(self.results, "list_items") else None
-        if items is not None:
-            self.assertGreater(len(items), 0, "карточки должны быть записаны экстрактивно")
+        self.assertGreater(len(self.results.items.get(stored.job_id, [])), 0, "карточки записаны экстрактивно")
         self.assertIn("deadline_reached", stored.error_message or "")
 
     async def test_fresh_job_uses_llm_and_has_no_deadline_reason(self) -> None:

@@ -22,6 +22,8 @@ INSIGHT_PROMPT_VERSION = "insight_v1"
 EXPAND_PROMPT_VERSION = "expand_v1"
 INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_llm_output.schema.json"
+JUDGE_PROMPT_VERSION = "judge_v1"
+JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +52,7 @@ class PromptBuilder:
         self._schemas = {
             INSIGHT_SCHEMA_FILE: self._read_schema(INSIGHT_SCHEMA_FILE),
             EXPAND_SCHEMA_FILE: self._read_schema(EXPAND_SCHEMA_FILE),
+            JUDGE_SCHEMA_FILE: self._read_schema(JUDGE_SCHEMA_FILE),
         }
 
     def _read_schema(self, name: str) -> dict:
@@ -84,6 +87,13 @@ class PromptBuilder:
                 template_sha256=self.template_sha256("expand_v1.j2"),
                 output_schema_version=f"{EXPAND_SCHEMA_FILE}@1",
                 description="Расширение запроса в поисковые фразы ru/en",
+            ),
+            PromptDefinition(
+                prompt_version=JUDGE_PROMPT_VERSION,
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v1.j2"),
+                output_schema_version=f"{JUDGE_SCHEMA_FILE}@1",
+                description="Смысловая оценка кандидатов: технология, тема, стадия",
             ),
         ]
 
@@ -141,6 +151,15 @@ class PromptBuilder:
         )
         user = json.dumps({"query": query_text}, ensure_ascii=False)
         return self._bundle(system, user, schema, EXPAND_PROMPT_VERSION)
+
+    def build_judge_prompt(self, query_text: str, candidates: Sequence[dict]) -> PromptBundle:
+        """Промпт смысловой оценки кандидатов; `candidates` — словари с id, title, keyphrases, evidence."""
+        schema = self._schemas[JUDGE_SCHEMA_FILE]
+        system = self._environment.get_template("judge_v1.j2").render(
+            schema=json.dumps(schema, ensure_ascii=False, indent=2)
+        )
+        user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
+        return self._bundle(system, user, schema, JUDGE_PROMPT_VERSION)
 
     @staticmethod
     def _bundle(system: str, user: str, schema: dict, version: str) -> PromptBundle:

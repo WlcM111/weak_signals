@@ -54,6 +54,7 @@ class Purpose(StrEnum):
     INSIGHT = "insight"
     EXPAND = "expand"
     HEALTHCHECK = "healthcheck"
+    JUDGE = "judge"
 
 
 class CallStatus(StrEnum):

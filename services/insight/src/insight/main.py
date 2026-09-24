@@ -24,6 +24,7 @@ from insight.application.prompt_builder import PromptBuilder
 from insight.application.provider_chain import ChainConfig, ProviderChain
 from insight.application.use_cases.expand_query import ExpandQuery, Glossary
 from insight.application.use_cases.generate_insight import GenerateConfig, GenerateInsight
+from insight.application.use_cases.judge_candidates import JudgeCandidates
 from insight.application.use_cases.get_provider_status import GetProviderStatus, RegisterPrompts
 from insight.config import InsightSettings
 from ws_common.clock import SystemClock
@@ -120,6 +121,7 @@ async def serve(settings: InsightSettings) -> int:
         metrics,
     )
     servicer = InsightServicer(
+        judge_candidates=JudgeCandidates(chain, prompts),
         expand_query=ExpandQuery(
             chain,
             prompts,

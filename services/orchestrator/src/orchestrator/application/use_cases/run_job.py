@@ -39,8 +39,6 @@ POSTPONE_SECONDS = 30
 # Время, которое сбор оставляет следующим стадиям: анализ (до 300 с) и нарративы. По прогонам 23.09
 # анализ занимает около минуты, нарративы — 1–3,5 минуты; при позднем старте сбор сокращается.
 AFTER_COLLECT_SECONDS = 420
-# Время, которое анализ оставляет стадии нарративов на экстрактивное завершение и запись результата.
-AFTER_ANALYZE_SECONDS = 60
 
 
 class CancelRequested(Exception):
@@ -54,6 +52,8 @@ class RunJobConfig:
     lease_seconds: int = 60
     heartbeat_seconds: int = 20
     # Сквозной срок задания от приёма до сохранённого результата и резерв на завершение.
+    # deadline_enabled = False отключает срок полностью (WS_JOB_DEADLINE_ENABLED=false).
+    deadline_enabled: bool = True
     deadline_seconds: int = 1200
     deadline_reserve_seconds: int = 120
     # Сколько может занять один вызов insight: LLM не вызывается, если до резерва осталось меньше.
@@ -99,25 +99,28 @@ class RunJob:
         outcome = NarrateOutcome()
         self._log.info("job.claimed", job_id=job.job_id, attempt=job.attempt, worker_id=worker_id)
         set_correlation_id(job.job_id)  # все вызовы сервисов по этому заданию ищутся в логах по job_id
-        deadline = JobDeadline.for_job(
-            job.created_at or self._clock.now(),
-            self._config.deadline_seconds,
-            self._config.deadline_reserve_seconds,
+        deadline = (
+            JobDeadline.for_job(
+                job.created_at or self._clock.now(),
+                self._config.deadline_seconds,
+                self._config.deadline_reserve_seconds,
+            )
+            if self._config.deadline_enabled
+            else None
         )
-        self._log.info(
-            "job.deadline",
-            job_id=job.job_id,
-            accepted_at=deadline.accepted_at.isoformat(),
-            deadline_at=deadline.deadline_at.isoformat(),
-            remaining_seconds=round(deadline.remaining(self._clock.now())),
-        )
-        if deadline.expired(self._clock.now()):
-            return await self._fail(
-                job,
-                worker_id,
-                JobErrorCode.DEADLINE_EXCEEDED.value,
-                f"задание не начато до срока {deadline.deadline_at:%H:%M:%S} UTC: "
-                f"ожидание в очереди исчерпало {self._config.deadline_seconds // 60} мин",
+        if deadline is None:
+            self._log.info("job.deadline", job_id=job.job_id, enabled=False)
+        else:
+            # Срок не отменяет работу: опоздавшее задание собирает с минимальным бюджетом, анализирует
+            # и выдаёт карточки из найденных источников без LLM, а не завершается пустым отказом.
+            self._log.info(
+                "job.deadline",
+                job_id=job.job_id,
+                enabled=True,
+                accepted_at=deadline.accepted_at.isoformat(),
+                deadline_at=deadline.deadline_at.isoformat(),
+                remaining_seconds=round(deadline.remaining(self._clock.now())),
+                expired=deadline.expired(self._clock.now()),
             )
         # Аренда продлевается фоновой задачей: один вызов LLM (до 120 с) длиннее аренды (60 с), и без
         # фонового продления задание теряло аренду посреди стадии нарратива и уходило на повтор.
@@ -151,7 +154,9 @@ class RunJob:
                             floor=10,
                             keep_for_later=AFTER_COLLECT_SECONDS,
                         ),
-                    ),
+                    )
+                    if deadline is not None
+                    else self._config.collect,
                     self._clock,
                     control.check,
                     job.collection_id,
@@ -176,15 +181,9 @@ class RunJob:
                     job.collection_id,
                     analysis_query(job.query_text, expansion),
                     job.requested_top_n,
-                    replace(
-                        self._config.analyze,
-                        timeout_seconds=deadline.cap(
-                            self._clock.now(),
-                            self._config.analyze.timeout_seconds,
-                            floor=30,
-                            keep_for_later=AFTER_ANALYZE_SECONDS,
-                        ),
-                    ),
+                    # Анализ сроком не ограничивается: без его результата отдать нечего, а обрезанный анализ
+                    # завершил бы задание отказом вместо частичной выдачи.
+                    self._config.analyze,
                     self._clock,
                     control.check,
                     job.analysis_id,
@@ -208,7 +207,9 @@ class RunJob:
                     config=_narrate_config(
                         self._config.narrate,
                         job.requested_top_n,
-                        lambda: deadline.allows(self._clock.now(), self._config.insight_call_seconds),
+                        (lambda: deadline.allows(self._clock.now(), self._config.insight_call_seconds))
+                        if deadline is not None
+                        else None,
                     ),
                     check=control.check,
                 ),
@@ -288,13 +289,15 @@ class RunJob:
         return JobStatus.FAILED
 
 
-def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], bool]) -> NarrateConfig:
+def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], bool] | None) -> NarrateConfig:
     """Конфигурация нарратива с размером выдачи и сроком конкретного задания."""
     return NarrateConfig(
         top_n=top_n,
         evidence_text_max_chars=base.evidence_text_max_chars,
         prompt_version=base.prompt_version,
         llm_allowed=llm_allowed,
+        judge_enabled=base.judge_enabled,
+        judge_pool=base.judge_pool,
     )
 
 

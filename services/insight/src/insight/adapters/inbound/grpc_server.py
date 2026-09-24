@@ -10,6 +10,7 @@ from weaksignals.insight.v1 import insight_pb2, insight_pb2_grpc
 from insight.adapters.inbound import mappers
 from insight.application.use_cases.expand_query import ExpandQuery
 from insight.application.use_cases.generate_insight import GenerateInsight
+from insight.application.use_cases.judge_candidates import JudgeCandidates, JudgeItem
 from insight.application.use_cases.get_provider_status import GetProviderStatus
 from insight.application.validation import validate_query_text
 from insight.domain.errors import (
@@ -36,7 +37,9 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
         generate_insight: GenerateInsight,
         provider_status: GetProviderStatus,
         max_queue: int = 100,
+        judge_candidates: JudgeCandidates | None = None,
     ) -> None:
+        self._judge_candidates = judge_candidates
         self._expand_query = expand_query
         self._generate_insight = generate_insight
         self._provider_status = provider_status
@@ -54,6 +57,29 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
         except AppError as error:
             await self._abort(context, error)
         return mappers.to_expand_response(expansion)
+
+    async def JudgeCandidates(  # noqa: N802 - имя RPC из контракта
+        self, request: insight_pb2.JudgeCandidatesRequest, context: grpc.aio.ServicerContext
+    ) -> insight_pb2.JudgeCandidatesResponse:
+        """Смысловая оценка кандидатов; недоступность модели — пустой ответ с used_fallback, не ошибка."""
+        if self._judge_candidates is None or not request.items or not request.query_text.strip():
+            return insight_pb2.JudgeCandidatesResponse(used_fallback=True)
+        items = [
+            JudgeItem(item.candidate_id, item.title, tuple(item.keyphrases), tuple(item.evidence))
+            for item in request.items
+        ]
+        outcome = await self._judge_candidates.execute(request.query_text.strip()[:500], items)
+        return insight_pb2.JudgeCandidatesResponse(
+            verdicts=[
+                insight_pb2.JudgeVerdict(
+                    candidate_id=v.candidate_id, verdict=v.verdict, relevance=v.relevance, reason_ru=v.reason_ru
+                )
+                for v in outcome.verdicts
+            ],
+            provider=outcome.provider,
+            model=outcome.model,
+            used_fallback=outcome.used_fallback,
+        )
 
     async def GenerateInsight(  # noqa: N802 - имя RPC из контракта
         self, request: insight_pb2.GenerateInsightRequest, context: grpc.aio.ServicerContext

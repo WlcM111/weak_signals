@@ -136,6 +136,7 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
         config=RunJobConfig(
             lease_seconds=settings.job_lease_seconds,
             heartbeat_seconds=settings.job_heartbeat_seconds,
+            deadline_enabled=settings.job_deadline_enabled,
             deadline_seconds=settings.job_deadline_seconds,
             deadline_reserve_seconds=settings.job_deadline_reserve_seconds,
             insight_call_seconds=settings.insight_timeout_seconds,
@@ -152,6 +153,8 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
             narrate=NarrateConfig(
                 evidence_text_max_chars=settings.evidence_text_max_chars,
                 prompt_version=settings.prompt_version,
+                judge_enabled=settings.candidate_judge_enabled,
+                judge_pool=settings.candidate_judge_pool,
             ),
         ),
         metrics=context["metrics"],

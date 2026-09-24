@@ -43,10 +43,15 @@ class OrchestratorSettings(BaseServiceSettings):
     analyze_timeout_seconds: int = Field(default=300, ge=30, le=3600)
     insight_concurrency: int = Field(default=1, ge=1, le=8)
     insight_timeout_seconds: int = Field(default=90, ge=10, le=300)
+    # Включение сквозного срока задания: false — срок не проверяется, задание работает без ограничения по времени.
+    job_deadline_enabled: bool = True
     # Сквозной срок одного задания от приёма до сохранённого результата (требование: не более 20 минут).
     job_deadline_seconds: int = Field(default=1200, ge=60, le=7200)
     # Резерв до срока на запись результата и завершение задания.
     job_deadline_reserve_seconds: int = Field(default=120, ge=10, le=900)
+    # Смысловая оценка кандидатов моделью перед нарративом и размер оцениваемого пула.
+    candidate_judge_enabled: bool = True
+    candidate_judge_pool: int = Field(default=30, ge=5, le=40)
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)

@@ -108,6 +108,16 @@ class EvidenceView:
 
 
 @dataclass(frozen=True, slots=True)
+class JudgeVerdictView:
+    """Смысловая оценка кандидата моделью (`insight.v1.JudgeVerdict`)."""
+
+    candidate_id: str
+    verdict: str
+    relevance: int
+    reason_ru: str
+
+
+@dataclass(frozen=True, slots=True)
 class CandidateView:
     """Кандидат, полученный из `ListCandidates`."""
 

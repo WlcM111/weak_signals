@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 
 from orchestrator.application.dto import (
+    CandidateView,
+    JudgeVerdictView,
     AnalysisView,
     CandidateView,
     CollectionView,
@@ -419,6 +421,21 @@ class FakeInsight:
     fail_expand: bool = False
     fail_generate: bool = False
     calls: list[str] = field(default_factory=list)
+    # Правило смысловой оценки: кандидат → (вердикт, релевантность); None — оценка пустая, поведение прежнее.
+    judge_rule: Callable[[CandidateView], tuple[str, int]] | None = None
+    fail_judge: bool = False
+    judge_calls: list[int] = field(default_factory=list)
+
+    async def judge_candidates(self, query_text: str, candidates) -> dict[str, JudgeVerdictView]:  # noqa: ANN001
+        """Смысловая оценка по правилу теста."""
+        if self.fail_judge:
+            raise UpstreamUnavailable("JudgeCandidates: UNAVAILABLE")
+        self.judge_calls.append(len(candidates))
+        if self.judge_rule is None:
+            return {}
+        return {
+            c.candidate_id: JudgeVerdictView(c.candidate_id, *self.judge_rule(c), "Причина оценки.") for c in candidates
+        }
 
     async def expand_query(self, query_text: str) -> ExpansionView:
         """Расширение запроса."""

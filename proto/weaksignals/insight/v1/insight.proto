@@ -13,6 +13,8 @@ service InsightService {
   // Генерация русскоязычного инсайта по кандидату на основе переданных доказательств. Deadline 120 s.
   // Retry: да, только с тем же idempotency_key (сервер вернёт кешированный результат).
   rpc GenerateInsight(GenerateInsightRequest) returns (GenerateInsightResponse);
+  // Смысловая оценка кандидатов перед нарративом: конкретная ли технология, относится ли к запросу, ранняя ли стадия.
+  rpc JudgeCandidates(JudgeCandidatesRequest) returns (JudgeCandidatesResponse);
   // Состояние провайдеров LLM (для readiness и UI). Deadline 5 s. Retry: да.
   rpc GetProviderStatus(GetProviderStatusRequest) returns (GetProviderStatusResponse);
 }
@@ -112,6 +114,32 @@ message GenerateInsightResponse {
   GroundingCheck grounding = 5;
   Provenance provenance = 6;
   bool from_cache = 7;
+}
+
+message JudgeItem {
+  string candidate_id = 1;
+  string title = 2;
+  repeated string keyphrases = 3; // 0..8
+  repeated string evidence = 4;   // 0..3 фрагмента доказательств
+}
+
+message JudgeCandidatesRequest {
+  string query_text = 1;          // 2..500
+  repeated JudgeItem items = 2;   // 1..40
+}
+
+message JudgeVerdict {
+  string candidate_id = 1;
+  string verdict = 2;   // EMERGING_TECHNOLOGY | MATURE_TECHNOLOGY | OVERVIEW | GENERIC_CONCEPT | OFF_TOPIC | NOISE
+  int32 relevance = 3;  // 0..3
+  string reason_ru = 4;
+}
+
+message JudgeCandidatesResponse {
+  repeated JudgeVerdict verdicts = 1; // пусто, если оценка недоступна
+  string provider = 2;
+  string model = 3;
+  bool used_fallback = 4;             // true = модель недоступна или ответ отклонён; кандидаты не оцениваются
 }
 
 message GetProviderStatusRequest {}
