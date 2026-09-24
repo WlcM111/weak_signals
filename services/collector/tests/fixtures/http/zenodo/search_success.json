@@ -1,0 +1,65 @@
+{
+    "hits": {
+      "total": 6,
+      "hits": [
+        {
+          "id": 101,
+          "doi": "10.5281/zenodo.101",
+          "links": {"html": "https://zenodo.org/records/101"},
+          "metadata": {
+            "title": "Neuromorphic In-Sensor Computing with Ferroelectric Synapses",
+            "description": "<p>We report a <b>preprint</b> on in-sensor neuromorphic computing.</p>",
+            "publication_date": "2026-05-10",
+            "language": "eng",
+            "resource_type": {"type": "publication", "subtype": "preprint", "title": "Preprint"}
+          }
+        },
+        {
+          "id": "abcd-1234",
+          "pids": {"doi": {"identifier": "10.5281/zenodo.202", "provider": "datacite"}},
+          "links": {"self_html": "https://zenodo.org/records/202"},
+          "metadata": {
+            "title": "Нейроморфные сопроцессоры для периферийного инференса",
+            "description": "Препринт о нейроморфных сопроцессорах.",
+            "publication_date": "2025-11-02",
+            "languages": [{"id": "rus"}],
+            "resource_type": {"id": "publication-preprint", "title": {"en": "Preprint"}}
+          }
+        },
+        {
+          "id": 303,
+          "links": {"self_html": "https://zenodo.org/records/303"},
+          "metadata": {
+            "title": "Benchmark dataset for spiking networks",
+            "publication_date": "2026-03-01",
+            "resource_type": {"id": "dataset", "title": {"en": "Dataset"}}
+          }
+        },
+        {
+          "id": 404,
+          "links": {"self_html": "https://zenodo.org/records/404"},
+          "metadata": {
+            "title": "Early memristor crossbar study",
+            "publication_date": "2019-06-01",
+            "resource_type": {"id": "publication-preprint"}
+          }
+        },
+        {
+          "id": 505,
+          "links": {"self_html": "https://zenodo.org/records/505"},
+          "metadata": {
+            "title": "   ",
+            "publication_date": "2026-01-15",
+            "resource_type": {"id": "publication-preprint"}
+          }
+        },
+        {
+          "id": 606,
+          "metadata": {
+            "title": "Analog compute-in-memory accelerators for edge AI",
+            "publication_date": "2026-02-20"
+          }
+        }
+      ]
+    }
+  }

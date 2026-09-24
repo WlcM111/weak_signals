@@ -1,0 +1,52 @@
+# Конфигурация nginx для контейнера ui: статика SPA + прокси к orchestrator-api.
+# API-ключ подставляется здесь, на сервере: браузер его никогда не получает (§17 HANDOFF_UI).
+server {
+    listen 8501;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # DNS Docker: адрес orchestrator-api перечитывается, иначе после его перезапуска nginx отдавал 502
+    # до собственного рестарта (имя разрешалось один раз при старте).
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "no-referrer" always;
+
+    location = /healthz {
+        access_log off;
+        default_type application/json;
+        return 200 '{"status":"ok"}';
+    }
+
+    location /api/ {
+        set $ws_api_upstream ${WS_API_BASE_URL};
+        proxy_pass $ws_api_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-API-Key "${WS_API_KEY}";
+        proxy_set_header X-Correlation-Id $request_id;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 120s;
+    }
+
+    location = /readyz {
+        set $ws_ready_upstream ${WS_API_BASE_URL}/readyz;
+        proxy_pass $ws_ready_upstream;
+        proxy_set_header X-API-Key "${WS_API_KEY}";
+    }
+
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

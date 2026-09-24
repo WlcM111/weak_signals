@@ -1,0 +1,287 @@
+АНАЛИТИКА ПО ШЕСТИ ТЕМАМ ДАТАСЕТА — прогон 20260922-195722 UTC, top_n = 10
+датасет: ml/data/raw/dataset_normalized.csv (100 строк)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+СОСТОЯНИЕ СТЕНДА ПЕРЕД ПРОГОНОМ
+════════════════════════════════════════════════════════════════════════════════════════════════════
+коммит: нет данных git
+готовность API (/readyz): код 200
+контейнеры:
+  analyzer | running | Up 1 second (health: starting)
+  collector | running | Up 21 seconds (healthy)
+  insight | running | Up 10 hours (healthy)
+  orchestrator-api | running | Up 10 hours (healthy)
+  orchestrator-worker | running | Up 10 hours (healthy)
+  ui | running | Up 43 hours (healthy)
+  postgres | running | Up 2 days (healthy)
+модель (/api/v1/model): код 502
+  model_version_id: None
+  model_family: None
+  embedding_model: None
+  dataset_version: None
+  feature_schema_version: None
+  trained_at: None
+  метрики: null
+  признаков: 0
+пороги и провайдеры (несекретные переменные):
+  analyzer.WS_CLUSTER_DISTANCE_THRESHOLD = 0.20
+  analyzer.WS_MIN_DOC_QUERY_SIM = 0.35
+  analyzer.WS_MIN_CANDIDATE_QUERY_SIM = 0.88WS_TRUST_WEIGHTED_SELECTION=false
+  analyzer.WS_TRUST_WEIGHTED_SELECTION = (не задано, значение по умолчанию)
+  analyzer.WS_REQUIRE_HIGH_TRUST_SOURCE = (не задано, значение по умолчанию)
+  insight.WS_LLM_PRIMARY_PROVIDER = gigachat
+  insight.WS_LLM_FALLBACK_PROVIDER = none
+  insight.WS_GIGACHAT_MODEL = GigaChat-2-Pro
+  insight.WS_GIGACHAT_MAX_CONCURRENCY = 1
+каталог источников (collector.source_catalog):
+  arxiv | t | 0.100 | PREPRINT | HIGH
+  github | t | 0.400 | CODE_REPOSITORY | MEDIUM
+  hh | f | 1.000 | VACANCY | MEDIUM
+  openalex | t | 5.000 | SCIENTIFIC_PUBLICATION | HIGH
+  patentsview | f | 1.000 | PATENT | HIGH
+  rss | t | 2.000 | INDUSTRY_MEDIA | MEDIUM
+  semantic_scholar | t | 0.500 | SCIENTIFIC_PUBLICATION | HIGH
+  wikipedia | t | 10.000 | ENCYCLOPEDIA | MEDIUM
+  zenodo | t | 0.300 | PREPRINT | HIGH
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 1/6: Индустриальный ИИ — запрос «индустриальный искусственный интеллект на производстве»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab1-c6d2-748d-89f8-f57c443a62fb   top_n: 10
+  19:57:23 UTC  статус: QUEUED
+  19:57:33 UTC  статус: COLLECTING
+  19:57:43 UTC  статус: ANALYZING
+  19:57:53 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T19:57:23.538387+00:00 / 2026-09-22T19:57:24.332413+00:00 / 2026-09-22T19:57:44.563281+00:00
+длительность: 20 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 1 | 0 | 0 | RATE_LIMITED | arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv
+  github | COMPLETED | 3 | 150 | 1 |  | 
+  openalex | COMPLETED | 3 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 21 | 9 |  | 
+  semantic_scholar | FAILED | 3 | 100 | 100 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 3 | 73 | 66
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': '592dc491-8e19-48d6-a380-ce0fcc617efe', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 2/6: Роботы — запрос «робототехника и физический искусственный интеллект»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab2-b33f-78f0-9af8-eeac41f988a8   top_n: 10
+  19:58:24 UTC  статус: QUEUED
+  19:58:34 UTC  статус: COLLECTING
+  19:58:44 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T19:58:24.064837+00:00 / 2026-09-22T19:58:24.721660+00:00 / 2026-09-22T19:58:36.858472+00:00
+длительность: 12 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1740 с
+  github | COMPLETED | 6 | 53 | 0 |  | 
+  openalex | COMPLETED | 3 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 23 | 2 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 2 | 23 | 23
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': '43741b50-131a-4dbc-a6d1-f4053692314e', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 3/6: Инфраструктура ИИ — запрос «инфраструктура для искусственного интеллекта и дата-центры»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab3-789b-7552-a74c-61abf5447b70   top_n: 10
+  19:59:14 UTC  статус: QUEUED
+  19:59:24 UTC  статус: COLLECTING
+  19:59:44 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T19:59:14.588321+00:00 / 2026-09-22T19:59:15.022120+00:00 / 2026-09-22T19:59:36.180907+00:00
+длительность: 21 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1690 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 3 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 13 | 1 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 75 | 70
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': 'e7bd95bc-5b9f-439f-9141-af872ad1f0c9', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 4/6: Финтех — запрос «перспективные решения в финтехе»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab4-6528-762c-9260-93ca5c81c7cb   top_n: 10
+  20:00:15 UTC  статус: QUEUED
+  20:00:25 UTC  статус: COLLECTING
+  20:00:35 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T20:00:15.144577+00:00 / 2026-09-22T20:00:15.809569+00:00 / 2026-09-22T20:00:27.919745+00:00
+длительность: 12 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1629 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 4 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 3 | 1 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 2 | 29 | 24
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': 'c9124950-a262-4926-be15-f995af448465', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 5/6: Защита ИИ — запрос «защита и безопасность систем искусственного интеллекта»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab5-2a7c-7992-96a0-87f50ae5d466   top_n: 10
+  20:01:05 UTC  статус: QUEUED
+  20:01:15 UTC  статус: COLLECTING
+  20:01:25 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T20:01:05.660986+00:00 / 2026-09-22T20:01:06.109634+00:00 / 2026-09-22T20:01:24.246508+00:00
+длительность: 18 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1578 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 3 | 150 | 1 |  | 
+  rss | COMPLETED | 3 | 31 | 4 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 100 | 91
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': 'eac56409-36ff-4d96-963c-d0abf5ddf646', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 6/6: Edge — запрос «edge-вычисления и периферийный инференс»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cab5-f00b-751a-8f71-143f7b62bc9d   top_n: 10
+  20:01:56 UTC  статус: QUEUED
+  20:02:06 UTC  статус: COLLECTING
+  20:02:16 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T20:01:56.235831+00:00 / 2026-09-22T20:01:56.405945+00:00 / 2026-09-22T20:02:14.591896+00:00
+длительность: 18 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1528 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 4 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 9 | 2 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 90 | 64
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': 'b97b7820-9fcb-426e-b24d-e74e241647b3', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+СВОДКА ПО ТЕМАМ
+════════════════════════════════════════════════════════════════════════════════════════════════════
+тема | статус | время | докум. | кластеров | кандидатов | сигналов | увер.>75% | в выдаче | откл. OFF_TOPIC | LLM/экстр. | совп. датасет
+Индустриальный ИИ | FAILED | 20 с | — | — | — | — | — | — | — | —/— | —
+Роботы | FAILED | 12 с | — | — | — | — | — | — | — | —/— | —
+Инфраструктура ИИ | FAILED | 21 с | — | — | — | — | — | — | — | —/— | —
+Финтех | FAILED | 12 с | — | — | — | — | — | — | — | —/— | —
+Защита ИИ | FAILED | 18 с | — | — | — | — | — | — | — | —/— | —
+Edge | FAILED | 18 с | — | — | — | — | — | — | — | —/— | —
+
+источники по темам:
+  Индустриальный ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED
+  Роботы: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED
+  Инфраструктура ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED
+  Финтех: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED
+  Защита ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED
+  Edge: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, semantic_scholar:FAILED

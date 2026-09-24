@@ -1,0 +1,53 @@
+# Правила порядковой стадии технологии для признака stage_lex_ordinal (§12.7 ТЗ).
+# 0 — упоминаний стадии нет; берётся максимальная сработавшая стадия.
+version: 1
+stages:
+  1:  # концепция
+    - концепц*
+    - теоретическ*
+    - идея
+    - гипотез*
+    - concept
+    - conceptual
+    - theoretical
+  2:  # прототип
+    - прототип*
+    - макет*
+    - опытн* образец
+    - prototype
+    - prototypes
+    - proof of concept
+    - poc
+    - demonstrator
+  3:  # пилот
+    - пилот
+    - пилотн*
+    - испытан*
+    - опытн* эксплуатац*
+    - pilot
+    - pilot project
+    - trial
+    - trials
+    - beta
+    - testbed
+  4:  # раннее внедрение
+    - ранн* внедрение
+    - перв* клиент*
+    - коммерческ* запуск
+    - ограниченн* доступ
+    - early adoption
+    - early access
+    - limited availability
+    - first customers
+    - commercial launch
+  5:  # массовое внедрение
+    - массов* внедрение
+    - массов* применение
+    - повсеместн*
+    - промышленн* эксплуатац*
+    - отраслев* стандарт
+    - mass adoption
+    - widely deployed
+    - general availability
+    - industry standard
+    - mainstream

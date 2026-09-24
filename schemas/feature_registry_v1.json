@@ -1,0 +1,37 @@
+{
+  "feature_schema_version": "v1",
+  "description": "Реестр интерпретируемых признаков модели слабого сигнала. Единый для trainer (обучение) и analyzer (инференс). Порядок = порядок вектора признаков.",
+  "groups": {
+    "lexical": "вычисляется из текста наблюдения (обучение: title + description; инференс: title_auto + доказательные сниппеты кластера)",
+    "collection": "вычисляется из коллекции документов (обучение: ENRICHMENT-сбор по названию технологии; инференс: документы кластера)",
+    "encyclopedia": "вычисляется через collector.CheckEncyclopedia (обе фазы одинаково)",
+    "embedding": "вычисляется из эмбеддингов multilingual-e5-base (обе фазы одинаково)"
+  },
+  "features": [
+    {"name": "lex_emergence_score", "group": "lexical", "type": "float", "range": [0, 1], "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)", "expected_direction": "supports_weak_signal", "compute": "доля токенов из лексикона emergence_ru_en.txt среди токенов текста, нормированная на 1000 токенов и обрезанная до 1"},
+    {"name": "lex_maturity_score", "group": "lexical", "type": "float", "range": [0, 1], "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)", "expected_direction": "supports_mature", "compute": "аналогично, лексикон maturity_ru_en.txt"},
+    {"name": "lex_hype_score", "group": "lexical", "type": "float", "range": [0, 1], "label_ru": "Лексика маркетингового хайпа", "expected_direction": "supports_mature", "compute": "аналогично, лексикон hype_ru_en.txt"},
+    {"name": "stage_lex_ordinal", "group": "lexical", "type": "int", "range": [0, 5], "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)", "expected_direction": "neutral", "compute": "правила стадий stage_rules.yaml (порядок: концепция<прототип<пилот<раннее внедрение<массовое)"},
+    {"name": "funding_mentions_count", "group": "lexical", "type": "int", "range": [0, 50], "label_ru": "Упоминания раундов/сумм финансирования", "expected_direction": "supports_weak_signal", "compute": "regex сумм ($, €, млн, M, B) и слов seed/Series [A-D]/раунд"},
+    {"name": "bigtech_mentions_count", "group": "lexical", "type": "int", "range": [0, 50], "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)", "expected_direction": "supports_mature", "compute": "число вхождений названий из bigtech.txt (Google, Microsoft, NVIDIA, Amazon, Apple, Meta, Huawei, Сбер, Яндекс …)"},
+    {"name": "org_mentions_count", "group": "lexical", "type": "int", "range": [0, 100], "label_ru": "Число упомянутых организаций (эвристика)", "expected_direction": "neutral", "compute": "последовательности капитализированных токенов длиной 1–4 + суффиксы (Inc, Labs, AI, GmbH)"},
+    {"name": "recent_year_share", "group": "lexical", "type": "float", "range": [0, 1], "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов", "expected_direction": "supports_weak_signal", "compute": "count(year >= current_year-1)/count(year in 2000..current_year+1); 0 если годов нет"},
+    {"name": "doc_count_log", "group": "collection", "type": "float", "range": [0, 8], "label_ru": "Объём упоминаний (log1p числа документов)", "expected_direction": "neutral", "compute": "log1p(doc_count)"},
+    {"name": "source_type_diversity", "group": "collection", "type": "int", "range": [0, 14], "label_ru": "Число различных типов источников", "expected_direction": "supports_weak_signal", "compute": "count(distinct source_type)"},
+    {"name": "share_scientific", "group": "collection", "type": "float", "range": [0, 1], "label_ru": "Доля научных публикаций и препринтов", "expected_direction": "supports_weak_signal", "compute": "(SCIENTIFIC_PUBLICATION+PREPRINT)/doc_count"},
+    {"name": "share_news_media", "group": "collection", "type": "float", "range": [0, 1], "label_ru": "Доля новостей и отраслевых медиа", "expected_direction": "neutral", "compute": "(NEWS+INDUSTRY_MEDIA)/doc_count"},
+    {"name": "share_marketing", "group": "collection", "type": "float", "range": [0, 1], "label_ru": "Доля пресс-релизов и корпоративных блогов", "expected_direction": "supports_mature", "compute": "(PRESS_RELEASE+CORPORATE_BLOG)/doc_count"},
+    {"name": "share_code_vacancy", "group": "collection", "type": "float", "range": [0, 1], "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)", "expected_direction": "neutral", "compute": "(CODE_REPOSITORY+VACANCY)/doc_count"},
+    {"name": "trusted_share", "group": "collection", "type": "float", "range": [0, 1], "label_ru": "Доля источников высокой доверенности", "expected_direction": "supports_weak_signal", "compute": "count(trust_level=HIGH)/doc_count"},
+    {"name": "growth_ratio_12m", "group": "collection", "type": "float", "range": [0, 20], "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)", "expected_direction": "supports_weak_signal", "compute": "(n_last12+1)/(n_prev12+1); документы без даты не учитываются"},
+    {"name": "recency_median_days", "group": "collection", "type": "float", "range": [0, 3650], "label_ru": "Медианный возраст документов, дней", "expected_direction": "supports_weak_signal", "compute": "median(now - published_at)"},
+    {"name": "first_seen_years_ago", "group": "collection", "type": "float", "range": [0, 30], "label_ru": "Возраст самого раннего упоминания, лет", "expected_direction": "supports_mature", "compute": "(now - min(published_at))/365.25; 0 если дат нет"},
+    {"name": "citation_median_log", "group": "collection", "type": "float", "range": [0, 12], "label_ru": "Медианная цитируемость научных документов (log1p)", "expected_direction": "supports_mature", "compute": "log1p(median(citation_count)) по научным документам; 0 если нет"},
+    {"name": "wiki_exists", "group": "encyclopedia", "type": "int", "range": [0, 1], "label_ru": "Есть статья Wikipedia по названию технологии", "expected_direction": "supports_mature", "compute": "CheckEncyclopedia по title/keyphrases (ru и en); 1 если найдена хотя бы одна"},
+    {"name": "wiki_pageviews_30d_log", "group": "encyclopedia", "type": "float", "range": [0, 20], "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)", "expected_direction": "supports_mature", "compute": "log1p(max(pageviews_30d,0))"},
+    {"name": "wiki_age_years", "group": "encyclopedia", "type": "float", "range": [0, 30], "label_ru": "Возраст статьи Wikipedia, лет", "expected_direction": "supports_mature", "compute": "(now - created_at)/365.25; 0 если статьи нет"},
+    {"name": "emb_sim_weak_centroid", "group": "embedding", "type": "float", "range": [-1, 1], "label_ru": "Семантическая близость к эталонным слабым сигналам", "expected_direction": "supports_weak_signal", "compute": "cos(emb(text), centroid(train positives)) — центроид вычисляется только по train-фолду"},
+    {"name": "emb_sim_mature_centroid", "group": "embedding", "type": "float", "range": [-1, 1], "label_ru": "Семантическая близость к эталонным зрелым технологиям", "expected_direction": "supports_mature", "compute": "cos(emb(text), centroid(train negatives))"},
+    {"name": "emb_sim_query", "group": "embedding", "type": "float", "range": [-1, 1], "label_ru": "Близость к запросу пользователя", "expected_direction": "neutral", "compute": "cos(emb(text), emb(query)); при обучении = 1.0 (константа, исключается из модели), используется только правилом OFF_TOPIC"}
+  ]
+}

@@ -1,0 +1,27 @@
+# Категории доменов лент RSS (§6.5 ТЗ): определяют тип источника и, через него, доверенность.
+# INDUSTRY_MEDIA — профессиональные отраслевые медиа; NEWS — деловые и общие новости;
+# CORPORATE_BLOG — блоги компаний-разработчиков (доверенность LOW).
+version: 1
+domains:
+  techcrunch.com: NEWS
+  wired.com: NEWS
+  reuters.com: NEWS
+  cnews.ru: INDUSTRY_MEDIA
+  habr.com: INDUSTRY_MEDIA
+  ieee.org: INDUSTRY_MEDIA
+  spectrum.ieee.org: INDUSTRY_MEDIA
+  arstechnica.com: INDUSTRY_MEDIA
+  theregister.com: INDUSTRY_MEDIA
+  venturebeat.com: INDUSTRY_MEDIA
+  tadviser.ru: INDUSTRY_MEDIA
+  rbc.ru: NEWS
+  vedomosti.ru: NEWS
+  nature.com: INDUSTRY_MEDIA
+  sciencedaily.com: INDUSTRY_MEDIA
+  openai.com: CORPORATE_BLOG
+  ai.googleblog.com: CORPORATE_BLOG
+  blogs.nvidia.com: CORPORATE_BLOG
+  engineering.fb.com: CORPORATE_BLOG
+  aws.amazon.com: CORPORATE_BLOG
+  yandex.ru: CORPORATE_BLOG
+  sber.ru: CORPORATE_BLOG

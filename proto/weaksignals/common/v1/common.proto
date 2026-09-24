@@ -1,0 +1,88 @@
+// Contracts version: 1.0.0 (2026-09-15). Owner: Developer A. Package: weaksignals.common.v1
+syntax = "proto3";
+
+package weaksignals.common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Тип источника. UNSPECIFIED недопустим в ответах сервисов (валидация: != 0).
+enum SourceType {
+  SOURCE_TYPE_UNSPECIFIED = 0;
+  SOURCE_TYPE_SCIENTIFIC_PUBLICATION = 1; // рецензируемая публикация (OpenAlex)
+  SOURCE_TYPE_PREPRINT = 2;               // arXiv и др.
+  SOURCE_TYPE_PATENT = 3;                 // патентные базы
+  SOURCE_TYPE_NEWS = 4;                   // общие/деловые новости
+  SOURCE_TYPE_INDUSTRY_MEDIA = 5;         // профессиональные отраслевые медиа
+  SOURCE_TYPE_CORPORATE_BLOG = 6;         // блог компании-разработчика
+  SOURCE_TYPE_PRESS_RELEASE = 7;          // пресс-релиз / рекламная публикация
+  SOURCE_TYPE_CODE_REPOSITORY = 8;        // GitHub и др.
+  SOURCE_TYPE_VACANCY = 9;                // вакансии (hh.ru)
+  SOURCE_TYPE_ANALYTICAL_REPORT = 10;     // аналитический отчёт
+  SOURCE_TYPE_GOVERNMENT = 11;            // гос. орган / регулятор / межд. организация
+  SOURCE_TYPE_SOCIAL_MEDIA = 12;          // соцсети, личные блоги, агрегаторы
+  SOURCE_TYPE_ENCYCLOPEDIA = 13;          // Wikipedia (индикатор зрелости)
+  SOURCE_TYPE_OTHER = 14;
+}
+
+// Уровень доверенности источника (ТЗ: для каждого источника отображать уровень доверенности).
+enum TrustLevel {
+  TRUST_LEVEL_UNSPECIFIED = 0;
+  TRUST_LEVEL_HIGH = 1;   // доверенные: наука, патенты, гос. органы, отчёты
+  TRUST_LEVEL_MEDIUM = 2; // отраслевые медиа, репозитории, вакансии
+  TRUST_LEVEL_LOW = 3;    // соцсети, пресс-релизы, анонимные ресурсы
+}
+
+// Ключ адаптера-источника (соответствует collector.source_catalog.source_key).
+enum SourceKey {
+  SOURCE_KEY_UNSPECIFIED = 0;
+  SOURCE_KEY_OPENALEX = 1;
+  SOURCE_KEY_ARXIV = 2;
+  SOURCE_KEY_PATENTSVIEW = 3;
+  SOURCE_KEY_RSS = 4;
+  SOURCE_KEY_GITHUB = 5;
+  SOURCE_KEY_HH = 6;
+  SOURCE_KEY_WIKIPEDIA = 7;
+  SOURCE_KEY_SEMANTIC_SCHOLAR = 8;
+  SOURCE_KEY_ZENODO = 9;
+  SOURCE_KEY_GDELT = 10;
+}
+
+// Документ открытого источника. Владелец данных — collector.
+message Document {
+  string document_id = 1;                            // UUID v7, обязателен
+  string url = 2;                                    // абсолютный https/http URL, ≤ 2048 символов
+  string title = 3;                                  // ≤ 512 символов, непустой
+  string text = 4;                                   // аннотация/фрагмент, ≤ 8000 символов, может быть пустым
+  string language_code = 5;                          // ISO 639-1 ("ru", "en"); "und" если не определён
+  optional google.protobuf.Timestamp published_at = 6; // отсутствует = дата публикации неизвестна
+  SourceKey source_key = 7;                          // != UNSPECIFIED
+  SourceType source_type = 8;                        // != UNSPECIFIED
+  TrustLevel trust_level = 9;                        // != UNSPECIFIED
+  optional string doi = 10;                          // без префикса https://doi.org/
+  optional int32 citation_count = 11;                // только для научных источников, ≥ 0
+  optional int32 engagement_count = 12;              // GitHub stars / голоса; ≥ 0
+  google.protobuf.Timestamp fetched_at = 13;         // обязателен
+  string origin_domain = 14;                         // хост URL без www, ≤ 255
+}
+
+// Стандартная пагинация (cursor-based). page_size: 1..500, по умолчанию 100.
+message PageRequest {
+  int32 page_size = 1;
+  string page_token = 2; // пустая строка = первая страница
+}
+
+message PageResponse {
+  string next_page_token = 1; // пустая строка = страниц больше нет
+  int32 total_count = 2;      // общее число элементов, если известно; -1 если не вычисляется
+}
+
+// Статусы длительных операций (правила переходов см. ARCHITECTURE_TZ.md §9).
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+  OPERATION_STATUS_PENDING = 1;
+  OPERATION_STATUS_RUNNING = 2;
+  OPERATION_STATUS_COMPLETED = 3;
+  OPERATION_STATUS_PARTIAL = 4;   // завершено с частичным результатом (часть адаптеров/шагов отказала)
+  OPERATION_STATUS_FAILED = 5;
+  OPERATION_STATUS_CANCELLED = 6;
+}

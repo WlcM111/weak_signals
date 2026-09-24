@@ -1,0 +1,23 @@
+{
+  "total_count": 2,
+  "items": [
+    {
+      "full_name": "edge-ai/neuro-runtime",
+      "html_url": "https://github.com/edge-ai/neuro-runtime",
+      "description": "Runtime for neuromorphic edge accelerators",
+      "topics": ["neuromorphic", "edge-ai", "runtime"],
+      "stargazers_count": 412,
+      "created_at": "2026-01-15T10:00:00Z",
+      "language": "Rust"
+    },
+    {
+      "full_name": "noname/empty-url",
+      "html_url": null,
+      "description": "Без ссылки — должен быть отброшен",
+      "topics": [],
+      "stargazers_count": 3,
+      "created_at": "2026-02-01T10:00:00Z",
+      "language": null
+    }
+  ]
+}

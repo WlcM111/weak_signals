@@ -1,0 +1,22 @@
+[project]
+name = "weak-signals"
+version = "1.2.2"
+requires-python = ">=3.12"
+
+[tool.uv]
+# Корень — виртуальный воркспейс, собственного пакета у него нет.
+package = false
+
+[tool.uv.workspace]
+# services/ui собирается npm/vite и в python-воркспейс не входит.
+members = ["libs/*", "services/collector", "services/analyzer", "services/orchestrator", "services/insight", "ml"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

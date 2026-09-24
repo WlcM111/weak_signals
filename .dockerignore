@@ -1,0 +1,19 @@
+# Контекст сборки: исключаем всё, что не нужно образам (ускоряет сборку и не ломает кеш).
+.git
+.env
+.venv
+node_modules
+services/ui/node_modules
+services/ui/dist
+__pycache__
+*.pyc
+.mypy_cache
+.ruff_cache
+.pytest_cache
+mlruns
+model-store/*
+ml/data/enriched
+ml/data/features
+*.joblib
+*.npz
+*.gguf

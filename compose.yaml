@@ -1,0 +1,319 @@
+# Проектный compose.yaml (Compose Specification, без устаревшего ключа `version`). Версия проекта: 1.0.0 (2026-09-15).
+# Статус: спроектирован, структурно проверен (tools/check_artifacts.py); фактический запуск возможен только после реализации сервисов.
+# Размещение: корень репозитория weak-signals (пути ./db/init и build context "." относительны корню; в комплекте лежит в appendix/D_compose).
+name: weak-signals
+
+x-python-service: &python-service
+  restart: unless-stopped
+  env_file: [.env]
+  networks: [internal]
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+  stop_grace_period: 30s
+
+x-pg-env: &pg-env
+  WS_PG_HOST: postgres
+  WS_PG_PORT: "5599"
+  WS_PG_DATABASE: weaksignals
+
+services:
+  postgres:
+    image: postgres:18.6
+    container_name: ws-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${WS_POSTGRES_SUPERUSER_PASSWORD:?set in .env}
+      POSTGRES_DB: postgres
+      PGPORT: "5599"
+      WS_ORCHESTRATOR_DB_PASSWORD: ${WS_ORCHESTRATOR_DB_PASSWORD:?set in .env}
+      WS_COLLECTOR_DB_PASSWORD: ${WS_COLLECTOR_DB_PASSWORD:?set in .env}
+      WS_ANALYZER_DB_PASSWORD: ${WS_ANALYZER_DB_PASSWORD:?set in .env}
+      WS_INSIGHT_DB_PASSWORD: ${WS_INSIGHT_DB_PASSWORD:?set in .env}
+    command: >
+      postgres -c max_connections=200 -c shared_buffers=512MB -c work_mem=16MB
+               -c log_min_duration_statement=500 -c idle_in_transaction_session_timeout=60000
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./db/init/00_roles.sql:/docker-entrypoint-initdb.d/00_roles.sql:ro
+    healthcheck:
+            # pg_isready отвечает «готов» даже без базы и ролей; проверяем, что init-скрипт действительно отработал.
+      test:
+        - CMD-SHELL
+        - PGPASSWORD="$$POSTGRES_PASSWORD" psql -h 127.0.0.1 -p 5599 -U postgres -d weaksignals -tAc "SELECT count(*) FROM pg_roles WHERE rolname IN ('ws_orchestrator','ws_collector','ws_analyzer','ws_insight')" | grep -qx 4
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    ports:
+      - "127.0.0.1:5599:5599"
+    networks: [internal]
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2g }
+
+  collector:
+    <<: *python-service
+    build:
+      context: .
+      dockerfile: services/collector/Dockerfile
+      target: runtime
+    image: weak-signals/collector:1.0.0
+    environment:
+      <<: *pg-env
+      WS_SERVICE_NAME: collector
+      WS_PG_USER: ws_collector
+      WS_PG_PASSWORD: ${WS_COLLECTOR_DB_PASSWORD}
+      WS_GRPC_PORT: "50051"
+      WS_HTTP_PORT: "8081"
+    entrypoint: ["python", "-m", "collector.main"]
+    command: ["serve"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-m", "ws_common.healthcheck", "grpc", "localhost:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1g }
+
+  analyzer:
+    <<: *python-service
+    build:
+      context: .
+      dockerfile: services/analyzer/Dockerfile
+      target: runtime
+    image: weak-signals/analyzer:1.0.0
+    environment:
+      <<: *pg-env
+      WS_SERVICE_NAME: analyzer
+      WS_PG_USER: ws_analyzer
+      WS_PG_PASSWORD: ${WS_ANALYZER_DB_PASSWORD}
+      WS_GRPC_PORT: "50052"
+      WS_HTTP_PORT: "8082"
+      WS_COLLECTOR_ADDR: collector:50051
+      WS_MODEL_STORE_DIR: /models
+      HF_HOME: /hf-cache
+      HF_HUB_OFFLINE: ${WS_HF_HUB_OFFLINE:-0}
+    entrypoint: ["python", "-m", "analyzer.main"]
+    command: ["serve"]
+    volumes:
+      - model-store:/models
+      - hf-cache:/hf-cache
+    depends_on:
+      postgres: { condition: service_healthy }
+      collector: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-m", "ws_common.healthcheck", "grpc", "localhost:50052"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 600s  # первый старт скачивает модель e5 (~1.1 ГБ)
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 4g }
+
+  insight:
+    <<: *python-service
+    build:
+      context: .
+      dockerfile: services/insight/Dockerfile
+      target: runtime
+    image: weak-signals/insight:1.0.0
+    environment:
+      <<: *pg-env
+      WS_SERVICE_NAME: insight
+      WS_PG_USER: ws_insight
+      WS_PG_PASSWORD: ${WS_INSIGHT_DB_PASSWORD}
+      WS_GRPC_PORT: "50053"
+      WS_HTTP_PORT: "8083"
+      WS_LLM_PRIMARY_PROVIDER: ${WS_LLM_PRIMARY_PROVIDER:-gigachat}
+      WS_LLM_FALLBACK_PROVIDER: ${WS_LLM_FALLBACK_PROVIDER:-yandexgpt}
+      WS_GIGACHAT_CREDENTIALS: ${WS_GIGACHAT_CREDENTIALS:-}
+      WS_GIGACHAT_SCOPE: ${WS_GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      WS_GIGACHAT_MODEL: ${WS_GIGACHAT_MODEL:-GigaChat-2-Pro}
+      WS_GIGACHAT_MAX_CONCURRENCY: ${WS_GIGACHAT_MAX_CONCURRENCY:-1}
+      WS_YANDEX_API_KEY: ${WS_YANDEX_API_KEY:-}
+      WS_YANDEX_FOLDER_ID: ${WS_YANDEX_FOLDER_ID:-}
+      WS_YANDEX_MODEL: ${WS_YANDEX_MODEL:-yandexgpt/latest}
+      WS_LLM_LOCAL_ENABLED: ${WS_LLM_LOCAL_ENABLED:-false}
+      WS_LOCAL_LLM_BASE_URL: ${WS_LOCAL_LLM_BASE_URL:-http://local-llm:8000/v1}
+    entrypoint: ["python", "-m", "insight.main"]
+    command: ["serve"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-m", "ws_common.healthcheck", "grpc", "localhost:50053"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1g }
+
+  orchestrator-api:
+    <<: *python-service
+    build:
+      context: .
+      dockerfile: services/orchestrator/Dockerfile
+      target: runtime
+    image: weak-signals/orchestrator:1.0.0
+    environment:
+      <<: *pg-env
+      WS_SERVICE_NAME: orchestrator-api
+      WS_PG_USER: ws_orchestrator
+      WS_PG_PASSWORD: ${WS_ORCHESTRATOR_DB_PASSWORD}
+      WS_HTTP_PORT: "8080"
+      WS_API_KEY: ${WS_API_KEY:-}
+      WS_API_BIND: "0.0.0.0"
+      WS_API_PUBLIC_BIND: ${WS_API_BIND:-127.0.0.1}
+      WS_COLLECTOR_ADDR: collector:50051
+      WS_ANALYZER_ADDR: analyzer:50052
+      WS_INSIGHT_ADDR: insight:50053
+      WS_QUEUE_MAX_PENDING: ${WS_QUEUE_MAX_PENDING:-100}
+    entrypoint: ["python", "-m", "orchestrator.main"]
+    command: ["api"]
+    ports:
+      - "${WS_API_BIND:-127.0.0.1}:8080:8080"
+    networks: [internal, edge]
+    depends_on:
+      postgres: { condition: service_healthy }
+      collector: { condition: service_healthy }
+      analyzer: { condition: service_healthy }
+      insight: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-m", "ws_common.healthcheck", "http", "http://localhost:8080/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 768m }
+
+  orchestrator-worker:
+    <<: *python-service
+    image: weak-signals/orchestrator:1.0.0
+    environment:
+      <<: *pg-env
+      WS_SERVICE_NAME: orchestrator-worker
+      WS_PG_USER: ws_orchestrator
+      WS_PG_PASSWORD: ${WS_ORCHESTRATOR_DB_PASSWORD}
+      WS_HTTP_PORT: "8084"
+      WS_COLLECTOR_ADDR: collector:50051
+      WS_ANALYZER_ADDR: analyzer:50052
+      WS_INSIGHT_ADDR: insight:50053
+      WS_WORKER_CONCURRENCY: ${WS_WORKER_CONCURRENCY:-2}
+      WS_INSIGHT_CONCURRENCY: ${WS_INSIGHT_CONCURRENCY:-1}
+    entrypoint: ["python", "-m", "orchestrator.main"]
+    command: ["worker"]
+    depends_on:
+      orchestrator-api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-m", "ws_common.healthcheck", "http", "http://localhost:8084/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+    deploy:
+      replicas: ${WS_WORKER_REPLICAS:-1}
+      resources:
+        limits: { cpus: "1.0", memory: 768m }
+
+  # UI реализован на React (ТЗ §3.2: «фреймворки React для frontend»), а не на Streamlit:
+  # контейнер отдаёт собранный SPA через nginx и проксирует /api на orchestrator-api,
+  # поэтому браузер никогда не видит WS_API_KEY. Порт 8501 сохранён из исходного compose.
+  ui:
+    build:
+      context: .
+      dockerfile: services/ui/Dockerfile
+      target: runtime
+    image: weak-signals/ui:1.0.0
+    restart: unless-stopped
+    environment:
+      WS_SERVICE_NAME: ui
+      WS_API_BASE_URL: http://orchestrator-api:8080
+      WS_API_KEY: ${WS_API_KEY:-}
+    ports:
+      - "${WS_UI_BIND:-0.0.0.0}:8501:8501"
+    networks: [internal, edge]
+    depends_on:
+      orchestrator-api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8501/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 768m }
+
+  # Оффлайн-обучение: `docker compose --profile ml run --rm trainer build-dataset`, затем `... trainer train`.
+  trainer:
+    build:
+      context: .
+      dockerfile: ml/Dockerfile
+      target: runtime
+    image: weak-signals/trainer:1.0.0
+    profiles: [ml]
+    env_file: [.env]
+    environment:
+      WS_SERVICE_NAME: trainer
+      WS_COLLECTOR_ADDR: collector:50051
+      WS_MODEL_STORE_DIR: /models
+      WS_DATA_DIR: /data
+      HF_HOME: /hf-cache
+      MLFLOW_TRACKING_URI: file:///mlruns
+    volumes:
+      - model-store:/models
+      - hf-cache:/hf-cache
+      - ./ml/data:/data
+      - ./ml/reports:/app/ml/reports
+      - ./docs/ml:/app/docs/ml
+      - mlruns:/mlruns
+    networks: [internal]
+    depends_on:
+      collector: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 6g }
+
+  # Необязательная локальная LLM (профиль local-llm): OpenAI-совместимый сервер llama.cpp с GGUF из HF (§6.4, ADR-03).
+  local-llm:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    profiles: [local-llm]
+    restart: unless-stopped
+    command: >
+      --model /models/llm/${WS_LOCAL_LLM_GGUF:-yandexgpt-5-lite-8b-instruct-q4_k_m.gguf}
+      --host 0.0.0.0 --port 8000 --ctx-size 8192 --parallel 1 --threads ${WS_LOCAL_LLM_THREADS:-6}
+    volumes:
+      - model-store:/models
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    deploy:
+      resources:
+        limits: { cpus: "6.0", memory: 8g }
+
+networks:
+  internal:
+    driver: bridge
+    internal: false   # исходящий доступ к внешним API нужен collector/insight; входящий извне закрыт отсутствием published ports
+  edge:
+    driver: bridge
+
+volumes:
+  pgdata:
+  model-store:
+  hf-cache:
+  mlruns:

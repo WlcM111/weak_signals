@@ -1,0 +1,43 @@
+# Правила типа источника и доверенности (§6.5 ТЗ). Публикуются в UI «Методология».
+# Изменение файла не требует пересборки образа: файл читается при старте сервиса.
+version: 1
+
+# Умолчание адаптера: тип документа и уровень доверенности.
+source_defaults:
+  openalex:     { type: SCIENTIFIC_PUBLICATION, trust: HIGH }
+  arxiv:        { type: PREPRINT,               trust: HIGH }
+  patentsview:  { type: PATENT,                 trust: HIGH }
+  github:       { type: CODE_REPOSITORY,        trust: MEDIUM }
+  hh:           { type: VACANCY,                trust: MEDIUM }
+  wikipedia:    { type: ENCYCLOPEDIA,           trust: MEDIUM }
+  rss:          { type: INDUSTRY_MEDIA,         trust: MEDIUM }
+  semantic_scholar: { type: SCIENTIFIC_PUBLICATION, trust: HIGH }
+  # Zenodo почти без модерации: препринт оттуда не равен препринту arXiv — потолок MEDIUM.
+  zenodo:       { type: PREPRINT,               trust: MEDIUM, trust_ceiling: MEDIUM }
+  # Новости о пилотах, контрактах и финансировании: подсказывают деловой сигнал, но не подтверждают его в одиночку.
+  gdelt:        { type: INDUSTRY_MEDIA,         trust: MEDIUM }
+
+# Доверенность по типу источника (применяется после определения типа).
+type_trust:
+  SCIENTIFIC_PUBLICATION: HIGH
+  PREPRINT: HIGH
+  PATENT: HIGH
+  GOVERNMENT: HIGH
+  ANALYTICAL_REPORT: HIGH
+  INDUSTRY_MEDIA: MEDIUM
+  NEWS: MEDIUM
+  CODE_REPOSITORY: MEDIUM
+  VACANCY: MEDIUM
+  ENCYCLOPEDIA: MEDIUM
+  CORPORATE_BLOG: LOW
+  PRESS_RELEASE: LOW
+  SOCIAL_MEDIA: LOW
+  OTHER: LOW
+
+# Государственные, регуляторные и международные источники (проверяются первыми).
+government_domains: [europa.eu, bis.org, cbr.ru, oecd.org, un.org, imf.org, who.int, nist.gov]
+government_suffixes: ['.gov', '.gov.ru', '.int', '.gov.uk']
+
+# Пресс-релизы и рекламные публикации.
+press_release_domains: [prnewswire.com, businesswire.com, globenewswire.com, newswire.ca, interfax.ru/pressreleases]
+press_release_title_markers: ['press release', 'пресс-релиз', 'пресс релиз']

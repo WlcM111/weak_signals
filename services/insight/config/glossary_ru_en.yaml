@@ -1,0 +1,73 @@
+# Словарь ru → en и метки областей для резервного расширения запроса без LLM (§7 HANDOFF).
+# Тот же файл использует orchestrator, когда insight недоступен; копии держатся синхронными.
+version: 1
+terms:
+  технологии: technologies
+  технология: technology
+  искусственный интеллект: artificial intelligence
+  ии: artificial intelligence
+  машинное обучение: machine learning
+  нейросеть: neural network
+  нейросети: neural networks
+  нейроморфный: neuromorphic
+  робототехника: robotics
+  роботы: robots
+  беспилотник: unmanned vehicle
+  экзоскелет: exoskeleton
+  финтех: fintech
+  финансы: finance
+  платежи: payments
+  банк: banking
+  страхование: insurance
+  кибербезопасность: cybersecurity
+  безопасность: security
+  криптография: cryptography
+  постквантовый: post-quantum
+  данные: data
+  облако: cloud
+  облачные: cloud
+  вычисления: computing
+  квантовые: quantum
+  квантовый: quantum
+  сенсоры: sensors
+  датчики: sensors
+  медицина: medicine
+  здравоохранение: healthcare
+  диагностика: diagnostics
+  биотехнологии: biotechnology
+  материалы: materials
+  энергетика: energy
+  водород: hydrogen
+  аккумуляторы: batteries
+  логистика: logistics
+  производство: manufacturing
+  промышленность: industry
+  промышленные: industrial
+  сельское хозяйство: agriculture
+  транспорт: transport
+  связь: telecommunications
+  сети: networks
+  чипы: chips
+  процессоры: processors
+  полупроводники: semiconductors
+  периферийные: edge
+  граничные: edge
+  перспективные: emerging
+  зарождающиеся: emerging
+  решения: solutions
+  слабые сигналы: weak signals
+  тренды: trends
+  инновации: innovations
+  стартапы: startups
+  патенты: patents
+  исследования: research
+  прототип: prototype
+  пилот: pilot
+# Ключевые слова, по которым резервный путь расставляет метки областей.
+domain_keywords:
+  industrial_ai: [производство, промышленность, промышленные, завод, конвейер, станок]
+  robotics: [робот, роботы, робототехника, манипулятор, экзоскелет, беспилотник, дрон]
+  ai_infrastructure: [инфраструктура, вычисления, облако, gpu, модель, нейросеть, данные, llm]
+  fintech: [финтех, банк, платежи, финансы, страхование, кредит, инвестиции]
+  ai_security: [безопасность, кибербезопасность, защита, криптография, атаки, уязвимости]
+  edge: [периферийные, граничные, edge, встраиваемые, микроконтроллер, устройства, iot]

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insight_llm_output.schema.json",
+  "title": "Структурированный ответ LLM для GenerateInsight (prompt insight_v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title_ru", "description_ru", "advantage_ru", "case_example", "explanation_ru", "source_summaries"],
+  "properties": {
+    "title_ru": {"type": "string", "minLength": 3, "maxLength": 200},
+    "description_ru": {"type": "string", "minLength": 50, "maxLength": 800},
+    "advantage_ru": {"type": "string", "minLength": 20, "maxLength": 600},
+    "case_example": {
+      "type": "object", "additionalProperties": false,
+      "required": ["text_ru", "document_id"],
+      "properties": {
+        "text_ru": {"type": "string", "minLength": 20, "maxLength": 600},
+        "document_id": {"type": "string", "format": "uuid", "description": "должен совпадать с одним из переданных evidence.document_id"}
+      }
+    },
+    "explanation_ru": {"type": "string", "minLength": 50, "maxLength": 800, "description": "должен упоминать ≥2 переданных признаков (label_ru)"},
+    "source_summaries": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["document_id", "summary_ru"],
+        "properties": {
+          "document_id": {"type": "string", "format": "uuid"},
+          "summary_ru": {"type": "string", "minLength": 20, "maxLength": 400}
+        }
+      }
+    }
+  }
+}

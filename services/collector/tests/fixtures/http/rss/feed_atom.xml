@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Industry Media</title>
+  <entry>
+    <title>Neuromorphic edge accelerators reach pilot deployments</title>
+    <link href="https://arstechnica.com/2026/03/neuromorphic-edge/"/>
+    <summary>Neuromorphic edge accelerators are entering pilot deployments this year.</summary>
+    <published>2026-03-05T11:00:00Z</published>
+    <category term="hardware"/>
+  </entry>
+</feed>

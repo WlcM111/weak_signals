@@ -1,0 +1,101 @@
+title,score,decision,reason,label
+Квантово-инспирированное сжатие моделей для запуска LLM на edge-железе,0.3789,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Identity & access management для ИИ-агентов (agent identity, scoped permissions)",1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Автоматизированный red-teaming ИИ-моделей как услуга (continuous AI red teaming),1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Сканеры безопасности MCP-серверов и защита от tool poisoning,0.4752,WEAK_SIGNAL,MODEL_SCORE,1
+CAD-native «engineering intelligence»: ИИ-суррогаты физики + генеративное проектирование деталей под производимость,0.1663,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Автономные агенты закупок и цепей поставок, работающие в ERP/e-mail/мессенджерах как «цифровые снабженцы»",0.9078,WEAK_SIGNAL,MODEL_SCORE,1
+"Проактивные ИИ-агенты теплового управления: упреждающее охлаждение ЦОД/AI-фабрик по прогнозу нагрузки, а не по факту нагрева",0.9221,WEAK_SIGNAL,MODEL_SCORE,1
+Нейроморфные (brain-inspired) чипы для ИИ-нагрузок,0.9896,WEAK_SIGNAL,MODEL_SCORE,1
+Оптическая коммутация каналов (OCS) в ИИ-фабриках вместо пакетных свитчей,1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Тиринг KV-кэша: выгрузка контекста в DRAM/NVMe/параллельные ФС,0.9761,WEAK_SIGNAL,MODEL_SCORE,1
+App Store для роботов: маркетплейсы навыков/движений,0.9830,WEAK_SIGNAL,MODEL_SCORE,1
+"Массовые квадропеды-инспекторы вне «премиум»-сегмента (метро, геотермия, НПЗ)",0.0004,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Сертификация безопасности физического ИИ как «узкое горлышко» внедрения,0.0007,MATURE,MODEL_SCORE,1
+Телеоперационные данные как отдельная индустрия (data-as-a-service для роботов),0.9222,WEAK_SIGNAL,MODEL_SCORE,1
+Защита онбординга от инъекционных атак и дипфейков (NFC-anchor + двухшаговая liveness),0.8528,WEAK_SIGNAL,MODEL_SCORE,1
+NPU внутри батарейных MCU/SoC для массового IoT (не для AI PC),0.9344,WEAK_SIGNAL,MODEL_SCORE,1
+Гибридные event-based сенсоры зрения в серийном автопроме,0.0183,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Орбитальный edge-компьютинг: инференс на спутниках,0.5436,WEAK_SIGNAL,MODEL_SCORE,1
+Федеративное обучение как инфраструктура «суверенного» приватного развёртывания,0.0014,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+LLM-файрволы на сетевом/edge-уровне (AI runtime gateway),0.8890,WEAK_SIGNAL,MODEL_SCORE,1
+«Самозалечивающаяся» защита от prompt injection для агентных систем,1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Автоматизация AI-governance и compliance под EU AI Act (AI-GRC как код),1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Дифференциально-приватные синтетические данные как контроль безопасности обучения ИИ,0.9820,WEAK_SIGNAL,MODEL_SCORE,1
+Конфиденциальный инференс в TEE с удалённой аттестацией и подписанными «receipts»,0.6100,WEAK_SIGNAL,MODEL_SCORE,1
+Статистические водяные знаки для ТЕКСТА LLM под требования EU AI Act,1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+"Robotics foundation models, обучаемые на данных внутри действующих заводов (а не в лабораториях/на публичных датасетах)",0.2934,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Vision foundation models для контроля качества, где задача задаётся естественным языком (без разметки под каждый дефект)",0.9995,WEAK_SIGNAL,MODEL_SCORE,1
+«Робот-геолог»: сенсорная фьюжн-платформа (гиперспектр + XRF + LIBS + 3D) с ML для поиска и оценки руды,0.9203,WEAK_SIGNAL,MODEL_SCORE,1
+"Агентный ИИ, действующий внутри стека OT (PLC/SCADA/MES/ERP) с журналируемыми действиями и «approval gate» оператора",0.9043,WEAK_SIGNAL,MODEL_SCORE,1
+Адаптивная автономная сварка: нейросетевое зрение вместо предварительного сканирования и репрограммирования робота,0.9903,WEAK_SIGNAL,MODEL_SCORE,1
+ИИ-операторы виртуальных электростанций: автоматическое трейдинг-планирование BESS на нескольких рынках,0.9390,WEAK_SIGNAL,MODEL_SCORE,1
+Wafer-scale нового поколения: 3D-стек SRAM/DRAM поверх пластины,0.9377,WEAK_SIGNAL,MODEL_SCORE,1
+ИИ-компиляторы и автоматическая оптимизация инференса как отдельная категория,0.7400,WEAK_SIGNAL,MODEL_SCORE,1
+Малые модульные реакторы (SMR) как выделенный источник питания ИИ-ЦОД,0.1789,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Суверенные ИИ-облака, работающие в полностью отключённом (disconnected/air-gapped) режиме",0.0835,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Дексterity-кисти как самостоятельный компонентный рынок (не часть гуманоида),0.5443,WEAK_SIGNAL,MODEL_SCORE,1
+"Роевая робототехника выходит из лаборатории (сортировка, полевые работы)",0.6240,WEAK_SIGNAL,MODEL_SCORE,1
+Специализированный edge-кремний под инференс VLA-моделей на борту робота,0.1882,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Голосовые ИИ-агенты для взыскания и обслуживания долга на развивающихся рынках,1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+ИИ-native банковские ядра (core banking OS с агентами внутри),0.9852,WEAK_SIGNAL,MODEL_SCORE,1
+Ончейн-скоринг и рейтинги для необеспеченного/недообеспеченного кредитования,0.0121,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Стейблкоины локальных валют (не-USD) и ончейн-FX между корридорами,0.2368,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Федеративное обучение для межбанковского AML/антифрода (без обмена сырыми данными),0.8777,WEAK_SIGNAL,MODEL_SCORE,1
+Аналоговые compute-in-memory чипы для edge-инференса,0.0019,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Нейроморфные edge-процессоры, встраиваемые в стандартные EDA/дизайн-потоки",0.1182,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Оркестрация Edge AI на парках из тысяч устройств (control plane для edge-флотов),0.0420,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Фотонные (оптические) процессоры инференса для компактных SWaP-ограниченных систем,0.2575,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Machine unlearning как средство ремедиации рисков модели (удаление данных/поведения без переобучения),0.5319,WEAK_SIGNAL,MODEL_SCORE,1
+Интерпретируемость как операционный защитный контроль (interpretability-based safeguards),0.9549,WEAK_SIGNAL,MODEL_SCORE,1
+"Криптографическая верификация трафика агентов (Web Bot Auth, signed agents)",0.2285,MATURE,MODEL_SCORE,1
+Криптографическая подпись моделей и AI-SBOM (провенанс цепочки поставок моделей),0.8717,WEAK_SIGNAL,MODEL_SCORE,1
+Мониторинг chain-of-thought для детекции обмана и «scheming» моделей,0.0676,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Foundation-модели промышленных временных рядов (S-E-F-C: setpoint/effort/feedback/context) и предобучающие корпуса заводских данных,0.9996,WEAK_SIGNAL,MODEL_SCORE,1
+"Акустическая диагностика оборудования на edge: слияние звука, вибрации и режима работы без облака",1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+"ИИ-управление процессами в полупроводниковом фабе и новые ИИ-сенсоры процесса (плазменная спектроскопия, in-line метрология)",0.7385,WEAK_SIGNAL,MODEL_SCORE,1
+"Edge-to-cloud оркестрация инференса (телеком-грид, on-device offload)",0.9972,WEAK_SIGNAL,MODEL_SCORE,1
+Ёмкостно-ориентированный инференс: CXL-пулы памяти и LPDDR вместо HBM,0.4299,WEAK_SIGNAL,MODEL_SCORE,1
+Децентрализованные / распределённые сети инференса,0.0087,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Орбитальные дата-центры / инференс в космосе,0.9998,WEAK_SIGNAL,MODEL_SCORE,1
+Фотонные/оптические процессоры для инференса (вычисления светом),1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+Дешёвые массовые автономные подводные аппараты как «постоянная сеть» океана,0.9122,WEAK_SIGNAL,MODEL_SCORE,1
+Страхование роботов и андеррайтинг по телеметрии; RaaS-контракты с SLA по аптайму,0.2462,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Тактильно-обусловленные VLA-модели (touch-in-the-loop манипуляция),0.0457,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Эгоцентрическое человеческое видео как «дешёвый» источник обучающих данных (human-to-robot transfer),0.9997,WEAK_SIGNAL,MODEL_SCORE,1
+Purpose-Bound Money (PBM) — программируемые целевые/условные деньги,0.4740,WEAK_SIGNAL,MODEL_SCORE,1
+Браузерно-нативные автономные ИИ-агенты комплаенса (KYC/AML «агентная рабочая сила»),1.0000,WEAK_SIGNAL,MODEL_SCORE,1
+"Машинные микроплатежи по HTTP 402 (оплата за API-вызов, стриминговые платежи)",0.9388,WEAK_SIGNAL,MODEL_SCORE,1
+Переиспользуемые ZK-верифицируемые credentials для KYC (zk-KYC),0.9933,WEAK_SIGNAL,MODEL_SCORE,1
+Протоколы авторизации платежей ИИ-агентов (x402 / AP2 / ACP / MPP),0.9962,WEAK_SIGNAL,MODEL_SCORE,1
+Страхование ответственности за действия ИИ-агентов (новый класс полиса),0.0028,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Токенизированные паи денежных фондов (MMF) как мобильное обеспечение,0.0023,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Агентные (multi-step) AI-workflow, исполняемые локально на NPU ПК",0.9912,WEAK_SIGNAL,MODEL_SCORE,1
+Дообучение и мульти-LoRA персонализация прямо на смартфоне,0.0411,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Локальные SLM-рантаймы как «анти-Big-Tech» альтернатива на ноутбуках и смартфонах,0.9908,WEAK_SIGNAL,MODEL_SCORE,1
+Маршрутизирующий слой «устройство ↔ облако» как отдельный продукт (hybrid inference routing),0.9936,WEAK_SIGNAL,MODEL_SCORE,1
+Сертифицированная защита от отравления памяти агентов и RAG-хранилищ (memory poisoning defense),0.6359,WEAK_SIGNAL,MODEL_SCORE,1
+Сканирование бэкдоров в open-weight LLM «в масштабе» (backdoored model detection),0.9995,WEAK_SIGNAL,MODEL_SCORE,1
+LLM-генерация кода ПЛК на IEC 61131-3 Structured Text с замыканием на компилятор и формальную верификацию,0.9974,WEAK_SIGNAL,MODEL_SCORE,1
+Агентная генерация технологической документации: P&ID и схемы процессов из текстового описания в машиночитаемом DEXPI,0.1482,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Нейроморфные/событийные edge-чипы для непрерывного мониторинга промышленного оборудования (мВт-класс, без облака)",0.5607,WEAK_SIGNAL,MODEL_SCORE,1
+Самообучающиеся контуры управления: RL прямо на промышленном контроллере/в живом цеху (а не в симуляторе),0.0143,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Федеративное обучение между площадками/предприятиями: модели учатся на данных нескольких заводов без их передачи,0.7735,WEAK_SIGNAL,MODEL_SCORE,1
+"3D-стековая память-вычислитель как альтернатива HBM (3DIMC, стековый DRAM)",0.9100,WEAK_SIGNAL,MODEL_SCORE,1
+Аналоговые вычисления в памяти (analog in-memory computing),0.1110,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Внутрикристальное микрофлюидное охлаждение (каналы, вытравленные в кремнии)",0.0517,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+"Кремний, спроектированный под агентный ИИ (длинный контекст, KV-cache, low-latency decode)",0.6966,WEAK_SIGNAL,MODEL_SCORE,1
+Сверхпроводящие / криогенные вычисления для ИИ-ЦОД,0.6764,WEAK_SIGNAL,MODEL_SCORE,1
+Simulation-first стеки с zero-shot переносом (обучение полностью в симуляции),0.7982,WEAK_SIGNAL,MODEL_SCORE,1
+"«Мягкие робо-клетки»: физический интеллект, вшитый в сам материал",0.9907,WEAK_SIGNAL,MODEL_SCORE,1
+"Медицинские микророботы, доходящие до клиники",0.9887,WEAK_SIGNAL,MODEL_SCORE,1
+Know Your Agent (KYA) — верифицируемая идентичность и делегированные полномочия ИИ-агентов,0.8782,WEAK_SIGNAL,MODEL_SCORE,1
+Бенчмарки и стресс-тесты LLM-агентов для трейдинга (в т.ч. состязательные рынки),0.9991,WEAK_SIGNAL,MODEL_SCORE,1
+Депозитные токены банков на публичных блокчейнах,0.5741,WEAK_SIGNAL,MODEL_SCORE,1
+Confidential computing на слабых edge-устройствах (TEE + удалённая аттестация на Cortex-M),0.1253,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+In-sensor / processing-in-pixel вычисления (инференс внутри пиксельной матрицы),0.2083,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Спекулятивный декодинг с выгрузкой веса во флеш-память смартфона,0.0063,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Биогибридные приводы на живой мышечной ткани,0.8898,WEAK_SIGNAL,MODEL_SCORE,1
+Самовосстанавливающиеся материалы и «sense-healing» электронная кожа,0.9997,WEAK_SIGNAL,MODEL_SCORE,1
+Электрогидравлические искусственные мышцы (HASEL) вместо редукторных приводов,0.1419,INSUFFICIENT_EVIDENCE,MODEL_SCORE,1
+Постквантовая криптография в финансовой инфраструктуре (приоритизация миграции),0.9260,WEAK_SIGNAL,MODEL_SCORE,1

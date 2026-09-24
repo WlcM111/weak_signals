@@ -1,0 +1,204 @@
+// Contracts version: 1.0.0 (2026-09-15). Owner: Developer A (source of truth), implementer: Developer B. Server: analyzer. Clients: orchestrator.
+syntax = "proto3";
+
+package weaksignals.analyzer.v1;
+
+import "google/protobuf/timestamp.proto";
+import "weaksignals/common/v1/common.proto";
+
+service AnalyzerService {
+  // Идемпотентный запуск анализа коллекции. Deadline 5 s. Retry: да.
+  rpc StartAnalysis(StartAnalysisRequest) returns (StartAnalysisResponse);
+  // Статус анализа. Deadline 5 s. Retry: да.
+  rpc GetAnalysis(GetAnalysisRequest) returns (GetAnalysisResponse);
+  // Кандидаты с признаками и объяснениями, постранично, стабильная сортировка по rank, затем candidate_id. Deadline 15 s. Retry: да.
+  rpc ListCandidates(ListCandidatesRequest) returns (ListCandidatesResponse);
+  // Кооперативная отмена. Deadline 5 s. Retry: да.
+  rpc CancelAnalysis(CancelAnalysisRequest) returns (CancelAnalysisResponse);
+  // Прямой скоринг произвольного описания технологии (оценка на скрытом датасете организаторов, UI «проверить»). Deadline 20 s (90 s при with_enrichment). Retry: да.
+  rpc ScoreText(ScoreTextRequest) returns (ScoreTextResponse);
+  // Сведения об активной модели и её метриках. Deadline 5 s. Retry: да.
+  rpc GetModelInfo(GetModelInfoRequest) returns (GetModelInfoResponse);
+}
+
+// Решение по кандидату.
+enum Decision {
+  DECISION_UNSPECIFIED = 0;
+  DECISION_WEAK_SIGNAL = 1;            // включается в выдачу
+  DECISION_MATURE = 2;                 // зрелая технология / сформированный рынок — исключён
+  DECISION_HYPE_OR_NOISE = 3;          // маркетинговый хайп / информационный шум — исключён
+  DECISION_INSUFFICIENT_EVIDENCE = 4;  // нет подтверждения независимым/доверенным источником — исключён
+  DECISION_OFF_TOPIC = 5;              // нерелевантен запросу — исключён
+}
+
+// Код правила/причины (детализация Decision). Полный перечень — ARCHITECTURE_TZ.md §12.6.
+enum DecisionReason {
+  DECISION_REASON_UNSPECIFIED = 0;
+  DECISION_REASON_MODEL_SCORE = 1;           // решение по калиброванной вероятности модели
+  DECISION_REASON_ENCYCLOPEDIA_MATURE = 2;   // статья Wikipedia с высокой посещаемостью и давним созданием
+  DECISION_REASON_MARKET_LEADERS = 3;        // выраженные лидеры/массовое внедрение по лексике и источникам
+  DECISION_REASON_MATURITY_LEXICON = 4;      // лексика зрелости выше порога
+  DECISION_REASON_MARKETING_DOMINANT = 5;    // доля пресс-релизов/рекламы выше порога без научных источников
+  DECISION_REASON_HYPE_LEXICON = 6;          // лексика хайпа выше порога
+  DECISION_REASON_NO_TRUSTED_SOURCE = 7;     // нет ни одного источника HIGH/MEDIUM
+  DECISION_REASON_SINGLE_SOURCE = 8;         // единственный источник
+  DECISION_REASON_LOW_QUERY_RELEVANCE = 9;   // низкая близость к запросу
+}
+
+message AnalysisParams {
+  int32 top_n = 1;                    // 1..50; 0 = по умолчанию 15
+  int32 max_candidates = 2;           // 5..100; 0 = по умолчанию 40 (кластеров, передаваемых в скоринг)
+  float weak_signal_threshold = 3;    // 0..1; 0 = порог активной модели
+  int32 min_evidence_documents = 4;   // ≥ 1; 0 = по умолчанию 2
+}
+
+message StartAnalysisRequest {
+  string idempotency_key = 1;  // "<job_id>:analyze"; ≤ 128
+  string collection_id = 2;    // коллекция collector-а, статус COMPLETED или PARTIAL
+  string query_text = 3;       // 2..500
+  AnalysisParams params = 4;   // необязателен
+}
+
+message StartAnalysisResponse {
+  string analysis_id = 1;
+  weaksignals.common.v1.OperationStatus status = 2;
+  bool already_existed = 3;
+  string model_version_id = 4; // активная модель на момент запуска
+}
+
+message GetAnalysisRequest {
+  string analysis_id = 1;
+}
+
+message AnalysisStats {
+  int32 documents_input = 1;
+  int32 documents_after_dedup = 2;
+  int32 clusters_total = 3;
+  int32 candidates_scored = 4;
+  int32 weak_signals_total = 5;          // Decision = WEAK_SIGNAL
+  int32 weak_signals_confident = 6;      // score ≥ 0.75
+  int32 excluded_mature = 7;
+  int32 excluded_hype_or_noise = 8;
+  int32 excluded_insufficient_evidence = 9;
+  int32 excluded_off_topic = 10;
+  int32 duration_ms = 11;
+}
+
+message GetAnalysisResponse {
+  string analysis_id = 1;
+  weaksignals.common.v1.OperationStatus status = 2;
+  string model_version_id = 3;
+  AnalysisStats stats = 4;
+  string error_code = 5;
+  string error_message = 6;
+  google.protobuf.Timestamp started_at = 7;
+  optional google.protobuf.Timestamp finished_at = 8;
+}
+
+// Вклад признака в решение. Признаки перечислены в feature_registry_v1.json.
+message FeatureContribution {
+  string feature_name = 1;       // ключ реестра признаков, напр. "lex_emergence_score"
+  double value = 2;              // значение признака (в единицах реестра)
+  double contribution = 3;       // вклад в логит: coef × стандартизованное значение (LR) или SHAP (GBM)
+  string label_ru = 4;           // человекочитаемое название из реестра
+  string direction = 5;          // "supports_weak_signal" | "supports_mature" | "neutral"
+}
+
+message Evidence {
+  string document_id = 1;
+  string snippet = 2;            // ≤ 600 символов из текста документа
+  double similarity = 3;         // косинусная близость к центроиду кандидата, 0..1
+  weaksignals.common.v1.SourceType source_type = 4;
+  weaksignals.common.v1.TrustLevel trust_level = 5;
+}
+
+message SourceTypeCount {
+  weaksignals.common.v1.SourceType source_type = 1;
+  int32 count = 2;
+}
+
+message YearCount {
+  int32 year = 1;
+  int32 count = 2;
+}
+
+message Candidate {
+  string candidate_id = 1;
+  string analysis_id = 2;
+  int32 rank = 3;                          // 1..N среди WEAK_SIGNAL; 0 для исключённых
+  string title = 4;                        // автоматическая метка кластера (ключевая фраза), ≤ 200
+  repeated string keyphrases = 5;          // 1..10
+  double score = 6;                        // калиброванная вероятность слабого сигнала, 0..1
+  Decision decision = 7;
+  DecisionReason decision_reason = 8;
+  string decision_explanation_ru = 9;      // шаблонное объяснение правила/порога, ≤ 500
+  repeated FeatureContribution features = 10; // все признаки реестра, отсортированы по |contribution| убыв.
+  repeated Evidence evidence = 11;         // ≤ 8, отсортированы по similarity убыв.
+  int32 document_count = 12;
+  repeated SourceTypeCount source_type_counts = 13;
+  repeated YearCount year_counts = 14;
+  double query_relevance = 15;             // близость к запросу, 0..1
+  optional int32 predicted_stage = 16;     // 1..4 (вспомогательная модель стадии); отсутствует, если модель не активна
+  optional int32 predicted_trend = 17;     // 1..3 (вспомогательная модель тренда)
+}
+
+message ListCandidatesRequest {
+  string analysis_id = 1;
+  bool include_excluded = 2;                 // false = только WEAK_SIGNAL
+  weaksignals.common.v1.PageRequest page = 3;
+}
+
+message ListCandidatesResponse {
+  repeated Candidate candidates = 1;
+  weaksignals.common.v1.PageResponse page = 2;
+}
+
+message CancelAnalysisRequest {
+  string analysis_id = 1;
+  string reason = 2;
+}
+
+message CancelAnalysisResponse {
+  weaksignals.common.v1.OperationStatus status = 1;
+}
+
+message ScoreTextRequest {
+  string title = 1;         // 2..300
+  string description = 2;   // 0..4000; пусто = только заголовок
+  bool with_enrichment = 3; // true = вычислить коллекционные признаки через collector (ENRICHMENT, ~30–60 s)
+}
+
+message ScoreTextResponse {
+  double score = 1;
+  Decision decision = 2;
+  DecisionReason decision_reason = 3;
+  repeated FeatureContribution features = 4;
+  string model_version_id = 5;
+  optional int32 predicted_stage = 6;
+  optional int32 predicted_trend = 7;
+  bool enrichment_applied = 8; // false, если признаки сбора не вычислялись (заполнены средними по обучающей выборке)
+}
+
+message GetModelInfoRequest {}
+
+message ModelMetrics {
+  double accuracy = 1;
+  double precision = 2;
+  double recall = 3;
+  double f1 = 4;
+  double roc_auc = 5;
+  double threshold = 6;
+  int32 test_size = 7;
+  string evaluation_protocol = 8; // напр. "holdout_test_20pct + repeated_stratified_5x5cv"
+}
+
+message GetModelInfoResponse {
+  string model_version_id = 1;
+  string model_family = 2;         // "logreg_elasticnet" | "lightgbm"
+  string feature_schema_version = 3;
+  string embedding_model = 4;      // напр. "intfloat/multilingual-e5-base"
+  string dataset_version = 5;
+  google.protobuf.Timestamp trained_at = 6;
+  ModelMetrics metrics = 7;
+  repeated string feature_names = 8;
+}

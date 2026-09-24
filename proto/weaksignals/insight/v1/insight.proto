@@ -1,0 +1,133 @@
+// Contracts version: 1.0.0 (2026-09-15). Owner: Developer A (source of truth), implementer: Developer B. Server: insight. Clients: orchestrator.
+syntax = "proto3";
+
+package weaksignals.insight.v1;
+
+import "google/protobuf/timestamp.proto";
+import "weaksignals/common/v1/common.proto";
+import "weaksignals/analyzer/v1/analyzer.proto";
+
+service InsightService {
+  // Расширение свободного запроса в поисковые фразы ru/en. Deadline 30 s. Retry: да (идемпотентна по query_text).
+  rpc ExpandQuery(ExpandQueryRequest) returns (ExpandQueryResponse);
+  // Генерация русскоязычного инсайта по кандидату на основе переданных доказательств. Deadline 120 s.
+  // Retry: да, только с тем же idempotency_key (сервер вернёт кешированный результат).
+  rpc GenerateInsight(GenerateInsightRequest) returns (GenerateInsightResponse);
+  // Состояние провайдеров LLM (для readiness и UI). Deadline 5 s. Retry: да.
+  rpc GetProviderStatus(GetProviderStatusRequest) returns (GetProviderStatusResponse);
+}
+
+enum InsightStatus {
+  INSIGHT_STATUS_UNSPECIFIED = 0;
+  INSIGHT_STATUS_GENERATED = 1;            // текст сгенерирован LLM и прошёл проверку обоснованности
+  INSIGHT_STATUS_FALLBACK_EXTRACTIVE = 2;  // LLM недоступна/ответ отклонён — экстрактивный шаблон без генерации
+}
+
+// Вид русскоязычного резюме источника (ТЗ: отметка об автоматическом переводе / генеративном резюме).
+enum SummaryKind {
+  SUMMARY_KIND_UNSPECIFIED = 0;
+  SUMMARY_KIND_ORIGINAL_RU = 1;        // источник на русском, резюме не требуется
+  SUMMARY_KIND_GENERATIVE_SUMMARY = 2; // резюме сгенерировано LLM
+  SUMMARY_KIND_EXTRACTIVE = 3;         // первые предложения оригинала без перевода (fallback)
+}
+
+message ExpandQueryRequest {
+  string query_text = 1; // 2..500
+}
+
+message ExpandQueryResponse {
+  repeated string ru_terms = 1;   // 1..8
+  repeated string en_terms = 2;   // 1..8
+  repeated string domain_tags = 3; // 0..5 тегов из фиксированного списка областей (глоссарий §3)
+  Provenance provenance = 4;
+  bool used_fallback = 5;         // true = правила/словарь без LLM
+}
+
+message EvidenceDocument {
+  string document_id = 1;
+  string title = 2;                                    // ≤ 512
+  string url = 3;
+  string text = 4;                                     // ≤ 2000 символов (усечение выполняет вызывающая сторона)
+  string language_code = 5;
+  optional google.protobuf.Timestamp published_at = 6;
+  weaksignals.common.v1.SourceType source_type = 7;
+  weaksignals.common.v1.TrustLevel trust_level = 8;
+}
+
+message CandidateContext {
+  string candidate_id = 1;
+  string title = 2;
+  repeated string keyphrases = 3;
+  double score = 4;
+  weaksignals.analyzer.v1.Decision decision = 5;
+  repeated weaksignals.analyzer.v1.FeatureContribution top_features = 6; // ≤ 8 по |contribution|
+  string query_text = 7;
+}
+
+message GenerateInsightRequest {
+  string idempotency_key = 1;          // "<job_id>:<candidate_id>:insight:<prompt_version>"; ≤ 160
+  CandidateContext candidate = 2;      // обязателен
+  repeated EvidenceDocument evidence = 3; // 1..8
+  bool allow_fallback = 4;             // true = при отказе LLM вернуть экстрактивный результат вместо ошибки
+  int32 max_output_tokens = 5;         // 256..2048; 0 = по умолчанию 1200
+}
+
+message Narrative {
+  string title_ru = 1;         // ≤ 200
+  string description_ru = 2;   // ≤ 800
+  string advantage_ru = 3;     // ≤ 600
+  string case_example_ru = 4;  // ≤ 600
+  string case_document_id = 5; // document_id из evidence, на котором основан кейс; пусто в fallback
+  string explanation_ru = 6;   // ≤ 800; объяснение статуса слабого сигнала по признакам
+}
+
+message SourceSummary {
+  string document_id = 1;
+  string summary_ru = 2;    // ≤ 400
+  SummaryKind kind = 3;
+}
+
+message GroundingCheck {
+  bool passed = 1;
+  int32 unsupported_numbers = 2;   // числа в тексте, отсутствующие в доказательствах
+  int32 unknown_document_refs = 3; // ссылки на несуществующие document_id
+  int32 features_mentioned = 4;    // сколько переданных признаков упомянуто в explanation_ru
+}
+
+message Provenance {
+  string provider = 1;          // "gigachat" | "yandexgpt" | "local_llamacpp" | "none"
+  string model = 2;             // идентификатор модели провайдера; "" при fallback
+  string prompt_version = 3;    // напр. "insight_v1"
+  int32 prompt_tokens = 4;
+  int32 completion_tokens = 5;
+  int32 attempts = 6;           // число вызовов LLM
+  int32 latency_ms = 7;
+}
+
+message GenerateInsightResponse {
+  string insight_id = 1;
+  InsightStatus status = 2;
+  Narrative narrative = 3;
+  repeated SourceSummary source_summaries = 4; // по одному на каждый evidence document
+  GroundingCheck grounding = 5;
+  Provenance provenance = 6;
+  bool from_cache = 7;
+}
+
+message GetProviderStatusRequest {}
+
+message ProviderStatus {
+  string provider = 1;
+  bool enabled = 2;
+  bool healthy = 3;            // последний вызов успешен / проверка доступности пройдена
+  int32 max_concurrency = 4;   // лимит потоков (для GigaChat физлица = 1)
+  int32 in_flight = 5;
+  int32 queued = 6;
+  string last_error = 7;       // ≤ 300
+  optional google.protobuf.Timestamp last_success_at = 8;
+}
+
+message GetProviderStatusResponse {
+  repeated ProviderStatus providers = 1;
+  string active_provider = 2;
+}

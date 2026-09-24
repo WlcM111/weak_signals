@@ -1,0 +1,26 @@
+{
+  "articles": [
+    {
+      "url": "https://www.example-news.com/2026/08/robot-insurer-raises-seed",
+      "url_mobile": "",
+      "title": "Robot insurer raises seed funding to underwrite warehouse robots by telemetry",
+      "seendate": "20260812T093000Z",
+      "socialimage": "",
+      "domain": "example-news.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://www.example-wire.com/raas-pilot",
+      "url_mobile": "",
+      "title": "Logistics firm launches robots-as-a-service pilot",
+      "seendate": "20260901T140000Z",
+      "socialimage": "",
+      "domain": "example-wire.com",
+      "language": "Russian",
+      "sourcecountry": "Russia"
+    },
+    {"url": "https://www.example.com/no-title", "title": "   ", "seendate": "20260901T140000Z"},
+    {"url": "https://www.example.com/old", "title": "Old deployment note", "seendate": "20190101T000000Z", "language": "English"}
+  ]
+}

@@ -1,0 +1,158 @@
+АНАЛИТИКА ПО ШЕСТИ ТЕМАМ ДАТАСЕТА — прогон 20260922-201357 UTC, top_n = 10
+датасет: ml/data/raw/dataset_normalized.csv (100 строк)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+СОСТОЯНИЕ СТЕНДА ПЕРЕД ПРОГОНОМ
+════════════════════════════════════════════════════════════════════════════════════════════════════
+коммит: нет данных git
+готовность API (/readyz): код 200
+контейнеры:
+  analyzer | running | Up 19 seconds (healthy)
+  collector | running | Up 24 seconds (healthy)
+  insight | running | Up 10 hours (healthy)
+  orchestrator-api | running | Up 10 hours (healthy)
+  orchestrator-worker | running | Up 10 hours (healthy)
+  ui | running | Up 43 hours (healthy)
+  postgres | running | Up 2 days (healthy)
+модель (/api/v1/model): код 502
+  model_version_id: None
+  model_family: None
+  embedding_model: None
+  dataset_version: None
+  feature_schema_version: None
+  trained_at: None
+  метрики: null
+  признаков: 0
+пороги и провайдеры (несекретные переменные):
+  analyzer.WS_CLUSTER_DISTANCE_THRESHOLD = 0.25
+  analyzer.WS_MIN_DOC_QUERY_SIM = 0.35
+  analyzer.WS_MIN_CANDIDATE_QUERY_SIM = 0.88
+  analyzer.WS_TRUST_WEIGHTED_SELECTION = false
+  analyzer.WS_REQUIRE_HIGH_TRUST_SOURCE = false
+  insight.WS_LLM_PRIMARY_PROVIDER = gigachat
+  insight.WS_LLM_FALLBACK_PROVIDER = none
+  insight.WS_GIGACHAT_MODEL = GigaChat-2-Pro
+  insight.WS_GIGACHAT_MAX_CONCURRENCY = 1
+каталог источников (collector.source_catalog):
+  arxiv | t | 0.100 | PREPRINT | HIGH
+  github | t | 0.400 | CODE_REPOSITORY | MEDIUM
+  hh | f | 1.000 | VACANCY | MEDIUM
+  openalex | t | 5.000 | SCIENTIFIC_PUBLICATION | HIGH
+  patentsview | f | 1.000 | PATENT | HIGH
+  rss | t | 2.000 | INDUSTRY_MEDIA | MEDIUM
+  semantic_scholar | t | 0.500 | SCIENTIFIC_PUBLICATION | HIGH
+  wikipedia | t | 10.000 | ENCYCLOPEDIA | MEDIUM
+  zenodo | t | 0.300 | PREPRINT | HIGH
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 1/6: Индустриальный ИИ — запрос «индустриальный искусственный интеллект на производстве»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cac0-f6b1-71d8-86ae-dd18f21b0167   top_n: 10
+  20:13:58 UTC  статус: QUEUED
+  20:14:08 UTC  статус: COLLECTING
+  20:14:18 UTC  статус: FAILED
+итоговый статус: FAILED
+ошибка задания: {"code": "UPSTREAM_UNAVAILABLE", "message": "UPSTREAM_UNAVAILABLE: analyzer недоступен: StartAnalysis: UNAVAILABLE", "request_id": "", "retryable": false}
+создано / начато / завершено: 2026-09-22T20:13:58.834084+00:00 / 2026-09-22T20:14:00.138728+00:00 / 2026-09-22T20:14:15.246199+00:00
+длительность: 15 с
+прогресс: {"stage": "FAILED", "http_requests_total": 0, "sources_processed": 0, "documents_collected": 0, "candidates_found": 0, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 1 | 0 | 0 | RATE_LIMITED | arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 3 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 22 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 3 | 73 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: —
+  documents_after_dedup: —
+  clusters_total: —
+  candidates_scored: —
+  weak_signals_total: —
+  weak_signals_confident: —
+  excluded_mature: —
+  excluded_hype_or_noise: —
+  excluded_insufficient_evidence: —
+  excluded_off_topic: —
+  weak_signal_threshold: —
+  duration_ms: —
+  model_version_id: —
+результат недоступен: код 409, ответ {'code': 'RESULTS_NOT_READY', 'message': 'результат ещё не формируется: задание в статусе FAILED', 'request_id': '1f31dfe5-6a99-4f1b-a540-9748d4e5f99a', 'retryable': False}
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 2/6: Роботы — запрос «робототехника и физический искусственный интеллект»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0cac1-bbe3-7df2-a315-519be1184ae7   top_n: 10
+  20:14:49 UTC  статус: QUEUED
+  20:14:59 UTC  статус: COLLECTING
+  20:15:09 UTC  статус: ANALYZING
+  20:15:39 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-22T20:14:49.315877+00:00 / 2026-09-22T20:14:49.386196+00:00 / 2026-09-22T20:15:37.646132+00:00
+длительность: 48 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 16, "sources_processed": 4, "documents_collected": 297, "candidates_found": 2, "narratives_done": 0, "narratives_total": 0}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | RATE_LIMITED | arXiv не опрашивается после отказа (arXiv отклонил запрос кодом 406: доступ временно ограничен на стороне arXiv), пауза ещё 1751 с
+  github | COMPLETED | 6 | 53 | 0 |  | 
+  openalex | COMPLETED | 3 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 23 | 0 |  | 
+  semantic_scholar | FAILED | 2 | 50 | 50 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 2 | 23 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 297
+  documents_after_dedup: 283
+  clusters_total: 2
+  candidates_scored: 2
+  weak_signals_total: 0
+  weak_signals_confident: 0
+  excluded_mature: 1
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 0
+  excluded_off_topic: 1
+  weak_signal_threshold: 0.2888
+  duration_ms: 31132
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 16
+  sources_processed: 4
+  documents_collected: 297
+  candidates_found: 2
+  weak_signals_total: 0
+  weak_signals_confident: 0
+  narratives_generated: 0
+  narratives_fallback: 0
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 0 технологий
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 2
+  [MATURE | MARKET_LEADERS | скоринг 0.0% | документов 282] искусственного интеллекта
+     Тексты описывают стадию массового внедрения: упоминаний крупнейших вендоров 4, доля репозиториев и вакансий 0.16 — рынок сформирован.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 1] TAX LAW
+     Кластер слабо связан с запросом: близость 0.78 ниже порога 0.88.
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Роботы» (17) — для сверки выдачи:
+  #11 [стадия: Раннее внедрение (24 приложения на старте UniStore) | балл 7] App Store для роботов: маркетплейсы навыков/движений
+  #12 [стадия: Пилот → Раннее внедрение | балл 7] Массовые квадропеды-инспекторы вне «премиум»-сегмента (метро, геотермия, НПЗ)
+  #13 [стадия: Раннее внедрение (первые аккредитованные лаборатории и стандарты) | балл 7] Сертификация безопасности физического ИИ как «узкое горлышко» внедрения
+  #14 [стадия: Раннее внедрение (лаборатории уже платят за данные) | балл 7] Телеоперационные данные как отдельная индустрия (data-as-a-service для роботов)
+  #36 [стадия: Раннее внедрение (мелкосерийное производство) | балл 6] Дексterity-кисти как самостоятельный компонентный рынок (не часть гуманоида)
+  #37 [стадия: Пилот → Раннее внедрение | балл 6] Роевая робототехника выходит из лаборатории (сортировка, полевые работы)
+  #38 [стадия: Прототип/PoC → Раннее внедрение | балл 6] Специализированный edge-кремний под инференс VLA-моделей на борту робота
+  #61 [стадия: Прототип/PoC → Пилот | балл 5] Дешёвые массовые автономные подводные аппараты как «постоянная сеть» океана
+  #62 [стадия: Концепция/Исследование → Пилот | балл 5] Страхование роботов и андеррайтинг по телеметрии; RaaS-контракты с SLA по аптайму
+  #63 [стадия: Исследование → Прототип/PoC | балл 5] Тактильно-обусловленные VLA-модели (touch-in-the-loop манипуляция)
+  #64 [стадия: Исследование → Прототип/PoC | балл 5] Эгоцентрическое человеческое видео как «дешёвый» источник обучающих данных (human-to-robot transfer)
+  #88 [стадия: Прототип/PoC | балл 4] Simulation-first стеки с zero-shot переносом (обучение полностью в симуляции)
+  #89 [стадия: Прототип/PoC | балл 4] «Мягкие робо-клетки»: физический интеллект, вшитый в сам материал
+  #90 [стадия: Прототип/PoC → доклинические и первые клинические шаги | балл 4] Медицинские микророботы, доходящие до клиники
+  #97 [стадия: Концепция/Исследование | балл 3] Биогибридные приводы на живой мышечной ткани
+  #98 [стадия: Концепция/Исследование | балл 3] Самовосстанавливающиеся материалы и «sense-healing» электронная кожа
+  #99 [стадия: Прототип/PoC | балл 3] Электрогидравлические искусственные мышцы (HASEL) вместо редукторных приводов

@@ -1,0 +1,12 @@
+# Минимальный набор для локальной проверки без Docker (вариант 1 в README).
+# Полный набор зависимостей сервисов — в pyproject.toml каждого пакета (uv.lock создаётся командой `uv lock`).
+numpy>=2.0
+scipy>=1.14
+scikit-learn>=1.5
+joblib>=1.4
+pandas>=2.2
+PyYAML>=6.0
+lxml>=5.3
+Jinja2>=3.1
+matplotlib>=3.9
+openpyxl>=3.1

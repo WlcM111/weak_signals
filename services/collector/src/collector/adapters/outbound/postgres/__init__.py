@@ -1,0 +1,1 @@
+"""Репозитории PostgreSQL (схема `collector`)."""

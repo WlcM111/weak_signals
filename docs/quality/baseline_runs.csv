@@ -1,0 +1,57 @@
+run,kind,complete,top_n,cluster_threshold,min_doc_query_sim,min_candidate_query_sim,trust_weighted,require_high_trust,model_ready,theme,status,documents,clusters,candidates,weak_signals,confident,items,off_topic,generated,fallback,score_min,score_median,score_max,items_with_high_trust,items_github_only,sources_failed,valid_for_metrics
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Индустриальный ИИ,PARTIAL,319,88,40,11,8,11,17,6,5,36.7,84.9,98.8,1,10,"arxiv,semantic_scholar",True
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Роботы,PARTIAL,222,113,40,4,3,4,23,2,2,49.1,88.5,99.5,2,1,"arxiv,semantic_scholar",True
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Инфраструктура ИИ,PARTIAL,312,144,40,5,0,5,7,5,0,29.4,34.9,70.2,0,5,"arxiv,semantic_scholar",True
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Финтех,PARTIAL,299,113,40,10,1,10,16,8,2,29.2,58.0,80.8,1,9,"arxiv,semantic_scholar",True
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Защита ИИ,PARTIAL,376,129,40,19,11,15,4,8,7,49.9,84.6,99.8,2,11,"arxiv,semantic_scholar",True
+analytics-20260922-103814.txt,analytics,True,15,0.15,0.35,0.88,,,True,Edge,PARTIAL,317,191,40,16,10,15,12,9,6,48.8,95.8,99.8,5,10,"arxiv,semantic_scholar",True
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Индустриальный ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Роботы,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Инфраструктура ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Финтех,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Защита ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-195722.txt,analytics,True,10,0.20,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Edge,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Индустриальный ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Роботы,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Инфраструктура ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Финтех,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Защита ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-200239.txt,analytics,True,10,0.25,0.35,0.88WS_TRUST_WEIGHTED_SELECTION=false,(не,(не,False,Edge,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-201357.txt,analytics,False,10,0.25,0.35,0.88,false,false,False,Индустриальный ИИ,FAILED,,—,,—,—,0,—,,,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-201357.txt,analytics,False,10,0.25,0.35,0.88,false,false,False,Роботы,PARTIAL,297,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Индустриальный ИИ,PARTIAL,387,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Роботы,PARTIAL,297,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Инфраструктура ИИ,PARTIAL,285,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,github,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Финтех,PARTIAL,328,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Защита ИИ,PARTIAL,423,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-205550.txt,analytics,True,10,0.25,0.35,0.88,false,false,True,Edge,PARTIAL,384,2,2,0,0,0,1,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Индустриальный ИИ,PARTIAL,387,16,15,0,0,0,11,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Роботы,PARTIAL,247,21,20,1,1,1,13,0,1,93.2,93.2,93.2,1,0,"arxiv,semantic_scholar",True
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Инфраструктура ИИ,PARTIAL,385,19,17,0,0,0,9,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Финтех,PARTIAL,477,23,21,0,0,0,14,0,0,,,,0,0,arxiv,False
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Защита ИИ,PARTIAL,424,26,16,0,0,0,12,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-210344.txt,analytics,True,10,0.20,0.35,0.88,false,false,True,Edge,PARTIAL,384,36,30,0,0,0,18,0,0,,,,0,0,"arxiv,semantic_scholar",False
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Индустриальный ИИ,PARTIAL,438,124,40,13,8,10,9,7,3,52.1,87.8,98.8,5,5,"arxiv,semantic_scholar",True
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Роботы,PARTIAL,248,125,40,6,5,6,17,2,4,64.9,95.1,98.7,3,1,"arxiv,semantic_scholar",True
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Инфраструктура ИИ,PARTIAL,386,188,40,4,1,4,8,4,0,29.4,52.5,99.9,1,3,"arxiv,semantic_scholar",True
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Финтех,PARTIAL,328,127,40,11,1,10,13,6,4,33.3,58.0,80.8,2,8,"arxiv,semantic_scholar",True
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Защита ИИ,PARTIAL,424,174,40,16,10,10,7,5,5,76.3,95.8,99.4,2,7,"arxiv,semantic_scholar",True
+analytics-20260922-211240.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Edge,PARTIAL,384,221,40,18,10,10,4,5,5,82.5,97.6,99.7,2,8,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Индустриальный ИИ,PARTIAL,438,124,40,13,8,10,9,10,0,52.1,87.8,98.8,5,5,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Роботы,PARTIAL,249,126,40,6,5,6,17,5,1,64.9,95.1,98.7,3,1,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Инфраструктура ИИ,PARTIAL,385,187,40,4,1,4,8,4,0,29.4,52.5,99.9,1,3,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Финтех,PARTIAL,328,127,40,11,1,10,13,9,1,33.3,58.0,80.8,2,8,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Защита ИИ,PARTIAL,424,174,40,16,10,10,7,8,2,76.3,95.8,99.4,2,7,"arxiv,semantic_scholar",True
+analytics-20260922-232643.txt,analytics,True,10,0.15,0.35,0.88,false,false,True,Edge,PARTIAL,385,221,40,17,10,10,5,10,0,82.5,97.6,99.7,2,8,"arxiv,semantic_scholar",True
+demo-20260921-0442.txt,demo,True,10,,,,,,,индустриальный искусственный интеллект на производстве,PARTIAL,315,,40,17,,10,,8,2,84.9,95.2,99.0,,,,True
+demo-20260921-0442.txt,demo,True,10,,,,,,,робототехника и физический искусственный интеллект,PARTIAL,223,,40,17,,10,,7,3,61.8,91.0,99.8,,,,True
+demo-20260921-0442.txt,demo,True,10,,,,,,,инфраструктура для искусственного интеллекта и дата-центры,PARTIAL,310,,40,8,,8,,4,4,29.4,69.8,99.0,,,,True
+demo-20260921-0442.txt,demo,True,10,,,,,,,перспективные решения в финтехе,PARTIAL,298,,40,16,,10,,7,3,52.8,72.7,99.5,,,,True
+demo-20260921-0442.txt,demo,True,10,,,,,,,защита и безопасность систем искусственного интеллекта,PARTIAL,326,,40,21,,10,,6,4,94.5,98.8,99.9,,,,True
+demo-20260921-0442.txt,demo,True,10,,,,,,,edge-вычисления и периферийный инференс,PARTIAL,312,,40,21,,10,,7,3,84.1,98.0,99.7,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,индустриальный искусственный интеллект на производстве,PARTIAL,,,40,11,,10,17,6,4,43.9,89.5,98.8,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,робототехника и физический искусственный интеллект,PARTIAL,,,40,3,,3,24,2,1,49.1,82.0,95.1,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,инфраструктура для искусственного интеллекта и дата-центры,PARTIAL,,,40,5,,5,6,5,0,29.4,34.9,70.2,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,перспективные решения в финтехе,PARTIAL,,,40,10,,10,17,5,5,29.2,50.2,80.8,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,защита и безопасность систем искусственного интеллекта,PARTIAL,,,40,19,,10,6,6,4,84.6,98.8,100.0,,,,True
+demo-rel-20260921-1636.txt,demo,True,10,,,,,,,edge-вычисления и периферийный инференс,PARTIAL,,,40,17,,10,12,7,3,82.5,98.2,99.7,,,,True

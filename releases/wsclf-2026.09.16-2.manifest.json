@@ -1,0 +1,43 @@
+{
+  "model_version_id": "wsclf-2026.09.16-2",
+  "model_family": "logreg_elasticnet",
+  "feature_schema_version": "v1",
+  "embedding_model": "hashing-char-ngram-256",
+  "dataset_version": "ds-2026.09.16-v1",
+  "threshold": 0.4158,
+  "metrics": {
+    "test": {
+      "accuracy": 0.9778,
+      "precision": 0.9524,
+      "recall": 1.0,
+      "f1": 0.9756,
+      "roc_auc": 0.998,
+      "n": 45
+    },
+    "cv": {
+      "protocol": "holdout_test_20pct + repeated_stratified_5x5cv",
+      "f1_mean": 0.9764,
+      "f1_std": 0.0265,
+      "accuracy_mean": 0.9789,
+      "accuracy_std": 0.0239
+    }
+  },
+  "trained_at": "2026-09-16T13:00:58+00:00",
+  "git_commit": "",
+  "stage_model_present": false,
+  "trend_model_present": false,
+  "artifact_files": {
+    "classifier": "classifier.joblib",
+    "scaler": "scaler.joblib",
+    "calibrator": "calibrator.joblib",
+    "centroids": "centroids.npz",
+    "sha256": {
+      "classifier": "12ffe172611d150ce2bf497c237629704a9aac0abae3cb9d7f37d78b98e83be3",
+      "scaler": "48e08927cedfb8f613f71c6001801b8678cd0a854690116bfe1902ec94e5b465",
+      "calibrator": "541faafd7ec62019bb7e3495998f19a038a314ad4f912b1327520eaa279997ed",
+      "centroids": "73d73c8a5c486032e993084428cd4adc5e2ecbe3b5e9eb47fb82bc9644340599",
+      "rules.json": "ebe0b86e31990e3fe8b9ecc4e769e6e6702305a32587d4e41fc9498d10237f71",
+      "feature_defaults.json": "e5ab93d40d43456c26d0313b5fb356fad82a2c378f40858dc4c5905a25cd3b53"
+    }
+  }
+}

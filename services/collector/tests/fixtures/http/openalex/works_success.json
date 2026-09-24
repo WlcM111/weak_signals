@@ -1,0 +1,35 @@
+{
+  "meta": {"count": 2, "per_page": 50},
+  "results": [
+    {
+      "id": "https://openalex.org/W4392001111",
+      "doi": "https://doi.org/10.1145/3658644.3670123",
+      "title": "Adversarial Robustness Certification for Production LLM Guardrails",
+      "abstract_inverted_index": {
+        "We": [0], "propose": [1], "a": [2], "certification": [3], "method": [4],
+        "for": [5], "guardrails": [6], "of": [7], "large": [8], "language": [9], "models": [10]
+      },
+      "publication_date": "2026-03-11",
+      "cited_by_count": 7,
+      "language": "en",
+      "type": "article",
+      "concepts": [
+        {"display_name": "Adversarial machine learning", "score": 0.71},
+        {"display_name": "Computer security", "score": 0.52}
+      ],
+      "primary_location": {"landing_page_url": "https://dl.acm.org/doi/10.1145/3658644.3670123"}
+    },
+    {
+      "id": "https://openalex.org/W4392002222",
+      "doi": null,
+      "title": "Формальная верификация фильтров запросов к языковым моделям",
+      "abstract_inverted_index": {"Рассматривается": [0], "подход": [1], "к": [2], "верификации": [3]},
+      "publication_date": "2026-01-20",
+      "cited_by_count": 0,
+      "language": "ru",
+      "type": "preprint",
+      "concepts": [],
+      "primary_location": null
+    }
+  ]
+}

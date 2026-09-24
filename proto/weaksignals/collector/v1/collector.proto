@@ -1,0 +1,132 @@
+// Contracts version: 1.0.0 (2026-09-15). Owner: Developer A. Server: collector. Clients: orchestrator, analyzer, trainer.
+syntax = "proto3";
+
+package weaksignals.collector.v1;
+
+import "google/protobuf/timestamp.proto";
+import "weaksignals/common/v1/common.proto";
+
+service CollectorService {
+  // Идемпотентный запуск сбора. Повтор с тем же idempotency_key возвращает существующую коллекцию.
+  // Deadline клиента: 5 s. Retry: да (UNAVAILABLE, DEADLINE_EXCEEDED), backoff 0.5 s ×2, jitter, ≤ 3 попыток.
+  rpc StartCollection(StartCollectionRequest) returns (StartCollectionResponse);
+  // Статус и прогресс. Deadline 5 s. Retry: да.
+  rpc GetCollection(GetCollectionRequest) returns (GetCollectionResponse);
+  // Потоковая выдача документов коллекции (server streaming). Deadline 120 s. Retry: да (с page_token последнего чанка).
+  rpc StreamDocuments(StreamDocumentsRequest) returns (stream DocumentChunk);
+  // Пакетное получение документов по идентификаторам (≤ 200). Deadline 10 s. Retry: да.
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
+  // Запрос отмены (кооперативная). Deadline 5 s. Retry: да (идемпотентна).
+  rpc CancelCollection(CancelCollectionRequest) returns (CancelCollectionResponse);
+  // Индикатор зрелости: наличие статьи Wikipedia и просмотры. Deadline 10 s. Retry: да.
+  rpc CheckEncyclopedia(CheckEncyclopediaRequest) returns (CheckEncyclopediaResponse);
+}
+
+// Режим сбора: SEARCH — полный сбор по открытому запросу; ENRICHMENT — короткий сбор по названию технологии
+// (используется trainer-ом для коллекционных признаков обучающей выборки и analyzer.ScoreText при with_enrichment).
+enum CollectionMode {
+  COLLECTION_MODE_UNSPECIFIED = 0;
+  COLLECTION_MODE_SEARCH = 1;
+  COLLECTION_MODE_ENRICHMENT = 2;
+}
+
+message SearchTerms {
+  repeated string ru = 1; // 0..8 фраз, каждая 2..120 символов
+  repeated string en = 2; // 0..8 фраз, каждая 2..120 символов; ru+en ≥ 1
+}
+
+message CollectionLimits {
+  int32 max_documents_per_source = 1; // 1..500; 0 = по умолчанию 150 (SEARCH), 40 (ENRICHMENT)
+  int32 max_total_documents = 2;      // 1..3000; 0 = по умолчанию 800 (SEARCH), 200 (ENRICHMENT)
+  int32 time_budget_seconds = 3;      // 10..600; 0 = по умолчанию 120 (SEARCH), 45 (ENRICHMENT)
+  int32 published_since_year = 4;     // фильтр по году публикации; 0 = по умолчанию 2023
+}
+
+message StartCollectionRequest {
+  string idempotency_key = 1;   // обязателен; "<job_id>:collect" или "<dataset_version>:<row_id>:enrich"; ≤ 128
+  string query_text = 2;        // исходный текст запроса, 2..500 символов
+  SearchTerms terms = 3;        // обязателен
+  CollectionMode mode = 4;      // != UNSPECIFIED
+  CollectionLimits limits = 5;  // необязателен; нулевые поля = значения по умолчанию
+  repeated weaksignals.common.v1.SourceKey sources = 6; // пусто = все включённые адаптеры
+}
+
+message StartCollectionResponse {
+  string collection_id = 1;                            // UUID v7
+  weaksignals.common.v1.OperationStatus status = 2;
+  bool already_existed = 3;                            // true при повторе по idempotency_key
+}
+
+message GetCollectionRequest {
+  string collection_id = 1;
+}
+
+message AdapterRunSummary {
+  weaksignals.common.v1.SourceKey source_key = 1;
+  weaksignals.common.v1.OperationStatus status = 2;
+  int32 http_requests = 3;
+  int32 documents_found = 4;
+  int32 documents_new = 5;
+  string error_code = 6;      // пусто при успехе; коды см. ARCHITECTURE_TZ.md §10.7
+  string error_message = 7;   // ≤ 500
+}
+
+message GetCollectionResponse {
+  string collection_id = 1;
+  weaksignals.common.v1.OperationStatus status = 2;
+  int32 documents_total = 3;                  // документов в коллекции (после дедупликации)
+  int32 sources_processed = 4;                // число адаптеров с завершённым запуском
+  int32 http_requests_total = 5;              // «обработано источников» для UI
+  repeated AdapterRunSummary adapter_runs = 6;
+  google.protobuf.Timestamp started_at = 7;
+  optional google.protobuf.Timestamp finished_at = 8;
+  string error_code = 9;
+  string error_message = 10;
+}
+
+message StreamDocumentsRequest {
+  string collection_id = 1;
+  int32 chunk_size = 2;       // 1..200; 0 = по умолчанию 50
+  string page_token = 3;      // для возобновления после обрыва; пусто = с начала
+}
+
+message DocumentChunk {
+  repeated weaksignals.common.v1.Document documents = 1;
+  string next_page_token = 2; // токен для возобновления после этого чанка
+  bool last = 3;              // true в последнем чанке
+}
+
+message GetDocumentsRequest {
+  repeated string document_ids = 1; // 1..200 UUID
+}
+
+message GetDocumentsResponse {
+  repeated weaksignals.common.v1.Document documents = 1; // порядок не гарантирован; отсутствующие id не возвращаются
+  repeated string missing_document_ids = 2;
+}
+
+message CancelCollectionRequest {
+  string collection_id = 1;
+  string reason = 2; // ≤ 200
+}
+
+message CancelCollectionResponse {
+  weaksignals.common.v1.OperationStatus status = 1; // CANCELLED, либо терминальный статус, если сбор уже завершён
+}
+
+message CheckEncyclopediaRequest {
+  repeated string titles = 1;   // 1..20 названий-кандидатов
+  string language_code = 2;     // "ru" | "en"
+}
+
+message EncyclopediaHit {
+  string title = 1;
+  bool exists = 2;
+  string page_url = 3;          // пусто, если не найдена
+  int32 pageviews_30d = 4;      // -1 если недоступно
+  optional google.protobuf.Timestamp created_at = 5; // дата создания статьи, если известна
+}
+
+message CheckEncyclopediaResponse {
+  repeated EncyclopediaHit hits = 1; // по одному на каждый title в порядке запроса
+}

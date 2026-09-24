@@ -1,0 +1,27 @@
+# Maturity and formed-market lexicon (English).
+market share
+market leader
+market leaders
+industry standard
+de facto standard
+standardization
+widely adopted
+widely used
+mass adoption
+mainstream
+production ready
+production-grade
+enterprise grade
+general availability
+generally available
+commodity
+mature technology
+incumbent
+incumbents
+vendors
+ecosystem
+certified
+compliance
+large-scale deployment
+deployed at scale
+industry consortium

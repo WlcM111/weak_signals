@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "training_row.schema.json",
+  "title": "Строка обучающего набора (data/labels/dataset_<version>.jsonl) — положительные из xlsx и отрицательные командной разметки",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["row_id", "group_id", "origin", "title", "description", "domain_tag", "label", "label_kind", "source_urls", "annotators"],
+  "properties": {
+    "row_id": {"type": "string", "pattern": "^(pos|neg)-[0-9]{4}$"},
+    "group_id": {"type": "string", "description": "одинаков у связанных наблюдений (одна технология в разных формулировках) — GroupKFold"},
+    "origin": {"type": "string", "enum": ["gpb_dataset_2026_09", "team_negatives_v1"]},
+    "title": {"type": "string", "minLength": 5, "maxLength": 300},
+    "description": {"type": "string", "maxLength": 4000, "description": "для положительных: колонка 'Почему это слабый сигнал' + 'Компании' (вариант A) или пусто (вариант B, без утечки)"},
+    "domain_tag": {"type": "string", "enum": ["industrial_ai", "robotics", "ai_infrastructure", "fintech", "ai_security", "edge", "other"]},
+    "label": {"type": "integer", "enum": [0, 1]},
+    "label_kind": {"type": "string", "enum": ["WEAK_SIGNAL", "MATURE", "HYPE_OR_NOISE"]},
+    "stage_ordinal": {"type": ["integer", "null"], "minimum": 1, "maximum": 4},
+    "trend_ordinal": {"type": ["integer", "null"], "minimum": 1, "maximum": 3},
+    "score_original": {"type": ["integer", "null"], "minimum": 3, "maximum": 7},
+    "source_urls": {"type": "array", "items": {"type": "string", "format": "uri"}},
+    "annotators": {"type": "array", "minItems": 1, "items": {"type": "string", "enum": ["methodologists_gpb", "dev_a", "dev_b"]}},
+    "annotation_agreement": {"type": ["string", "null"], "enum": ["agree", "resolved", null]}
+  }
+}

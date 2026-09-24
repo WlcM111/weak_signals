@@ -1,0 +1,368 @@
+openapi: 3.1.0
+info:
+  title: Weak Signals Orchestrator API
+  version: 1.0.0
+  description: |
+    Внешний HTTP API сервиса выявления слабых сигналов (единственная точка входа для UI и жюри).
+    Все ответы в JSON, кодировка UTF-8, тексты на русском. Межсервисное взаимодействие внутри системы — gRPC (см. appendix/A_proto).
+    Аутентификация: заголовок `X-API-Key` (если `WS_API_KEY` задан). Корреляция: заголовок `X-Request-Id` (эхо в ответе).
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      summary: Liveness
+      operationId: healthz
+      security: []
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Health" } } } }
+  /readyz:
+    get:
+      summary: Readiness (БД + gRPC-зависимости + активная модель)
+      operationId: readyz
+      security: []
+      responses:
+        "200": { description: Ready, content: { application/json: { schema: { $ref: "#/components/schemas/Readiness" } } } }
+        "503": { description: Not ready, content: { application/json: { schema: { $ref: "#/components/schemas/Readiness" } } } }
+  /metrics:
+    get:
+      summary: Prometheus-метрики
+      operationId: metrics
+      security: []
+      responses:
+        "200": { description: OK, content: { text/plain: { schema: { type: string } } } }
+  /api/v1/queries:
+    post:
+      summary: Создать задание по открытому запросу
+      operationId: createQuery
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateQueryRequest" }
+            examples:
+              basic: { value: { query_text: "слабые сигналы в области кибербезопасности", top_n: 15 } }
+      responses:
+        "202":
+          description: Задание принято (или возвращено существующее при повторе Idempotency-Key)
+          headers:
+            Location: { schema: { type: string }, description: "/api/v1/jobs/{job_id}" }
+          content: { application/json: { schema: { $ref: "#/components/schemas/JobAccepted" } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/IdempotencyConflict" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "503": { $ref: "#/components/responses/Overloaded" }
+  /api/v1/jobs:
+    get:
+      summary: История заданий (стабильная сортировка created_at DESC, job_id DESC)
+      operationId: listJobs
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: cursor, in: query, schema: { type: string }, description: "next_cursor предыдущего ответа" }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/JobStatus" } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/JobList" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/jobs/{job_id}:
+    get:
+      summary: Статус и прогресс задания
+      operationId: getJob
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/jobs/{job_id}/cancel:
+    post:
+      summary: Запросить отмену (идемпотентно; терминальные статусы не меняются)
+      operationId: cancelJob
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "202": { description: Отмена запрошена, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Задание уже в терминальном статусе, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /api/v1/jobs/{job_id}/results:
+    get:
+      summary: Итоговая выдача ТОП-N с исключёнными кандидатами и статистикой
+      operationId: getResults
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Results" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Результат ещё не сформирован (статус не COMPLETED/PARTIAL), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /api/v1/results/items/{item_id}:
+    get:
+      summary: Страница инсайта (документ-отчёт по одному сигналу)
+      operationId: getResultItem
+      parameters:
+        - { name: item_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ResultItem" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/v1/model:
+    get:
+      summary: Сведения об активной модели и её метриках (прокси analyzer.GetModelInfo)
+      operationId: getModel
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ModelInfo" } } } }
+        "503": { $ref: "#/components/responses/Overloaded" }
+  /api/v1/score:
+    post:
+      summary: Скоринг произвольного описания технологии (прокси analyzer.ScoreText)
+      operationId: scoreText
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ScoreRequest" } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ScoreResponse" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "503": { $ref: "#/components/responses/Overloaded" }
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth: { type: apiKey, in: header, name: X-API-Key }
+  parameters:
+    JobId: { name: job_id, in: path, required: true, schema: { type: string, format: uuid } }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, minLength: 8, maxLength: 128 }
+      description: Ключ идемпотентности создания задания; действует 24 ч; при другом теле с тем же ключом — 409.
+  responses:
+    BadRequest: { description: Ошибка валидации, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    Unauthorized: { description: Неверный или отсутствующий X-API-Key, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    NotFound: { description: Не найдено, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    IdempotencyConflict: { description: Тот же Idempotency-Key с другим телом запроса, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    TooManyRequests:
+      description: Превышен лимит запросов (token bucket по client_ip_hash)
+      headers: { Retry-After: { schema: { type: integer } } }
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Overloaded:
+      description: Очередь заданий заполнена или зависимость недоступна
+      headers: { Retry-After: { schema: { type: integer } } }
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+  schemas:
+    Health: { type: object, required: [status], properties: { status: { type: string, enum: [ok] } } }
+    Readiness:
+      type: object
+      required: [status, checks]
+      properties:
+        status: { type: string, enum: [ready, not_ready] }
+        checks:
+          type: object
+          required: [postgres, collector, analyzer, insight, active_model]
+          properties:
+            postgres: { type: boolean }
+            collector: { type: boolean }
+            analyzer: { type: boolean }
+            insight: { type: boolean }
+            active_model: { type: boolean }
+    Error:
+      type: object
+      required: [code, message, request_id]
+      properties:
+        code: { type: string, description: "Машинный код: VALIDATION_ERROR | UNAUTHORIZED | NOT_FOUND | IDEMPOTENCY_CONFLICT | RATE_LIMITED | QUEUE_FULL | DEPENDENCY_UNAVAILABLE | JOB_NOT_FINISHED | JOB_TERMINAL | INTERNAL" }
+        message: { type: string }
+        request_id: { type: string }
+        details: { type: array, items: { $ref: "#/components/schemas/ErrorDetail" } }
+        retryable: { type: boolean }
+    ErrorDetail:
+      type: object
+      required: [field, issue]
+      properties:
+        field: { type: string }
+        issue: { type: string }
+    JobStatus: { type: string, enum: [QUEUED, COLLECTING, ANALYZING, NARRATING, COMPLETED, PARTIAL, FAILED, CANCELLED] }
+    CreateQueryRequest:
+      type: object
+      required: [query_text]
+      properties:
+        query_text: { type: string, minLength: 2, maxLength: 500 }
+        top_n: { type: integer, minimum: 1, maximum: 50, default: 15 }
+    JobAccepted:
+      type: object
+      required: [job_id, query_id, status, created]
+      properties:
+        job_id: { type: string, format: uuid }
+        query_id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        created: { type: boolean, description: "false при повторе Idempotency-Key" }
+    JobProgress:
+      type: object
+      required: [stage, http_requests_total, sources_processed, documents_collected, candidates_found, narratives_done, narratives_total]
+      properties:
+        stage: { $ref: "#/components/schemas/JobStatus" }
+        http_requests_total: { type: integer }
+        sources_processed: { type: integer }
+        documents_collected: { type: integer }
+        candidates_found: { type: integer }
+        narratives_done: { type: integer }
+        narratives_total: { type: integer }
+    Job:
+      type: object
+      required: [job_id, query_id, query_text, status, attempt, created_at, progress]
+      properties:
+        job_id: { type: string, format: uuid }
+        query_id: { type: string, format: uuid }
+        query_text: { type: string }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        attempt: { type: integer }
+        cancel_requested: { type: boolean }
+        error: { $ref: "#/components/schemas/Error" }
+        created_at: { type: string, format: date-time }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+        progress: { $ref: "#/components/schemas/JobProgress" }
+    JobList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Job" } }
+        next_cursor: { type: string, description: "отсутствует = последняя страница" }
+    Feature:
+      type: object
+      required: [feature_name, label_ru, value, contribution, direction]
+      properties:
+        feature_name: { type: string }
+        label_ru: { type: string }
+        value: { type: number }
+        contribution: { type: number }
+        direction: { type: string, enum: [supports_weak_signal, supports_mature, neutral] }
+    Source:
+      type: object
+      required: [document_id, title, url, source_type, source_key, language_code, trust_level, summary_ru, summary_kind]
+      properties:
+        document_id: { type: string, format: uuid }
+        title: { type: string }
+        url: { type: string, format: uri }
+        published_at: { type: string, format: date-time, description: "отсутствует = дата неизвестна" }
+        source_type: { type: string, enum: [SCIENTIFIC_PUBLICATION, PREPRINT, PATENT, NEWS, INDUSTRY_MEDIA, CORPORATE_BLOG, PRESS_RELEASE, CODE_REPOSITORY, VACANCY, ANALYTICAL_REPORT, GOVERNMENT, SOCIAL_MEDIA, ENCYCLOPEDIA, OTHER] }
+        source_key: { type: string, enum: [openalex, arxiv, patentsview, rss, github, hh, wikipedia] }
+        language_code: { type: string, pattern: "^[a-z]{2,3}$" }
+        trust_level: { type: string, enum: [HIGH, MEDIUM, LOW] }
+        summary_ru: { type: string }
+        summary_kind: { type: string, enum: [ORIGINAL_RU, GENERATIVE_SUMMARY, EXTRACTIVE], description: "GENERATIVE_SUMMARY/EXTRACTIVE отображаются с отметкой у источника" }
+        snippet: { type: string }
+        similarity: { type: number, minimum: 0, maximum: 1 }
+    ResultItemSummary:
+      type: object
+      required: [item_id, rank, title_ru, score, confidence_band, key_predictors, decision_explanation_ru, narrative_status, source_count]
+      properties:
+        item_id: { type: string, format: uuid }
+        rank: { type: integer }
+        title_ru: { type: string }
+        score: { type: number, minimum: 0, maximum: 1 }
+        confidence_band: { type: string, enum: [High, Medium, Low], description: "High: ≥0.75; Medium: порог..0.75; Low: ниже порога (не показывается в ТОП)" }
+        key_predictors: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/Feature" } }
+        decision_explanation_ru: { type: string }
+        narrative_status: { type: string, enum: [GENERATED, FALLBACK_EXTRACTIVE] }
+        source_count: { type: integer }
+    ResultItem:
+      allOf:
+        - $ref: "#/components/schemas/ResultItemSummary"
+        - type: object
+          required: [job_id, query_text, title_auto, description_ru, advantage_ru, case_example_ru, explanation_ru, features, sources, provenance]
+          properties:
+            job_id: { type: string, format: uuid }
+            query_text: { type: string }
+            title_auto: { type: string }
+            description_ru: { type: string }
+            advantage_ru: { type: string }
+            case_example_ru: { type: string }
+            case_document_id: { type: string, format: uuid }
+            explanation_ru: { type: string }
+            predicted_stage: { type: integer, minimum: 1, maximum: 4 }
+            predicted_trend: { type: integer, minimum: 1, maximum: 3 }
+            features: { type: array, items: { $ref: "#/components/schemas/Feature" } }
+            sources: { type: array, items: { $ref: "#/components/schemas/Source" } }
+            provenance:
+              type: object
+              required: [llm_provider, llm_model, prompt_version, model_version_id]
+              properties:
+                llm_provider: { type: string }
+                llm_model: { type: string }
+                prompt_version: { type: string }
+                model_version_id: { type: string }
+    ExcludedCandidate:
+      type: object
+      required: [candidate_id, title_auto, score, decision, decision_reason, decision_explanation_ru, document_count]
+      properties:
+        candidate_id: { type: string, format: uuid }
+        title_auto: { type: string }
+        score: { type: number }
+        decision: { type: string, enum: [MATURE, HYPE_OR_NOISE, INSUFFICIENT_EVIDENCE, OFF_TOPIC] }
+        decision_reason: { type: string }
+        decision_explanation_ru: { type: string }
+        document_count: { type: integer }
+    ResultStats:
+      type: object
+      required: [http_requests_total, sources_processed, documents_collected, candidates_found, weak_signals_total, weak_signals_confident, model_version_id]
+      properties:
+        http_requests_total: { type: integer }
+        sources_processed: { type: integer }
+        documents_collected: { type: integer }
+        candidates_found: { type: integer }
+        weak_signals_total: { type: integer }
+        weak_signals_confident: { type: integer, description: "score ≥ 0.75" }
+        narratives_generated: { type: integer }
+        narratives_fallback: { type: integer }
+        model_version_id: { type: string }
+        expand_used_fallback: { type: boolean }
+    Results:
+      type: object
+      required: [job_id, query_text, status, items, excluded, stats]
+      properties:
+        job_id: { type: string, format: uuid }
+        query_text: { type: string }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        items: { type: array, items: { $ref: "#/components/schemas/ResultItemSummary" } }
+        excluded: { type: array, items: { $ref: "#/components/schemas/ExcludedCandidate" } }
+        stats: { $ref: "#/components/schemas/ResultStats" }
+    ModelInfo:
+      type: object
+      required: [model_version_id, model_family, feature_schema_version, embedding_model, dataset_version, trained_at, metrics, feature_names]
+      properties:
+        model_version_id: { type: string }
+        model_family: { type: string }
+        feature_schema_version: { type: string }
+        embedding_model: { type: string }
+        dataset_version: { type: string }
+        trained_at: { type: string, format: date-time }
+        metrics:
+          type: object
+          required: [accuracy, precision, recall, f1, roc_auc, threshold, test_size, evaluation_protocol]
+          properties:
+            accuracy: { type: number }
+            precision: { type: number }
+            recall: { type: number }
+            f1: { type: number }
+            roc_auc: { type: number }
+            threshold: { type: number }
+            test_size: { type: integer }
+            evaluation_protocol: { type: string }
+        feature_names: { type: array, items: { type: string } }
+    ScoreRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 300 }
+        description: { type: string, maxLength: 4000, default: "" }
+        with_enrichment: { type: boolean, default: false }
+    ScoreResponse:
+      type: object
+      required: [score, decision, decision_reason, features, model_version_id, enrichment_applied]
+      properties:
+        score: { type: number }
+        decision: { type: string, enum: [WEAK_SIGNAL, MATURE, HYPE_OR_NOISE, INSUFFICIENT_EVIDENCE, OFF_TOPIC] }
+        decision_reason: { type: string }
+        features: { type: array, items: { $ref: "#/components/schemas/Feature" } }
+        model_version_id: { type: string }
+        predicted_stage: { type: integer }
+        predicted_trend: { type: integer }
+        enrichment_applied: { type: boolean }

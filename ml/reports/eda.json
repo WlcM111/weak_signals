@@ -1,0 +1,40 @@
+{
+  "rows_total": 225,
+  "positives": 100,
+  "negatives": 125,
+  "by_label_kind": {
+    "WEAK_SIGNAL": 100,
+    "MATURE": 68,
+    "HYPE_OR_NOISE": 57
+  },
+  "by_domain": {
+    "edge": 37,
+    "ai_security": 37,
+    "industrial_ai": 38,
+    "ai_infrastructure": 38,
+    "robotics": 38,
+    "fintech": 37
+  },
+  "by_origin": {
+    "gpb_dataset_2026_09": 100,
+    "team_negatives_v1": 125
+  },
+  "stage_ordinal": {
+    "4": 20,
+    "2": 35,
+    "3": 25,
+    "1": 20
+  },
+  "trend_ordinal": {
+    "3": 36,
+    "2": 60,
+    "1": 4
+  },
+  "description_length": {
+    "min": 62,
+    "median": 160,
+    "max": 401
+  },
+  "rows_without_sources": 0,
+  "duplicate_group_ids": 0
+}

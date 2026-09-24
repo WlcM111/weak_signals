@@ -1,0 +1,42 @@
+[project]
+name = "ml"
+version = "1.0.0"
+description = "ML-конвейер Weak Signals: данные, признаки, обучение и экспорт модели слабых сигналов."
+requires-python = ">=3.12"
+dependencies = [
+  "ws-common",
+  "ws-contracts",
+  "analyzer",
+  "numpy>=2.0",
+  "scipy>=1.14",
+  "scikit-learn>=1.5",
+  "joblib>=1.4",
+  "pandas>=2.2",
+  "openpyxl>=3.1",
+  "PyYAML>=6.0",
+  "structlog>=24.4",
+  "matplotlib>=3.9",
+]
+
+[project.optional-dependencies]
+# Тяжёлые и необязательные зависимости: конвейер работает и без них (см. ml/README.md).
+full = ["sentence-transformers>=3.0", "torch>=2.4", "lightgbm>=4.5", "mlflow>=2.16", "pyarrow>=17.0"]
+dev = ["pytest>=8.3", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+ml = "ml.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ml"]
+
+[tool.uv.sources]
+ws-common = { workspace = true }
+ws-contracts = { workspace = true }
+analyzer = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

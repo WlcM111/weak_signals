@@ -1,0 +1,21 @@
+[project]
+name = "ws-common"
+version = "1.0.0"
+description = "Общие модули сервисов Weak Signals: конфигурация, логи, БД, миграции, метрики, интерсепторы."
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.9",
+  "pydantic-settings>=2.5",
+  "structlog>=24.4",
+  "psycopg[binary,pool]>=3.2",
+  "grpcio>=1.66.2",
+  "grpcio-health-checking>=1.66.2",
+  "prometheus-client>=0.21",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ws_common"]

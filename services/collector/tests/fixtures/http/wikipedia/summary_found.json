@@ -1,0 +1,6 @@
+{
+  "type": "standard",
+  "title": "Kubernetes",
+  "extract": "Kubernetes is an open-source container orchestration system.",
+  "content_urls": {"desktop": {"page": "https://en.wikipedia.org/wiki/Kubernetes"}}
+}

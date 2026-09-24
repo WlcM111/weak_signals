@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <title>ArXiv Query: search_query=all:"AI security"</title>
+  <entry>
+    <id>http://arxiv.org/abs/2603.01234v1</id>
+    <published>2026-03-02T17:21:40Z</published>
+    <title>Runtime Attestation for Neuromorphic Edge Accelerators</title>
+    <summary>We describe a lightweight runtime attestation protocol for neuromorphic edge accelerators.</summary>
+    <arxiv:doi>10.48550/arXiv.2603.01234</arxiv:doi>
+    <category term="cs.CR"/>
+    <category term="cs.AR"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2201.00099v2</id>
+    <published>2022-01-03T09:00:00Z</published>
+    <title>Older Preprint Outside The Year Filter</title>
+    <summary>Should be filtered out by published_since_year.</summary>
+    <category term="cs.LG"/>
+  </entry>
+</feed>

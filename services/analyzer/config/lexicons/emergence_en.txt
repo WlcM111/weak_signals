@@ -1,0 +1,32 @@
+# Early-stage lexicon (English).
+prototype
+prototypes
+proof of concept
+poc
+pilot
+pilots
+early stage
+early-stage
+stealth
+stealth mode
+seed
+pre-seed
+seed round
+series a
+spin-off
+spinout
+incubator
+accelerator
+grant
+laboratory
+lab-scale
+bench-scale
+experimental
+preprint
+testbed
+demonstrator
+first demonstration
+emerging
+nascent
+feasibility study
+research prototype

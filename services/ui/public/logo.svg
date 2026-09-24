@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Слабые сигналы">
+  <title>Слабые сигналы</title>
+  <defs>
+    <linearGradient id="ws-core" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4a086c"/>
+      <stop offset="55%" stop-color="#7a2ba6"/>
+      <stop offset="100%" stop-color="#12a8c8"/>
+    </linearGradient>
+  </defs>
+  <!-- Шум: короткие ровные штрихи, из которых поднимается единственный сигнал. -->
+  <g stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28">
+    <line x1="8"  y1="44" x2="8"  y2="50"/>
+    <line x1="16" y1="42" x2="16" y2="50"/>
+    <line x1="24" y1="45" x2="24" y2="50"/>
+    <line x1="40" y1="43" x2="40" y2="50"/>
+    <line x1="48" y1="45" x2="48" y2="50"/>
+    <line x1="56" y1="42" x2="56" y2="50"/>
+  </g>
+  <!-- Сигнал: один всплеск выше шума. -->
+  <path d="M32 50 V20" stroke="url(#ws-core)" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- Расходящиеся дуги: сигнал замечен раньше остальных. -->
+  <path d="M20 26a16 16 0 0 1 24 0" stroke="url(#ws-core)" stroke-width="3.4" fill="none"
+        stroke-linecap="round" opacity="0.85"/>
+  <path d="M13 19a25 25 0 0 1 38 0" stroke="url(#ws-core)" stroke-width="2.6" fill="none"
+        stroke-linecap="round" opacity="0.45"/>
+  <circle cx="32" cy="17" r="4.6" fill="url(#ws-core)"/>
+</svg>

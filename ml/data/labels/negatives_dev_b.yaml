@@ -1,0 +1,765 @@
+# Список кандидатов-негативов, составленный разработчиком B (§6.2 HANDOFF_ML_PIPELINE).
+# subtype: mature | hype | noise. Описание — 2–3 нейтральных предложения о сути технологии,
+# без оценочных маркеров разметки. url — опорная ссылка для проверки второго аннотатора.
+# ВАЖНО: список требует перекрёстной разметки вторым аннотатором (dev_a) и расчёта каппы Коэна;
+# до этого annotation_agreement остаётся пустым. См. docs/ml/labeling_protocol.md.
+version: 1
+annotator: dev_b
+items:
+  # ---------------- industrial_ai ----------------
+  - title: "Предиктивное обслуживание оборудования (predictive maintenance)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Модели на данных вибрации, температуры и токов предсказывают отказ узла до остановки линии. Решение входит в стандартные пакеты SCADA и промышленных облаков, поставляется десятками вендоров."
+    url: https://en.wikipedia.org/wiki/Predictive_maintenance
+    rationale: "Рынок сформирован более десяти лет, есть отраслевые стандарты ISO 13374 и множество вендоров."
+  - title: "Компьютерное зрение для контроля качества на конвейере (visual inspection)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Камеры и свёрточные сети выявляют дефекты поверхности и отклонения геометрии в потоке продукции. Готовые системы поставляются Cognex, Keyence, Siemens и интеграторами."
+    url: https://en.wikipedia.org/wiki/Automated_optical_inspection
+    rationale: "Массовое внедрение на производствах, крупные вендоры, готовые типовые решения."
+  - title: "Цифровые двойники производственных линий (digital twin)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Имитационная модель установки синхронизируется с телеметрией и используется для планирования режимов. Технология входит в платформы Siemens, Dassault, PTC и стандартизуется в рамках Digital Twin Consortium."
+    url: https://en.wikipedia.org/wiki/Digital_twin
+    rationale: "Консорциум, стандарты, три и более крупных вендора."
+  - title: "MES-системы управления производством (manufacturing execution systems)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Программный слой между ERP и оборудованием, который ведёт производственные заказы, партии и прослеживаемость. Регулируется стандартом ISA-95, внедряется несколько десятилетий."
+    url: https://en.wikipedia.org/wiki/Manufacturing_execution_system
+    rationale: "Отраслевой стандарт ISA-95, зрелый рынок."
+  - title: "Промышленный интернет вещей (industrial IoT)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Сети датчиков и шлюзов собирают телеметрию оборудования по протоколам OPC UA и MQTT. Стек протоколов стандартизован, поставщики платформ исчисляются десятками."
+    url: https://en.wikipedia.org/wiki/Industrial_internet_of_things
+    rationale: "Стандартизованные протоколы, массовое внедрение."
+  - title: "Оптимизация энергопотребления цехов на основе ML"
+    domain: industrial_ai
+    subtype: mature
+    description: "Алгоритмы подбирают режимы работы компрессоров, печей и вентиляции по прогнозу нагрузки и тарифам. Функция встроена в системы энергоменеджмента по ISO 50001."
+    url: https://en.wikipedia.org/wiki/Energy_management_system
+    rationale: "Стандарт ISO 50001, встроенная функция зрелых систем."
+  - title: "Планирование производства методами исследования операций (APS)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Решатели строят расписание загрузки оборудования с учётом ограничений по материалам и срокам. Коммерческие APS-продукты существуют с 1990-х годов."
+    url: https://en.wikipedia.org/wiki/Advanced_planning_and_scheduling
+    rationale: "Рынок старше тридцати лет."
+  - title: "Роботизация складской логистики на конвейерных сортировщиках"
+    domain: industrial_ai
+    subtype: mature
+    description: "Автоматические сортировщики и конвейеры распределяют товары по направлениям отгрузки. Оборудование серийно поставляют Vanderlande, Daifuku, Siemens Logistics."
+    url: https://en.wikipedia.org/wiki/Automated_sorting_system
+    rationale: "Серийное оборудование, выраженные лидеры рынка."
+  - title: "Системы технического зрения для считывания маркировки (OCR на производстве)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Камеры распознают коды DataMatrix и буквенно-цифровую маркировку на деталях и упаковке. Функция встроена в промышленные сканеры и требования прослеживаемости."
+    url: https://en.wikipedia.org/wiki/Optical_character_recognition
+    rationale: "Массово внедрено, входит в требования прослеживаемости."
+  - title: "Промышленные чат-ассистенты по документации оборудования"
+    domain: industrial_ai
+    subtype: hype
+    description: "Языковая модель отвечает на вопросы по руководствам и регламентам обслуживания. Публикации о продукте ограничены пресс-релизами вендоров и корпоративными блогами."
+    url: https://en.wikipedia.org/wiki/Retrieval-augmented_generation
+    rationale: "Переупаковка RAG; независимых научных или патентных подтверждений категории нет."
+  - title: "Платформа «умного завода» как единое решение (smart factory suite)"
+    domain: industrial_ai
+    subtype: hype
+    description: "Маркетинговое объединение MES, IIoT и аналитики в один продукт с обещанием сквозной автоматизации. Формулировка встречается преимущественно в рекламных материалах."
+    url: https://en.wikipedia.org/wiki/Smart_manufacturing
+    rationale: "Зонтичный маркетинговый термин без собственного технического содержания."
+  - title: "Промышленный метавселенский цех (industrial metaverse)"
+    domain: industrial_ai
+    subtype: hype
+    description: "Совместная работа инженеров в трёхмерной виртуальной копии производства. Предложение продвигается вендорами графических платформ, независимых внедрений мало."
+    url: https://en.wikipedia.org/wiki/Metaverse
+    rationale: "Доминирование корпоративных блогов и презентаций."
+  - title: "Самооптимизирующееся производство без участия человека"
+    domain: industrial_ai
+    subtype: hype
+    description: "Обещание полностью автономного управления заводом на основе обучения с подкреплением. Практические внедрения ограничены отдельными узлами, а не предприятием."
+    url: https://en.wikipedia.org/wiki/Lights_out_(manufacturing)
+    rationale: "Лексика «полной автономии» без данных о внедрении."
+  - title: "Промышленная аналитика больших данных (big data analytics)"
+    domain: industrial_ai
+    subtype: noise
+    description: "Общий термин для обработки больших объёмов производственных данных. Не описывает конкретную технологию или продуктовую категорию."
+    url: https://en.wikipedia.org/wiki/Big_data
+    rationale: "Общий термин, не технология."
+  - title: "Индустрия 4.0"
+    domain: industrial_ai
+    subtype: noise
+    description: "Зонтичное название программы цифровизации промышленности, объединяющее разные технологии. Является концепцией государственной и отраслевой политики."
+    url: https://en.wikipedia.org/wiki/Fourth_Industrial_Revolution
+    rationale: "Политическая концепция, а не технология."
+  - title: "Оцифровка производственных процессов"
+    domain: industrial_ai
+    subtype: noise
+    description: "Общее обозначение перевода бумажных процессов в электронный вид. Не имеет собственного технического содержания."
+    url: https://en.wikipedia.org/wiki/Digital_transformation
+    rationale: "Общий термин."
+  - title: "Машинное обучение в производстве"
+    domain: industrial_ai
+    subtype: noise
+    description: "Широкая область применения методов обучения на производственных данных. Охватывает десятки несвязанных задач."
+    url: https://en.wikipedia.org/wiki/Machine_learning
+    rationale: "Слишком широкая область."
+  - title: "Системы управления складом (WMS)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Программное обеспечение управляет размещением, отбором и инвентаризацией на складе. Категория существует с 1990-х, десятки поставщиков и типовые внедрения."
+    url: https://en.wikipedia.org/wiki/Warehouse_management_system
+    rationale: "Сформированный рынок."
+  - title: "Промышленные экзоскелеты для подъёма грузов"
+    domain: industrial_ai
+    subtype: mature
+    description: "Пассивные и активные конструкции снижают нагрузку на спину при подъёме. Серийные модели поставляются Ottobock, Hilti, Comau и имеют отраслевые методики оценки."
+    url: https://en.wikipedia.org/wiki/Powered_exoskeleton
+    rationale: "Серийные продукты нескольких вендоров."
+  - title: "Промышленные беспроводные сети 5G на предприятии (private 5G)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Выделенная сеть пятого поколения обслуживает оборудование и транспорт внутри площадки. Спецификации 3GPP закреплены, операторы и вендоры предлагают типовые решения."
+    url: https://en.wikipedia.org/wiki/5G
+    rationale: "Стандарт 3GPP, коммерческие предложения операторов."
+  - title: "Аддитивное производство металлических деталей (SLM)"
+    domain: industrial_ai
+    subtype: mature
+    description: "Селективное лазерное плавление порошка формирует деталь послойно. Технология сертифицирована в авиации и медицине, оборудование серийно выпускают EOS, SLM Solutions, Trumpf."
+    url: https://en.wikipedia.org/wiki/Selective_laser_melting
+    rationale: "Сертификация в регулируемых отраслях, серийное оборудование."
+  # ---------------- robotics ----------------
+  - title: "Коллаборативные роботы-манипуляторы (cobots)"
+    domain: robotics
+    subtype: mature
+    description: "Манипуляторы с ограничением усилия работают рядом с человеком без ограждения. Безопасность регулируется ISO/TS 15066, рынок делят Universal Robots, Fanuc, ABB, Techman."
+    url: https://en.wikipedia.org/wiki/Cobot
+    rationale: "Отраслевой стандарт безопасности, выраженные лидеры."
+  - title: "Автономные мобильные роботы для внутрискладской перевозки (AMR)"
+    domain: robotics
+    subtype: mature
+    description: "Платформы перевозят паллеты и полки по складу, ориентируясь по лидару и карте. Массово внедрены в e-commerce, поставщики исчисляются десятками."
+    url: https://en.wikipedia.org/wiki/Autonomous_mobile_robot
+    rationale: "Массовое внедрение, сформированный рынок."
+  - title: "Промышленные роботы-сварщики"
+    domain: robotics
+    subtype: mature
+    description: "Шестиосевые манипуляторы выполняют точечную и дуговую сварку кузовов и конструкций. Технология применяется в автопроме с 1970-х годов."
+    url: https://en.wikipedia.org/wiki/Robot_welding
+    rationale: "Полувековая история массового применения."
+  - title: "Роботы-пылесосы с построением карты помещения"
+    domain: robotics
+    subtype: mature
+    description: "Бытовые устройства строят карту SLAM и планируют покрытие площади. Продаются массово, лидеры рынка iRobot, Roborock, Ecovacs."
+    url: https://en.wikipedia.org/wiki/Robotic_vacuum_cleaner
+    rationale: "Потребительский массовый рынок."
+  - title: "ROS как платформа разработки робототехники"
+    domain: robotics
+    subtype: mature
+    description: "Набор библиотек и соглашений для обмена сообщениями между узлами робота. Де-факто стандарт исследований и промышленных прототипов, поддерживается Open Robotics."
+    url: https://en.wikipedia.org/wiki/Robot_Operating_System
+    rationale: "Де-факто стандарт с широкой экосистемой."
+  - title: "Системы захвата с вакуумными присосками для пикинга"
+    domain: robotics
+    subtype: mature
+    description: "Вакуумные захваты берут коробки и пакеты разной формы на линии комплектации. Серийные решения поставляют Schmalz, Piab, OnRobot."
+    url: https://en.wikipedia.org/wiki/Vacuum_gripper
+    rationale: "Серийные компоненты нескольких вендоров."
+  - title: "Дроны для инвентаризации складов"
+    domain: robotics
+    subtype: mature
+    description: "Беспилотники облетают стеллажи и считывают штрихкоды для сверки остатков. Коммерческие сервисы работают у Verity, Gather AI и логистических операторов."
+    url: https://en.wikipedia.org/wiki/Unmanned_aerial_vehicle
+    rationale: "Коммерческая эксплуатация у нескольких поставщиков."
+  - title: "Хирургические роботы с дистанционным управлением"
+    domain: robotics
+    subtype: mature
+    description: "Консоль хирурга управляет манипуляторами с инструментами внутри пациента. Системы da Vinci сертифицированы и установлены в тысячах клиник."
+    url: https://en.wikipedia.org/wiki/Da_Vinci_Surgical_System
+    rationale: "Сертифицированный продукт с тысячами установок."
+  - title: "Автопилот для сельхозтехники по RTK-навигации"
+    domain: robotics
+    subtype: mature
+    description: "Трактор ведёт агрегат по заданной траектории с сантиметровой точностью. Функция входит в стандартную комплектацию John Deere, CNH, Ростсельмаш."
+    url: https://en.wikipedia.org/wiki/Precision_agriculture
+    rationale: "Стандартная комплектация серийной техники."
+  - title: "Человекоподобные роботы общего назначения для склада"
+    domain: robotics
+    subtype: hype
+    description: "Двуногие платформы позиционируются как универсальная замена ручного труда. Сообщения о внедрениях исходят преимущественно из пресс-релизов производителей."
+    url: https://en.wikipedia.org/wiki/Humanoid_robot
+    rationale: "Заявления о массовой применимости без независимых данных."
+  - title: "Роботы с «настоящим» искусственным интеллектом"
+    domain: robotics
+    subtype: hype
+    description: "Формулировка используется в рекламе для обозначения роботов с обучаемым поведением. Техническое содержание за термином не закреплено."
+    url: https://en.wikipedia.org/wiki/Artificial_general_intelligence
+    rationale: "Рекламная формулировка без определения."
+  - title: "Роевая робототехника для доставки последней мили"
+    domain: robotics
+    subtype: hype
+    description: "Обещание согласованной работы сотен малых роботов на улицах города. Пилоты единичны, основная часть публикаций — корпоративные анонсы."
+    url: https://en.wikipedia.org/wiki/Swarm_robotics
+    rationale: "Преобладание анонсов над подтверждёнными внедрениями."
+  - title: "Роботы-компаньоны с эмоциональным интеллектом"
+    domain: robotics
+    subtype: hype
+    description: "Устройства позиционируются как распознающие и отражающие эмоции пользователя. Оценки эффективности в независимых источниках отсутствуют."
+    url: https://en.wikipedia.org/wiki/Affective_computing
+    rationale: "Маркетинговое позиционирование без независимой оценки."
+  - title: "Робототехника"
+    domain: robotics
+    subtype: noise
+    description: "Название инженерной дисциплины в целом. Не обозначает конкретную технологию или продукт."
+    url: https://en.wikipedia.org/wiki/Robotics
+    rationale: "Название дисциплины."
+  - title: "Автоматизация физического труда"
+    domain: robotics
+    subtype: noise
+    description: "Общее обозначение замещения ручных операций машинами. Охватывает несвязанные между собой технологии."
+    url: https://en.wikipedia.org/wiki/Automation
+    rationale: "Общий термин."
+  - title: "Умные машины"
+    domain: robotics
+    subtype: noise
+    description: "Расплывчатое обозначение техники с элементами автоматики. Используется в публицистике, а не в технической литературе."
+    url: https://en.wikipedia.org/wiki/Machine
+    rationale: "Публицистическое обозначение."
+  - title: "Механические манипуляторы"
+    domain: robotics
+    subtype: noise
+    description: "Класс устройств, известный с середины XX века. Термин описывает широкий класс, а не зарождающееся направление."
+    url: https://en.wikipedia.org/wiki/Robotic_arm
+    rationale: "Широкий класс устройств с полувековой историей."
+  - title: "Системы SLAM на лидарах"
+    domain: robotics
+    subtype: mature
+    description: "Алгоритмы одновременной локализации и построения карты по облакам точек. Реализованы в открытых библиотеках и серийных продуктах более десяти лет."
+    url: https://en.wikipedia.org/wiki/Simultaneous_localization_and_mapping
+    rationale: "Зрелый алгоритмический стек в открытых библиотеках."
+  - title: "Роботизированные сортировочные ячейки с 3D-зрением"
+    domain: robotics
+    subtype: mature
+    description: "Ячейка распознаёт положение детали в таре и берёт её захватом. Коммерческие решения bin picking поставляют Fanuc, Photoneo, Zivid."
+    url: https://en.wikipedia.org/wiki/Bin_picking
+    rationale: "Коммерческие серийные решения."
+  - title: "Приводы с интегрированными датчиками момента"
+    domain: robotics
+    subtype: mature
+    description: "Модульные шарниры со встроенным измерением момента упрощают безопасное управление. Серийно выпускаются Harmonic Drive, Kollmorgen, Schunk."
+    url: https://en.wikipedia.org/wiki/Torque_sensor
+    rationale: "Серийные компоненты."
+  - title: "Телеуправление роботами через 5G"
+    domain: robotics
+    subtype: mature
+    description: "Оператор управляет машиной с задержкой в единицы миллисекунд по выделенной сети. Демонстрации и коммерческие внедрения проводятся операторами связи с 2020 года."
+    url: https://en.wikipedia.org/wiki/Teleoperation
+    rationale: "Коммерческие внедрения операторов."
+  # ---------------- ai_infrastructure ----------------
+  - title: "Контейнеризация приложений (containerization)"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Изоляция процессов и зависимостей в образах, запускаемых единым рантаймом. Спецификации OCI закреплены, экосистема зрелая."
+    url: https://en.wikipedia.org/wiki/Containerization_(computing)
+    rationale: "Стандарт OCI, повсеместное внедрение."
+  - title: "Оркестрация контейнеров Kubernetes"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Планировщик распределяет контейнеры по узлам кластера и следит за их состоянием. Проект управляется CNCF, поддерживается всеми крупными облаками."
+    url: https://en.wikipedia.org/wiki/Kubernetes
+    rationale: "Де-факто стандарт с управлением через фонд."
+  - title: "Векторные базы данных для поиска по эмбеддингам"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Хранилища индексируют векторы и выполняют приближённый поиск ближайших соседей. Функция встроена в PostgreSQL, Elasticsearch, Redis и десяток специализированных СУБД."
+    url: https://en.wikipedia.org/wiki/Vector_database
+    rationale: "Функция встроена в массовые СУБД."
+  - title: "Retrieval-augmented generation в корпоративном поиске"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Ответ языковой модели строится по найденным документам компании. Шаблон реализован во всех крупных облачных платформах и открытых фреймворках."
+    url: https://en.wikipedia.org/wiki/Retrieval-augmented_generation
+    rationale: "Жёсткий негатив: зрелая версия темы, близкой к позитивам."
+  - title: "MLOps-платформы управления жизненным циклом моделей"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Реестры моделей, конвейеры обучения и мониторинг качества в одном продукте. Категория представлена MLflow, Kubeflow, SageMaker, Vertex AI."
+    url: https://en.wikipedia.org/wiki/MLOps
+    rationale: "Сформированная категория с лидерами."
+  - title: "Дообучение моделей методом LoRA"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Обучаются низкоранговые добавки к весам вместо полной модели. Метод реализован в стандартных библиотеках и используется повсеместно с 2023 года."
+    url: https://en.wikipedia.org/wiki/Fine-tuning_(deep_learning)
+    rationale: "Метод вошёл в стандартные библиотеки."
+  - title: "Квантование весов больших языковых моделей"
+        # noqa: аккуратно — описание ниже
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Снижение разрядности весов уменьшает память и ускоряет инференс. Форматы GGUF, GPTQ и AWQ поддерживаются массовыми рантаймами."
+    url: https://en.wikipedia.org/wiki/Quantization_(signal_processing)
+    rationale: "Поддержка в массовых рантаймах."
+  - title: "Кластеры GPU с интерконнектом InfiniBand"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Узлы с ускорителями объединяются сетью с низкой задержкой для распределённого обучения. Архитектура стандартна для дата-центров с 2010-х годов."
+    url: https://en.wikipedia.org/wiki/InfiniBand
+    rationale: "Стандартная архитектура дата-центров."
+  - title: "Бессерверные вычисления (serverless)"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Код выполняется в ответ на события без управления серверами со стороны разработчика. Сервис предоставляют все крупные облака более десяти лет."
+    url: https://en.wikipedia.org/wiki/Serverless_computing
+    rationale: "Массовое облачное предложение."
+  - title: "Платформа автономных ИИ-агентов «под ключ»"
+    domain: ai_infrastructure
+    subtype: hype
+    description: "Продукт обещает самостоятельное выполнение бизнес-задач цепочками языковых моделей. Публикации ограничены анонсами вендоров и демонстрациями."
+    url: https://en.wikipedia.org/wiki/Intelligent_agent
+    rationale: "Преобладание анонсов, нет независимых замеров."
+  - title: "Искусственный интеллект общего назначения в продукте"
+    domain: ai_infrastructure
+    subtype: hype
+    description: "Формулировка используется для позиционирования продуктов как универсально разумных. Не соответствует техническому состоянию систем."
+    url: https://en.wikipedia.org/wiki/Artificial_general_intelligence
+    rationale: "Заявление не подтверждается данными."
+  - title: "Нулевые галлюцинации языковых моделей"
+    domain: ai_infrastructure
+    subtype: hype
+    description: "Обещание полного отсутствия выдуманных фактов в ответах модели. Независимые проверки такого свойства не подтверждают."
+    url: https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)
+    rationale: "Непроверяемое рекламное обещание."
+  - title: "Облачная платформа для всего ИИ-стека"
+    domain: ai_infrastructure
+    subtype: hype
+    description: "Маркетинговое объединение хранения, обучения и инференса в единое предложение. Термин не описывает отдельную технологию."
+    url: https://en.wikipedia.org/wiki/Cloud_computing
+    rationale: "Зонтичное маркетинговое предложение."
+  - title: "Инфраструктура искусственного интеллекта"
+    domain: ai_infrastructure
+    subtype: noise
+    description: "Название области, охватывающей вычисления, хранение и инструменты. Не является отдельной технологией."
+    url: https://en.wikipedia.org/wiki/Artificial_intelligence
+    rationale: "Название области."
+  - title: "Облачные вычисления"
+    domain: ai_infrastructure
+    subtype: noise
+    description: "Модель предоставления вычислительных ресурсов по требованию. Зрелая и общеизвестная категория."
+    url: https://en.wikipedia.org/wiki/Cloud_computing
+    rationale: "Общая зрелая категория."
+  - title: "Большие языковые модели"
+    domain: ai_infrastructure
+    subtype: noise
+    description: "Класс нейросетевых моделей, обученных на больших корпусах текста. Слишком широкая категория для отдельного сигнала."
+    url: https://en.wikipedia.org/wiki/Large_language_model
+    rationale: "Широкая категория."
+  - title: "Данные как новая нефть"
+    domain: ai_infrastructure
+    subtype: noise
+    description: "Публицистическая метафора о ценности данных. Технического содержания не несёт."
+    url: https://en.wikipedia.org/wiki/Big_data
+    rationale: "Метафора."
+  - title: "Кеширование ключей и значений при инференсе трансформеров (KV-cache)"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Сохранение промежуточных состояний внимания ускоряет генерацию токенов. Приём реализован во всех популярных рантаймах инференса."
+    url: https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture)
+    rationale: "Стандартный приём всех рантаймов."
+  - title: "Distributed data parallel обучение нейросетей"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Копии модели на нескольких ускорителях синхронизируют градиенты каждый шаг. Реализовано в PyTorch и TensorFlow много лет."
+    url: https://en.wikipedia.org/wiki/Distributed_computing
+    rationale: "Базовая функция фреймворков."
+  - title: "Хранилища объектов S3-совместимого типа"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Данные хранятся как объекты с доступом по HTTP API. Протокол стал отраслевым стандартом, реализован десятками систем."
+    url: https://en.wikipedia.org/wiki/Amazon_S3
+    rationale: "Отраслевой стандарт де-факто."
+  - title: "Feature store для признаков машинного обучения"
+    domain: ai_infrastructure
+    subtype: mature
+    description: "Каталог хранит вычисленные признаки и выдаёт их одинаково при обучении и инференсе. Категория представлена Feast, Tecton и облачными аналогами."
+    url: https://en.wikipedia.org/wiki/Feature_engineering
+    rationale: "Сформированная продуктовая категория."
+  # ---------------- fintech ----------------
+  - title: "Бесконтактные платежи по NFC"
+    domain: fintech
+    subtype: mature
+    description: "Карта или телефон передают платёжные данные терминалу на расстоянии нескольких сантиметров. Технология стандартизована EMVCo и принимается повсеместно."
+    url: https://en.wikipedia.org/wiki/Contactless_payment
+    rationale: "Стандарт EMVCo, повсеместный приём."
+  - title: "Открытый банкинг по API (open banking)"
+    domain: fintech
+    subtype: mature
+    description: "Банки предоставляют доступ к счетам клиента сторонним сервисам по регламентированным интерфейсам. Режим закреплён регуляторами в ЕС и ряде других юрисдикций."
+    url: https://en.wikipedia.org/wiki/Open_banking
+    rationale: "Регуляторное закрепление, массовое внедрение."
+  - title: "Скоринг кредитоспособности на градиентном бустинге"
+    domain: fintech
+    subtype: mature
+    description: "Модель оценивает вероятность дефолта по анкетным и транзакционным признакам. Подход применяется банками более десяти лет и регулируется требованиями к валидации моделей."
+    url: https://en.wikipedia.org/wiki/Credit_score
+    rationale: "Многолетняя практика с регуляторными требованиями."
+  - title: "Системы быстрых платежей между счетами"
+    domain: fintech
+    subtype: mature
+    description: "Перевод по идентификатору получателя проходит в режиме реального времени круглосуточно. Национальные системы работают в десятках стран."
+    url: https://en.wikipedia.org/wiki/Instant_payment
+    rationale: "Национальные платёжные инфраструктуры."
+  - title: "Антифрод на правилах и моделях в реальном времени"
+    domain: fintech
+    subtype: mature
+    description: "Транзакция проверяется набором правил и скоринговой моделью до авторизации. Функция входит в процессинговые платформы и требования платёжных систем."
+    url: https://en.wikipedia.org/wiki/Fraud_detection
+    rationale: "Обязательная функция процессинга."
+  - title: "Биометрическая идентификация клиента по лицу и голосу"
+    domain: fintech
+    subtype: mature
+    description: "Клиент подтверждает личность по биометрическому образцу при дистанционном обслуживании. Практика закреплена нормативно и внедрена крупными банками."
+    url: https://en.wikipedia.org/wiki/Biometrics
+    rationale: "Нормативное закрепление и массовое внедрение."
+  - title: "Робо-эдвайзинг в управлении частными портфелями"
+    domain: fintech
+    subtype: mature
+    description: "Алгоритм подбирает распределение активов по анкете риск-профиля и ребалансирует портфель. Сервисы предлагают крупные брокеры с середины 2010-х."
+    url: https://en.wikipedia.org/wiki/Robo-advisor
+    rationale: "Сформированный рынок услуг."
+  - title: "Токенизация карточных данных при оплате"
+    domain: fintech
+    subtype: mature
+    description: "Номер карты заменяется одноразовым токеном, недействительным вне конкретного мерчанта. Механизм стандартизован платёжными системами."
+    url: https://en.wikipedia.org/wiki/Tokenization_(data_security)
+    rationale: "Стандарт платёжных систем."
+  - title: "Децентрализованные финансы нового поколения"
+    domain: fintech
+    subtype: hype
+    description: "Обещание замены банковской инфраструктуры смарт-контрактами без посредников. Заявления преобладают над данными об устойчивых объёмах и регуляторном статусе."
+    url: https://en.wikipedia.org/wiki/Decentralized_finance
+    rationale: "Лексика революционности без подтверждённых объёмов."
+  - title: "Банк на блокчейне"
+    domain: fintech
+    subtype: hype
+    description: "Маркетинговое позиционирование банковских продуктов как построенных на распределённом реестре. Техническая роль реестра в продукте обычно не раскрывается."
+    url: https://en.wikipedia.org/wiki/Blockchain
+    rationale: "Позиционирование без раскрытия архитектуры."
+  - title: "ИИ-трейдинг с гарантированной доходностью"
+    domain: fintech
+    subtype: hype
+    description: "Реклама алгоритмических сервисов, обещающих стабильный доход. Проверяемых результатов в независимых источниках нет."
+    url: https://en.wikipedia.org/wiki/Algorithmic_trading
+    rationale: "Обещание доходности — признак рекламного вброса."
+  - title: "Метавселенские банковские отделения"
+    domain: fintech
+    subtype: hype
+    description: "Обслуживание клиентов в виртуальном пространстве с аватарами. Публикации ограничены пресс-релизами и пилотами без продолжения."
+    url: https://en.wikipedia.org/wiki/Metaverse
+    rationale: "Пресс-релизы без развития."
+  - title: "Суперприложение для всех финансовых операций"
+    domain: fintech
+    subtype: hype
+    description: "Зонтичное обещание объединить платежи, инвестиции и маркетплейс в одном приложении. Термин продуктовый, а не технологический."
+    url: https://en.wikipedia.org/wiki/Super-app
+    rationale: "Продуктовая упаковка, не технология."
+  - title: "Платежи мыслью через нейроинтерфейс"
+    domain: fintech
+    subtype: hype
+    description: "Демонстрации подтверждения платежа сигналами мозговой активности. Инженерных решений за пределами лабораторных демонстраций нет, но заявлено как продукт."
+    url: https://en.wikipedia.org/wiki/Brain%E2%80%93computer_interface
+    rationale: "Заявление о продукте при отсутствии инженерной реализации."
+  - title: "Квантовый банкинг"
+    domain: fintech
+    subtype: hype
+    description: "Использование слова «квантовый» в маркетинге финансовых продуктов без квантовых вычислений в основе. Термин не имеет закреплённого содержания."
+    url: https://en.wikipedia.org/wiki/Quantum_computing
+    rationale: "Термин-приставка без содержания."
+  - title: "Программируемые деньги будущего"
+    domain: fintech
+    subtype: hype
+    description: "Обобщённое обещание платежей с встроенной логикой расходования. Конкретные реализации не отделяются от существующих смарт-контрактов."
+    url: https://en.wikipedia.org/wiki/Smart_contract
+    rationale: "Переупаковка известного механизма."
+  - title: "Финансовые технологии"
+    domain: fintech
+    subtype: noise
+    description: "Название отрасли в целом. Не обозначает конкретную технологию."
+    url: https://en.wikipedia.org/wiki/Fintech
+    rationale: "Название отрасли."
+  - title: "Цифровизация банковских услуг"
+    domain: fintech
+    subtype: noise
+    description: "Общее обозначение перевода обслуживания в дистанционные каналы. Охватывает несвязанные технологии."
+    url: https://en.wikipedia.org/wiki/Digital_banking
+    rationale: "Общий термин."
+  - title: "Платёжная инфраструктура"
+    domain: fintech
+    subtype: noise
+    description: "Совокупность систем проведения расчётов. Описывает слой, а не отдельную технологию."
+    url: https://en.wikipedia.org/wiki/Payment_system
+    rationale: "Описание слоя."
+  - title: "Криптовалюты"
+    domain: fintech
+    subtype: noise
+    description: "Широкий класс цифровых активов на распределённых реестрах. Известен более пятнадцати лет."
+    url: https://en.wikipedia.org/wiki/Cryptocurrency
+    rationale: "Широкий известный класс."
+  # ---------------- ai_security ----------------
+  - title: "Многофакторная аутентификация пользователей"
+    domain: ai_security
+    subtype: mature
+    description: "Доступ подтверждается вторым фактором помимо пароля: кодом, ключом или биометрией. Требование закреплено стандартами и внедрено повсеместно."
+    url: https://en.wikipedia.org/wiki/Multi-factor_authentication
+    rationale: "Стандартизованное повсеместное требование."
+  - title: "Управление привилегированным доступом (PAM)"
+    domain: ai_security
+    subtype: mature
+    description: "Учётные записи администраторов хранятся в сейфе, сессии записываются и ограничиваются по времени. Категория сформирована, лидеры CyberArk, Delinea, BeyondTrust."
+    url: https://en.wikipedia.org/wiki/Privileged_access_management
+    rationale: "Сформированный рынок с лидерами."
+  - title: "Архитектура нулевого доверия (zero trust)"
+    domain: ai_security
+    subtype: mature
+    description: "Каждый запрос проверяется независимо от сетевого периметра. Модель описана в NIST SP 800-207 и реализуется крупными вендорами."
+    url: https://en.wikipedia.org/wiki/Zero_trust_security_model
+    rationale: "Опубликованный стандарт NIST."
+  - title: "Сканирование зависимостей на уязвимости (SCA)"
+    domain: ai_security
+    subtype: mature
+    description: "Инструмент сверяет состав библиотек проекта с базами известных уязвимостей. Встроено в системы сборки и требования регуляторов к SBOM."
+    url: https://en.wikipedia.org/wiki/Software_composition_analysis
+    rationale: "Встроено в процессы сборки, требования по SBOM."
+  - title: "SIEM-системы сбора и корреляции событий безопасности"
+    domain: ai_security
+    subtype: mature
+    description: "Логи инфраструктуры собираются в единое хранилище и анализируются правилами корреляции. Категория существует с 2000-х, лидеры Splunk, IBM, Microsoft."
+    url: https://en.wikipedia.org/wiki/Security_information_and_event_management
+    rationale: "Категория старше двадцати лет."
+  - title: "Шифрование трафика TLS 1.3"
+    domain: ai_security
+    subtype: mature
+    description: "Протокол защищает соединение и согласует ключи за один раунд. Стандартизован в RFC 8446 и поддерживается всеми браузерами и серверами."
+    url: https://en.wikipedia.org/wiki/Transport_Layer_Security
+    rationale: "RFC-стандарт с повсеместной поддержкой."
+  - title: "Фильтрация запросов к веб-приложениям (WAF)"
+    domain: ai_security
+    subtype: mature
+    description: "Шлюз отсекает запросы с признаками инъекций и автоматизированных атак. Требование PCI DSS, решения поставляют все облака и сетевые вендоры."
+    url: https://en.wikipedia.org/wiki/Web_application_firewall
+    rationale: "Требование отраслевого стандарта PCI DSS."
+  - title: "Обнаружение аномалий в сетевом трафике по ML"
+    domain: ai_security
+    subtype: mature
+    description: "Модели выделяют отклонения от профиля нормального поведения хостов. Функция входит в NDR-продукты крупных вендоров более десяти лет."
+    url: https://en.wikipedia.org/wiki/Anomaly_detection
+    rationale: "Встроенная функция зрелых продуктов."
+  - title: "Антивирус с искусственным интеллектом"
+    domain: ai_security
+    subtype: hype
+    description: "Маркетинговое обозначение сигнатурно-поведенческих продуктов с элементами обучения. Разделение с обычным EDR в материалах не проводится."
+    url: https://en.wikipedia.org/wiki/Endpoint_detection_and_response
+    rationale: "Переупаковка EDR."
+  - title: "Самовосстанавливающаяся кибербезопасность"
+    domain: ai_security
+    subtype: hype
+    description: "Обещание автоматического устранения последствий атак без участия человека. Подтверждений в независимых испытаниях нет."
+    url: https://en.wikipedia.org/wiki/Self-healing
+    rationale: "Непроверяемое обещание автономности."
+  - title: "Абсолютная защита от взлома"
+    domain: ai_security
+    subtype: hype
+    description: "Рекламная формулировка о полной неуязвимости решения. Противоречит практике оценки защищённости."
+    url: https://en.wikipedia.org/wiki/Computer_security
+    rationale: "Рекламная гарантия."
+  - title: "Квантово-устойчивый блокчейн для всего"
+    domain: ai_security
+    subtype: hype
+    description: "Объединение двух модных терминов в продуктовом позиционировании. Технические детали перехода на постквантовые схемы обычно не раскрываются."
+    url: https://en.wikipedia.org/wiki/Post-quantum_cryptography
+    rationale: "Сочетание терминов без раскрытия реализации."
+  - title: "Кибериммунная операционная система нового поколения"
+    domain: ai_security
+    subtype: hype
+    description: "Маркетинговое обозначение архитектур с изоляцией компонентов. Термин продвигается отдельными вендорами."
+    url: https://en.wikipedia.org/wiki/Microkernel
+    rationale: "Вендорский термин."
+  - title: "ИИ-аналитик центра мониторинга вместо команды"
+    domain: ai_security
+    subtype: hype
+    description: "Заявление о полной замене дежурной смены языковой моделью. Опубликованных измерений качества триажа нет."
+    url: https://en.wikipedia.org/wiki/Security_operations_center
+    rationale: "Заявление о замене персонала без измерений."
+  - title: "Нейросетевой файрвол будущего"
+    domain: ai_security
+    subtype: hype
+    description: "Обозначение сетевых экранов с моделями классификации трафика. Отличие от существующих NGFW не формулируется."
+    url: https://en.wikipedia.org/wiki/Next-generation_firewall
+    rationale: "Не отличается от существующей категории."
+  - title: "Кибербезопасность"
+    domain: ai_security
+    subtype: noise
+    description: "Название дисциплины и отрасли. Не обозначает конкретную технологию."
+    url: https://en.wikipedia.org/wiki/Computer_security
+    rationale: "Название отрасли."
+  - title: "Защита данных"
+    domain: ai_security
+    subtype: noise
+    description: "Общее обозначение мер по обеспечению конфиденциальности и целостности. Охватывает несвязанные механизмы."
+    url: https://en.wikipedia.org/wiki/Information_privacy
+    rationale: "Общий термин."
+  - title: "Управление рисками информационной безопасности"
+    domain: ai_security
+    subtype: noise
+    description: "Управленческий процесс оценки и обработки рисков. Не является технологией."
+    url: https://en.wikipedia.org/wiki/IT_risk_management
+    rationale: "Управленческий процесс."
+  - title: "Шифрование"
+    domain: ai_security
+    subtype: noise
+    description: "Базовый класс криптографических преобразований. Известен веками, не является зарождающимся направлением."
+    url: https://en.wikipedia.org/wiki/Encryption
+    rationale: "Базовая известная технология."
+  - title: "Оценка защищённости методом пентеста"
+    domain: ai_security
+    subtype: mature
+    description: "Контролируемая имитация атаки выявляет эксплуатируемые уязвимости. Практика регламентирована методиками OWASP и PTES."
+    url: https://en.wikipedia.org/wiki/Penetration_test
+    rationale: "Регламентированная зрелая практика."
+  - title: "Управление секретами приложений в хранилище"
+    domain: ai_security
+    subtype: mature
+    description: "Пароли и ключи выдаются приложениям по запросу с ограниченным сроком действия. Решения HashiCorp Vault и облачных провайдеров внедрены повсеместно."
+    url: https://en.wikipedia.org/wiki/Secret_sharing
+    rationale: "Повсеместно внедрённые продукты."
+  # ---------------- edge ----------------
+  - title: "Инференс нейросетей на мобильных NPU"
+    domain: edge
+    subtype: mature
+    description: "Ускоритель в системе-на-кристалле выполняет свёртки и внимание без обращения к облаку. NPU входят в массовые чипы Qualcomm, Apple, MediaTek."
+    url: https://en.wikipedia.org/wiki/AI_accelerator
+    rationale: "Массовые чипы нескольких лидеров."
+  - title: "Периферийные вычисления у базовой станции (MEC)"
+    domain: edge
+    subtype: mature
+    description: "Вычисления выполняются на узле оператора рядом с абонентом для снижения задержки. Архитектура стандартизована ETSI."
+    url: https://en.wikipedia.org/wiki/Multi-access_edge_computing
+    rationale: "Стандарт ETSI."
+  - title: "Оптимизация моделей прунингом и дистилляцией"
+    domain: edge
+    subtype: mature
+    description: "Удаление малозначимых весов и обучение компактной модели по выходам большой. Методы описаны в учебниках и реализованы в стандартных библиотеках."
+    url: https://en.wikipedia.org/wiki/Knowledge_distillation
+    rationale: "Учебные методы в стандартных библиотеках."
+  - title: "TinyML на микроконтроллерах"
+    domain: edge
+    subtype: mature
+    description: "Модели размером в сотни килобайт выполняются на микроконтроллерах без операционной системы. Инструментарий TensorFlow Lite Micro и бенчмарки MLPerf Tiny сформированы."
+    url: https://en.wikipedia.org/wiki/TinyML
+    rationale: "Сформированный инструментарий и бенчмарки."
+  - title: "Протокол MQTT для телеметрии устройств"
+    domain: edge
+    subtype: mature
+    description: "Лёгкий протокол публикации и подписки передаёт показания датчиков по нестабильным каналам. Стандарт OASIS, поддержка во всех IoT-платформах."
+    url: https://en.wikipedia.org/wiki/MQTT
+    rationale: "Стандарт OASIS."
+  - title: "Обновление прошивок по воздуху (OTA)"
+    domain: edge
+    subtype: mature
+    description: "Устройства получают новую прошивку по сети с проверкой подписи и откатом. Механизм обязателен в автомобильной и потребительской электронике."
+    url: https://en.wikipedia.org/wiki/Over-the-air_update
+    rationale: "Обязательный механизм в массовой электронике."
+  - title: "Федеративное обучение на устройствах"
+    domain: edge
+    subtype: mature
+    description: "Модель обучается локально, в центр отправляются только обновления весов. Подход применяется в клавиатурах и голосовых помощниках с 2017 года."
+    url: https://en.wikipedia.org/wiki/Federated_learning
+    rationale: "Промышленное применение с 2017 года."
+  - title: "Компьютерное зрение на камерах видеонаблюдения"
+    domain: edge
+    subtype: mature
+    description: "Детекция людей и транспорта выполняется прямо в камере. Функция входит в серийные камеры Hikvision, Axis, Dahua."
+    url: https://en.wikipedia.org/wiki/Smart_camera
+    rationale: "Серийная функция массовых камер."
+  - title: "ИИ на устройстве без ограничений"
+    domain: edge
+    subtype: hype
+    description: "Обещание запуска моделей любого размера на пользовательском устройстве. Противоречит ограничениям памяти и энергопотребления."
+    url: https://en.wikipedia.org/wiki/Edge_computing
+    rationale: "Обещание противоречит физическим ограничениям."
+  - title: "Периферийный суперкомпьютер в кармане"
+    domain: edge
+    subtype: hype
+    description: "Рекламное описание производительности мобильных чипов. Сопоставление с суперкомпьютерами некорректно по классу задач."
+    url: https://en.wikipedia.org/wiki/Supercomputer
+    rationale: "Некорректное рекламное сопоставление."
+  - title: "Автономные устройства с вечной батареей"
+    domain: edge
+    subtype: hype
+    description: "Обещание бессрочной работы за счёт сбора энергии из среды. Реальные бюджеты энергии ограничивают применимость узкими сценариями."
+    url: https://en.wikipedia.org/wiki/Energy_harvesting
+    rationale: "Обещание не подкреплено энергетическим бюджетом."
+  - title: "Умный дом с полным самоуправлением"
+    domain: edge
+    subtype: hype
+    description: "Обещание системы, самостоятельно принимающей все бытовые решения. Продукты ограничены сценариями и расписаниями."
+    url: https://en.wikipedia.org/wiki/Home_automation
+    rationale: "Обещание автономности без реализации."
+  - title: "Периферийный блокчейн для IoT"
+    domain: edge
+    subtype: hype
+    description: "Предложение вести реестр показаний датчиков на распределённом реестре. Обоснование выбора реестра вместо подписи данных обычно не приводится."
+    url: https://en.wikipedia.org/wiki/Internet_of_things
+    rationale: "Технически необоснованное сочетание."
+  - title: "Нейроморфные вычисления в каждом гаджете"
+    domain: edge
+    subtype: hype
+    description: "Заявление о скором повсеместном появлении спайковых процессоров в потребительской технике. Серийных продуктов на рынке нет."
+    url: https://en.wikipedia.org/wiki/Neuromorphic_engineering
+    rationale: "Жёсткий негатив: преувеличение по теме, близкой к позитивам."
+  - title: "Периферийные вычисления"
+    domain: edge
+    subtype: noise
+    description: "Название архитектурного подхода в целом. Не обозначает отдельную зарождающуюся технологию."
+    url: https://en.wikipedia.org/wiki/Edge_computing
+    rationale: "Название подхода."
+  - title: "Интернет вещей"
+    domain: edge
+    subtype: noise
+    description: "Широкая категория подключённых устройств. Известна более пятнадцати лет."
+    url: https://en.wikipedia.org/wiki/Internet_of_things
+    rationale: "Широкая известная категория."
+  - title: "Встраиваемые системы"
+    domain: edge
+    subtype: noise
+    description: "Класс вычислительных систем внутри устройств. Инженерная дисциплина с полувековой историей."
+    url: https://en.wikipedia.org/wiki/Embedded_system
+    rationale: "Дисциплина с долгой историей."
+  - title: "Оптимизация энергопотребления устройств"
+    domain: edge
+    subtype: noise
+    description: "Общая инженерная задача снижения потребления. Не является отдельной технологией."
+    url: https://en.wikipedia.org/wiki/Low-power_electronics
+    rationale: "Общая инженерная задача."
+  - title: "Промежуточное ПО для шлюзов IoT"
+    domain: edge
+    subtype: mature
+    description: "Шлюз агрегирует данные датчиков, буферизует и передаёт их в облако. Готовые стеки поставляют AWS, Azure, Bosch и открытые проекты."
+    url: https://en.wikipedia.org/wiki/Internet_of_things
+    rationale: "Готовые стеки крупных вендоров."
+  - title: "Потоковая обработка данных на границе (stream processing)"
+    domain: edge
+    subtype: mature
+    description: "События обрабатываются окнами по мере поступления без накопления в хранилище. Механизм реализован в Flink, Kafka Streams и промышленных шлюзах."
+    url: https://en.wikipedia.org/wiki/Stream_processing
+    rationale: "Зрелые открытые реализации."
+  - title: "Аппаратные модули доверенного исполнения (TEE)"
+    domain: edge
+    subtype: mature
+    description: "Изолированная среда внутри процессора выполняет чувствительный код. Поддержка есть в ARM TrustZone и Intel SGX, применяется массово."
+    url: https://en.wikipedia.org/wiki/Trusted_execution_environment
+    rationale: "Массовая аппаратная поддержка."

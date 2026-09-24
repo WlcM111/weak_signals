@@ -1,0 +1,81 @@
+@startuml weak-signals-architecture
+' Схема архитектуры Weak Signals (ТЗ кейса §5: приветствуются схемы PlantUML).
+' Просмотр: https://www.plantuml.com/plantuml или расширение PlantUML для VS Code.
+skinparam componentStyle rectangle
+skinparam shadowing false
+actor "Аналитик / жюри" as user
+cloud "Открытые источники" as sources {
+  [OpenAlex] as oa
+  [arXiv] as ax
+  [RSS-ленты] as rss
+  [GitHub Search] as gh
+  [Wikipedia\n(индикатор зрелости)] as wiki
+}
+cloud "LLM" as llm {
+  [GigaChat 2] as giga
+  [YandexGPT 5] as ya
+  [llama.cpp (локально)] as local
+}
+node "Docker Compose: сеть internal" {
+  [ui\nReact + nginx :8501] as ui
+  [orchestrator-api\nFastAPI :8080] as api
+  [orchestrator-worker\nстадии задания] as worker
+  [collector\ngRPC :50051] as collector
+  [analyzer\ngRPC :50052\ne5 + LR] as analyzer
+  [insight\ngRPC :50053] as insight
+  database "PostgreSQL 18\nсхемы: orchestrator, collector,\nanalyzer, insight" as pg
+  folder "model-store (volume)" as store
+  [trainer (профиль ml)\npython -m ml.cli] as trainer
+}
+user --> ui : HTTPS/HTTP
+ui --> api : /api/v1/* (X-API-Key подставляет nginx)
+api --> pg : очередь jobs, снимок результата
+worker --> pg : аренда задания (lease + heartbeat)
+worker --> insight : ExpandQuery, GenerateInsight (gRPC)
+worker --> collector : StartCollection, GetCollection, GetDocuments (gRPC)
+worker --> analyzer : StartAnalysis, GetAnalysis, ListCandidates (gRPC)
+api --> analyzer : GetModelInfo, ScoreText (gRPC)
+analyzer --> collector : StreamDocuments, CheckEncyclopedia (gRPC)
+collector --> oa
+collector --> ax
+collector --> rss
+collector --> gh
+collector --> wiki
+insight --> giga
+insight --> ya
+insight --> local
+collector --> pg
+analyzer --> pg
+insight --> pg
+trainer --> store : экспорт артефакта + active/
+analyzer --> store : загрузка и горячая перезагрузка модели
+trainer ..> collector : enrich (ENRICHMENT-коллекции)
+@enduml
+
+@startuml weak-signals-job-sequence
+' Последовательность выполнения одного задания (UC-1: открытый запрос → ТОП-15).
+actor Аналитик
+participant ui
+participant "orchestrator-api" as api
+participant "orchestrator-worker" as w
+participant insight
+participant collector
+participant analyzer
+Аналитик -> ui : запрос в свободной форме
+ui -> api : POST /api/v1/queries (Idempotency-Key)
+api --> ui : 202 job_id (QUEUED)
+w -> w : claim_next (FOR UPDATE SKIP LOCKED), фоновый heartbeat аренды
+w -> insight : ExpandQuery → ru/en термины (LLM или резерв по глоссарию)
+w -> collector : StartCollection (SEARCH) → опрос GetCollection
+collector -> collector : адаптеры параллельно, дедупликация, классификация доверенности
+w -> analyzer : StartAnalysis → опрос GetAnalysis
+analyzer -> analyzer : эмбеддинги e5 → near-dup → кластеры → 25 признаков → 8 правил → модель
+w -> analyzer : ListCandidates (слабые сигналы + исключённые с причинами)
+loop ТОП-N кандидатов
+  w -> collector : GetDocuments (доказательства)
+  w -> insight : GenerateInsight (нарратив + проверка обоснованности)
+  w -> api : запись result_item (прогрессивная выдача)
+end
+ui -> api : GET /jobs/{id}, /jobs/{id}/results (опрос раз в 2–5 с)
+api --> ui : ТОП-15, предикторы, источники, причины исключения
+@enduml

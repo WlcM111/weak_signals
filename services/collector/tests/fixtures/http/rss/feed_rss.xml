@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>CNews: технологии</title>
+    <item>
+      <title>Нейроморфные чипы для периферийных вычислений выходят из лабораторий</title>
+      <link>https://www.cnews.ru/news/top/neuromorphic_edge?utm_source=rss&amp;utm_medium=feed</link>
+      <description>Разработчики нейроморфные чипы переносят в промышленные устройства.</description>
+      <pubDate>Mon, 09 Mar 2026 08:30:00 +0300</pubDate>
+      <category>Оборудование</category>
+    </item>
+    <item>
+      <title>Press Release: SomeVendor announces quarterly results</title>
+      <link>https://www.prnewswire.com/news-releases/somevendor-neuromorphic-chips</link>
+      <description>SomeVendor neuromorphic chips revenue grew.</description>
+      <pubDate>Tue, 10 Mar 2026 10:00:00 +0300</pubDate>
+    </item>
+    <item>
+      <title>Совершенно посторонняя новость про сельское хозяйство</title>
+      <link>https://www.cnews.ru/news/top/agro</link>
+      <description>Урожай зерновых вырос.</description>
+      <pubDate>Tue, 10 Mar 2026 11:00:00 +0300</pubDate>
+    </item>
+  </channel>
+</rss>
