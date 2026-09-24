@@ -1,0 +1,220 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "dataset_b_row.schema.json",
+ "title": "Строка датасета B (dsb v1)",
+ "type": "object",
+ "properties": {
+  "sample_id": {
+   "type": "string"
+  },
+  "dataset_version": {
+   "type": "string"
+  },
+  "origin": {
+   "type": "string"
+  },
+  "domain": {
+   "type": "string"
+  },
+  "language": {
+   "type": "string"
+  },
+  "topic": {
+   "type": "string"
+  },
+  "title": {
+   "type": "string"
+  },
+  "title_origin": {
+   "type": "string"
+  },
+  "observation_text": {
+   "type": "string"
+  },
+  "label": {
+   "enum": [
+    0,
+    1,
+    null
+   ]
+  },
+  "label_kind": {
+   "enum": [
+    "GENERIC_CONCEPT",
+    "HYPE",
+    "MATURE",
+    "NOISE",
+    "OFF_TOPIC",
+    "OVERVIEW",
+    "ROUTINE_FUNDING",
+    "UNCERTAIN",
+    "WEAK_SIGNAL_RELEVANT"
+   ]
+  },
+  "label_code": {
+   "type": "string"
+  },
+  "group_id": {
+   "type": "string"
+  },
+  "technology_id": {
+   "type": "string"
+  },
+  "evidence_as_of": {
+   "type": "string"
+  },
+  "source_urls": {
+   "type": "array"
+  },
+  "canonical_urls": {
+   "type": "array"
+  },
+  "source_types": {
+   "type": "array"
+  },
+  "source_independence": {
+   "type": "object"
+  },
+  "published_at": {
+   "type": "array"
+  },
+  "event_date": {
+   "type": "null"
+  },
+  "retrieved_at": {
+   "type": "string"
+  },
+  "evidence_refs": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string"
+     },
+     "url": {
+      "type": "string"
+     },
+     "canonical_url": {
+      "type": "string"
+     },
+     "source_key": {
+      "type": "string"
+     },
+     "source_type": {
+      "type": "string"
+     },
+     "trust_level": {
+      "type": "string"
+     },
+     "language_code": {
+      "type": "string"
+     },
+     "published_at": {
+      "type": [
+       "null",
+       "string"
+      ]
+     },
+     "retrieved_at": {
+      "type": "string"
+     },
+     "content_hash": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "title",
+     "url",
+     "canonical_url",
+     "source_key",
+     "source_type",
+     "trust_level",
+     "language_code",
+     "published_at",
+     "retrieved_at",
+     "content_hash"
+    ]
+   }
+  },
+  "content_hashes": {
+   "type": "array"
+  },
+  "access_status": {
+   "type": "string"
+  },
+  "annotation_method": {
+   "type": "string"
+  },
+  "annotator": {
+   "type": "string"
+  },
+  "model_version": {
+   "type": "string"
+  },
+  "annotation_confidence": {
+   "type": "number"
+  },
+  "label_rationale": {
+   "type": "string"
+  },
+  "counterevidence": {
+   "type": "string"
+  },
+  "review_status": {
+   "type": "string"
+  },
+  "split": {
+   "type": "string",
+   "pattern": "^(dev_fold_[0-4]|holdout)$"
+  },
+  "n_observations": {
+   "type": "integer"
+  },
+  "license_or_usage_notes": {
+   "type": "string"
+  },
+  "observed_runtime": {
+   "type": "object"
+  }
+ },
+ "required": [
+  "sample_id",
+  "dataset_version",
+  "origin",
+  "domain",
+  "language",
+  "topic",
+  "title",
+  "title_origin",
+  "observation_text",
+  "label",
+  "label_kind",
+  "label_code",
+  "group_id",
+  "technology_id",
+  "evidence_as_of",
+  "source_urls",
+  "canonical_urls",
+  "source_types",
+  "source_independence",
+  "published_at",
+  "event_date",
+  "retrieved_at",
+  "evidence_refs",
+  "content_hashes",
+  "access_status",
+  "annotation_method",
+  "annotator",
+  "model_version",
+  "annotation_confidence",
+  "label_rationale",
+  "counterevidence",
+  "review_status",
+  "split",
+  "n_observations",
+  "license_or_usage_notes",
+  "observed_runtime"
+ ]
+}

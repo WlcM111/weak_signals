@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import time
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
@@ -39,6 +40,7 @@ from analyzer.domain.clustering import (
 from analyzer.domain.entities import Candidate, ClusterDocument, DocumentRef
 from analyzer.domain.errors import CollectorUnavailable, LeaseLost
 from analyzer.domain.evidence import build_snippet, select_evidence
+from analyzer.domain.features_v2 import EvidenceItem, ObservationVectors, observation_features
 from analyzer.domain.features import (
     EncyclopediaSignal,
     Lexicons,
@@ -93,6 +95,8 @@ class RunAnalysisConfig:
     evidence_max: int = 8
     keyphrases_top_k: int = 10
     encyclopedia_languages: tuple[str, ...] = ("ru", "en")
+    # Абляция вклада модели в живых прогонах: none | constant | shuffle (только для экспериментов).
+    ml_score_ablation: str = "none"
 
 
 class _CancelRequested(Exception):
@@ -268,6 +272,8 @@ class RunAnalysis:
             now = self._clock.now()
             for view in views:
                 view.values = self._feature_values(view, signals.get(view.cluster_index), bundle, now)
+            if bundle.feature_schema == "v2":
+                self._add_v2_features(views, analysis.query_text, bundle, now.year)
         control.check()
 
         with self._step("scoring"):
@@ -464,6 +470,54 @@ class RunAnalysis:
             | {"emb_sim_query": view.query_relevance},
         )
 
+    def _add_v2_features(
+        self, views: Sequence[_ClusterView], query_text: str, bundle: ModelBundle, as_of_year: int
+    ) -> None:
+        """Признаки v2 по теме, названию кандидата и названиям его доказательств (тот же код, что в ml)."""
+        spec = bundle.v2
+        topic = query_text.split(" | ")[0].strip()
+        topic_vector = self._encode_batched([topic], spec.query_prefix)[0] if topic else None
+        plans: list[tuple[_ClusterView, list[DocumentRef], int]] = []
+        texts: list[str] = []
+        for view in views:
+            indexes = select_evidence(view.documents, view.similarities, self._config.evidence_max)
+            documents = [view.documents[index] for index in indexes]
+            plans.append((view, documents, len(texts)))
+            texts.extend([view.title_auto, *[document.title for document in documents]])
+        vectors = self._encode_batched(texts, spec.passage_prefix) if texts else np.zeros((0, 1))
+        for view, documents, start in plans:
+            evidence = [
+                EvidenceItem(doc.title, doc.source_type.value, doc.trust_level.value, doc.published_year)
+                for doc in documents
+            ]
+            observed = ObservationVectors(topic_vector, vectors[start], vectors[start + 1 : start + 1 + len(documents)])
+            view.values = view.values | observation_features(
+                topic, view.title_auto, evidence, observed, spec.projection, self._lexicons, as_of_year,
+                spec.glossary, cluster_query_similarity=view.query_relevance,
+            )
+
+    def _encode_batched(self, texts: Sequence[str], prefix: str) -> np.ndarray:
+        """Эмбеддинги коротких текстов батчами; отказ эмбеддера — код EMBEDDING_FAILED."""
+        parts: list[np.ndarray] = []
+        size = self._config.embedding_batch_size
+        try:
+            for start in range(0, len(texts), size):
+                parts.append(np.asarray(self._embedder.encode(list(texts[start : start + size]), prefix), dtype=np.float64))
+        except Exception as error:  # noqa: BLE001 - без векторов признаки v2 невозможны
+            raise _EmbeddingFailed(f"не удалось вычислить эмбеддинги признаков v2: {error}") from error
+        return np.vstack(parts)
+
+    def _ablate(self, scores: np.ndarray, key: str, threshold: float) -> np.ndarray:
+        """Абляция вклада модели: константа (все равны порогу) или детерминированная перестановка."""
+        mode = self._config.ml_score_ablation
+        if mode == "none" or scores.size == 0:
+            return scores
+        self._log.warning("analysis.ml_ablation", mode=mode, analysis_id=key)
+        if mode == "constant":
+            return np.full_like(scores, max(float(threshold), 1e-6))
+        seed = int(hashlib.sha256(key.encode("utf-8")).hexdigest()[:8], 16)
+        return scores[np.random.default_rng(seed).permutation(scores.size)]
+
     def _decide(
         self,
         views: Sequence[_ClusterView],
@@ -494,6 +548,7 @@ class RunAnalysis:
             )
         except Exception as error:  # noqa: BLE001 - отказ модели завершает анализ кодом MODEL_ERROR
             raise _ModelFailed(f"модель не смогла оценить кандидатов: {error}") from error
+        scores = self._ablate(scores, analysis.analysis_id, analysis.params.weak_signal_threshold)
         scored_index = {view.cluster_index: position for position, view in enumerate(to_score)}
         threshold = analysis.params.weak_signal_threshold
         candidates: list[Candidate] = []

@@ -42,6 +42,8 @@ class NarrateConfig:
     # Смысловая оценка кандидатов перед нарративом (WS_CANDIDATE_JUDGE_ENABLED) и размер оцениваемого пула.
     judge_enabled: bool = True
     judge_pool: int = 30
+    # ml — порядок выдачи задаёт локальная модель, LLM только исключает; llm — прежний порядок по релевантности LLM.
+    judge_order: str = "ml"
 
 
 @dataclass(slots=True)
@@ -186,7 +188,7 @@ async def run_narrate(
     verdicts = await _judge(insight, query_text, weak, config)
     reordered = bool(verdicts)
     if reordered:
-        weak, rejected = apply_judgement(weak, verdicts)
+        weak, rejected = apply_judgement(weak, verdicts, config.judge_order)
         outcome.judge_rejected = len(rejected)
         outcome.weak_signals_total = len(weak)
         outcome.weak_signals_confident = sum(1 for item in weak if item.score >= 0.75)
@@ -294,7 +296,7 @@ async def _judge(
 
 
 def apply_judgement(
-    weak: list[CandidateView], verdicts: dict[str, JudgeVerdictView]
+    weak: list[CandidateView], verdicts: dict[str, JudgeVerdictView], order: str = "llm"
 ) -> tuple[list[CandidateView], list[tuple[CandidateView, JudgeVerdictView]]]:
     """Отсев по вердиктам и порядок: оценённые — по убыванию релевантности, затем исходный ранг; неоценённые — после.
 
@@ -309,11 +311,14 @@ def apply_judgement(
         else:
             kept.append(candidate)
 
-    def order(candidate: CandidateView) -> tuple[int, int, int]:
+    def order_key(candidate: CandidateView) -> tuple[int, int, int]:
         verdict = verdicts.get(candidate.candidate_id)
         return (0, -verdict.relevance, candidate.rank) if verdict is not None else (1, 0, candidate.rank)
 
-    kept.sort(key=order)
+    if order == "ml":
+        kept.sort(key=lambda candidate: candidate.rank)  # порядок локальной модели; LLM только исключает
+    else:
+        kept.sort(key=order_key)
     return kept, rejected
 
 

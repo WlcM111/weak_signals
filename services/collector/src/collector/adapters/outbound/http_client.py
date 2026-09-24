@@ -21,6 +21,7 @@ from collector.application.ports import (
     HttpTimeoutError,
     HttpTransportError,
 )
+from collector.domain.retry_after import parse_retry_after
 from collector.domain.rules import decode_body
 from ws_common.logging import get_logger
 
@@ -28,6 +29,8 @@ CONNECT_TIMEOUT_SECONDS = 5.0
 RETRY_BASE_DELAY = 0.5
 RETRY_MAX_DELAY = 8.0
 RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+# Суммарное ожидание внутренних повторов одного логического вызова: остальное — лимитеру источника.
+MAX_RETRY_SLEEP_TOTAL = 15.0
 
 
 class HttpxClient:
@@ -43,6 +46,7 @@ class HttpxClient:
     ) -> None:
         self._max_bytes = max_bytes
         self._retries = retries
+        self.attempts_total = 0  # HTTP-попытки, включая внутренние повторы (логические вызовы считает адаптер)
         self._log = get_logger("collector.http")
         self._client = httpx.AsyncClient(
             timeout=httpx.Timeout(read_timeout_seconds, connect=CONNECT_TIMEOUT_SECONDS),
@@ -96,17 +100,30 @@ class HttpxClient:
         """Выполняет запрос с ретраями; возвращает тело ответа в пределах лимита размера."""
         self._check_host(url, allowed_hosts)
         attempt = 0
+        slept = 0.0
+        host = (urlsplit(url).hostname or "").lower()
         while True:
+            self.attempts_total += 1
             try:
                 return await self._attempt(url, params, headers)
             except (HttpStatusError, HttpTimeoutError, HttpTransportError) as exc:
                 retryable = isinstance(exc, (HttpTimeoutError, HttpTransportError)) or (
                     isinstance(exc, HttpStatusError) and exc.status in RETRYABLE_STATUSES
                 )
+                retry_after = exc.retry_after if isinstance(exc, HttpStatusError) else None
+                if retry_after is not None and retry_after > RETRY_MAX_DELAY:
+                    # Сервер просит ждать дольше внутреннего повтора: решение о паузе — у лимитера источника.
+                    self._log.warning("http.retry_after_exceeds", host=host, retry_after=retry_after)
+                    raise
                 if not retryable or attempt >= self._retries:
                     raise
                 delay = self._backoff(attempt, exc)
+                if slept + delay > MAX_RETRY_SLEEP_TOTAL:
+                    raise
                 attempt += 1
+                slept += delay
+                self._log.info("http.retry", host=host, attempt=attempt, delay=round(delay, 2),
+                               status=getattr(exc, "status", None), error=type(exc).__name__)
                 await asyncio.sleep(delay)
 
     async def _attempt(
@@ -160,10 +177,5 @@ class HttpxClient:
 
 
 def _retry_after(value: str | None) -> float | None:
-    """Разбирает заголовок `Retry-After` (секунды); дату-форму игнорирует."""
-    if not value:
-        return None
-    try:
-        return max(0.0, float(value.strip()))
-    except ValueError:
-        return None
+    """Разбирает `Retry-After` в обеих формах (секунды и HTTP-дата)."""
+    return parse_retry_after(value)

@@ -1,0 +1,126 @@
+{
+ "dataset_version": "dsb-2026.09.24-v1",
+ "status": "ok",
+ "problems": [],
+ "run_files": [
+  "analytics-20260922-103814.txt",
+  "analytics-20260922-195722.txt",
+  "analytics-20260922-200239.txt",
+  "analytics-20260922-201357.txt",
+  "analytics-20260922-205550.txt",
+  "analytics-20260922-210344.txt",
+  "analytics-20260922-211240.txt",
+  "analytics-20260922-232643.txt",
+  "analytics-20260922-235409.txt",
+  "analytics-20260923-171322.txt",
+  "analytics-20260923-232831.txt",
+  "analytics-20260924-001616.txt",
+  "analytics-20260924-003901.txt",
+  "own-topics-20260924-035715.json"
+ ],
+ "rows_total": 171,
+ "supervised": 153,
+ "uncertain": 18,
+ "labels": {
+  "0": 127,
+  "1": 26
+ },
+ "label_kinds": {
+  "UNCERTAIN": 18,
+  "OVERVIEW": 27,
+  "NOISE": 45,
+  "WEAK_SIGNAL_RELEVANT": 26,
+  "OFF_TOPIC": 27,
+  "GENERIC_CONCEPT": 18,
+  "MATURE": 7,
+  "HYPE": 2,
+  "ROUTINE_FUNDING": 1
+ },
+ "origins": {
+  "live_runs_2026_09": 159,
+  "web_search_2026_09_24": 12
+ },
+ "topics": {
+  "синтетическая биология в производстве материалов": 7,
+  "робототехника и физический искусственный интеллект": 17,
+  "перспективные решения в финтехе": 21,
+  "индустриальный искусственный интеллект на производстве": 20,
+  "квантовые сенсоры для навигации": 8,
+  "ИИ-агенты для разработки программного обеспечения": 4,
+  "инфраструктура для искусственного интеллекта и дата-центры": 12,
+  "защита и безопасность систем искусственного интеллекта": 23,
+  "edge-вычисления и периферийный инференс": 23,
+  "зелёный водород для промышленности": 5,
+  "твердотельные аккумуляторы для электротранспорта": 9,
+  "малые языковые модели на мобильных устройствах": 6,
+  "цифровые двойники в энергетике": 6,
+  "NFT и метавселенная": 3,
+  "беспилотная доставка последней мили": 2,
+  "цифровой рубль и программируемые деньги": 1,
+  "облачные вычисления": 3,
+  "вертикальные фермы и агротехнологии": 1
+ },
+ "groups": 171,
+ "by_split": {
+  "dev_fold_0": {
+   "0": 16,
+   "1": 6
+  },
+  "dev_fold_1": {
+   "0": 20,
+   "1": 3
+  },
+  "dev_fold_2": {
+   "0": 14,
+   "1": 4
+  },
+  "dev_fold_3": {
+   "0": 20,
+   "1": 3
+  },
+  "dev_fold_4": {
+   "0": 33,
+   "1": 3
+  },
+  "holdout": {
+   "0": 24,
+   "1": 7
+  }
+ },
+ "evidence_source_types": {
+  "SCIENTIFIC_PUBLICATION": 280,
+  "CODE_REPOSITORY": 144,
+  "PREPRINT": 39,
+  "INDUSTRY_MEDIA": 39,
+  "CORPORATE_BLOG": 12,
+  "PRESS_RELEASE": 1
+ },
+ "title_length_median_by_label": {
+  "0": 25,
+  "1": 25
+ },
+ "excluded_candidates_observed": 1475,
+ "input_sha256": {
+  "analytics-20260922-103814.txt": "d95ba66abd2d73a03f05ce52e00e17be26000df396165e828555e6559a5e9801",
+  "analytics-20260922-195722.txt": "c56d5ca75331159abda2cf31b64df058eee6a49d9aad03bfd59720def2f18345",
+  "analytics-20260922-200239.txt": "42188a4af812d6022a62fc8b7198cc7dd90d74e374255423d22b09b650f81d2c",
+  "analytics-20260922-201357.txt": "f1e516aaec6e629a70e68b72e77cc62a57e6c7f8a7d0d4d5131f32563f6e4121",
+  "analytics-20260922-205550.txt": "9ec56d0c31f436c00c3331d2847c1370276ee9c4970540b080b33adfa0a73aea",
+  "analytics-20260922-210344.txt": "3658487dfc0ded71087bb033fc42d6d62f4bba85ccd15c966041b929b739879c",
+  "analytics-20260922-211240.txt": "5a1e9eaf3c60d9f4dc92eb270736ff2fb97a54a836fc14d2ac7d6945a333994a",
+  "analytics-20260922-232643.txt": "7efb7cafca2d0496c9c6e7ddee7624efe3b9b4f8cd5eeb76e1d73c0881004dec",
+  "analytics-20260922-235409.txt": "021c818c9a278d016d321dc4d01e747d5a3b8ad300272d04fd43084e01c233bd",
+  "analytics-20260923-171322.txt": "3b93dafecb15ff2ed30d68e6805a033e502aabe1abb1cfb730830995b15ca940",
+  "analytics-20260923-232831.txt": "7281e8a2469f6c05818e7acd43c736a5916066356d2d73996cc5d2895f1cd467",
+  "analytics-20260924-001616.txt": "4618c4731cb7f2569d3c904e0933fbefc6aeb46ea97f7752da368a9830396a92",
+  "analytics-20260924-003901.txt": "06bdfe312a4d0eea36843907ea237555121df2d7cdd109e6e82248aed720494d",
+  "own-topics-20260924-035715.json": "22101f25c73280b3e7f862cde154d518e97ce70626da3111834bf160a372b067",
+  "labels_silver_v1.jsonl": "9da8ed8481d13f8855808cfe396bc5702cf1332119edf4a4833ed25b727a7deb",
+  "web_observations_v1.jsonl": "5a7f1cfd9ffabc37e29c1abac10b0b5f7e9b3036c22b130842c3daa457e8bab3"
+ },
+ "output_sha256": {
+  "dataset_b_v1.jsonl": "0ffb9a91796ca5552c91c4af2dedc394abf79357e51b9e9886ad328faa1b4dac",
+  "dataset_b_v1_uncertain.jsonl": "f2f614f2d61ad7049f78c48c33333e11543988767dcdde089ddc0c383ed06544",
+  "splits_v1.json": "d568f18d3caec9d70def3929669969f14344f90f0fe63f741903ebccce5018b9"
+ }
+}

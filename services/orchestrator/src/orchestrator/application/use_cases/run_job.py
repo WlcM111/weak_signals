@@ -24,7 +24,7 @@ from orchestrator.application.ports import (
 )
 from orchestrator.application.stages.analyze import AnalyzeConfig, run_analyze
 from orchestrator.application.stages.collect import CollectConfig, run_collect
-from orchestrator.application.stages.expand import Glossary, run_expand
+from orchestrator.application.stages.expand import Glossary, fallback_expansion, run_expand
 from orchestrator.application.stages.finalize import build_stats, decide_final_status
 from orchestrator.application.stages.narrate import NarrateConfig, NarrateOutcome, run_narrate
 from orchestrator.domain.deadline import JobDeadline
@@ -39,6 +39,10 @@ POSTPONE_SECONDS = 30
 # Время, которое сбор оставляет следующим стадиям: анализ (до 300 с) и нарративы. По прогонам 23.09
 # анализ занимает около минуты, нарративы — 1–3,5 минуты; при позднем старте сбор сокращается.
 AFTER_COLLECT_SECONDS = 420
+# Предел расширения запроса и резерв на нарративы после анализа; повтор после сбоя — только если успевает.
+EXPAND_TIMEOUT_SECONDS = 60
+NARRATE_MIN_SECONDS = 60
+RETRY_MIN_WORK_SECONDS = 180
 
 
 class CancelRequested(Exception):
@@ -122,12 +126,18 @@ class RunJob:
                 remaining_seconds=round(deadline.remaining(self._clock.now())),
                 expired=deadline.expired(self._clock.now()),
             )
+        if deadline is not None and deadline.expired(self._clock.now()):
+            # Срок исчерпан ожиданием в очереди: честный отказ вместо работы, которая закончится после 1200 с.
+            return await self._fail(
+                job, worker_id, JobErrorCode.DEADLINE_EXCEEDED.value,
+                "срок задания истёк до начала работы: ожидание в очереди исчерпало бюджет",
+            )
         # Аренда продлевается фоновой задачей: один вызов LLM (до 120 с) длиннее аренды (60 с), и без
         # фонового продления задание теряло аренду посреди стадии нарратива и уходило на повтор.
         keepalive = asyncio.create_task(control.keepalive())
         try:
             expansion = await self._timed(
-                "expand", durations, run_expand(self._insight, job.query_text, self._glossary)
+                "expand", durations, _bounded_expand(self._insight, job.query_text, self._glossary, EXPAND_TIMEOUT_SECONDS)
             )
             await control.check()
 
@@ -181,9 +191,16 @@ class RunJob:
                     job.collection_id,
                     analysis_query(job.query_text, expansion),
                     job.requested_top_n,
-                    # Анализ сроком не ограничивается: без его результата отдать нечего, а обрезанный анализ
-                    # завершил бы задание отказом вместо частичной выдачи.
-                    self._config.analyze,
+                    # Анализ ограничен остатком срока с резервом на нарративы; по таймауту анализ отменяется.
+                    replace(
+                        self._config.analyze,
+                        timeout_seconds=deadline.cap(
+                            self._clock.now(), self._config.analyze.timeout_seconds, floor=30,
+                            keep_for_later=NARRATE_MIN_SECONDS,
+                        ),
+                    )
+                    if deadline is not None
+                    else self._config.analyze,
                     self._clock,
                     control.check,
                     job.analysis_id,
@@ -220,6 +237,15 @@ class RunJob:
             self._log.warning("job.lease_lost", job_id=job.job_id, worker_id=worker_id)
             raise
         except StageFailed as error:
+            if (
+                error.retryable
+                and deadline is not None
+                and not deadline.allows(self._clock.now(), POSTPONE_SECONDS + RETRY_MIN_WORK_SECONDS)
+            ):
+                return await self._fail(
+                    job, worker_id, JobErrorCode.DEADLINE_EXCEEDED.value,
+                    f"повтор после сбоя не успевает до срока: {error.message}",
+                )
             if error.retryable and await self._jobs.postpone(
                 job, POSTPONE_SECONDS, worker_id, error.error_code
             ):
@@ -298,7 +324,17 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         llm_allowed=llm_allowed,
         judge_enabled=base.judge_enabled,
         judge_pool=base.judge_pool,
+        judge_order=base.judge_order,
     )
+
+
+async def _bounded_expand(insight: InsightClient | None, query_text: str, glossary: Glossary, timeout: float):  # noqa: ANN201
+    """Расширение запроса с пределом времени; по таймауту — резервные термины (статистика это отражает)."""
+    try:
+        return await asyncio.wait_for(run_expand(insight, query_text, glossary), timeout)
+    except TimeoutError:
+        get_logger("orchestrator.run_job").warning("stage.expand", used_fallback=True, reason="timeout")
+        return fallback_expansion(query_text, glossary)
 
 
 class _JobControl:

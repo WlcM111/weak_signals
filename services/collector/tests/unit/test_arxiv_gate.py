@@ -49,9 +49,11 @@ class ArxivGateTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.http.calls), 1)
         return first.exception
 
-    async def test_406_reported_as_rate_limit_and_pauses(self) -> None:
-        failure = await self.assert_cooldown_after(status_error(406), AdapterErrorCode.RATE_LIMITED.value)
+    async def test_406_reported_as_unknown_4xx_and_pauses(self) -> None:
+        # Причина 406 не установлена: код HTTP_4XX, а не RATE_LIMITED; пауза источника сохраняется.
+        failure = await self.assert_cooldown_after(status_error(406), AdapterErrorCode.HTTP_4XX.value)
         self.assertIn("406", failure.message)
+        self.assertIn("причина не установлена", failure.message)
 
     async def test_cooldown_after_429(self) -> None:
         await self.assert_cooldown_after(status_error(429), AdapterErrorCode.RATE_LIMITED.value)

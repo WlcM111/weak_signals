@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import hashlib
 
+import numpy as np
+
 from analyzer.application.active_model import ActiveModelHolder
 from analyzer.application.dto import ModelBundle, ScoreTextResult
 from analyzer.application.ports import CollectorReader, Embedder, MetricsSink, NullMetrics
@@ -26,6 +28,7 @@ from analyzer.domain.features import (
     encyclopedia_features,
     lexical_features,
 )
+from analyzer.domain.features_v2 import ObservationVectors, observation_features
 from analyzer.domain.rules import apply_exclusion_rules, decide_by_score, explain_model_decision
 from analyzer.domain.values import DecisionReason
 from ws_common.clock import SyncClock
@@ -87,7 +90,20 @@ class ScoreText:
             embedding_features(vector, bundle.weak_centroid, bundle.mature_centroid, None)
             | {"emb_sim_query": SELF_QUERY_SIMILARITY},
         )
+        if bundle.feature_schema == "v2":
+            values = values | self._v2_values(bundle, title, now.year)
         return self._decide(bundle, values, documents, enrichment_applied)
+
+    def _v2_values(self, bundle: ModelBundle, title: str, as_of_year: int) -> dict[str, float]:
+        """Признаки v2 в режиме описания (как строки датасета A): только название, без темы и свидетельств.
+
+        Описание не подаётся: у позитивов организаторов это колонка «Почему это слабый сигнал», т. е.
+        объяснение метки. Обогащение влияет только на правила v1, чтобы не выходить за обучающий режим.
+        """
+        spec = bundle.v2
+        vector = np.asarray(self._embedder.encode([title], spec.passage_prefix), dtype=np.float64)[0]
+        observed = ObservationVectors(None, vector, np.zeros((0, vector.shape[0])))
+        return observation_features("", title, [], observed, spec.projection, self._lexicons, as_of_year, spec.glossary)
 
     def _decide(
         self,

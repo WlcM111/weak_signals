@@ -61,6 +61,10 @@ async def run_analyze(
         if view.is_terminal:
             break
         if clock.monotonic() >= deadline:
+            try:
+                await analyzer.cancel_analysis(analysis_id, "stage timeout")  # не оставлять фоновую работу
+            except Exception as error:  # noqa: BLE001 - отмена не должна маскировать таймаут
+                log.warning("stage.analyze.cancel_failed", analysis_id=analysis_id, error=str(error)[:200])
             raise StageFailed(
                 JobErrorCode.ANALYSIS_FAILED.value,
                 f"анализ не завершился за {config.timeout_seconds} с",

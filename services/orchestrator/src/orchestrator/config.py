@@ -52,6 +52,8 @@ class OrchestratorSettings(BaseServiceSettings):
     # Смысловая оценка кандидатов моделью перед нарративом и размер оцениваемого пула.
     candidate_judge_enabled: bool = True
     candidate_judge_pool: int = Field(default=30, ge=5, le=40)
+    # ml — порядок выдачи задаёт локальная модель, смысловая оценка только исключает; llm — прежний порядок.
+    candidate_judge_order: str = Field(default="ml", pattern="^(ml|llm)$")
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)

@@ -54,12 +54,13 @@ class ActivateModelFromStore:
 
     def _check_compatibility(self, bundle: ModelBundle) -> None:
         """Совпадение версии реестра признаков, состава признаков и модели эмбеддингов."""
-        if bundle.version.feature_schema_version != self._registry.version:
+        registry_version = bundle.registry.version if bundle.feature_schema == "v2" else self._registry.version
+        if bundle.version.feature_schema_version != registry_version:
             raise InvariantViolation(
                 f"модель обучена на реестре признаков {bundle.version.feature_schema_version}, "
                 f"сервис использует {self._registry.version}"
             )
-        expected = self._registry.model_names
+        expected = bundle.registry.model_names if bundle.feature_schema == "v2" else self._registry.model_names
         actual = tuple(bundle.classifier.feature_names)
         if actual and actual != expected:
             raise InvariantViolation(

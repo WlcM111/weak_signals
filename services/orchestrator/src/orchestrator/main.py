@@ -155,6 +155,7 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 prompt_version=settings.prompt_version,
                 judge_enabled=settings.candidate_judge_enabled,
                 judge_pool=settings.candidate_judge_pool,
+                judge_order=settings.candidate_judge_order,
             ),
         ),
         metrics=context["metrics"],

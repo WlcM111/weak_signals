@@ -80,9 +80,15 @@ class FeatureRegistryTest(unittest.TestCase):
 
     def test_rejects_foreign_schema_version(self) -> None:
         payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
-        payload["feature_schema_version"] = "v2"
+        payload["feature_schema_version"] = "v9"
         with self.assertRaises(InvariantViolation):
             FeatureRegistry.from_mapping(payload)
+
+    def test_accepts_v2_registry_with_own_feature_count(self) -> None:
+        payload = json.loads(REGISTRY_PATH.with_name("feature_registry_v2.json").read_text(encoding="utf-8"))
+        registry = FeatureRegistry.from_mapping(payload)
+        self.assertEqual(registry.version, "v2")
+        self.assertEqual(len(registry.model_names), len(payload["features"]))
 
     def test_rejects_wrong_feature_count(self) -> None:
         payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))

@@ -1,5 +1,10 @@
 # Изменения контрактов
 
+## 2026-09-24 — ml-rework v2
+- model-store: манифест v2 (`feature_schema_version: "v2"`, `model_family: "logreg_seq_laplace"`, файл `model_v2.json`), схема `schemas/model_manifest_v2.schema.json`; v1 без изменений.
+- Окружение: `WS_CANDIDATE_JUDGE_ORDER` (orchestrator, `ml`|`llm`, по умолчанию `ml`), `WS_ML_SCORE_ABLATION` (analyzer, `none`|`constant`|`shuffle`).
+- gRPC, SQL и OpenAPI не менялись.
+
 ## 1.0.0 — 2026-09-15
 Первая версия: weaksignals.common.v1, collector.v1, analyzer.v1, insight.v1; orchestrator OpenAPI 1.0.0.
 

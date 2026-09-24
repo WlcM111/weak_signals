@@ -42,6 +42,8 @@ class AnalyzerSettings(BaseServiceSettings):
     trust_weighted_selection: bool = False
     # Слабый сигнал требует хотя бы одного источника высокой доверенности.
     require_high_trust_source: bool = False
+    # Абляция вклада локальной модели в живых прогонах (none | constant | shuffle); штатно none.
+    ml_score_ablation: str = Field(default="none", pattern="^(none|constant|shuffle)$")
     near_dup_threshold: float = Field(default=0.92, ge=0.5, le=1.0)
     cluster_distance_threshold: float = Field(default=0.35, ge=0.05, le=1.0)
     min_cluster_size: int = Field(default=2, ge=1, le=50)

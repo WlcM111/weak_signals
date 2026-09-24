@@ -1,0 +1,61 @@
+# Словарь ru → en для резервного расширения запроса, когда insight недоступен (§7.1 HANDOFF).
+# Нормативное место словаря — services/insight/config/glossary_ru_en.yaml; здесь лежит копия
+# минимального объёма, чтобы стадия expand работала и без сервиса insight (см. docs/orchestrator/DECISIONS.md).
+version: 1
+terms:
+  технологии: technologies
+  технология: technology
+  искусственный: artificial
+  интеллект: intelligence
+  искусственный интеллект: artificial intelligence
+  ии: artificial intelligence
+  машинное обучение: machine learning
+  нейросеть: neural network
+  нейросети: neural networks
+  робототехника: robotics
+  роботы: robots
+  беспилотник: unmanned vehicle
+  финтех: fintech
+  финансы: finance
+  платежи: payments
+  банк: banking
+  кибербезопасность: cybersecurity
+  безопасность: security
+  защита: protection
+  данные: data
+  облако: cloud
+  облачные: cloud
+  вычисления: computing
+  квантовые: quantum
+  квантовый: quantum
+  сенсоры: sensors
+  датчики: sensors
+  медицина: medicine
+  здравоохранение: healthcare
+  биотехнологии: biotechnology
+  материалы: materials
+  энергетика: energy
+  водород: hydrogen
+  аккумуляторы: batteries
+  логистика: logistics
+  производство: manufacturing
+  промышленность: industry
+  промышленные: industrial
+  сельское хозяйство: agriculture
+  транспорт: transport
+  связь: telecommunications
+  сети: networks
+  чипы: chips
+  процессоры: processors
+  полупроводники: semiconductors
+  периферийные: edge
+  граничные: edge
+  перспективные: emerging
+  зарождающиеся: emerging
+  решения: solutions
+  слабые сигналы: weak signals
+  тренды: trends
+  инновации: innovations
+  стартапы: startups
+  патенты: patents
+  исследования: research

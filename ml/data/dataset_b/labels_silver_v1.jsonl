@@ -1,0 +1,159 @@
+{"group_id": "bgrp-637d04b9cf", "code": "N-OVR", "confidence": 0.8, "rationale": "обзоры перспектив метавселенной без конкретной технологии"}
+{"group_id": "bgrp-7be08f1280", "code": "U", "confidence": 0.5, "rationale": "смешанный кластер: потребительская ценность NFT и одно конкретное применение (права на цифровые двойники)"}
+{"group_id": "bgrp-cbbc3685a4", "code": "R", "confidence": 0.7, "rationale": "конкретное направление: zero-trust/беспарольная аутентификация и защищённая семантическая связь в метавселенной, исследовательская стадия"}
+{"group_id": "bgrp-1b454b1cb9", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории и руководство по Cloudflare (зрелый CDN)"}
+{"group_id": "bgrp-42487edaf2", "code": "N-NOI", "confidence": 0.6, "rationale": "отчёт о разработке учебно-прикладной системы на ESP32, не рыночный сдвиг"}
+{"group_id": "bgrp-43a1c347d3", "code": "N-NOI", "confidence": 0.7, "rationale": "учебные репозитории UAV-edge"}
+{"group_id": "bgrp-43f90fada7", "code": "N-OFF", "confidence": 0.9, "rationale": "учёт расходных материалов офисной техники — вне темы"}
+{"group_id": "bgrp-53c88fbe9c", "code": "N-OVR", "confidence": 0.8, "rationale": "обзоры Индустрии 4.0"}
+{"group_id": "bgrp-6155f8f042", "code": "N-OVR", "confidence": 0.8, "rationale": "аналитический обзор краевых вычислений в энергетике"}
+{"group_id": "bgrp-63082305bc", "code": "N-MAT", "confidence": 0.7, "rationale": "MEC — стандартизированная парадигма ETSI, общее понятие темы"}
+{"group_id": "bgrp-6d128033ec", "code": "R", "confidence": 0.6, "rationale": "фреймворки ИИ-агентов на Raspberry Pi 2 ГБ: агентный инференс на слабом edge-железе, ранняя стадия"}
+{"group_id": "bgrp-89cef6215f", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории видеоанализа"}
+{"group_id": "bgrp-97404a2790", "code": "N-NOI", "confidence": 0.7, "rationale": "учебный репозиторий по проектированию систем"}
+{"group_id": "bgrp-9f1c5ced83", "code": "N-NOI", "confidence": 0.8, "rationale": "хакатонные и личные репозитории"}
+{"group_id": "bgrp-a0ef360a9a", "code": "U", "confidence": 0.5, "rationale": "Vehicular Edge Computing — исследовательская область; обзор и одна статья, стадию оценить нельзя"}
+{"group_id": "bgrp-b07e5e6314", "code": "N-NOI", "confidence": 0.8, "rationale": "несвязный кластер препринтов Zenodo низкого качества"}
+{"group_id": "bgrp-b8e942a031", "code": "N-NOI", "confidence": 0.8, "rationale": "honeypot и СУБД из личных репозиториев, вне темы"}
+{"group_id": "bgrp-bb9e65d4b2", "code": "U", "confidence": 0.5, "rationale": "микросервисные V2X с edge: неясно, новое ли это явление"}
+{"group_id": "bgrp-c1c4ea653c", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории edge-проектов"}
+{"group_id": "bgrp-cc6010878c", "code": "R", "confidence": 0.6, "rationale": "zero trust на периферии сети медицинского IoT: конкретное раннее направление"}
+{"group_id": "bgrp-deb3b1f00f", "code": "R", "confidence": 0.7, "rationale": "обучение на устройстве (TinyTrain) и сжатие со смешанной точностью для edge"}
+{"group_id": "bgrp-e4e43555f0", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории защиты от DDoS"}
+{"group_id": "bgrp-ebf39dab0b", "code": "N-MAT", "confidence": 0.8, "rationale": "архитектура 5G — зрелая тема"}
+{"group_id": "bgrp-efdc454719", "code": "U", "confidence": 0.5, "rationale": "кооперативные периферийные вычисления для транспорта: академично, конкретика неясна"}
+{"group_id": "bgrp-f1a65d1ba7", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории безопасности"}
+{"group_id": "bgrp-f3f2c794f8", "code": "N-OVR", "confidence": 0.8, "rationale": "учебный курс и обзор edge AI для телекома"}
+{"group_id": "bgrp-0c499cc9a6", "code": "N-OFF", "confidence": 0.9, "rationale": "правовые проблемы ИИ и образование, не разработка ПО"}
+{"group_id": "bgrp-c11945ae28", "code": "N-GEN", "confidence": 0.8, "rationale": "общие тексты об ИИ в разных отраслях"}
+{"group_id": "bgrp-f1efea83e5", "code": "R", "confidence": 0.7, "rationale": "многоагентные среды разработки ПО (ChatDev, OpenHands, детерминированное исполнение агентов)"}
+{"group_id": "bgrp-fdde33d6f8", "code": "U", "confidence": 0.5, "rationale": "смешанный кластер: аудит ИБ, экономика, агент инженерии требований"}
+{"group_id": "bgrp-6c285d6409", "code": "N-GEN", "confidence": 0.7, "rationale": "пересказ темы: обзоры автономной доставки без конкретного решения"}
+{"group_id": "bgrp-72c55e7144", "code": "N-OFF", "confidence": 0.7, "rationale": "GPT-4 и LLM для автопилота, не доставка последней мили"}
+{"group_id": "bgrp-9b67db9965", "code": "N-GEN", "confidence": 0.7, "rationale": "компьютерное зрение в сельском хозяйстве — общее понятие, обзоры"}
+{"group_id": "bgrp-14d51f288a", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории"}
+{"group_id": "bgrp-16c8e84f3e", "code": "R", "confidence": 0.6, "rationale": "детектор джейлбрейков для русскоязычных ИИ-агентов — конкретная практика защиты"}
+{"group_id": "bgrp-19dfc29bc8", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории вне темы"}
+{"group_id": "bgrp-1a08083e45", "code": "N-OFF", "confidence": 0.9, "rationale": "правовые и образовательные тексты"}
+{"group_id": "bgrp-287ed2a75d", "code": "U", "confidence": 0.5, "rationale": "учебная уязвимая LLM-лаборатория и сканер RAG из личных репозиториев: практика есть, подтверждения слабые"}
+{"group_id": "bgrp-34e60abd2e", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории многоагентных систем"}
+{"group_id": "bgrp-42c8376685", "code": "R", "confidence": 0.7, "rationale": "рабочие группы CoSAI/OASIS по безопасности цепочки поставок ИИ — ранняя отраслевая практика"}
+{"group_id": "bgrp-43d7ec7b0c", "code": "N-NOI", "confidence": 0.7, "rationale": "препринт Zenodo о психологических рисках и статья о GDPR"}
+{"group_id": "bgrp-570d1d69c3", "code": "N-GEN", "confidence": 0.8, "rationale": "общие статьи Хабра об ИИ"}
+{"group_id": "bgrp-5a5f1f8266", "code": "N-OFF", "confidence": 0.7, "rationale": "ИИ для кибербезопасности (IDS), а не защита систем ИИ — лексически близкая другая тема"}
+{"group_id": "bgrp-641b9de87a", "code": "N-OFF", "confidence": 0.8, "rationale": "обнаружение оружия камерами — ИИ для физической охраны"}
+{"group_id": "bgrp-66eb9b91a0", "code": "N-OFF", "confidence": 0.8, "rationale": "опыт внедрения ИИ-агентов без аспекта безопасности"}
+{"group_id": "bgrp-760df3fa2d", "code": "R", "confidence": 0.6, "rationale": "инструмент тестирования утечки системного промпта от стартапа ИИ-red-teaming"}
+{"group_id": "bgrp-77dfaad589", "code": "R", "confidence": 0.5, "rationale": "слои надзора и песочницы для автономных персональных ИИ-агентов, ранние проекты"}
+{"group_id": "bgrp-899b39f756", "code": "R", "confidence": 0.7, "rationale": "инструменты пентеста MCP-серверов — ранняя практика безопасности агентов"}
+{"group_id": "bgrp-9c823ed0e1", "code": "N-OVR", "confidence": 0.8, "rationale": "обзор катастрофических рисков ИИ"}
+{"group_id": "bgrp-a01181fe47", "code": "N-GEN", "confidence": 0.8, "rationale": "доверенный ИИ — общее понятие"}
+{"group_id": "bgrp-a7ea4f7665", "code": "N-OFF", "confidence": 0.8, "rationale": "ИИ в кибербезопасности, не защита систем ИИ"}
+{"group_id": "bgrp-b66c3dfc04", "code": "N-OVR", "confidence": 0.8, "rationale": "регулирование ИИ — политика"}
+{"group_id": "bgrp-ca1db674c1", "code": "N-NOI", "confidence": 0.7, "rationale": "препринты Zenodo о фишинге с ИИ низкого качества"}
+{"group_id": "bgrp-d90d98702c", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории bug bounty"}
+{"group_id": "bgrp-dca96d5d6a", "code": "N-NOI", "confidence": 0.7, "rationale": "учебные материалы по ISO 42001 в личных репозиториях"}
+{"group_id": "bgrp-f98120790a", "code": "R", "confidence": 0.6, "rationale": "песочницы исполнения для ИИ-агентов (TakoVM, agent_sandbox) — ранняя практика"}
+{"group_id": "bgrp-2a181880ab", "code": "R", "confidence": 0.7, "rationale": "плазменное получение водорода из полимерных отходов и водородно-плазменное восстановление для зелёной стали"}
+{"group_id": "bgrp-316a2f7fbf", "code": "N-GEN", "confidence": 0.8, "rationale": "водородная энергетика — общее понятие"}
+{"group_id": "bgrp-7295bee77d", "code": "N-OVR", "confidence": 0.8, "rationale": "перспективы водородной энергетики по странам"}
+{"group_id": "bgrp-d25384bf53", "code": "N-OVR", "confidence": 0.7, "rationale": "модели энергосистем с водородом, без конкретной технологии"}
+{"group_id": "bgrp-ffb1f52312", "code": "N-OVR", "confidence": 0.8, "rationale": "обзоры стоимости и состояния водородной отрасли"}
+{"group_id": "bgrp-075a4beb53", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории"}
+{"group_id": "bgrp-1c7d0ace76", "code": "N-NOI", "confidence": 0.9, "rationale": "спекулятивные препринты Zenodo"}
+{"group_id": "bgrp-20636401db", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории агентов для производства"}
+{"group_id": "bgrp-230b4ec1f1", "code": "N-NOI", "confidence": 0.8, "rationale": "спекулятивные препринты Zenodo"}
+{"group_id": "bgrp-369be77aa4", "code": "N-NOI", "confidence": 0.8, "rationale": "политэкономические эссе Zenodo"}
+{"group_id": "bgrp-378524099c", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные репозитории"}
+{"group_id": "bgrp-46b8f7e990", "code": "N-GEN", "confidence": 0.7, "rationale": "общее понятие LLM, несвязный кластер"}
+{"group_id": "bgrp-4bf425c1d3", "code": "N-OVR", "confidence": 0.8, "rationale": "обзор ИИ в цифровой трансформации промышленности"}
+{"group_id": "bgrp-6112c1c0fa", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории"}
+{"group_id": "bgrp-64776ce65d", "code": "N-OVR", "confidence": 0.8, "rationale": "обзоры взаимодействия человека и ИИ и XAI"}
+{"group_id": "bgrp-789403f054", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные репозитории"}
+{"group_id": "bgrp-79a5328da7", "code": "N-GEN", "confidence": 0.8, "rationale": "пересказ темы индустриального ИИ"}
+{"group_id": "bgrp-8536b156cb", "code": "N-OVR", "confidence": 0.8, "rationale": "управленческие исследования трансформации"}
+{"group_id": "bgrp-8b9af9cb9b", "code": "N-NOI", "confidence": 0.6, "rationale": "личные репозитории голосовых ассистентов"}
+{"group_id": "bgrp-9efd32108f", "code": "N-MAT", "confidence": 0.6, "rationale": "CNN-IDS для IIoT — рутинное направление исследований"}
+{"group_id": "bgrp-b4a8fded69", "code": "U", "confidence": 0.5, "rationale": "RAG и мультимодальная инспекция на производстве: явление раннее, подтверждение только личными репозиториями"}
+{"group_id": "bgrp-b78e2aa68f", "code": "U", "confidence": 0.5, "rationale": "no-code платформа ИИ для промышленности из препринта Zenodo, подтверждений нет"}
+{"group_id": "bgrp-beb6e8d457", "code": "N-NOI", "confidence": 0.8, "rationale": "псевдотехнические препринты Zenodo"}
+{"group_id": "bgrp-c535890e05", "code": "N-GEN", "confidence": 0.7, "rationale": "Индустрия 5.0 — политическая концепция"}
+{"group_id": "bgrp-e2d2fed275", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные и демонстрационные репозитории"}
+{"group_id": "bgrp-0d4f496e6f", "code": "N-OFF", "confidence": 0.8, "rationale": "биометрия лиц, не инфраструктура ИИ"}
+{"group_id": "bgrp-1d4e54bfcd", "code": "N-NOI", "confidence": 0.7, "rationale": "несвязный кластер"}
+{"group_id": "bgrp-2cee5837fe", "code": "N-NOI", "confidence": 0.7, "rationale": "списки и учебные репозитории"}
+{"group_id": "bgrp-3c8e35f66d", "code": "N-OFF", "confidence": 0.8, "rationale": "ответственный ИИ и выравнивание, не инфраструктура"}
+{"group_id": "bgrp-4e9bfca45c", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории"}
+{"group_id": "bgrp-743b32204e", "code": "N-OVR", "confidence": 0.8, "rationale": "политика развития ИИ в России"}
+{"group_id": "bgrp-89efb869d3", "code": "N-OFF", "confidence": 0.8, "rationale": "статьи про агентов и промпты, не инфраструктура"}
+{"group_id": "bgrp-9f53ee401f", "code": "N-OVR", "confidence": 0.7, "rationale": "обзоры ИИ в медицине"}
+{"group_id": "bgrp-c734f4c8bd", "code": "N-OFF", "confidence": 0.8, "rationale": "умный дом"}
+{"group_id": "bgrp-f00d7b5447", "code": "U", "confidence": 0.5, "rationale": "локальный корпоративный ИИ без выноса данных: явление правдоподобно, источники — мнения на Zenodo"}
+{"group_id": "bgrp-f50416324c", "code": "N-OFF", "confidence": 0.9, "rationale": "генераторы счетов"}
+{"group_id": "bgrp-fd4d15d193", "code": "R", "confidence": 0.5, "rationale": "ЦОД для ИИ с энергией из переработки отходов; в кластере также спекулятивные тексты"}
+{"group_id": "bgrp-080916fed5", "code": "R", "confidence": 0.7, "rationale": "квантовые сенсорные сети и метрология вращений — раннее направление для навигации"}
+{"group_id": "bgrp-198b3e9eac", "code": "N-OFF", "confidence": 0.7, "rationale": "объединение неквантовых сенсоров для подводной навигации"}
+{"group_id": "bgrp-1a494b7d3c", "code": "R", "confidence": 0.6, "rationale": "атомные сенсоры вращения на медленном свете — раннее исследование"}
+{"group_id": "bgrp-2468cfea07", "code": "R", "confidence": 0.8, "rationale": "ЯМР-комагнитометрические гироскопы для инерциальной навигации"}
+{"group_id": "bgrp-9c7b37e2c6", "code": "N-GEN", "confidence": 0.7, "rationale": "квантовое оптическое зондирование — общее понятие без навигации"}
+{"group_id": "bgrp-a49a8dfbbc", "code": "U", "confidence": 0.5, "rationale": "NV-магнитометрия как квантовый сенсор, связь с навигацией в свидетельствах отсутствует"}
+{"group_id": "bgrp-c85efd7518", "code": "R", "confidence": 0.7, "rationale": "лазеры и гребёнки малых габаритов для полевых квантовых сенсоров и атомных часов"}
+{"group_id": "bgrp-e112e8ebfb", "code": "N-OFF", "confidence": 0.9, "rationale": "алгоритм оптимизации"}
+{"group_id": "bgrp-4898de48ab", "code": "N-OFF", "confidence": 0.9, "rationale": "LLM для химии"}
+{"group_id": "bgrp-608a25541f", "code": "N-GEN", "confidence": 0.7, "rationale": "пересказ темы и учебный репозиторий"}
+{"group_id": "bgrp-86f04d5424", "code": "N-OFF", "confidence": 0.8, "rationale": "социальные эффекты LLM"}
+{"group_id": "bgrp-9faf2408b8", "code": "R", "confidence": 0.7, "rationale": "федеративное few-shot обучение языковых моделей на мобильных устройствах"}
+{"group_id": "bgrp-b802395636", "code": "N-GEN", "confidence": 0.7, "rationale": "общее понятие малых языковых моделей и личные репозитории"}
+{"group_id": "bgrp-e74641c9b4", "code": "N-OFF", "confidence": 0.7, "rationale": "малые модели для бизнеса, не мобильные устройства"}
+{"group_id": "bgrp-8510164080", "code": "N-MAT", "confidence": 0.8, "rationale": "cloud native — зрелая практика"}
+{"group_id": "bgrp-a6e5bacba7", "code": "U", "confidence": 0.5, "rationale": "континуум облако–периферия–IoT: новая исследовательская рамка, свидетельства — обзоры"}
+{"group_id": "bgrp-ccf253360d", "code": "N-MAT", "confidence": 0.7, "rationale": "RNN для прогнозирования трафика — рутинное направление"}
+{"group_id": "bgrp-0565456e5a", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные проекты блокчейн-платежей"}
+{"group_id": "bgrp-0d08786980", "code": "N-NOI", "confidence": 0.6, "rationale": "серийные препринты Zenodo по ИИ в платежах"}
+{"group_id": "bgrp-118617ab9c", "code": "N-OFF", "confidence": 0.6, "rationale": "исследования голосования в DAO, не финтех-решение"}
+{"group_id": "bgrp-162827073d", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории криптоплатёжных шлюзов"}
+{"group_id": "bgrp-204db78482", "code": "N-OFF", "confidence": 0.8, "rationale": "ИИ в здравоохранении и киберразведке"}
+{"group_id": "bgrp-216265ad0c", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории"}
+{"group_id": "bgrp-3c76073859", "code": "R", "confidence": 0.7, "rationale": "синтетические финансовые данные и GAN для обучения антифрод-моделей"}
+{"group_id": "bgrp-3feee7e38d", "code": "N-NOI", "confidence": 0.6, "rationale": "несвязные тексты о NFT"}
+{"group_id": "bgrp-58a1f312e3", "code": "U", "confidence": 0.5, "rationale": "гомоморфное шифрование транзакций: тема подходит, свидетельства слабые и смешанные"}
+{"group_id": "bgrp-65f1d23e0d", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории"}
+{"group_id": "bgrp-7ccb4079ee", "code": "N-NOI", "confidence": 0.7, "rationale": "личные репозитории смарт-контрактов"}
+{"group_id": "bgrp-8951ff0829", "code": "N-OFF", "confidence": 0.7, "rationale": "эконометрика связей криптоактивов"}
+{"group_id": "bgrp-8e90f7fede", "code": "R", "confidence": 0.7, "rationale": "приватные платёжные каналы на обязательствах и ZKP"}
+{"group_id": "bgrp-95f0fcad2c", "code": "N-NOI", "confidence": 0.8, "rationale": "личные репозитории Solana"}
+{"group_id": "bgrp-b0ad826018", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные проекты"}
+{"group_id": "bgrp-b59f299bb0", "code": "N-MAT", "confidence": 0.6, "rationale": "прогноз цены криптовалют ML — рутинная тема"}
+{"group_id": "bgrp-c87d35991e", "code": "N-OVR", "confidence": 0.8, "rationale": "обзор LLM в финансах"}
+{"group_id": "bgrp-d72bb7d10e", "code": "N-OVR", "confidence": 0.8, "rationale": "перспективы финтеха — обзор"}
+{"group_id": "bgrp-dd35fab0e5", "code": "N-OVR", "confidence": 0.8, "rationale": "управленческие статьи"}
+{"group_id": "bgrp-e0facad205", "code": "N-OVR", "confidence": 0.7, "rationale": "обзоры федеративного обучения на блокчейне"}
+{"group_id": "bgrp-ec3aae1463", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные смарт-контракты"}
+{"group_id": "bgrp-01f42163d4", "code": "N-OVR", "confidence": 0.8, "rationale": "обзор цифровых двойников в робототехнике"}
+{"group_id": "bgrp-2d5c5898f6", "code": "N-GEN", "confidence": 0.8, "rationale": "пересказ темы робототехники"}
+{"group_id": "bgrp-328205e217", "code": "N-OVR", "confidence": 0.7, "rationale": "эссе об автоматизации"}
+{"group_id": "bgrp-339c8f4668", "code": "N-NOI", "confidence": 0.8, "rationale": "учебные робото-репозитории"}
+{"group_id": "bgrp-3aa71b5be8", "code": "N-NOI", "confidence": 0.7, "rationale": "несвязный кластер"}
+{"group_id": "bgrp-3ee738f4dd", "code": "N-OVR", "confidence": 0.7, "rationale": "обзоры LLM в робототехнике"}
+{"group_id": "bgrp-7bec2db951", "code": "N-NOI", "confidence": 0.9, "rationale": "спекулятивные препринты Zenodo"}
+{"group_id": "bgrp-8b02725e4a", "code": "R", "confidence": 0.6, "rationale": "мультимодальное восприятие и интеллект мягких роботов — ранние исследования"}
+{"group_id": "bgrp-b8f969e315", "code": "N-OFF", "confidence": 0.8, "rationale": "статьи о кодовых агентах, не робототехника"}
+{"group_id": "bgrp-ea5dcdf7d5", "code": "N-GEN", "confidence": 0.9, "rationale": "общее понятие ИИ"}
+{"group_id": "bgrp-f483329619", "code": "N-OVR", "confidence": 0.8, "rationale": "правовые аспекты"}
+{"group_id": "bgrp-004279c730", "code": "U", "confidence": 0.5, "rationale": "переработка лигноцеллюлозы грибами — смежная промышленная биотехнология, не синтетическая биология"}
+{"group_id": "bgrp-0d57b7b20f", "code": "N-OFF", "confidence": 0.8, "rationale": "зелёный синтез наночастиц — лексически близкая другая область"}
+{"group_id": "bgrp-4350c07601", "code": "R", "confidence": 0.8, "rationale": "инженерия бактериальной целлюлозы и мицелия методами синтетической биологии"}
+{"group_id": "bgrp-45bb7d4933", "code": "N-OFF", "confidence": 0.8, "rationale": "нанокомпозиты без синтетической биологии"}
+{"group_id": "bgrp-7fc6e6a377", "code": "N-OVR", "confidence": 0.7, "rationale": "обзоры биоразлагаемых полимеров"}
+{"group_id": "bgrp-9a30152b77", "code": "N-OFF", "confidence": 0.9, "rationale": "микропластик — вне темы"}
+{"group_id": "bgrp-f5562eaf6d", "code": "N-GEN", "confidence": 0.7, "rationale": "общее понятие LLM"}
+{"group_id": "bgrp-40ca3280af", "code": "N-OFF", "confidence": 0.8, "rationale": "симуляция электромобилей"}
+{"group_id": "bgrp-58d54203ef", "code": "N-OFF", "confidence": 0.8, "rationale": "переработка Li-ion, не твердотельные"}
+{"group_id": "bgrp-fd895f81d6", "code": "N-GEN", "confidence": 0.7, "rationale": "пересказ темы без конкретной технологии"}
+{"group_id": "bgrp-72e88f8c70", "code": "N-OVR", "confidence": 0.8, "rationale": "перспективы цифрового рубля — обзор"}
+{"group_id": "bgrp-4ceabf00b7", "code": "U", "confidence": 0.5, "rationale": "цифровой двойник SOH батарей LFP: один личный репозиторий и нерелевантная статья"}
+{"group_id": "bgrp-50d93f025e", "code": "U", "confidence": 0.5, "rationale": "многоуровневый цифровой двойник конструкций, связь с энергетикой не показана"}
+{"group_id": "bgrp-5381621002", "code": "R", "confidence": 0.6, "rationale": "цифровые двойники для вероятностного прогноза нагрузки энергосистем"}
+{"group_id": "bgrp-73e93b2f46", "code": "N-GEN", "confidence": 0.8, "rationale": "цифровые технологии — общее понятие"}
+{"group_id": "bgrp-962cb43279", "code": "N-OVR", "confidence": 0.8, "rationale": "обзор цифровизации электроэнергетики"}
+{"group_id": "bgrp-ba4388c240", "code": "N-GEN", "confidence": 0.8, "rationale": "пересказ темы"}

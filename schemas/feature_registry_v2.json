@@ -1,0 +1,450 @@
+{
+ "feature_schema_version": "v2",
+ "description": "Признаки v2: тема + кандидат + свидетельства; ограничены по построению, общий код ml и analyzer (analyzer.domain.features_v2). Направления признаков выучиваются моделью.",
+ "features": [
+  {
+   "name": "rel_query_title",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    -1.0,
+    1.0
+   ],
+   "label_ru": "Близость названия кандидата к теме запроса",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "rel_query_evidence_mean",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    -1.0,
+    1.0
+   ],
+   "label_ru": "Средняя близость свидетельств к теме",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "rel_query_evidence_max",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    -1.0,
+    1.0
+   ],
+   "label_ru": "Максимальная близость свидетельства к теме",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "rel_cluster_query_v1",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Близость центроида кластера к запросу с расширениями (как в v1)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "rel_terms_title",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля терминов темы в названии",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "rel_terms_evidence_share",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля свидетельств с терминами темы",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "has_topic",
+   "group": "relevance",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Задана тема запроса (0 — прямой скоринг описания)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "spec_title_length",
+   "group": "specificity",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Содержательная длина названия",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "spec_title_topic_overlap",
+   "group": "specificity",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Название повторяет тему (пересказ запроса)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "spec_overview_share",
+   "group": "specificity",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля обзоров и аналитики среди свидетельств",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "spec_evidence_cohesion",
+   "group": "specificity",
+   "type": "float",
+   "range": [
+    -1.0,
+    1.0
+   ],
+   "label_ru": "Согласованность свидетельств между собой",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "spec_title_evidence_sim",
+   "group": "specificity",
+   "type": "float",
+   "range": [
+    -1.0,
+    1.0
+   ],
+   "label_ru": "Близость названия к свидетельствам",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_emergence_share",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля текстов с лексикой ранней стадии",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_maturity_share",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля текстов с лексикой зрелости",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_hype_share",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля текстов с маркетинговой лексикой",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_stage_max",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Максимальная упомянутая стадия (0..1)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_funding_share",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля текстов с упоминанием финансирования",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "lex_bigtech_share",
+   "group": "lexical",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля текстов с упоминанием крупнейших вендоров",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "has_evidence",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Есть свидетельства",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "evidence_count",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Число свидетельств (до 8, нормировано)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "share_scientific",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля научных публикаций и препринтов",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "share_news_media",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля новостей и отраслевых СМИ",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "share_marketing",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля пресс-релизов и корпоративных блогов",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "share_code",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля репозиториев и вакансий",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "trusted_share",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля источников высокой доверенности",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "low_trust_share",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля источников низкой доверенности",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "source_diversity",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Разнообразие типов источников",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "recent_publication_share",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля свидетельств за последние два года",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "dated_share",
+   "group": "metadata",
+   "type": "float",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "label_ru": "Доля свидетельств с датой",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_1",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 1 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_2",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 2 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_3",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 3 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_4",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 4 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_5",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 5 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_6",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 6 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_7",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 7 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  },
+  {
+   "name": "emb_pc_8",
+   "group": "embedding",
+   "type": "float",
+   "range": [
+    -5.0,
+    5.0
+   ],
+   "label_ru": "Компонента 8 смыслового профиля (проекция Stage A)",
+   "expected_direction": "neutral",
+   "used_in_model": true
+  }
+ ]
+}

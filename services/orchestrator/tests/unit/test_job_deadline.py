@@ -72,15 +72,16 @@ class DeadlineStatusTest(unittest.TestCase):
 class JobDeadlineFlowTest(RunJobHarness):
     """Поведение задания на границах срока."""
 
-    async def test_job_started_after_deadline_returns_collected_results(self) -> None:
+    async def test_job_started_after_deadline_fails_fast(self) -> None:
+        # Срок исчерпан очередью: честный отказ сразу, без работы, которая закончилась бы после 1200 с.
         run_job, job, query = self.build(top_n=2)
         stored = await self.jobs.insert(query, job, "key-d001:submit", "hash", self.clock.now())
         self.clock.advance(25 * 60)
         status = await run_job.execute(stored, "worker-1")
-        self.assertIs(status, JobStatus.PARTIAL, "опоздавшее задание отдаёт собранное, а не отказ")
-        self.assertGreater(len(self.results.items.get(stored.job_id, [])), 0, "карточки должны быть записаны")
-        self.assertEqual(insight_calls(self), 0, "после срока LLM для карточек не вызывается")
-        self.assertIn("deadline_reached", stored.error_message or "")
+        self.assertIs(status, JobStatus.FAILED)
+        self.assertIn("DEADLINE_EXCEEDED", stored.error_message or "")
+        self.assertEqual(len(self.results.items.get(stored.job_id, [])), 0)
+        self.assertEqual(insight_calls(self), 0)
 
     async def test_deadline_disabled_ignores_time(self) -> None:
         run_job, job, query = self.build(top_n=2)

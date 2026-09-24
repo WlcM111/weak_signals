@@ -1,4 +1,4 @@
-.PHONY: up down logs ps test lint proto build-dataset train db-roles clean-junk ui-dev ui-build
+.PHONY: up down logs ps test lint proto build-dataset train seq-validate-b seq-experiments db-roles clean-junk ui-dev ui-build
 PYTHONPATH_LOCAL = ml/src:services/insight/src:services/orchestrator/src:services/analyzer/src:services/collector/src:libs/ws_common/src
 up:            ; docker compose up -d --build
 down:          ; docker compose down
@@ -19,6 +19,8 @@ lint:          ; uv run ruff check . && uv run mypy libs services ml
 proto:         ; bash tools/gen_proto.sh
 build-dataset: ; docker compose --profile ml run --rm trainer build-dataset
 train:         ; docker compose --profile ml run --rm trainer train
+seq-validate-b: ; docker compose --profile ml run --rm trainer seq-validate-b
+seq-experiments: ; docker compose --profile ml run --rm trainer seq-experiments --embedder e5
 # Повторно применить роли и пароли из .env к уже созданному тому PostgreSQL (данные не теряются).
 db-roles:      ; docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U postgres -d postgres -f /docker-entrypoint-initdb.d/00_roles.sql
 # Удалить каталоги-артефакты несработавшего brace expansion и отладочные файлы.

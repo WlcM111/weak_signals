@@ -158,12 +158,13 @@ def _status(failure: AdapterFailure) -> int | None:
 
 
 def _as_rate_limit(failure: AdapterFailure) -> AdapterFailure:
-    """406 от arXiv — отказ по частоте: сообщается кодом RATE_LIMITED вместо HTTP_4XX."""
+    """406 от arXiv: причина не установлена, поэтому код HTTP_4XX; пауза источника всё равно включается."""
     status = _status(failure)
     if status in RATE_LIMIT_STATUSES:
         return AdapterFailure(
-            AdapterErrorCode.RATE_LIMITED.value,
-            f"arXiv отклонил запрос кодом {status}: доступ временно ограничен на стороне arXiv",
+            AdapterErrorCode.HTTP_4XX.value,
+            f"arXiv ответил кодом {status} (Not Acceptable); причина не установлена — наблюдалась при частых "
+            "запросах, источник поставлен на паузу",
         )
     return failure
 

@@ -16,3 +16,7 @@ model-store/*
 .ipynb_checkpoints/
 node_modules/
 services/ui/dist/
+# результаты экспериментов A → B (собираются tools/collect_results.sh)
+artifacts/
+ml/reports/experiments/
+ml/reports/seq/

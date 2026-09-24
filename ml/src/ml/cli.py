@@ -23,6 +23,7 @@ from ml.adapters.tracker import build_tracker
 from ml.config import MlSettings
 from ml.features import FeatureContext, empty_collection_defaults
 from ml.leak_check import length_only_accuracy, run_leak_check
+from ml.seq import cli as seq_cli
 from ws_common.logging import configure_logging, get_logger
 
 PASSAGE_PREFIX = "passage: "
@@ -386,6 +387,7 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--with-labels", action="store_true", help="в файле есть колонка label")
     export_parser = sub.add_parser("export", help="сделать версию активной")
     export_parser.add_argument("version", help="идентификатор версии в model-store")
+    seq_cli.register(sub)
     return parser
 
 
@@ -398,6 +400,7 @@ COMMANDS = {
     "train": command_train,
     "evaluate": command_evaluate,
     "export": command_export,
+    **seq_cli.COMMANDS,
 }
 
 

@@ -1,0 +1,77 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "model_manifest_v2.schema.json",
+ "title": "Манифест артефакта модели v2 (logreg_seq_laplace)",
+ "type": "object",
+ "required": [
+  "model_version_id",
+  "model_family",
+  "feature_schema_version",
+  "embedding_model",
+  "dataset_version",
+  "threshold",
+  "metrics",
+  "trained_at",
+  "artifact_files"
+ ],
+ "properties": {
+  "model_version_id": {
+   "type": "string",
+   "pattern": "^wsclf-\\d{4}\\.\\d{2}\\.\\d{2}-\\d+$"
+  },
+  "model_family": {
+   "const": "logreg_seq_laplace"
+  },
+  "feature_schema_version": {
+   "const": "v2"
+  },
+  "embedding_model": {
+   "type": "string"
+  },
+  "dataset_version": {
+   "type": "string",
+   "pattern": "^ds-\\d{4}\\.\\d{2}\\.\\d{2}-v\\d+$"
+  },
+  "threshold": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "exclusiveMaximum": 1
+  },
+  "metrics": {
+   "type": "object",
+   "required": [
+    "test",
+    "cv"
+   ]
+  },
+  "trained_at": {
+   "type": "string"
+  },
+  "lineage": {
+   "type": "object"
+  },
+  "artifact_files": {
+   "type": "object",
+   "required": [
+    "model",
+    "sha256"
+   ],
+   "properties": {
+    "model": {
+     "const": "model_v2.json"
+    },
+    "sha256": {
+     "type": "object",
+     "required": [
+      "model",
+      "rules.json"
+     ],
+     "additionalProperties": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+     }
+    }
+   }
+  }
+ }
+}

@@ -48,6 +48,19 @@ SCHEMA = "analyzer"
 log = get_logger("analyzer.main")
 
 
+
+def _feature_labels(registry, registry_path) -> dict[str, str]:  # noqa: ANN001
+    """Подписи признаков v1 и v2: карточки хранят признаки активной модели любой версии."""
+    import json  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+
+    labels = {spec.name: spec.label_ru for spec in registry.features}
+    v2_path = Path(registry_path).with_name("feature_registry_v2.json")
+    if v2_path.is_file():
+        for item in json.loads(v2_path.read_text(encoding="utf-8")).get("features", []):
+            labels.setdefault(item["name"], item["label_ru"])
+    return labels
+
 def serve(settings: AnalyzerSettings) -> int:
     """Поднимает gRPC-сервер, воркеры анализов и HTTP-эндпоинты обслуживания."""
     os.environ.setdefault("HF_HOME", str(settings.hf_home))
@@ -90,7 +103,7 @@ def serve(settings: AnalyzerSettings) -> int:
     collector = CollectorGrpcClient(channel)
     analyses = PostgresAnalysisRepository(pool)
     candidates = PostgresCandidateRepository(
-        pool, {spec.name: spec.label_ru for spec in registry.features}
+        pool, _feature_labels(registry, settings.feature_registry_path)
     )
     servicer = AnalyzerServicer(
         start_analysis=StartAnalysis(analyses, collector, holder, settings.analyzer_max_pending),
@@ -125,6 +138,7 @@ def serve(settings: AnalyzerSettings) -> int:
             cluster_distance_threshold=settings.cluster_distance_threshold,
             min_cluster_size=settings.min_cluster_size,
             evidence_max=settings.evidence_max,
+            ml_score_ablation=settings.ml_score_ablation,
         ),
         metrics=metrics,
     )

@@ -138,6 +138,9 @@ class ModelBundle:
     weak_centroid: np.ndarray | None = None
     mature_centroid: np.ndarray | None = None
     feature_defaults: dict[str, float] = field(default_factory=dict)
+    # v2: признаки темы, кандидата и свидетельств; спецификация (проекция, глоссарий) — из артефакта.
+    feature_schema: str = "v1"
+    v2: Any = None
 
     @property
     def threshold(self) -> float:

@@ -16,6 +16,8 @@ from analyzer.domain.values import FeatureDirection
 EXCLUDED_FROM_MODEL = frozenset({"emb_sim_query"})
 FEATURE_SCHEMA_VERSION = "v1"
 EXPECTED_FEATURE_COUNT = 25
+# Поддерживаемые реестры: v1 — 25 признаков, v2 — состав задаёт артефакт (analyzer.domain.features_v2).
+SUPPORTED_SCHEMAS: dict[str, int | None] = {"v1": EXPECTED_FEATURE_COUNT, "v2": None}
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,11 +50,12 @@ class FeatureRegistry:
     def from_mapping(payload: dict[str, Any]) -> FeatureRegistry:
         """Строит реестр из разобранного JSON; проверяет состав и уникальность имён."""
         version = str(payload.get("feature_schema_version", ""))
-        if version != FEATURE_SCHEMA_VERSION:
-            raise InvariantViolation(f"поддерживается только реестр признаков {FEATURE_SCHEMA_VERSION}")
+        if version not in SUPPORTED_SCHEMAS:
+            raise InvariantViolation(f"поддерживается только реестр признаков {FEATURE_SCHEMA_VERSION} или v2")
         items = payload.get("features")
-        if not isinstance(items, list) or len(items) != EXPECTED_FEATURE_COUNT:
-            raise InvariantViolation(f"в реестре ожидается {EXPECTED_FEATURE_COUNT} признаков")
+        expected = SUPPORTED_SCHEMAS[version]
+        if not isinstance(items, list) or not items or (expected is not None and len(items) != expected):
+            raise InvariantViolation(f"в реестре ожидается {expected or 'непустой список'} признаков")
         features: list[FeatureSpec] = []
         for item in items:
             low, high = item["range"]
@@ -65,7 +68,7 @@ class FeatureRegistry:
                     high=float(high),
                     label_ru=item["label_ru"],
                     expected_direction=FeatureDirection(item["expected_direction"]),
-                    used_in_model=item["name"] not in EXCLUDED_FROM_MODEL,
+                    used_in_model=bool(item.get("used_in_model", item["name"] not in EXCLUDED_FROM_MODEL)),
                 )
             )
         names = [feature.name for feature in features]

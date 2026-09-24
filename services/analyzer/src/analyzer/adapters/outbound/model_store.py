@@ -17,6 +17,8 @@ import joblib
 import numpy as np
 
 from analyzer.adapters.outbound.sklearn_model import SklearnClassifier
+from analyzer.adapters.outbound.v2_model import V2_FAMILY, LinearV2Classifier, V2Spec
+from analyzer.domain.features_v2 import Projection
 from analyzer.application.dto import ModelBundle
 from analyzer.domain.entities import ModelMetrics, ModelVersion
 from analyzer.domain.errors import InvariantViolation
@@ -63,6 +65,8 @@ class FileSystemModelStore:
         if not manifest_path.is_file():
             raise ModelStoreError(f"манифест не найден: {manifest_path}")
         manifest = _read_json(manifest_path)
+        if str(manifest.get("feature_schema_version")) == "v2":
+            return self._load_v2(directory, manifest, manifest_path)
         _validate_manifest(manifest)
         checksums = manifest["artifact_files"].get("sha256", {})
         self._verify_checksums(directory, manifest["artifact_files"], checksums)
@@ -101,6 +105,56 @@ class FileSystemModelStore:
                 str(name): float(value)
                 for name, value in (rules_payload.get("feature_defaults") or {}).items()
             },
+        )
+
+    def _load_v2(self, directory: Path, manifest: dict[str, Any], manifest_path: Path) -> ModelBundle:
+        """Артефакт v2: JSON-модель без pickle, собственный реестр признаков и проекция Stage A."""
+        _validate_manifest_v2(manifest)
+        files = manifest["artifact_files"]
+        checksums = files.get("sha256", {})
+        for key in ("model", RULES_NAME):
+            if key not in checksums:
+                raise ModelStoreError(f"в манифесте v2 нет sha256 для {key}")
+        for key, expected in checksums.items():
+            if not _SHA256_RE.match(str(expected)):
+                raise ModelStoreError(f"sha256 для {key} имеет неверный формат")
+            actual = _sha256_of(self._artifact_path(directory, str(files.get(key, key))))
+            if actual != expected:
+                raise ModelStoreError(f"контрольная сумма артефакта {key} не совпала: ожидалась {expected}, получена {actual}")
+        payload = _read_json(self._artifact_path(directory, str(files["model"])))
+        try:
+            registry = FeatureRegistry.from_mapping(payload["feature_registry"])
+            names = tuple(payload["feature_names"])
+            if registry.version != "v2" or names != registry.model_names:
+                raise ModelStoreError("состав признаков модели v2 не совпадает с её реестром")
+            classifier = LinearV2Classifier(
+                names,
+                payload["weights"],
+                float(payload["intercept"]),
+                (float(payload["calibration"]["slope"]), float(payload["calibration"]["offset"])),
+            )
+            spec = V2Spec(
+                projection=Projection.from_json(payload["projection"]),
+                glossary={str(k): str(v) for k, v in (payload.get("glossary") or {}).items()},
+                query_prefix=str(payload.get("query_prefix", "query: ")),
+                passage_prefix=str(payload.get("passage_prefix", "passage: ")),
+                lineage=dict(payload.get("lineage") or {}),
+            )
+        except (KeyError, TypeError, ValueError) as error:
+            raise ModelStoreError(f"артефакт v2 повреждён: {error}") from error
+        if spec.projection.components.shape[0] != sum(1 for name in names if name.startswith("emb_pc_")):
+            raise ModelStoreError("число компонент проекции не совпадает с признаками emb_pc_*")
+        rules_payload = _read_json(directory / RULES_NAME)
+        version = _build_version(manifest, directory.relative_to(self._root).as_posix(), manifest_path)
+        self._log.info("model.artifacts_verified", version=version.model_version_id, files=len(checksums),
+                       directory=str(directory), feature_schema="v2", parent=spec.lineage.get("parent_id", ""))
+        return ModelBundle(
+            version=version,
+            classifier=classifier,
+            registry=registry,
+            thresholds=RuleThresholds.from_mapping(rules_payload.get("thresholds")),
+            feature_schema="v2",
+            v2=spec,
         )
 
     def _safe_directory(self, directory: Path) -> Path:
@@ -189,6 +243,25 @@ def _validate_manifest(manifest: dict[str, Any]) -> None:
     files = manifest["artifact_files"]
     if not isinstance(files, dict) or any(name not in files for name in REQUIRED_ARTIFACTS):
         raise ModelStoreError("artifact_files должен содержать classifier, scaler, calibrator, centroids")
+
+
+def _validate_manifest_v2(manifest: dict[str, Any]) -> None:
+    """Обязательные поля манифеста v2 (`model_manifest.schema.json`, ветка v2)."""
+    required = ("model_version_id", "model_family", "embedding_model", "dataset_version", "artifact_files",
+                "threshold", "metrics", "trained_at")
+    missing = [field for field in required if field not in manifest]
+    if missing:
+        raise ModelStoreError(f"в манифесте отсутствуют поля: {', '.join(missing)}")
+    if not _VERSION_RE.match(str(manifest["model_version_id"])):
+        raise ModelStoreError("model_version_id не соответствует шаблону wsclf-YYYY.MM.DD-N")
+    if not _DATASET_RE.match(str(manifest["dataset_version"])):
+        raise ModelStoreError("dataset_version не соответствует шаблону ds-YYYY.MM.DD-vN")
+    if manifest["model_family"] != V2_FAMILY:
+        raise ModelStoreError(f"model_family для v2 должен быть {V2_FAMILY}")
+    if not 0.0 < float(manifest["threshold"]) < 1.0:
+        raise ModelStoreError("threshold должен лежать строго между 0 и 1")
+    if "model" not in manifest["artifact_files"]:
+        raise ModelStoreError("artifact_files v2 должен содержать model")
 
 
 def _load_centroids(path: Path) -> tuple[np.ndarray | None, np.ndarray | None]:
