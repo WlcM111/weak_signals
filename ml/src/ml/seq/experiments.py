@@ -19,7 +19,7 @@ from analyzer.domain.features_v2 import FEATURE_GROUPS_V2, FEATURE_NAMES_V2
 
 from ml.adapters.embedders import build_embedder
 from ml.seq import metrics as M
-from ml.seq.data import Obs, cross_links, load_a, load_b, sha256_file
+from ml.seq.data import Obs, cross_links, dataset_b_file, load_a, load_b, sha256_file
 from ml.seq.featurize import Featurizer
 from ml.seq.stages import PROTECTED, VARIANTS, Checkpoint, train_stage_a, train_stage_b
 
@@ -35,7 +35,6 @@ GRID: dict[str, list[dict[str, float]]] = {
 }
 FORGETTING_TOLERANCE = 0.05
 A_FILE = "dataset_ds-2026.09.19-v2.jsonl"
-B_FILE = "dataset_b_v1.jsonl"
 ABLATION_GROUPS = ("relevance", "specificity", "lexical", "metadata", "embedding")
 
 
@@ -64,7 +63,7 @@ def load_glossary(path: Path) -> dict[str, str]:
 def build_context(settings, embedder_kind: str, seed: int, cache_dir: Path, projection=None) -> Context:  # noqa: ANN001
     """Чтение A и B, split, связи A↔B, эмбеддинги, проекция A-train и матрицы признаков."""
     a_path = settings.labels_dir / A_FILE
-    b_path = settings.data_dir / "dataset_b" / B_FILE
+    b_path = settings.data_dir / "dataset_b" / dataset_b_file()
     glossary_path = settings.lexicon_dir.parent / "glossary_ru_en.yaml"
     rows_a, rows_b = load_a(a_path, seed), load_b(b_path)
     links = cross_links(rows_a, rows_b)
@@ -369,10 +368,13 @@ class Runner:
                  "holdout_ids_sha256": _ids_sha(ctx.b_hold, None), "systems": sorted(systems)}
         with (self.out.parent / "holdout_usage.jsonl").open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(usage, ensure_ascii=False) + "\n")
-        uses = sum(1 for _ in (self.out.parent / "holdout_usage.jsonl").open(encoding="utf-8"))
+        with (self.out.parent / "holdout_usage.jsonl").open(encoding="utf-8") as handle:
+            uses = sum(1 for line in handle if line.strip()
+                       and json.loads(line).get("holdout_ids_sha256") == usage["holdout_ids_sha256"])
         return {"systems": systems, "paired_vs_production": paired, "holdout_live_rows": len(live),
                 "holdout_uses_including_this_run": uses,
-                "note": "holdout — 3 темы; ДИ по строкам (группам), не по темам"}
+                "note": f"holdout — тем: {len(set(topics_h))}; ДИ по строкам (группам), не по темам; "
+                        "вычисления считаются по тому же набору строк holdout (holdout_ids_sha256)"}
 
 
 def _a_metrics(y: np.ndarray, logits: np.ndarray) -> dict[str, Any]:

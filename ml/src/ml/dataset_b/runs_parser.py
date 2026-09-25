@@ -189,17 +189,32 @@ def parse_own_topics(path: Path) -> list[RawCandidate]:
     return items
 
 
-def parse_all(root: Path) -> tuple[list[RawCandidate], list[dict[str, Any]], list[str]]:
-    """Все прогоны каталога проекта; третий элемент — список разобранных файлов."""
+def parse_all(
+    root: Path, names: list[str] | None = None
+) -> tuple[list[RawCandidate], list[dict[str, Any]], list[str]]:
+    """Прогоны каталога проекта; третий элемент — список разобранных файлов.
+
+    names — зафиксированный список файлов версии датасета (новые прогоны в корне её не меняют);
+    None — все analytics-*.txt, затем все own-topics-*.json.
+    """
+    if names is None:
+        paths = sorted(root.glob("analytics-*.txt")) + sorted(root.glob("own-topics-*.json"))
+    else:
+        paths = [root / name for name in names]
+        missing = [path.name for path in paths if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(f"в {root} нет файлов прогонов: {missing}")
     items: list[RawCandidate] = []
     excluded: list[dict[str, Any]] = []
     files: list[str] = []
-    for path in sorted(root.glob("analytics-*.txt")):
-        found, skipped = parse_analytics(path)
-        items.extend(found)
-        excluded.extend(skipped)
-        files.append(path.name)
-    for path in sorted(root.glob("own-topics-*.json")):
-        items.extend(parse_own_topics(path))
+    for path in paths:
+        if path.name.startswith("analytics-") and path.suffix == ".txt":
+            found, skipped = parse_analytics(path)
+            items.extend(found)
+            excluded.extend(skipped)
+        elif path.name.startswith("own-topics-") and path.suffix == ".json":
+            items.extend(parse_own_topics(path))
+        else:
+            raise ValueError(f"неизвестный тип файла прогона: {path.name}")
         files.append(path.name)
     return items, excluded, files

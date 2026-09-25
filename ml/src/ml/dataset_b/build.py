@@ -126,10 +126,12 @@ def _row(
     }
 
 
-def assign_splits(rows: list[dict[str, Any]]) -> dict[str, str]:
+def assign_splits(
+    rows: list[dict[str, Any]], holdout_topics: tuple[str, ...] = HOLDOUT_TOPICS
+) -> dict[str, str]:
     """Тема → split: фиксированный holdout и DEV_FOLDS фолдов, сбалансированных по позитивам."""
     topics = sorted({row["topic"] for row in rows})
-    mapping = {topic: "holdout" for topic in topics if topic in HOLDOUT_TOPICS}
+    mapping = {topic: "holdout" for topic in topics if topic in holdout_topics}
     positives = Counter(row["topic"] for row in rows if row["label"] == 1)
     sizes = Counter(row["topic"] for row in rows if row["label"] is not None)
     dev = [t for t in topics if t not in mapping]
@@ -143,9 +145,14 @@ def assign_splits(rows: list[dict[str, Any]]) -> dict[str, str]:
     return mapping
 
 
-def build(project_root: Path, data_dir: Path) -> dict[str, Any]:
-    """Строит все файлы датасета B и возвращает отчёт валидации."""
-    raw, excluded, files = parse_all(project_root)
+def build(project_root: Path, data_dir: Path, run_files: list[str] | None = None) -> dict[str, Any]:
+    """Строит все файлы датасета B и возвращает отчёт валидации.
+
+    run_files — зафиксированный список прогонов версии (validation_report_v1.json → run_files).
+    """
+    raw, excluded, files = parse_all(project_root, run_files)
+    if not files:
+        raise FileNotFoundError(f"в {project_root} нет файлов прогонов: файлы датасета B не перезаписаны")
     items = [asdict(item) for item in raw]
     gmap = group_observations(items)
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)

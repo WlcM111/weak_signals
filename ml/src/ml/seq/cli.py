@@ -17,7 +17,8 @@ from ml.seq.stages import VARIANTS, load_checkpoint, train_stage_a, train_stage_
 
 def register(sub: Any) -> None:
     """Подкоманды seq-*."""
-    build = sub.add_parser("seq-build-b", help="сборка датасета B из прогонов и silver-разметки")
+    build = sub.add_parser("seq-build-b", help="пересборка датасета B v1 из зафиксированных прогонов "
+                                               "(validation_report_v1.json → run_files)")
     build.add_argument("--project-root", default=str(REPO_ROOT), help="каталог с analytics-*.txt и own-topics-*.json")
     sub.add_parser("seq-validate-b", help="валидация датасета B: схема, split, группы, даты, классы")
     stage_a = sub.add_parser("seq-stage-a", help="Stage A: обучение на A-train (организаторы + явные вспомогательные)")
@@ -61,7 +62,9 @@ def _print(payload: dict[str, Any]) -> None:
 def command_build_b(settings: MlSettings, args: argparse.Namespace) -> int:
     from ml.dataset_b.build import build  # noqa: PLC0415
 
-    report = build(Path(args.project_root), settings.data_dir / "dataset_b")
+    base = settings.data_dir / "dataset_b"
+    pinned = json.loads((base / "validation_report_v1.json").read_text(encoding="utf-8"))["run_files"]
+    report = build(Path(args.project_root), base, run_files=pinned)
     _print({k: report[k] for k in ("status", "rows_total", "supervised", "uncertain", "labels", "by_split", "problems")})
     return 0 if report["status"] == "ok" else 1
 
@@ -69,8 +72,12 @@ def command_build_b(settings: MlSettings, args: argparse.Namespace) -> int:
 def command_validate_b(settings: MlSettings, args: argparse.Namespace) -> int:
     from ml.dataset_b.build import _validate  # noqa: PLC0415
 
+    from ml.seq.data import dataset_b_file  # noqa: PLC0415
+
     base = settings.data_dir / "dataset_b"
-    rows = [json.loads(x) for name in ("dataset_b_v1.jsonl", "dataset_b_v1_uncertain.jsonl")
+    main_file = dataset_b_file()
+    uncertain_file = main_file.removesuffix(".jsonl") + "_uncertain.jsonl"
+    rows = [json.loads(x) for name in (main_file, uncertain_file)
             for x in (base / name).read_text(encoding="utf-8").splitlines() if x.strip()]
     problems = _validate(rows)
     problems += [f"{r['sample_id']}: неопределённая строка в обучающем файле"
@@ -186,7 +193,19 @@ def command_export(settings: MlSettings, args: argparse.Namespace) -> int:
 
     from ml.seq.stages import load_checkpoint as _load  # noqa: PLC0415
 
-    floor = query_similarity_floor(settings.data_dir / "dataset_b" / "dataset_b_v1.jsonl")
+    import hashlib  # noqa: PLC0415
+
+    from ml.seq.data import dataset_b_file, load_b  # noqa: PLC0415
+
+    b_path = settings.data_dir / "dataset_b" / dataset_b_file()
+    trained_on = _load(Path(args.checkpoint))[0].data or {}
+    dev_ids = [o.sample_id for o in load_b(b_path) if o.split.startswith("dev_fold_")]
+    same_rows = trained_on.get("b_train_sha256") == hashlib.sha256("|".join(dev_ids).encode()).hexdigest()
+    if trained_on.get("b_train") == "all dev folds" and not same_rows:
+        print(f"экспорт отклонён: контрольная точка обучена не на {b_path.name}; "
+              "задайте WS_DATASET_B_FILE того же прогона протокола")
+        return 1
+    floor = query_similarity_floor(b_path)
     decision = ((_load(Path(args.checkpoint))[0].metrics or {}).get("acceptance") or {}).get("decision")
     if args.activate and decision != "accept":
         print(f"активация отклонена: решение приёмки = {decision!r}; версия будет экспортирована без активации")

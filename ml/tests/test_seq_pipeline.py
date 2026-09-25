@@ -41,13 +41,17 @@ def featurizer() -> Featurizer:
                       load_glossary(SETTINGS.lexicon_dir.parent / "glossary_ru_en.yaml"))
 
 
+V1_RUN_FILES = json.loads((B_DIR / "validation_report_v1.json").read_text(encoding="utf-8"))["run_files"]
+
+
 class DatasetBTest(unittest.TestCase):
-    @unittest.skipUnless(list(REPO_ROOT.glob("analytics-*.txt")), "журналы прогонов не лежат в корне (образ trainer)")
+    @unittest.skipUnless(all((REPO_ROOT / name).is_file() for name in V1_RUN_FILES),
+                         "журналы прогонов v1 не лежат в корне (образ trainer)")
     def test_build_is_deterministic_and_matches_committed_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             for name in ("labels_silver_v1.jsonl", "web_observations_v1.jsonl"):
                 shutil.copy(B_DIR / name, Path(tmp) / name)
-            report = build(REPO_ROOT, Path(tmp))
+            report = build(REPO_ROOT, Path(tmp), run_files=V1_RUN_FILES)
             self.assertEqual(report["status"], "ok", report["problems"])
             for name in ("dataset_b_v1.jsonl", "dataset_b_v1_uncertain.jsonl", "splits_v1.json"):
                 self.assertEqual((Path(tmp) / name).read_text(encoding="utf-8"),

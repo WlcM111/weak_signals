@@ -74,6 +74,8 @@ def main() -> int:
 {note}
 
 ## Данные
+Датасет B: `{m['data']['b_file'].rsplit('/', 1)[-1]}`, SHA-256 `{m['data']['b_sha256'][:12]}…`.
+
 A-train {cnt['a_train']['rows']} ({cnt['a_train']['positives']} поз.), A-dev {cnt['a_dev']['rows']} ({cnt['a_dev']['positives']}), A-test {cnt['a_test']['rows']} ({cnt['a_test']['positives']}); B-dev {cnt['b_dev']['rows']} ({cnt['b_dev']['positives']} поз., {cnt['b_dev']['topics']} тем, 5 фолдов по темам); B-holdout {cnt['b_holdout']['rows']} ({cnt['b_holdout']['positives']} поз., {cnt['b_holdout']['topics']} темы). Доля позитивов dev (PR-AUC случайного порядка) = {f(cnt['b_dev']['positives'] / cnt['b_dev']['rows'])}.
 
 ## Baseline → candidate
@@ -110,7 +112,7 @@ Stage A: λ = {m['stage_a']['params']['l2']:g}, ROC-AUC A-dev {f(m['stage_a']['a
 Платт: наклон {f(cal['platt']['slope'])}, сдвиг {f(cal['platt']['offset'])}; порог max-F1 {f(cal['threshold'])}; ECE dev {f(cal['dev_ece_5bins'])} (те же данные); holdout: ECE {f(fin[ch]['b_holdout']['ece_5bins'])}, Brier {f(fin[ch]['b_holdout']['brier'])}.
 
 ## Решение приёмки
-`{acc['decision']}` — {', '.join(f'{k} = {v}' for k, v in acc['checks'].items())}. Вычислений holdout в этом каталоге отчётов, включая этот прогон: {m['final']['holdout_uses_including_this_run']}.
+`{acc['decision']}` — {', '.join(f'{k} = {v}' for k, v in acc['checks'].items())}. Вычислений этого holdout (тот же набор строк) в каталоге отчётов, включая этот прогон: {m['final']['holdout_uses_including_this_run']}.
 """
     out.write_text(text, encoding="utf-8")
     print(out)

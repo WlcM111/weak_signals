@@ -12,6 +12,11 @@ for run in "$@"; do
   if [ -d "ml/reports/seq/$run" ]; then cp -R "ml/reports/seq/$run" "$out/seq-$run"; fi
 done
 if [ -f ml/reports/experiments/holdout_usage.jsonl ]; then cp ml/reports/experiments/holdout_usage.jsonl "$out/"; fi
+# Датасет B v2 и замеры точности выдачи (если уже есть).
+for f in ml/data/dataset_b/v2/validation_report_v2.json ml/data/dataset_b/v2/labeling/agreement_report.json; do
+  if [ -f "$f" ]; then cp "$f" "$out/"; fi
+done
+if [ -d ml/reports/quality ]; then cp -R ml/reports/quality "$out/quality"; fi
 # Живые прогоны за последние 3 суток (analytics, own-topics, relevance).
 find . -maxdepth 1 \( -name 'analytics-*.txt' -o -name 'own-topics-*.json' -o -name 'relevance-*.csv' \) -mtime -3 \
   -exec cp {} "$out/" \;

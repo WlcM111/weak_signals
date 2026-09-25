@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +14,9 @@ from analyzer.domain.features_v2 import EvidenceItem
 from ml.dataset_b.grouping import canonical_url
 
 A_ORIGIN_ORGANIZERS = "gpb_dataset_2026_09"
+B_FILE_DEFAULT = "dataset_b_v1.jsonl"
+# Файл датасета B относительно <data_dir>/dataset_b, например v2/dataset_b_v2.jsonl; пусто — v1.
+B_FILE_ENV = "WS_DATASET_B_FILE"
 A_ORIGIN_AUX = "team_negatives_v1"
 A_AS_OF_YEAR = 2026
 TRAIN_SHARE, DEV_SHARE = 0.70, 0.15
@@ -40,6 +44,11 @@ class Obs:
     observed_score: float | None = None
     observed_query_sim: float | None = None
     urls: tuple[str, ...] = ()
+
+
+def dataset_b_file() -> str:
+    """Файл датасета B для Stage A/B и протокола: WS_DATASET_B_FILE или v1 по умолчанию."""
+    return os.environ.get(B_FILE_ENV, "").strip() or B_FILE_DEFAULT
 
 
 def sha256_file(path: Path) -> str:
