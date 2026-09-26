@@ -1,0 +1,18 @@
+OK     код 200 записей   9  The AI Insider: https://theaiinsider.tech/feed/
+OK     код 200 записей  35  GeekWire: https://www.geekwire.com/feed/
+OK     код 200 записей  20  DataCenterDynamics: https://www.datacenterdynamics.com/en/rss/
+ОТКАЗ  код 429 записей   0  VentureBeat — ИИ: https://venturebeat.com/category/ai/feed/  (ошибка HTTP)
+OK     код 200 записей  15  The Robot Report: https://www.therobotreport.com/feed/
+OK     код 200 записей  30  IEEE Spectrum: https://spectrum.ieee.org/feeds/feed.rss
+OK     код 200 записей  10  MIT Technology Review: https://www.technologyreview.com/feed/
+OK     код 200 записей  53  Finextra: https://www.finextra.com/rss/headlines.aspx
+OK     код 200 записей  10  Help Net Security: https://www.helpnetsecurity.com/feed/
+OK     код 200 записей  40  Хабр — искусственный интеллект: https://habr.com/ru/rss/hubs/artificial_intelligence/articles/all/
+рабочих лент: 9 из 10
+ДОБАВЛЕНО в .env: 6; всего лент: 28; копия .env: /Users/zorinmihail/ws-backups/env.bak-rss-20260927-004154
+  + https://www.therobotreport.com/feed/
+  + https://spectrum.ieee.org/feeds/feed.rss
+  + https://www.technologyreview.com/feed/
+  + https://www.finextra.com/rss/headlines.aspx
+  + https://www.helpnetsecurity.com/feed/
+  + https://habr.com/ru/rss/hubs/artificial_intelligence/articles/all/
