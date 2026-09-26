@@ -1,0 +1,1573 @@
+АНАЛИТИКА ПО ШЕСТИ ТЕМАМ ДАТАСЕТА — прогон 20260925-001736 UTC, top_n = 15
+датасет: ml/data/raw/dataset_normalized.csv (100 строк)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+СОСТОЯНИЕ СТЕНДА ПЕРЕД ПРОГОНОМ
+════════════════════════════════════════════════════════════════════════════════════════════════════
+коммит: e4d0c9f
+готовность API (/readyz): код 200
+контейнеры:
+  analyzer | running | Up 32 seconds (healthy)
+  collector | running | Up 38 seconds (healthy)
+  insight | running | Up 38 seconds (healthy)
+  orchestrator-api | running | Up 16 seconds (healthy)
+  orchestrator-worker | running | Up 10 seconds (healthy)
+  ui | running | Up 3 hours (healthy)
+  postgres | running | Up 3 hours (healthy)
+стенд готов через 0 с ожидания: модель wsclf-2026.09.20-2
+модель (/api/v1/model): код 200
+  model_version_id: wsclf-2026.09.20-2
+  model_family: logreg_elasticnet
+  embedding_model: intfloat/multilingual-e5-base
+  dataset_version: ds-2026.09.19-v2
+  feature_schema_version: v1
+  trained_at: 2026-09-20T14:17:38+00:00
+  метрики: {"accuracy": 0.8444, "precision": 0.8095, "recall": 0.85, "f1": 0.8293, "roc_auc": 0.948, "threshold": 0.2888, "test_size": 45.0}
+  признаков: 25
+пороги и провайдеры (несекретные переменные):
+  analyzer.WS_CLUSTER_DISTANCE_THRESHOLD = 0.15
+  analyzer.WS_MIN_DOC_QUERY_SIM = 0.35
+  analyzer.WS_MIN_CANDIDATE_QUERY_SIM = 0.88
+  analyzer.WS_TRUST_WEIGHTED_SELECTION = false
+  analyzer.WS_REQUIRE_HIGH_TRUST_SOURCE = true
+  insight.WS_LLM_PRIMARY_PROVIDER = gigachat
+  insight.WS_LLM_FALLBACK_PROVIDER = none
+  insight.WS_GIGACHAT_MODEL = GigaChat-2-Pro
+  insight.WS_GIGACHAT_MAX_CONCURRENCY = 1
+каталог источников (collector.source_catalog):
+  arxiv | t | 0.100 | PREPRINT | HIGH
+  gdelt | t | 0.200 | INDUSTRY_MEDIA | MEDIUM
+  github | t | 0.400 | CODE_REPOSITORY | MEDIUM
+  hh | f | 1.000 | VACANCY | MEDIUM
+  openalex | t | 5.000 | SCIENTIFIC_PUBLICATION | HIGH
+  patentsview | f | 1.000 | PATENT | HIGH
+  rss | t | 2.000 | INDUSTRY_MEDIA | MEDIUM
+  semantic_scholar | t | 0.500 | SCIENTIFIC_PUBLICATION | HIGH
+  wikipedia | t | 10.000 | ENCYCLOPEDIA | MEDIUM
+  zenodo | t | 0.300 | PREPRINT | MEDIUM
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 1/6: Индустриальный ИИ — запрос «индустриальный искусственный интеллект на производстве»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5ec-beb3-7bc4-ab09-827c22e543db   top_n: 15
+  00:17:37 UTC  статус: QUEUED
+  00:17:47 UTC  статус: COLLECTING
+  00:18:07 UTC  статус: ANALYZING
+  00:18:27 UTC  статус: NARRATING
+  00:19:27 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:17:37.459946+00:00 / 2026-09-25T00:17:38.250125+00:00 / 2026-09-25T00:19:26.876351+00:00
+длительность: 109 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 34, "sources_processed": 4, "documents_collected": 359, "candidates_found": 40, "narratives_done": 4, "narratives_total": 4}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 1 | 0 | 0 | HTTP_4XX | arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу
+  gdelt | FAILED | 1 | 0 | 0 | TIMEOUT | таймаут запроса к источнику: таймаут запроса: 
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 22 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 12 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 3 | 73 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 359
+  documents_after_dedup: 322
+  clusters_total: 107
+  candidates_scored: 40
+  weak_signals_total: 4
+  weak_signals_confident: 2
+  excluded_mature: 5
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 26
+  excluded_off_topic: 5
+  weak_signal_threshold: 0.2888
+  duration_ms: 16759
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 34
+  sources_processed: 4
+  documents_collected: 359
+  candidates_found: 40
+  weak_signals_total: 4
+  weak_signals_confident: 2
+  narratives_generated: 2
+  narratives_fallback: 2
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 4 технологий
+
+  #1 [GENERATED | High | скоринг 93.7%] Система обнаружения вторжений 1D-CNN-IDS для промышленного Интернета вещей
+     автоназвание кластера: 1D-CNN-IDS
+     решение модели: Калиброванная вероятность слабого сигнала 0.94 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+8.77), семантическая близость к эталонным слабым сигналам (-4.62).
+     близость к запросу (emb_sim_query): 0.886
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.865, вклад +8.77 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.876, вклад -4.62 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 11.000, вклад -1.72 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: 1D-CNN-IDS — это система обнаружения вторжений, основанная на одномерных сверточных нейронных сетях (1D-CNN), предназначенная для защиты промышленных IoT-сетей. Технология разработана для классификации девяти типов кибератак с высокой точностью 99,90%, обеспечивая эффективное обнаружение угроз в условиях ограниченных ресурсов [doc:2]. Параллельно исследуются методы оптимизации моделей глубокого обучения через факторизацию сингулярных значений (SVD) для уменьшения сложности моделей и ускорения обработки на устройствах промышленного интернета вещей [doc:1].
+     преимущество: Технология обеспечивает высокую точность выявления киберугроз в промышленном интернете вещей при минимальных вычислительных затратах, что критично важно для ресурсоограниченных сред производства.
+     кейс-пример: Исследователи разработали алгоритм на основе 1D-CNN, который достиг точности 99,90% при классификации девяти видов кибератак в системах IIoT, что подтверждает эффективность подхода для обеспечения кибербезопасности производственных сетей [doc:2]. (документ 01a0cb8b-1e8d-70dc-9a58-d5540dcec234)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8647) и отсутствие лексики зрелости («рынок», «стандарт», «массовое внедрение») и упоминаний крупных вендоров (оба признака = 0.0). Против слабого сигнала свидетельствует значительное число упомянутых организаций (11.0) и высокая семантическая близость к эталонным слабым сигналам (0.8756), однако модель сочла первые два фактора более весомыми.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-09-13 | GENERATIVE_SUMMARY] 1D-CNN-IDS: 1D CNN-based Intrusion Detection System for IIoT
+         https://arxiv.org/abs/2409.08529
+         резюме: Научная публикация описывает разработку системы 1D-CNN-IDS для обнаружения вторжений в индустриальном Интернете вещей с высокой точностью классификации кибератак.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-08-29 | GENERATIVE_SUMMARY] Optimizing Edge AI for Industrial Inspection: A Comparative Study of SVD Factorization vs. Traditional Model Compression
+         https://zenodo.org/records/22155058
+         резюме: Статья рассматривает применение метода SVD-факторизации для сжатия моделей машинного обучения и повышения эффективности работы CNN на устройствах промышленного контроля и инспекции.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [FALLBACK_EXTRACTIVE | High | скоринг 90.6%] Технология: Evaluating Human-AI Collaboration
+     автоназвание кластера: Evaluating Human-AI Collaboration
+     решение модели: Калиброванная вероятность слабого сигнала 0.91 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+7.55), семантическая близость к эталонным слабым сигналам (-3.35).
+     близость к запросу (emb_sim_query): 0.888
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.868, вклад +7.55 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.879, вклад -3.35 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 12.000, вклад -1.88 (supports_mature)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: The use of artificial intelligence (AI) in working environments with individuals, known as Human-AI Collaboration (HAIC), has become essential in a variety of domains, boosting decision-making, efficiency, and innovation. Despite HAIC's wide potential, evaluating its effectiveness remains challenging due to the complex interaction of components involved. Abstract Recent years have seen a tremendous growth in Artificial Intelligence (AI)-based methodological development in a broad range of domains. In this rapidly evolving field, large number of methods are being reported using machine learning (ML) and Deep Learning (DL) models.
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: Evaluating Human-AI Collaboration: A Review and Methodological Framework (arxiv.org) (документ None)
+     объяснение статуса: Оценка модели 0.91. Признаки: семантическая близость к эталонным зрелым технологиям = 0.87 (поддерживает слабый сигнал), семантическая близость к эталонным слабым сигналам = 0.88 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-07-09 | EXTRACTIVE] Evaluating Human-AI Collaboration: A Review and Methodological Framework
+         http://arxiv.org/abs/2407.19098
+         резюме: The use of artificial intelligence (AI) in working environments with individuals, known as Human-AI Collaboration (HAIC), has become essential in a variety of domains, boosting decision-making, efficiency, and innovation. Despite HAIC's wide potential, evaluating its effectiveness remains challenging due to the complex interaction of components involved.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-04-15 | EXTRACTIVE] A Constraint-Driven Framework for Process-Traceable Human–AI Collaboration
+         https://zenodo.org/records/19595077
+         резюме: We study the problem of improving transparency and traceability in human--AI collaborative processes, particularly in domains where outcome quality is difficult to evaluate objectively, such as creative design and narrative generation.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-08-24 | EXTRACTIVE] Interpreting Black-Box Models: A Review on Explainable Artificial Intelligence
+         https://doi.org/10.1007/s12559-023-10179-8
+         резюме: Abstract Recent years have seen a tremendous growth in Artificial Intelligence (AI)-based methodological development in a broad range of domains. In this rapidly evolving field, large number of methods are being reported using machine learning (ML) and Deep Learning (DL) models.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #3 [GENERATED | Medium | скоринг 57.0%] Платформа AI Nano Platform для индустриального искусственного интеллекта
+     автоназвание кластера: AI Nano Platform
+     решение модели: Калиброванная вероятность слабого сигнала 0.57 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+7.50), семантическая близость к эталонным слабым сигналам (-6.02).
+     близость к запросу (emb_sim_query): 0.901
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.868, вклад +7.50 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.872, вклад -6.02 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 6.000, вклад -0.91 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: AI Nano Platform представляет собой лёгкую, no-code платформу для разработки и развертывания искусственного интеллекта в научных и промышленных областях. Она предназначена для пользователей без специализированного опыта и поддерживает автоматизацию машинного обучения и различные типы данных, включая таблицы, документы, изображения, видео и научные форматы [doc:1]. Платформа позволяет интегрировать AI в производственные процессы, оптимизировать параметры производства, снижать простои оборудования и отходы материалов благодаря интеграции временных сетей и инфраструктуры обработки данных [doc:2].
+     преимущество: Потенциальное преимущество платформы заключается в упрощённом внедрении искусственного интеллекта в различных отраслях промышленности и науки, расширяя доступность AI-технологий для специалистов без глубокого технического бэкграунда.
+     кейс-пример: Концепция AIDA демонстрирует интеграцию временных сетей и инфраструктуры обработки данных для создания надёжных решений промышленного IoT с использованием AI-компонентов, принимающих своевременные решения в реальном времени [doc:2]. (документ 01a0cb8b-2ebc-7c3f-a50c-1855e3fb1901)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8682) и отсутствие лексики зрелости, такой как 'рынок', 'стандарт' или 'массовое внедрение' (0.0). Против слабого сигнала свидетельствует значительная семантическая близость к эталонным слабым сигналам (0.872) и упоминание шести организаций, что указывает на определённую степень развития технологии [doc:1][doc:2].
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-05-06 | GENERATIVE_SUMMARY] AIDA—A holistic AI-driven networking and processing framework for industrial IoT applications
+         https://doi.org/10.1016/j.iot.2023.100805
+         резюме: Научная публикация посвящена фреймворку AIDA, который объединяет временные сети и инфраструктуру обработки данных для реализации решений промышленного IoT с применением искусственного интеллекта.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-05-09 | GENERATIVE_SUMMARY] AIN: AI Nano Platform for No-Code End-to-End Artificial Intelligence Development and Deployment Across Scientific and Industrial Domains
+         https://zenodo.org/records/20093071
+         резюме: Статья описывает платформу AI Nano Platform, предназначенную для облегчения разработки и внедрения искусственного интеллекта в науке и промышленности, обеспечивая доступ даже специалистам без глубоких технических знаний.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #4 [FALLBACK_EXTRACTIVE | Medium | скоринг 52.2%] Технология: Large Language Model
+     автоназвание кластера: Large Language Model
+     решение модели: Калиброванная вероятность слабого сигнала 0.52 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+3.96), число упомянутых организаций (эвристика) (-3.18).
+     близость к запросу (emb_sim_query): 0.895
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.878, вклад +3.96 (supports_weak_signal)
+       Число упомянутых организаций (эвристика): значение 20.000, вклад -3.18 (supports_mature)
+       Семантическая близость к эталонным слабым сигналам: значение 0.886, вклад -0.65 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.083, вклад +0.13 (supports_weak_signal)
+     стадия / тренд (прогноз): None / None
+     описание: Abstract—Large Language Models (LLMs) suffer from inherent stochasticity, limiting their utility in high-stakes enterprise environments where determinism and auditability are required. This paper introduces the MFOUR Vibe Framework (MVF), a platform-agnostic architectural standard that transforms probabilistic natural language intent into deterministic software artifacts. The recent emergence of large language models (LLMs) demonstrates the potential for artificial general intelligence, revealing new opportunities in Industry 4. 0 and smart manufacturing.
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: GPT-4 Technical Report (arxiv.org) (документ None)
+     объяснение статуса: Оценка модели 0.52. Признаки: семантическая близость к эталонным зрелым технологиям = 0.88 (поддерживает слабый сигнал), число упомянутых организаций (эвристика) = 20.00 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (4):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-15 | EXTRACTIVE] Inadequacies of Large Language Model Benchmarks in the Era of Generative Artificial Intelligence
+         http://arxiv.org/abs/2402.09880
+         резюме: The rapid rise in popularity of Large Language Models (LLMs) with emerging capabilities has spurred public curiosity to evaluate and compare different LLMs, leading many researchers to propose their own LLM benchmarks.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-10-16 | EXTRACTIVE] FATE-LLM: A Industrial Grade Federated Learning Framework for Large Language Models
+         http://arxiv.org/abs/2310.10049
+         резюме: Large Language Models (LLMs), such as ChatGPT, LLaMA, GLM, and PaLM, have exhibited remarkable performances across various tasks in recent years. However, LLMs face two main challenges in real-world applications.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-12-22 | EXTRACTIVE] A Unified Industrial Large Knowledge Model Framework in Industry 4.0 and Smart Manufacturing
+         http://arxiv.org/abs/2312.14428
+         резюме: The recent emergence of large language models (LLMs) demonstrates the potential for artificial general intelligence, revealing new opportunities in Industry 4. 0 and smart manufacturing.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-03-15 | EXTRACTIVE] GPT-4 Technical Report
+         http://arxiv.org/abs/2303.08774
+         резюме: Abstract—Large Language Models (LLMs) suffer from inherent stochasticity, limiting their utility in high-stakes enterprise environments where determinism and auditability are required. This paper introduces the MFOUR Vibe Framework (MVF), a platform-agnostic architectural standard that transforms probabilistic natural language intent into deterministic software artifacts.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 36
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 28.2% | документов 3] Deep Learning Algorithms
+     Калиброванная вероятность слабого сигнала 0.28 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+9.35), семантическая близость к эталонным слабым сигналам (-8.20).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 9.1% | документов 5] Automation for Industry
+     Калиброванная вероятность слабого сигнала 0.09 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (-1.83), семантическая близость к эталонным зрелым технологиям (+1.82).
+  [MATURE | MODEL_SCORE | скоринг 3.2% | документов 3] Learning Operations MLOps
+     Калиброванная вероятность слабого сигнала 0.03 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (-9.70), семантическая близость к эталонным зрелым технологиям (+9.00).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 2.1% | документов 3] Industrial Defect Detection
+     Калиброванная вероятность слабого сигнала 0.02 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+4.96), число упомянутых организаций (эвристика) (-3.01).
+  [MATURE | MODEL_SCORE | скоринг 0.8% | документов 8] Machine Learning
+     Калиброванная вероятность слабого сигнала 0.01 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.09), семантическая близость к эталонным слабым сигналам (-5.07).
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 12] Применение искусственного интеллекта
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+16.86), семантическая близость к эталонным зрелым технологиям (-15.24).
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 8] Artificial General Intelligence
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-5.61), семантическая близость к эталонным зрелым технологиям (+5.47).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 37] industrial-ai-agent
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 37 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] wanglin1111111 ai-industrial-upgrade-intelligent-manufacturing
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Tahahouda smart-industrial-robotics
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Felix-Zuo factory-takt-simulator
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 22] AI-Based-Defect-Detection-in-Industrial-Images
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 22 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 14] Unified-Industrial-AI-Automation-Framework-for-Manufacturing-Systems-PredictiveMaintenance
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 14 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] verkal1999 Manufacturing-ExcH-Agents
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Robo-Cell-Digital-Twin
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 10] Project---Applied-Industrial-AI-for-Manufacturing
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 10 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] manufacturing-rag-pipeline
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] US AI Ecosystem
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] ai-manufacturing-optimizer
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Soroush-slr Industrial-Cable-Quality-Prediction-System-with-AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] forge
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] voice-ai-consultant
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 5] исследование про ИИ
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] помощью LLM Python
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] api-evangelist dexterity
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 7] grishmankp-crypto Tata-Steel-Industrial-AI-Grishmank-
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 7 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Artificial Intelligence-Enabled Crystallographic
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] QID-NPI Edge-Native Cognitive
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 8] Актуальность концепции Цифровой
+     Кластер слабо связан с запросом: близость 0.85 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] industry-modules-on-azure
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] sustainable educational transformation
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 28] Artificial Intelligence
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-16.15), семантическая близость к эталонным слабым сигналам (+2.74).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 3] Data-centric Artificial Intelligence
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: упоминания крупнейших вендоров (список bigtech.txt) (-53.50), число упомянутых организаций (эвристика) (-16.15).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Substrate Recurrence Hypothesis
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Autonomous Governance Factory
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 8] Survey on ChatGPT
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: упоминания крупнейших вендоров (список bigtech.txt) (-14.51), семантическая близость к эталонным зрелым технологиям (+5.46).
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Индустриальный ИИ» (17) — для сверки выдачи:
+  #5 [стадия: Раннее внедрение (у лидера) / Прототип (у остальных) | балл 7] CAD-native «engineering intelligence»: ИИ-суррогаты физики + генеративное проектирование деталей под производимость
+  #6 [стадия: Пилот → Раннее внедрение | балл 7] Автономные агенты закупок и цепей поставок, работающие в ERP/e-mail/мессенджерах как «цифровые снабженцы»
+  #7 [стадия: Пилот → Раннее внедрение | балл 7] Проактивные ИИ-агенты теплового управления: упреждающее охлаждение ЦОД/AI-фабрик по прогнозу нагрузки, а не по факту нагрева
+  #26 [стадия: Пилот/PoC | балл 6] Robotics foundation models, обучаемые на данных внутри действующих заводов (а не в лабораториях/на публичных датасетах)
+  #27 [стадия: Пилот → Раннее внедрение | балл 6] Vision foundation models для контроля качества, где задача задаётся естественным языком (без разметки под каждый дефект)
+  #28 [стадия: Раннее внедрение | балл 6] «Робот-геолог»: сенсорная фьюжн-платформа (гиперспектр + XRF + LIBS + 3D) с ML для поиска и оценки руды
+  #29 [стадия: Пилот (controlled availability) | балл 6] Агентный ИИ, действующий внутри стека OT (PLC/SCADA/MES/ERP) с журналируемыми действиями и «approval gate» оператора
+  #30 [стадия: Раннее внедрение (Novarc) / Пилот (TetraGen) | балл 6] Адаптивная автономная сварка: нейросетевое зрение вместо предварительного сканирования и репрограммирования робота
+  #31 [стадия: Раннее внедрение | балл 6] ИИ-операторы виртуальных электростанций: автоматическое трейдинг-планирование BESS на нескольких рынках
+  #53 [стадия: Исследование → Прототип/PoC | балл 5] Foundation-модели промышленных временных рядов (S-E-F-C: setpoint/effort/feedback/context) и предобучающие корпуса заводских данных
+  #54 [стадия: Пилот | балл 5] Акустическая диагностика оборудования на edge: слияние звука, вибрации и режима работы без облака
+  #55 [стадия: Прототип/PoC → Пилот | балл 5] ИИ-управление процессами в полупроводниковом фабе и новые ИИ-сенсоры процесса (плазменная спектроскопия, in-line метрология)
+  #78 [стадия: Исследование → Прототип/PoC | балл 4] LLM-генерация кода ПЛК на IEC 61131-3 Structured Text с замыканием на компилятор и формальную верификацию
+  #79 [стадия: Исследование → Прототип/PoC | балл 4] Агентная генерация технологической документации: P&ID и схемы процессов из текстового описания в машиночитаемом DEXPI
+  #80 [стадия: Прототип → ранняя серия | балл 4] Нейроморфные/событийные edge-чипы для непрерывного мониторинга промышленного оборудования (мВт-класс, без облака)
+  #81 [стадия: Прототип/PoC (реальный testbed) | балл 4] Самообучающиеся контуры управления: RL прямо на промышленном контроллере/в живом цеху (а не в симуляторе)
+  #82 [стадия: Исследование → Прототип/PoC | балл 4] Федеративное обучение между площадками/предприятиями: модели учатся на данных нескольких заводов без их передачи
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 2/6: Роботы — запрос «робототехника и физический искусственный интеллект»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5ee-e4c5-72d2-b388-8d7cc3fc89a9   top_n: 15
+  00:19:58 UTC  статус: QUEUED
+  00:20:08 UTC  статус: COLLECTING
+  00:20:18 UTC  статус: ANALYZING
+  00:20:38 UTC  статус: NARRATING
+  00:21:18 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:19:58.277955+00:00 / 2026-09-25T00:19:58.727801+00:00 / 2026-09-25T00:21:10.665702+00:00
+длительность: 72 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 29, "sources_processed": 4, "documents_collected": 200, "candidates_found": 40, "narratives_done": 2, "narratives_total": 2}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | HTTP_4XX | arXiv не опрашивается после отказа (arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу), пауза ещё 1660 с
+  gdelt | FAILED | 0 | 0 | 0 | TIMEOUT | GDELT не опрашивается после отказа (таймаут запроса к источнику: таймаут запроса: ), пауза ещё 481 с
+  github | COMPLETED | 6 | 53 | 0 |  | 
+  openalex | COMPLETED | 17 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 14 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 2 | 23 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 200
+  documents_after_dedup: 185
+  clusters_total: 97
+  candidates_scored: 40
+  weak_signals_total: 5
+  weak_signals_confident: 3
+  excluded_mature: 3
+  excluded_hype_or_noise: 1
+  excluded_insufficient_evidence: 16
+  excluded_off_topic: 15
+  weak_signal_threshold: 0.2888
+  duration_ms: 14633
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 29
+  sources_processed: 4
+  documents_collected: 200
+  candidates_found: 40
+  weak_signals_total: 2
+  weak_signals_confident: 1
+  narratives_generated: 2
+  narratives_fallback: 0
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 2 технологий
+
+  #1 [GENERATED | High | скоринг 99.3%] Платформа робототехники и электромобильности с искусственным интеллектом на границе сети
+     автоназвание кластера: EdgeAI-MotorMind
+     решение модели: Калиброванная вероятность слабого сигнала 0.99 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+10.06), семантическая близость к эталонным слабым сигналам (-5.15).
+     близость к запросу (emb_sim_query): 0.899
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.861, вклад +10.06 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.874, вклад -5.15 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 5.000, вклад -0.74 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: EdgeAI-MotorMind — платформа управления двигателями с поддержкой искусственного интеллекта, работающая на основе технологий Edge AI и TinyML. Она предназначена для адаптивного управления и прогнозной диагностики в системах электромобилей и робототехники. Платформа демонстрирует возможность проведения реального времени логических выводов на встроенном оборудовании, поддерживает архитектуру с несколькими агентами и оптимизацию интеллектуального управления для автономных машин нового поколения [doc:1].
+     преимущество: Технология позволяет улучшить эффективность и надежность электромобилей и роботов благодаря встроенным механизмам адаптации и предсказания неисправностей, используя маломощные и компактные решения искусственного интеллекта.
+     кейс-пример: Платформа MOORTHIAE24/EdgeAI-MotorMind реализует управление электродвигателями с использованием искусственного интеллекта на встроенных устройствах, обеспечивая адаптацию и диагностику в реальном времени [doc:1]. (документ 01a0c1a5-35c9-7ede-be80-f2aa8f4128b5)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8611) и отсутствие упоминаний крупнейших вендоров (0.0). Против слабого сигнала свидетельствует значительная семантическая близость к эталонным слабым сигналам (0.8743) и наличие пяти упомянутых организаций, что указывает на некоторую зрелость темы [doc:1, doc:2].
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [github | CODE_REPOSITORY | MEDIUM | en | 2026-03-09 | GENERATIVE_SUMMARY] MOORTHIAE24/EdgeAI-MotorMind
+         https://github.com/MOORTHIAE24/EdgeAI-MotorMind
+         резюме: Кодовая площадка представляет платформу управления моторами с искусственным интеллектом для электромобилей и робототехники, использующую Edge AI и TinyML для оптимизации и диагностики в реальном времени.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-03-22 | GENERATIVE_SUMMARY] Catalyzing next-generation Artificial Intelligence through NeuroAI
+         https://doi.org/10.1038/s41467-023-37180-x
+         резюме: Научная публикация рассматривает необходимость инвестиций в фундаментальные исследования NeuroAI для ускорения развития искусственного интеллекта следующего поколения через взаимодействие моделей ИИ с физическим миром.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [GENERATED | Low | скоринг 34.7%] Робототехника на основе больших языковых моделей
+     автоназвание кластера: Models for Robotics
+     решение модели: Калиброванная вероятность слабого сигнала 0.35 не ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-4.31), семантическая близость к эталонным зрелым технологиям (+3.70).
+     близость к запросу (emb_sim_query): 0.907
+     ключевые предикторы:
+       Число упомянутых организаций (эвристика): значение 27.000, вклад -4.31 (supports_mature)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.879, вклад +3.70 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.890, вклад +0.80 (supports_weak_signal)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология робототехники на основе больших языковых моделей (LLM) направлена на создание роботов, способных взаимодействовать с окружающей средой, принимать решения и выполнять действия на основе естественного языка. Исследователи используют LLMs как основу для создания универсальных агентов, способных адаптироваться к различным сценариям и задачам [doc:2]. Применение LLMs в робототехнике охватывает области управления роботами, восприятия, принятия решений и планирования, повышая автономность и эффективность взаимодействия человека с машиной [doc:3].
+     преимущество: Потенциальное преимущество заключается в создании универсальных роботов, способных понимать и выполнять широкий спектр задач на основе открытых наборов команд и объектов, используя мощные языковые и визуальные модели для синтеза траекторий движения и планирования действий [doc:5].
+     кейс-пример: Проект Open X-Embodiment демонстрирует возможность обучения общей политики поведения робота, которая эффективно адаптируется к новым роботам, задачам и условиям среды. Для этого собран датасет из 22 различных роботов, представленный сотрудничеством 21 института, демонстрирующий 527 навыков (160266 задач). Модель RT-X, обученная на этом наборе данных, показала положительный перенос опыта между платформами и улучшила способности множества роботов [doc:4]. (документ 01a0cb8f-90a0-7bcc-b7a2-0a4991f70c8c)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным слабым сигналам (0.8899) и низкая доля упоминаний последних двух лет среди всех упомянутых годов (0.0). Несмотря на значительное число упомянутых организаций (27.0), поддерживающее зрелость технологии, общая направленность признаков указывает на раннюю стадию развития и отсутствие массового внедрения.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (7):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-11-13 | GENERATIVE_SUMMARY] Large Language Models for Robotics: A Survey
+         http://arxiv.org/abs/2311.07226
+         резюме: Подробный обзор применения больших языковых моделей в робототехнике, охватывающий управление, восприятие, принятие решений и взаимодействие роботов с окружающей средой .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-09-14 | GENERATIVE_SUMMARY] The Rise and Potential of Large Language Model Based Agents: A Survey
+         http://arxiv.org/abs/2309.07864
+         резюме: Обзор посвящен использованию больших языковых моделей для создания интеллектуальных агентов, способных адаптироваться к разнообразным ситуациям и взаимодействовать с людьми .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-12-22 | GENERATIVE_SUMMARY] The Robots Are Here: Navigating the Generative AI Revolution in Computing Education
+         https://doi.org/10.1145/3623762.3633499
+         резюме: Документ рассматривает влияние генеративного искусственного интеллекта и больших языковых моделей на образование в области компьютерных наук, анализируя изменения в педагогике и этические аспекты .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-07-12 | GENERATIVE_SUMMARY] VoxPoser: Composable 3D Value Maps for Robotic Manipulation with Language Models
+         http://arxiv.org/abs/2307.05973
+         резюме: Работа исследует применение фундаментальных моделей, подобных большим языковым моделям, для создания универсальных роботов, способных действовать в разнообразных условиях .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-15 | GENERATIVE_SUMMARY] Inadequacies of Large Language Model Benchmarks in the Era of Generative Artificial Intelligence
+         http://arxiv.org/abs/2402.09880
+         резюме: Статья рассматривает недостатки современных бенчмарков для больших языковых моделей и необходимость перехода к динамическому профилированию поведения моделей вместо статических тестов .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-12-14 | EXTRACTIVE] Toward General-Purpose Robots via Foundation Models: A Survey and Meta-Analysis
+         http://arxiv.org/abs/2312.08782
+         резюме: Building general-purpose robots that operate seamlessly in any environment, with any object, and utilizing various skills to complete diverse tasks has been a long-standing goal in Artificial Intelligence. However, as a community, we have been constraining most robotic systems by designing them for specific tasks, training them on specific datasets, and deploying them within specific environments.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-10-13 | GENERATIVE_SUMMARY] Open X-Embodiment: Robotic Learning Datasets and RT-X Models
+         http://arxiv.org/abs/2310.08864
+         резюме: Исследование посвящено созданию общего подхода к обучению роботов через сбор унифицированных датасетов и демонстрацию переноса навыков между разными роботами и задачами .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 38
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 95.1% | документов 2] Complete Automation
+     Смысловая оценка: обзор или аналитика без конкретной технологии. Обзор тенденций автоматизации и автономных производств, упоминается Agentic AI и мягкие роботы, но без детализации технологий.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 94.0% | документов 2] robot and neurotechnologies
+     Смысловая оценка: общее понятие. Рассматривается общая тема правовых аспектов роботов и нейротехнологий, без конкретики по технологиям или физическим реализациям ИИ.
+  [MATURE | SEMANTIC_JUDGE | скоринг 46.9% | документов 2] robotics Trends scopes
+     Смысловая оценка: зрелая технология. Перечислены зрелые технологии робототехники и ИИ: цифровые близнецы, прогнозирующее обслуживание, большие данные, облачные вычисления.
+  [MATURE | MODEL_SCORE | скоринг 21.6% | документов 3] artificial intelligence
+     Калиброванная вероятность слабого сигнала 0.22 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+3.27), семантическая близость к эталонным слабым сигналам (-3.00).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 5.6% | документов 5] использования искусственного интеллекта
+     Калиброванная вероятность слабого сигнала 0.06 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+10.11), семантическая близость к эталонным зрелым технологиям (-9.32).
+  [HYPE_OR_NOISE | MODEL_SCORE | скоринг 5.0% | документов 3] Intelligent Soft Robotics
+     Калиброванная вероятность слабого сигнала 0.05 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+9.08), семантическая близость к эталонным слабым сигналам (-8.98).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 4.4% | документов 4] intelligence machine learning
+     Калиброванная вероятность слабого сигнала 0.04 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (-8.74), семантическая близость к эталонным зрелым технологиям (+8.22).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.3% | документов 2] medical robots turnover
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+10.25), семантическая близость к эталонным слабым сигналам (-8.02).
+  [MATURE | MODEL_SCORE | скоринг 0.1% | документов 15] Artificial Intelligence
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-7.88), семантическая близость к эталонным зрелым технологиям (+2.17).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.1% | документов 7] generative conversational AI
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+5.78), упоминания крупнейших вендоров (список bigtech.txt) (-4.77).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Four-Layer Cognitive-Action Architecture
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Humanoid Deployment Roadmap
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] White Paper H2E-Holonomic
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] meta systematic review
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Zora_IoT-AI_Interactive_Robot_Control_System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Discrimination artificial intelligence
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Next Generation Datasets
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] api-evangelist
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 1] intelligence-powered electronic skin
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] BharatDroneOS
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Robex-An-Next-Generation-AI-Powered-Robotic-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] jarvis-Ai-assistant
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 4] Цифровая трансформация
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] АВТОНОМНОСТЬ ИСКУССТВЕННОГО ИНТЕЛЛЕКТА
+     Кластер слабо связан с запросом: близость 0.84 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] СОЦИОКУЛЬТУРНЫЙ ФЕНОМЕН СВЯЩЕННОГО
+     Кластер слабо связан с запросом: близость 0.83 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] ДИСТАНЦИОННОГО ОБУЧЕНИЯ ПЕРВОКУРСНИКОВ
+     Кластер слабо связан с запросом: близость 0.85 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] применения цифровых технологий
+     Кластер слабо связан с запросом: близость 0.85 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Arthas-88 AI-Explorer-Robot
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Innovation Environment
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] AI-Based-Autonomous-Navigation-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] industrial-digital-twin-ros2-plc
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 7] Physical-AI-Humanoid-Robotics
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 7 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 6] исследование про ИИ
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] безопасности ИИ
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 4] Education Will AI
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+15.04), семантическая близость к эталонным слабым сигналам (-11.92).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] GPT-4o System Card
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Catastrophic AI Risks
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Post-Human Biotechnologies Toward
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Роботы» (17) — для сверки выдачи:
+  #11 [стадия: Раннее внедрение (24 приложения на старте UniStore) | балл 7] App Store для роботов: маркетплейсы навыков/движений
+  #12 [стадия: Пилот → Раннее внедрение | балл 7] Массовые квадропеды-инспекторы вне «премиум»-сегмента (метро, геотермия, НПЗ)
+  #13 [стадия: Раннее внедрение (первые аккредитованные лаборатории и стандарты) | балл 7] Сертификация безопасности физического ИИ как «узкое горлышко» внедрения
+  #14 [стадия: Раннее внедрение (лаборатории уже платят за данные) | балл 7] Телеоперационные данные как отдельная индустрия (data-as-a-service для роботов)
+  #36 [стадия: Раннее внедрение (мелкосерийное производство) | балл 6] Дексterity-кисти как самостоятельный компонентный рынок (не часть гуманоида)
+  #37 [стадия: Пилот → Раннее внедрение | балл 6] Роевая робототехника выходит из лаборатории (сортировка, полевые работы)
+  #38 [стадия: Прототип/PoC → Раннее внедрение | балл 6] Специализированный edge-кремний под инференс VLA-моделей на борту робота
+  #61 [стадия: Прототип/PoC → Пилот | балл 5] Дешёвые массовые автономные подводные аппараты как «постоянная сеть» океана
+  #62 [стадия: Концепция/Исследование → Пилот | балл 5] Страхование роботов и андеррайтинг по телеметрии; RaaS-контракты с SLA по аптайму
+  #63 [стадия: Исследование → Прототип/PoC | балл 5] Тактильно-обусловленные VLA-модели (touch-in-the-loop манипуляция)
+  #64 [стадия: Исследование → Прототип/PoC | балл 5] Эгоцентрическое человеческое видео как «дешёвый» источник обучающих данных (human-to-robot transfer)
+  #88 [стадия: Прототип/PoC | балл 4] Simulation-first стеки с zero-shot переносом (обучение полностью в симуляции)
+  #89 [стадия: Прототип/PoC | балл 4] «Мягкие робо-клетки»: физический интеллект, вшитый в сам материал
+  #90 [стадия: Прототип/PoC → доклинические и первые клинические шаги | балл 4] Медицинские микророботы, доходящие до клиники
+  #97 [стадия: Концепция/Исследование | балл 3] Биогибридные приводы на живой мышечной ткани
+  #98 [стадия: Концепция/Исследование | балл 3] Самовосстанавливающиеся материалы и «sense-healing» электронная кожа
+  #99 [стадия: Прототип/PoC | балл 3] Электрогидравлические искусственные мышцы (HASEL) вместо редукторных приводов
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 3/6: Инфраструктура ИИ — запрос «инфраструктура для искусственного интеллекта и дата-центры»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5f0-9580-7a38-882f-b26fa24cc696   top_n: 15
+  00:21:49 UTC  статус: QUEUED
+  00:21:59 UTC  статус: COLLECTING
+  00:22:19 UTC  статус: ANALYZING
+  00:22:29 UTC  статус: NARRATING
+  00:23:09 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:21:49.056848+00:00 / 2026-09-25T00:21:49.377863+00:00 / 2026-09-25T00:22:59.439386+00:00
+длительность: 70 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 33, "sources_processed": 4, "documents_collected": 327, "candidates_found": 40, "narratives_done": 2, "narratives_total": 2}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | HTTP_4XX | arXiv не опрашивается после отказа (arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу), пауза ещё 1549 с
+  gdelt | FAILED | 0 | 0 | 0 | TIMEOUT | GDELT не опрашивается после отказа (таймаут запроса к источнику: таймаут запроса: ), пауза ещё 370 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 22 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 9 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 75 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 327
+  documents_after_dedup: 301
+  clusters_total: 158
+  candidates_scored: 40
+  weak_signals_total: 5
+  weak_signals_confident: 3
+  excluded_mature: 1
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 33
+  excluded_off_topic: 1
+  weak_signal_threshold: 0.2888
+  duration_ms: 15242
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 33
+  sources_processed: 4
+  documents_collected: 327
+  candidates_found: 40
+  weak_signals_total: 2
+  weak_signals_confident: 2
+  narratives_generated: 2
+  narratives_fallback: 0
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 2 технологий
+
+  #1 [GENERATED | High | скоринг 98.1%] Инфраструктура центров обработки данных на основе переработки отходов в энергию
+     автоназвание кластера: Waste-to-Energy-Coupled AI Data
+     решение модели: Калиброванная вероятность слабого сигнала 0.98 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.95), число упомянутых организаций (эвристика) (-3.01).
+     близость к запросу (emb_sim_query): 0.897
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.870, вклад +6.95 (supports_weak_signal)
+       Число упомянутых организаций (эвристика): значение 19.000, вклад -3.01 (supports_mature)
+       Семантическая близость к эталонным слабым сигналам: значение 0.881, вклад -2.48 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 1.000, вклад +1.99 (supports_weak_signal)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 2.000, вклад -0.97 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология Waste-to-Energy-Coupled AI Data предполагает интеграцию центров обработки данных с системами переработки отходов в энергию. Вместо традиционного охлаждения, потребляющего электроэнергию, предлагается использовать низкопотенциальную тепловую энергию от переработки отходов для абсорбционного охлаждения серверов. Такой подход рассматривается как способ повышения эффективности использования энергии и устойчивости электросетей [doc:3].
+     преимущество: Потенциальное снижение затрат на охлаждение ЦОД благодаря использованию тепловой энергии от переработки отходов, уменьшение зависимости от традиционной электроэнергии и повышение общей энергоэффективности инфраструктуры.
+     кейс-пример: Исследователи предложили и оценили интегрированную конфигурацию центров обработки данных на основе переработки отходов, где система рассматривается как 'черный ящик' с прозрачными границами. Центральным механизмом является соответствие энергетических характеристик: низкоуровневая тепловая энергия от переработки отходов используется для абсорбционного охлаждения, снижая базовую потребность в электроэнергии для охлаждения [doc:3]. (документ 01a0cb93-3fc2-759f-815b-d4eaab3eb987)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным слабым сигналам (0.8813) и доля упоминаний последних двух лет среди всех упомянутых годов (1.0). Против слабого сигнала указывает большое число упомянутых организаций (19.0), однако этот показатель перевешивается другими признаками, указывающими на раннюю стадию развития технологии.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2025-12-31 | GENERATIVE_SUMMARY] Waste-to-Energy-Coupled AI Data Centers: Cooling Efficiency and Grid Resilience
+         https://doi.org/10.48550/arxiv.2512.24683
+         резюме: Предложение интеграции центров обработки данных с системами переработки отходов для эффективного охлаждения и повышения энергетической устойчивости.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-07-08 | GENERATIVE_SUMMARY] Thermodynamic Reversibility in O(1) Stateless Computing: Micro-watt vQPU Architecture via Adiabatic Charge-Recovery Logic (ACRL)
+         https://zenodo.org/records/21269243
+         резюме: Экспериментальная реализация ультраэкономичного виртуального квантового процессора на базе аддиабатической логики восстановления заряда для снижения энергопотребления вычислений.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-06-12 | GENERATIVE_SUMMARY] The AI1 Design Point: A Bounds-Based Analysis of SpaceX's Orbital Data-Center Satellite
+         https://zenodo.org/records/20670772
+         резюме: Анализ орбитального дата-центра SpaceX AI1 с оценкой тепловых ограничений и радиаторов для охлаждения вычислительных мощностей.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [GENERATED | High | скоринг 98.6%] Энергосберегающая инфраструктура для искусственного интеллекта: архитектура BeastStack
+     автоназвание кластера: Energy Efficient Framework
+     решение модели: Калиброванная вероятность слабого сигнала 0.99 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+5.39), семантическая близость к эталонным слабым сигналам (-1.37).
+     близость к запросу (emb_sim_query): 0.892
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.874, вклад +5.39 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.884, вклад -1.37 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 3.000, вклад -0.42 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Energy Efficient Framework представляет собой архитектурную концепцию под названием Hypercubic Architecture for AI, реализованную в проекте BeastStack. Эта инфраструктура предназначена для повышения эффективности использования энергии в центрах обработки данных, связанных с искусственным интеллектом [doc:1]. Технология исследуется на примере внедрения в энергетических компаниях Китая, где рассматривается влияние скорости внедрения ИИ на эффективность корпоративных зеленых инноваций [doc:2].
+     преимущество: Потенциальным преимуществом является значительное снижение энергопотребления дата-центров благодаря специализированной архитектуре, ориентированной на энергоэффективность, что актуально для ускорения зеленой трансформации корпоративного сектора.
+     кейс-пример: Исследователи проанализировали взаимосвязь между скоростью внедрения ИИ и эффективностью корпоративных зеленых инноваций на примере китайских энергетических компаний, выявляя потенциал энергосберегающей инфраструктуры для устойчивого развития [doc:2]. (документ 01a0cb93-63af-77d8-a1f1-2270a503d071)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8742) и отсутствие лексики зрелости, такой как "рынок", "стандарт" или "массовое внедрение" (0.0). Против слабого сигнала свидетельствует наличие трех упомянутых организаций и полное отсутствие упоминаний последних двух лет среди всех дат, что указывает на недостаточную актуальность и распространенность технологии [doc:2].
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-03-20 | GENERATIVE_SUMMARY] AI adoption rate and corporate green innovation efficiency: Evidence from Chinese energy companies
+         https://doi.org/10.1016/j.eneco.2024.107499
+         резюме: Научная публикация изучает связь между темпами внедрения ИИ и эффективностью зеленых инноваций в энергетическом секторе Китая.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-03-16 | GENERATIVE_SUMMARY] A Hypercubic Architecture for AI: The BeastStack Energy Efficient Framework
+         https://zenodo.org/records/19056280
+         резюме: Статья описывает архитектуру BeastStack как гиперкубическую энергоэффективную инфраструктуру для задач искусственного интеллекта.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 38
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 77.6% | документов 3] responsible AI systems
+     Смысловая оценка: обзор или аналитика без конкретной технологии. Документ посвящен этике и регулированию ИИ, а не непосредственно инфраструктуре или дата-центрам.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 66.9% | документов 4] Intelligence in Healthcare
+     Смысловая оценка: общее понятие. Общее рассмотрение инфраструктуры ИИ в здравоохранении без детализации технологий или продуктов.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 63.2% | документов 4] artificial intelligence development
+     Смысловая оценка: обзор или аналитика без конкретной технологии. Анализ тенденций развития ИИ в России с акцентом на социально-экономические эффекты, а не на инфраструктуру или дата-центры.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 27.7% | документов 3] Constructive Brain Quantum-Computer
+     Калиброванная вероятность слабого сигнала 0.28 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+4.55), число упомянутых организаций (эвристика) (-3.66).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 16.1% | документов 4] Educational Platforms Integration
+     Калиброванная вероятность слабого сигнала 0.16 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+12.47), семантическая близость к эталонным слабым сигналам (-10.69).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 12.4% | документов 2] Smart City Scenario
+     Калиброванная вероятность слабого сигнала 0.12 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (-13.02), семантическая близость к эталонным зрелым технологиям (+12.99).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.9% | документов 6] sustainable AI data
+     Калиброванная вероятность слабого сигнала 0.01 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-3.50), семантическая близость к эталонным слабым сигналам (+2.74).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.7% | документов 8] generative conversational AI
+     Калиброванная вероятность слабого сигнала 0.01 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-7.72), семантическая близость к эталонным зрелым технологиям (+6.25).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 12] применения искусственного интеллекта
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+15.95), семантическая близость к эталонным зрелым технологиям (-14.17).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Multi-Agent-Quantitative-Analysis-System-with-Azure-Cloud-Integration
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Apache-Airflow-on-AWS-for-Modern-Data-Engineering
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] BNDRBOTS ai-org-monitor-pro
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 6] AI-Health-Monitoring-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 6 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Ranga-gen-ai ai-invoice-intelligence-engine
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] AI-powered-attendance-and-analytics-system
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] ai-medical-diagnosis-backend
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] AI_databaseManagement-main
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] chronomustard air-monitoring-esp32-firebase
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] data-engineering-for-ai
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Quantum-Consciousness Framework Integrating
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 7] Large Language Models
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: упоминания крупнейших вендоров (список bigtech.txt) (-12.08), число упомянутых организаций (эвристика) (-4.47).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Joe-in-absentia AI-Powered-PPE-Compliance-Monitoring-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] V-ShyamSundar Data-Storage-using-Ontology
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] alfadio1 Distributed-Storage-System-for-Large-Scale-AI-ML-Datasets-Lumenstore
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] AI-Powered-Smart-Storage-Engine
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 6] Blockchain_AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 6 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Mahithashiva AI-Powered-Smart-Glasses-for-Health-Monitoring
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] iceccarelli GridForge-AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] data-driven-gen-ai-sustainable-farming
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] AI-Based-Image-Authenticity-Verification-System-for-Digital-IDs
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Arunamalai Smart_interview_analyser
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Multi-Layer Distributed AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] promptly-lite
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 4] исследование про ИИ
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Sovereign AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 11] airline-reservation-system
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 11 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Semantic Sovereignty Cannot
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] AI_Powered_Smart_Home_System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Инфраструктура ИИ» (17) — для сверки выдачи:
+  #8 [стадия: Прототип/PoC (у edge-игроков — раннее внедрение) | балл 7] Нейроморфные (brain-inspired) чипы для ИИ-нагрузок
+  #9 [стадия: Пилот / раннее внедрение (у гиперскейлеров) | балл 7] Оптическая коммутация каналов (OCS) в ИИ-фабриках вместо пакетных свитчей
+  #10 [стадия: Пилот → раннее внедрение | балл 7] Тиринг KV-кэша: выгрузка контекста в DRAM/NVMe/параллельные ФС
+  #32 [стадия: Раннее внедрение (CS-4) + Концепция (CS-6 с 3D SRAM) | балл 6] Wafer-scale нового поколения: 3D-стек SRAM/DRAM поверх пластины
+  #33 [стадия: Прототип/PoC → раннее внедрение | балл 6] ИИ-компиляторы и автоматическая оптимизация инференса как отдельная категория
+  #34 [стадия: Пилот (контракты/финансирование, физических установок нет) | балл 6] Малые модульные реакторы (SMR) как выделенный источник питания ИИ-ЦОД
+  #35 [стадия: Раннее внедрение | балл 6] Суверенные ИИ-облака, работающие в полностью отключённом (disconnected/air-gapped) режиме
+  #56 [стадия: Пилот | балл 5] Edge-to-cloud оркестрация инференса (телеком-грид, on-device offload)
+  #57 [стадия: Пилот (свитчи и модули анонсированы, развёртываний мало) | балл 5] Ёмкостно-ориентированный инференс: CXL-пулы памяти и LPDDR вместо HBM
+  #58 [стадия: Пилот | балл 5] Децентрализованные / распределённые сети инференса
+  #59 [стадия: Прототип/PoC (первые кластеры на орбите), лётные тесты 2027 | балл 5] Орбитальные дата-центры / инференс в космосе
+  #60 [стадия: Прототип/PoC | балл 5] Фотонные/оптические процессоры для инференса (вычисления светом)
+  #83 [стадия: Прототип/PoC | балл 4] 3D-стековая память-вычислитель как альтернатива HBM (3DIMC, стековый DRAM)
+  #84 [стадия: Прототип/PoC → ранние поставки в edge | балл 4] Аналоговые вычисления в памяти (analog in-memory computing)
+  #85 [стадия: Прототип/PoC (лабораторные испытания) | балл 4] Внутрикристальное микрофлюидное охлаждение (каналы, вытравленные в кремнии)
+  #86 [стадия: Прототип/PoC → ранние поставки | балл 4] Кремний, спроектированный под агентный ИИ (длинный контекст, KV-cache, low-latency decode)
+  #87 [стадия: Концепция/Исследование → Прототип | балл 4] Сверхпроводящие / криогенные вычисления для ИИ-ЦОД
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 4/6: Финтех — запрос «перспективные решения в финтехе»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5f2-4635-7cb9-8f4f-e12d0aaaa4f3   top_n: 15
+  00:23:39 UTC  статус: QUEUED
+  00:23:49 UTC  статус: COLLECTING
+  00:24:29 UTC  статус: ANALYZING
+  00:24:39 UTC  статус: NARRATING
+  00:26:50 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:23:39.829670+00:00 / 2026-09-25T00:23:41.168442+00:00 / 2026-09-25T00:26:45.529064+00:00
+длительность: 184 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 31, "sources_processed": 4, "documents_collected": 321, "candidates_found": 40, "narratives_done": 9, "narratives_total": 9}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | HTTP_4XX | arXiv не опрашивается после отказа (arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу), пауза ещё 1437 с
+  gdelt | FAILED | 0 | 0 | 0 | TIMEOUT | GDELT не опрашивается после отказа (таймаут запроса к источнику: таймаут запроса: ), пауза ещё 258 с
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 22 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 1 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 2 | 29 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 321
+  documents_after_dedup: 287
+  clusters_total: 107
+  candidates_scored: 40
+  weak_signals_total: 9
+  weak_signals_confident: 3
+  excluded_mature: 1
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 25
+  excluded_off_topic: 5
+  weak_signal_threshold: 0.2888
+  duration_ms: 14108
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 31
+  sources_processed: 4
+  documents_collected: 321
+  candidates_found: 40
+  weak_signals_total: 9
+  weak_signals_confident: 3
+  narratives_generated: 6
+  narratives_fallback: 3
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 9 технологий
+
+  #1 [GENERATED | High | скоринг 91.1%] Применение машинного обучения для прогнозирования и оптимизации криптовалютных портфелей на основе Ethereum
+     автоназвание кластера: Machine learning Ethereum
+     решение модели: Калиброванная вероятность слабого сигнала 0.91 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+7.84), семантическая близость к эталонным слабым сигналам (-4.15).
+     близость к запросу (emb_sim_query): 0.898
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.867, вклад +7.84 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.877, вклад -4.15 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 10.000, вклад -1.55 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология Machine learning Ethereum включает использование методов машинного обучения, таких как нейронные сети, GRU, LSTM и SVM, для прогнозирования цен и тенденций криптовалюты Ethereum, а также оптимизации криптовалютных портфелей. Для повышения точности используются методы выбора признаков и сентимент-анализ [doc:3]. Разработан алгоритм, основанный на глубоком обучении, который формирует портфель из отрицательно коррелированных активов, максимизируя коэффициент Шарпа [doc:2]. Также применяется метод подкрепляющего обучения (reinforcement learning) с добавлением причинного анализа для улучшения автоматизированной торговли пятью альткоинами, включая Ethereum [doc:1].
+     преимущество: Потенциальное преимущество технологии заключается в повышении эффективности и прибыльности инвестиций в криптовалюты благодаря применению сложных моделей машинного обучения, способных учитывать широкий спектр рыночных факторов и строить оптимизированные инвестиционные стратегии.
+     кейс-пример: Исследователи разработали алгоритм на основе глубокого обучения, который создает портфель из отрицательно коррелированных активов и обучает сеть распределять веса активов для максимизации коэффициента Шарпа. Эксперименты проводились на данных биржи Binance за 19 месяцев, показав способность алгоритма получать прибыль в различных рыночных условиях [doc:2]. (документ 01a0cb96-26d6-72b3-a137-fba32478e829)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8673) и отсутствие лексики зрелости (0.0). Против слабого сигнала свидетельствуют высокая семантическая близость к эталонным слабым сигналам (0.8769) и значительное число упомянутых организаций (10.0). Решение о статусе сигнала принимается на основании совокупности этих признаков.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-10-02 | GENERATIVE_SUMMARY] Cryptocurrency Portfolio Optimization by Neural Networks
+         http://arxiv.org/abs/2310.01148
+         резюме: Работа предлагает алгоритм на основе глубоких нейронных сетей для оптимизации криптовалютных портфелей путем подбора отрицательно коррелированных активов и максимизации коэффициента Шарпа .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-10-14 | GENERATIVE_SUMMARY] A Framework for Empowering Reinforcement Learning Agents with Causal Analysis: Enhancing Automated Cryptocurrency Trading
+         http://arxiv.org/abs/2310.09462
+         резюме: Статья рассматривает применение метода подкрепляющего обучения с причинным анализом для автоматизации торговли криптовалютами, включая Ethereum, демонстрируя улучшение показателей прибыли относительно базового подхода .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-06-12 | GENERATIVE_SUMMARY] Machine learning Ethereum cryptocurrency prediction and knowledge-based investment strategies
+         https://doi.org/10.1016/j.knosys.2024.112088
+         резюме: Исследование посвящено созданию инвестиционных стратегий для Ethereum на основе предсказания цены и тренда с использованием ML-моделей (GRU, LSTM, SVM) и проверки влияния сентимент-анализа .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [FALLBACK_EXTRACTIVE | High | скоринг 88.9%] Технология: AI-Driven Threat Intelligence
+     автоназвание кластера: AI-Driven Threat Intelligence
+     решение модели: Калиброванная вероятность слабого сигнала 0.89 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.29), семантическая близость к эталонным слабым сигналам (-2.42).
+     близость к запросу (emb_sim_query): 0.891
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.872, вклад +6.29 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.881, вклад -2.42 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 9.000, вклад -1.39 (supports_mature)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Over the past decade, there has been a notable surge in AI-driven research, specifically geared toward enhancing crucial clinical processes and outcomes. The potential of AI-powered decision support systems to streamline clinical workflows, assist in diagnostics, and enable personalized treatment is increasingly evident. The evolution of cybersecurity has spurred the emergence of autonomous threat hunting as a pivotal paradigm in the realm of AI-driven threat intelligence. This review navigates through the intricate landscape of autonomous threat hunting, exploring its significance and pivotal role in fortifying cyber defense mechanisms.
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: Ethical and regulatory challenges of AI technologies in healthcare: A narrative review (doi.org) (документ None)
+     объяснение статуса: Оценка модели 0.89. Признаки: семантическая близость к эталонным зрелым технологиям = 0.87 (поддерживает слабый сигнал), семантическая близость к эталонным слабым сигналам = 0.88 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (4):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-01 | EXTRACTIVE] Ethical and regulatory challenges of AI technologies in healthcare: A narrative review
+         https://doi.org/10.1016/j.heliyon.2024.e26297
+         резюме: Over the past decade, there has been a notable surge in AI-driven research, specifically geared toward enhancing crucial clinical processes and outcomes. The potential of AI-powered decision support systems to streamline clinical workflows, assist in diagnostics, and enable personalized treatment is increasingly evident.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-03-12 | EXTRACTIVE] Trust in AI: Progress, Challenges, and Future Directions
+         http://arxiv.org/abs/2403.14680
+         резюме: The increasing use of artificial intelligence (AI) systems in our daily life through various applications, services, and products explains the significance of trust/distrust in AI from a user perspective.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-12-30 | EXTRACTIVE] Autonomous Threat Hunting: A Future Paradigm for AI-Driven Threat Intelligence
+         http://arxiv.org/abs/2401.00286
+         резюме: The evolution of cybersecurity has spurred the emergence of autonomous threat hunting as a pivotal paradigm in the realm of AI-driven threat intelligence. This review navigates through the intricate landscape of autonomous threat hunting, exploring its significance and pivotal role in fortifying cyber defense mechanisms.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-05 | EXTRACTIVE] A Review on Building Blocks of Decentralized Artificial Intelligence
+         https://arxiv.org/abs/2402.02885
+         резюме: Artificial intelligence is transforming our lives, and technological progress and transfer from the academic and theoretical sphere to the real world are accelerating yearly. But during that progress and transition, several open problems and questions need to be addressed for the field to develop ethically, such as digital privacy, ownership, and control.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #3 [GENERATED | High | скоринг 79.5%] Анализ взаимосвязей между криптовалютами и оптимизация инвестиционных портфелей
+     автоназвание кластера: interlinkages between cryptocurrencies
+     решение модели: Калиброванная вероятность слабого сигнала 0.79 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+9.51), семантическая близость к эталонным слабым сигналам (-5.40).
+     близость к запросу (emb_sim_query): 0.903
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.863, вклад +9.51 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.874, вклад -5.40 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 16.000, вклад -2.53 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология исследует взаимосвязи между различными классами активов, включая криптовалюты, традиционные финансовые инструменты и здравоохранительные токены, а также разрабатывает методы оптимизации инвестиционных портфелей с использованием краткосрочных стратегий и динамического управления рисками. Исследования охватывают периоды экономических потрясений, таких как пандемия COVID-19 и военный конфликт между Россией и Украиной [doc:1][doc:2][doc:3].
+     преимущество: Потенциальное преимущество заключается в улучшении диверсификации и снижении волатильности инвестиционных портфелей благодаря использованию инновационных методов анализа взаимосвязей между активами и применению современных подходов к управлению инвестициями.
+     кейс-пример: Исследование показало, что применение методики минимизации эксцесса (Kurtosis Minimization) позволяет эффективно управлять портфелями криптовалют даже в условиях высокой волатильности рынка, обеспечивая инвесторам оптимальное соотношение доходности и риска [doc:2]. (документ 01a0cb96-4ab9-7bff-8de7-0674d9a7fa3e)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8626) и отсутствие упоминаний крупных технологических компаний (0.0). Против слабого сигнала свидетельствуют высокая семантическая близость к эталонным слабым сигналам (0.8736) и значительное число упомянутых организаций (16.0), однако модель оценила эти факторы как менее значимые.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (4):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-08-07 | GENERATIVE_SUMMARY] Dynamic interlinkages between cryptocurrencies, NFTs, and DeFis and optimal portfolio investment strategies
+         https://doi.org/10.1108/cfri-03-2023-0061
+         резюме: Целью исследования является изучение изменчивых возвратов и волатильности между криптовалютами, NFT и DeFi активами, а также разработка оптимальной структуры инвестиционного портфеля и оценка эффективности хеджирования.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-03-12 | EXTRACTIVE] Connectedness between healthcare cryptocurrencies and major asset classes: Implications for hedging and investments strategies
+         https://doi.org/10.1016/j.irfa.2024.103181
+         резюме: This paper studies dynamic connectedness between four prominent healthcare cryptocurrencies, namely MediBloc, MediShares, Medicalchain, and Dentacoin, and bond, equity, and commodity markets along with USD and Bitcoin. The daily data span from February 2018 to April 2023.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-03-20 | GENERATIVE_SUMMARY] Analyzing Portfolio Optimization in Cryptocurrency Markets: A Comparative Study of Short-Term Investment Strategies Using Hourly Data Approach
+         https://doi.org/10.3390/jrfm17030125
+         резюме: Работа посвящена методикам оптимизации портфеля в сфере криптовалют с применением подхода на основе почасовых данных и выявлением наиболее эффективных стратегий для коротких временных горизонтов.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-06-29 | GENERATIVE_SUMMARY] Interconnectivity and investment strategies among commodity prices, cryptocurrencies, and G-20 capital markets: A comparative analysis during COVID-19 and Russian-Ukraine war
+         https://doi.org/10.1016/j.iref.2023.06.039
+         резюме: Статья рассматривает взаимосвязь между товарными рынками, криптовалютами и фондовыми рынками стран G20 в период пандемии COVID-19 и военного конфликта между Россией и Украиной, предлагая подходы к инвестиционным и хеджирующим решениям.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #4 [GENERATED | Medium | скоринг 68.3%] Технология транзакций с использованием гомоморфного шифрования в финтехе
+     автоназвание кластера: Homomorphic Encryption-Based Transaction
+     решение модели: Калиброванная вероятность слабого сигнала 0.68 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+2.82), число упомянутых организаций (эвристика) (-2.37).
+     близость к запросу (emb_sim_query): 0.908
+     ключевые предикторы:
+       Семантическая близость к эталонным слабым сигналам: значение 0.895, вклад +2.82 (supports_weak_signal)
+       Число упомянутых организаций (эвристика): значение 15.000, вклад -2.37 (supports_mature)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.887, вклад +0.91 (supports_weak_signal)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология транзакций с применением гомоморфного шифрования предназначена для обеспечения конфиденциальности платежей в цифровых валютах. Она основана на частично гомоморфном шифровании с использованием эллиптических кривых, позволяющем проводить приватные транзакции без сложных доказательств с нулевым разглашением. Протокол Elliptic Homomorphic Token (EHT) обеспечивает высокую производительность — до 1000 транзакций в секунду с задержкой 50-100 мс, что значительно превосходит существующие системы с акцентом на конфиденциальность [doc:1]. Технология ESC Commitment дополняет подход, обеспечивая возможность проверки равенства зашифрованных данных без расшифровки, используя операции над эллиптическими кривыми [doc:2].
+     преимущество: Преимуществом является высокая эффективность обработки транзакций и сохранение конфиденциальности пользователей благодаря отказу от ресурсоемких доказательств с нулевым разглашением, а также возможность интеграции с существующими криптографическими примитивами.
+     кейс-пример: Протокол Elliptic Homomorphic Token (EHT) демонстрирует способность выполнять до 1000 транзакций в секунду с минимальной задержкой, что делает его перспективным решением для масштабируемых платежных систем с защитой приватности [doc:1]. (документ 01a0cab4-718c-758f-b9b4-2376a6d67703)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным слабым сигналам (0.8952) и отсутствие упоминаний крупных технологических компаний (0.0). Против слабого сигнала выступает относительно большое число упомянутых организаций (15.0), однако решающим фактором становится ранняя стадия развития технологии (значение '1' соответствует концепции), а также полное отсутствие упоминаний о применении технологии в последние два года (0.0), что указывает на недостаточную зрелость и распространённость решения.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (4):
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-02-20 | GENERATIVE_SUMMARY] Homomorphic Encryption-Based Transaction Confidentiality: A Comprehensive Analysis of Privacy-Preserving Peer-to-Peer Digital Payment Protocols
+         https://zenodo.org/records/18708147
+         резюме: Статья рассматривает протокол EHT, основанный на гомоморфном шифровании для повышения конфиденциальности и эффективности цифровых платежей, достигая высокой производительности без сложных доказательств с нулевым разглашением.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-04-25 | GENERATIVE_SUMMARY] Blockchain Large Language Models
+         http://arxiv.org/abs/2304.12749
+         резюме: Исследуется применение больших языковых моделей типа BlockGPT для обнаружения аномалий в транзакциях блокчейнов, демонстрируя высокую точность и пропускную способность при анализе миллионов транзакций.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-05-05 | GENERATIVE_SUMMARY] Flash: An Asynchronous Payment System with Good-Case Linear Communication Complexity
+         http://arxiv.org/abs/2305.03567
+         резюме: Статья описывает систему Flash, которая оптимизирует коммуникационную сложность платежных операций в распределённых сетях, снижая затраты на предотвращение двойных трат.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-02-24 | GENERATIVE_SUMMARY] ESC Commitment: Encrypted Sequential Context Commitment for Decrypt-Free Verification
+         https://zenodo.org/records/18751572
+         резюме: Представлена схема ESC Commitment, обеспечивающая проверку равенства зашифрованных данных без необходимости расшифровки, что повышает безопасность и конфиденциальность в асимметричных моделях исполнения блокчейн-приложений.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #5 [GENERATED | Medium | скоринг 52.6%] Перспективы развития финтех-инноваций
+     автоназвание кластера: Prospects of Fintech
+     решение модели: Калиброванная вероятность слабого сигнала 0.53 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+11.54), семантическая близость к эталонным слабым сигналам (-9.32).
+     близость к запросу (emb_sim_query): 0.881
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.857, вклад +11.54 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.863, вклад -9.32 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 5.000, вклад -0.74 (supports_mature)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры): значение 0.257, вклад -0.39 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология рассматривает текущие тенденции и перспективы развития финтех-сектора на международных и национальных финансовых рынках. Исследуются возможные последствия ухода крупных технологических компаний из России для финансовой и банковской сфер [doc:1]. Анализируется проникновение финтеха в финансовую систему на основе данных из 150 стран, выявляются факторы лидерства и направления внедрения финтех-решений [doc:2].
+     преимущество: Потенциал финтеха способствует технологическому развитию финансового сектора, расширяет спектр финансовых услуг и повышает доступность финансовых инструментов для потребителей.
+     кейс-пример: Анализ российского опыта показал высокий уровень инноваций в платежном секторе и страховании, однако отмечается необходимость расширения внедрения отечественных финтех-решений в области управления активами, Regtech и блокчейн-технологий [doc:2]. (документ 01a0cb96-5488-7967-88be-c891e328fc3a)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8569) и отсутствие упоминаний крупнейших вендоров (0.0). Против слабого сигнала свидетельствуют высокая семантическая близость к эталонным слабым сигналам (0.8633), значительное число упомянутых организаций (5.0) и максимальная упомянутая стадия развития, равная концепции (1.0). Решение основывается на совокупности этих признаков.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-10-30 | GENERATIVE_SUMMARY] Fintech Sector in the Context of Financial Development and Problems of its Measurement
+         https://doi.org/10.26794/2587-5671-2024-28-5-121-132
+         резюме: Исследуется проникновение финтеха в мировую финансовую систему, анализируются данные по 150 странам, выделяются направления роста и недостатки существующих метрик оценки финтеха .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | ru | 2023-10-25 | ORIGINAL_RU] Trends and Prospects of Fintech Innovations
+         https://doi.org/10.34773/eu.2023.5.4
+         резюме: Статья посвящена актуальным трендам и перспективам финтеха, рассматривает влияние ухода крупных технологических компаний из России на финансовый сектор .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #6 [GENERATED | Low | скоринг 47.3%] Использование невзаимозаменяемых токенов (NFT) в академических платежах и искусстве
+     автоназвание кластера: Form of NFT
+     решение модели: Калиброванная вероятность слабого сигнала 0.47 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.93), семантическая близость к эталонным слабым сигналам (-4.55).
+     близость к запросу (emb_sim_query): 0.895
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.870, вклад +6.93 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.876, вклад -4.55 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 14.000, вклад -2.20 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Упоминания крупнейших вендоров (список bigtech.txt): значение 0.000, вклад +0.11 (supports_weak_signal)
+     стадия / тренд (прогноз): None / None
+     описание: Технология предполагает применение NFT и бесконтрольных блокчейнов для создания онлайн-системы платежей в образовательной сфере, которая обеспечивает прозрачность, отслеживаемость и безопасность транзакций [doc:3]. Также рассматривается использование NFT для поддержки визуальных художников через токенизацию цифровых активов и защиту авторских прав [doc:2]. Отдельно обсуждается юридический статус NFT как уникального цифрового объекта, отличающегося от простых цифровых копий произведений искусства [doc:1].
+     преимущество: Данная технология позволяет повысить эффективность и безопасность финансовых операций в образовании, обеспечить авторские права художников и создать уникальные цифровые активы, обладающие юридической ценностью.
+     кейс-пример: Предложена система академических платежей с использованием NFT и блокчейна, обеспечивающая безопасное хранение информации о платеже с помощью Ethereum и IPFS, а также использующая инструменты Remix IDE, MetaMask и сеть Sepolia для развертывания и тестирования системы [doc:3]. (документ 01a0cb96-31b8-7e34-bcf1-86494c38afb2)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.8699) и отсутствие упоминаний крупнейших вендоров (0.0). Против слабого сигнала — большое число упомянутых организаций (14.0) и полное отсутствие упоминаний последних двух лет среди всех дат (0.0). Решение основывается на совокупности этих признаков.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-09-18 | GENERATIVE_SUMMARY] Empowering Visual Artists with Tokenized Digital Assets with NFTs
+         http://arxiv.org/abs/2409.11790
+         резюме: Исследование посвящено влиянию NFT на индустрию визуального искусства, механизму токенизации цифровых активов и вопросам безопасности в этой области .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-01-01 | GENERATIVE_SUMMARY] Academic Payment Tokenization: An Online Payment System for Academia Utilizing Non-Fungible Tokens and Permissionless Blockchain
+         https://doi.org/10.1016/j.procs.2023.12.090
+         резюме: Работа предлагает систему академических платежей на основе NFT и блокчейна, предназначенную для повышения эффективности и безопасности финансовых операций в образовательном секторе .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-03-15 | GENERATIVE_SUMMARY] Legal Nature of Reproducing Museum Objects in the Digital Form of NFT
+         https://doi.org/10.21202/jdtl.2023.6
+         резюме: Статья рассматривает юридические аспекты воспроизведения музейных объектов в форме NFT и предлагает подход к учету и хранению таких токенов как виртуальных музейных экспонатов .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #7 [FALLBACK_EXTRACTIVE | Low | скоринг 40.5%] Технология: GANs for Fraud
+     автоназвание кластера: GANs for Fraud
+     решение модели: Калиброванная вероятность слабого сигнала 0.40 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+9.47), семантическая близость к эталонным слабым сигналам (-6.68).
+     близость к запросу (emb_sim_query): 0.892
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.863, вклад +9.47 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.870, вклад -6.68 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 16.000, вклад -2.53 (supports_mature)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Machine learning heavily relies on data, but real-world applications often encounter various data-related issues. These include data of poor quality, insufficient data points leading to under-fitting of machine learning models, and difficulties in data access due to concerns surrounding privacy, safety, and regulations. The banking sector faces challenges in using deep learning due to data sensitivity and regulatory constraints, but generative AI may offer a solution.
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: Machine Learning for Synthetic Data Generation: A Review (arxiv.org) (документ None)
+     объяснение статуса: Оценка модели 0.40. Признаки: семантическая близость к эталонным зрелым технологиям = 0.86 (поддерживает слабый сигнал), семантическая близость к эталонным слабым сигналам = 0.87 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-12-19 | EXTRACTIVE] Generative AI for Banks: Benchmarks and Algorithms for Synthetic Financial Transaction Data
+         http://arxiv.org/abs/2412.14730
+         резюме: The banking sector faces challenges in using deep learning due to data sensitivity and regulatory constraints, but generative AI may offer a solution.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-15 | EXTRACTIVE] Utilizing GANs for Fraud Detection: Model Training with Synthetic Transaction Data
+         http://arxiv.org/abs/2402.09830
+         резюме: Anomaly detection is a critical challenge across various research domains, aiming to identify instances that deviate from normal data distributions. This paper explores the application of Generative Adversarial Networks (GANs) in fraud detection, comparing their advantages with traditional methods.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-02-08 | EXTRACTIVE] Machine Learning for Synthetic Data Generation: A Review
+         http://arxiv.org/abs/2302.04062
+         резюме: Machine learning heavily relies on data, but real-world applications often encounter various data-related issues. These include data of poor quality, insufficient data points leading to under-fitting of machine learning models, and difficulties in data access due to concerns surrounding privacy, safety, and regulations.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #8 [FALLBACK_EXTRACTIVE | Low | скоринг 30.9%] Технология: GPT-4 Technical Report
+     автоназвание кластера: GPT-4 Technical Report
+     решение модели: Калиброванная вероятность слабого сигнала 0.31 не ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-3.34), семантическая близость к эталонным зрелым технологиям (+3.14).
+     близость к запросу (emb_sim_query): 0.905
+     ключевые предикторы:
+       Число упомянутых организаций (эвристика): значение 21.000, вклад -3.34 (supports_mature)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.880, вклад +3.14 (supports_weak_signal)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 2.000, вклад -0.97 (supports_mature)
+       Семантическая близость к эталонным слабым сигналам: значение 0.889, вклад +0.49 (supports_weak_signal)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.139, вклад +0.32 (supports_weak_signal)
+     стадия / тренд (прогноз): None / None
+     описание: Abstract—Large Language Models (LLMs) suffer from inherent stochasticity, limiting their utility in high-stakes enterprise environments where determinism and auditability are required. This paper introduces the MFOUR Vibe Framework (MVF), a platform-agnostic architectural standard that transforms probabilistic natural language intent into deterministic software artifacts. Large Language Models (LLMs), such as ChatGPT, demonstrate a strong understanding of human natural language and have been explored and applied in various fields, including reasoning, creative writing, code generation, translation, and information retrieval.
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: GPT-4 Technical Report (arxiv.org) (документ None)
+     объяснение статуса: Оценка модели 0.31. Признаки: число упомянутых организаций (эвристика) = 21.00 (указывает на зрелость), семантическая близость к эталонным зрелым технологиям = 0.88 (поддерживает слабый сигнал). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (4):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-01-22 | EXTRACTIVE] Revolutionizing Finance with LLMs: An Overview of Applications and Insights
+         https://arxiv.org/abs/2401.11641
+         резюме: In recent years, Large Language Models (LLMs) like ChatGPT have seen considerable advancements and have been applied in diverse fields. Built on the Transformer architecture, these models are trained on extensive datasets, enabling them to understand and generate human language effectively.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-08-13 | EXTRACTIVE] Transforming Sentiment Analysis in the Financial Domain with ChatGPT
+         http://arxiv.org/abs/2308.07935
+         резюме: Financial sentiment analysis plays a crucial role in decoding market trends and guiding strategic trading decisions. Despite the deployment of advanced deep learning techniques and language models to refine sentiment analysis in finance, this study breaks new ground by investigating the potential of large language models, particularly ChatGPT 3.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-03-15 | EXTRACTIVE] GPT-4 Technical Report
+         http://arxiv.org/abs/2303.08774
+         резюме: Abstract—Large Language Models (LLMs) suffer from inherent stochasticity, limiting their utility in high-stakes enterprise environments where determinism and auditability are required. This paper introduces the MFOUR Vibe Framework (MVF), a platform-agnostic architectural standard that transforms probabilistic natural language intent into deterministic software artifacts.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-11-12 | EXTRACTIVE] Autonomous GIS: the next-generation AI-powered GIS
+         https://doi.org/10.1080/17538947.2023.2278895
+         резюме: Large Language Models (LLMs), such as ChatGPT, demonstrate a strong understanding of human natural language and have been explored and applied in various fields, including reasoning, creative writing, code generation, translation, and information retrieval.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #9 [GENERATED | Low | скоринг 30.8%] Распределённое совместное обучение с использованием блокчейна в финтехе
+     автоназвание кластера: Decentralized Federated Learning
+     решение модели: Калиброванная вероятность слабого сигнала 0.31 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.87), семантическая близость к эталонным слабым сигналам (-5.85).
+     близость к запросу (emb_sim_query): 0.898
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.870, вклад +6.87 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.872, вклад -5.85 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 15.000, вклад -2.37 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.500, вклад +0.91 (supports_weak_signal)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Decentralized Federated Learning — подход к совместному обучению моделей машинного обучения без централизованного сервера, использующий децентрализованную архитектуру и блокчейн-технологии для обеспечения конфиденциальности и безопасности обмена моделями и данными. Технология позволяет участникам обучать общую модель, сохраняя локальные данные приватными, а использование блокчейна защищает от атак и повышает доверие между участниками [doc:2][doc:3].
+     преимущество: Технология способствует повышению доверия и безопасности в совместных моделях машинного обучения благодаря использованию блокчейна, снижает риски централизации и обеспечивает защиту данных пользователей, что критично для финансовых сервисов.
+     кейс-пример: Платформа распределённого обучения и обмена навыками на основе блокчейна позволяет проводить обучение в режиме P2P с криптоплатежами, смарт-контрактами и токенизированными вознаграждениями, обеспечивая безопасное хранение и верификацию сертификатов [doc:1]. (документ 01a0c1ab-b526-76ba-8148-5d03be7c5f17)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным зрелым технологиям (0.87) и низкая доля упоминаний последних двух лет среди всех упомянутых годов (0.5). Эти показатели указывают на то, что технология пока недостаточно распространена и находится скорее на этапе исследований и концептуализации, нежели массового внедрения [doc:2][doc:3].
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (4):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-08-08 | GENERATIVE_SUMMARY] A Survey on Decentralized Federated Learning
+         http://arxiv.org/abs/2308.04604
+         резюме: Обзор методов децентрализованного совместного обучения, классифицирующий существующие архитектуры и выявляющий основные проблемы и направления развития.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-02-05 | GENERATIVE_SUMMARY] Decentralized Federated Learning: A Survey on Security and Privacy
+         https://doi.org/10.1109/tbdata.2024.3362191
+         резюме: Анализ угроз и механизмов защиты в децентрализованном совместном обучении, уделяющий внимание вопросам доверительности и проверяемости системы.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-01-07 | GENERATIVE_SUMMARY] Privacy-Preserving in Blockchain-based Federated Learning Systems
+         http://arxiv.org/abs/2401.03552
+         резюме: Научная публикация рассматривает подходы к сохранению приватности в системах совместного обучения на базе блокчейна, анализируя угрозы и методы защиты.
+       - [github | CODE_REPOSITORY | MEDIUM | en | 2025-03-30 | GENERATIVE_SUMMARY] arpit-mohan-saxena/Decentralized-learning-and-skill-sharing-platform
+         https://github.com/arpit-mohan-saxena/Decentralized-learning-and-skill-sharing-platform
+         резюме: Проект платформы для распределённого обучения и обмена знаниями с применением блокчейна, обеспечивающей P2P-обучение, криптооплату и токенизированные награды.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 31
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 26.2% | документов 3] Trends in Cryptocurrency
+     Калиброванная вероятность слабого сигнала 0.26 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+11.50), семантическая близость к эталонным слабым сигналам (-10.71).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 11.8% | документов 4] Metaverse for Healthcare
+     Калиброванная вероятность слабого сигнала 0.12 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+6.80), семантическая близость к эталонным слабым сигналам (-5.34).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 1.5% | документов 5] decentralized finance protocols
+     Калиброванная вероятность слабого сигнала 0.02 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (-14.63), семантическая близость к эталонным зрелым технологиям (+13.93).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.1% | документов 49] Blockchain Payments System
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-8.69), семантическая близость к эталонным слабым сигналам (+8.42).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 13] Blockchain
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-6.42), максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение) (-2.54).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] agentic-ai-hack
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Crypto-Payment-Gateway
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] MetaMind-Aychain AI-NEXUS
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] cheqq
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 7] solana-smart-payments
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 7 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] BlockchainRidePayments
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] TGRTON tegro-ton-wallet-telegram-bot
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] EduEnroll_smartContract
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] campuspay
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Tebrihk stellar-transport-payment
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] CoinPort
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] itshikmat SmartTrade
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] tknishh FinSecure
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] HoldenFolk BikeRentalDApp
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] XTRAGES smartpension
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] vatal-system Privacy-Preserving-Blockchain-Identity-Systems--using-Zero-Knowledge-Proofs
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 7] generative conversational AI
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: упоминания крупнейших вендоров (список bigtech.txt) (-29.13), число упомянутых организаций (эвристика) (-12.26).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Quantum Cloud Computing
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 5] digital twin
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] cryptocurrency
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 15] РАЗВИТИЯ ФИНАНСОВЫХ ТЕХНОЛОГИЙ
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+14.13), семантическая близость к эталонным зрелым технологиям (-13.31).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] влиянием цифровизации финансов
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] AI-Powered Chargeback Prediction
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 23] AI and Blockchain
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-14.04), семантическая близость к эталонным зрелым технологиям (+1.60).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] QBitFlow qbitflow-evm-contracts
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Hybrid-Decentralized-Freelancer-Escrow
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Финтех» (17) — для сверки выдачи:
+  #15 [стадия: Прототип/PoC → раннее внедрение у отдельных IDV-провайдеров | балл 7] Защита онбординга от инъекционных атак и дипфейков (NFC-anchor + двухшаговая liveness)
+  #39 [стадия: Раннее внедрение (10 банков и финтехов в ОАЭ у ClearGrid) | балл 6] Голосовые ИИ-агенты для взыскания и обслуживания долга на развивающихся рынках
+  #40 [стадия: Прототип/PoC → ранние пилоты у community/региональных банков | балл 6] ИИ-native банковские ядра (core banking OS с агентами внутри)
+  #41 [стадия: Прототип/PoC → раннее внедрение (рейтинги Credora в Spark Savings) | балл 6] Ончейн-скоринг и рейтинги для необеспеченного/недообеспеченного кредитования
+  #42 [стадия: Пилот → раннее внедрение в отдельных корридорах LatAm/Africa | балл 6] Стейблкоины локальных валют (не-USD) и ончейн-FX между корридорами
+  #43 [стадия: Пилот (эксперименты Swift) / раннее внедрение (Consilient) | балл 6] Федеративное обучение для межбанковского AML/антифрода (без обмена сырыми данными)
+  #65 [стадия: Пилот (Project Orchid, e-HKD+ Phase 2 завершена в октябре 2025) | балл 5] Purpose-Bound Money (PBM) — программируемые целевые/условные деньги
+  #66 [стадия: Прототип/PoC → ранние внедрения (банки, финтехи как клиенты Sphinx) | балл 5] Браузерно-нативные автономные ИИ-агенты комплаенса (KYC/AML «агентная рабочая сила»)
+  #67 [стадия: Прототип/PoC → первые интеграции (плагины Stripe/MPP, Coinbase MCP) | балл 5] Машинные микроплатежи по HTTP 402 (оплата за API-вызов, стриминговые платежи)
+  #68 [стадия: Пилот | балл 5] Переиспользуемые ZK-верифицируемые credentials для KYC (zk-KYC)
+  #69 [стадия: Прототип/PoC → первые внедрения (Instant Checkout с продавцами Etsy, x402 на Base) | балл 5] Протоколы авторизации платежей ИИ-агентов (x402 / AP2 / ACP / MPP)
+  #70 [стадия: Прототип/PoC → первые полисы (4+ андеррайтера к апрелю 2026) | балл 5] Страхование ответственности за действия ИИ-агентов (новый класс полиса)
+  #71 [стадия: Пилот | балл 5] Токенизированные паи денежных фондов (MMF) как мобильное обеспечение
+  #91 [стадия: Концепция/Исследование → отдельные прототипы (аутентификация агентов у 1Kosmos) | балл 4] Know Your Agent (KYA) — верифицируемая идентичность и делегированные полномочия ИИ-агентов
+  #92 [стадия: Концепция/Исследование | балл 4] Бенчмарки и стресс-тесты LLM-агентов для трейдинга (в т.ч. состязательные рынки)
+  #93 [стадия: Ранние внедрения (ограниченный институциональный доступ) | балл 4] Депозитные токены банков на публичных блокчейнах
+  #100 [стадия: Концепция/Исследование → первые программы инвентаризации криптографии | балл 3] Постквантовая криптография в финансовой инфраструктуре (приоритизация миграции)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 5/6: Защита ИИ — запрос «защита и безопасность систем искусственного интеллекта»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5f5-a5da-73ba-8fc6-5f2335d63942   top_n: 15
+  00:27:20 UTC  статус: QUEUED
+  00:27:30 UTC  статус: COLLECTING
+  00:27:40 UTC  статус: ANALYZING
+  00:28:00 UTC  статус: NARRATING
+  00:28:41 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:27:20.922700+00:00 / 2026-09-25T00:27:21.665597+00:00 / 2026-09-25T00:28:34.702533+00:00
+длительность: 73 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 34, "sources_processed": 4, "documents_collected": 391, "candidates_found": 40, "narratives_done": 2, "narratives_total": 2}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | HTTP_4XX | arXiv не опрашивается после отказа (arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу), пауза ещё 1216 с
+  gdelt | FAILED | 0 | 0 | 0 | TIMEOUT | GDELT не опрашивается после отказа (таймаут запроса к источнику: таймаут запроса: ), пауза ещё 37 с
+  github | COMPLETED | 4 | 150 | 1 |  | 
+  openalex | COMPLETED | 22 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 22 | 0 |  | 
+  semantic_scholar | FAILED | 1 | 0 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 100 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 391
+  documents_after_dedup: 367
+  clusters_total: 157
+  candidates_scored: 40
+  weak_signals_total: 5
+  weak_signals_confident: 3
+  excluded_mature: 4
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 27
+  excluded_off_topic: 4
+  weak_signal_threshold: 0.2888
+  duration_ms: 17111
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 34
+  sources_processed: 4
+  documents_collected: 391
+  candidates_found: 40
+  weak_signals_total: 2
+  weak_signals_confident: 1
+  narratives_generated: 0
+  narratives_fallback: 2
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 2 технологий
+
+  #1 [FALLBACK_EXTRACTIVE | High | скоринг 97.4%] Технология: Certification by Circulation
+     автоназвание кластера: Certification by Circulation
+     решение модели: Калиброванная вероятность слабого сигнала 0.97 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+5.96), число упомянутых организаций (эвристика) (-2.85).
+     близость к запросу (emb_sim_query): 0.882
+     ключевые предикторы:
+       Семантическая близость к эталонным слабым сигналам: значение 0.904, вклад +5.96 (supports_weak_signal)
+       Число упомянутых организаций (эвристика): значение 18.000, вклад -2.85 (supports_mature)
+       Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры): значение 0.216, вклад -0.30 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.889, вклад +0.14 (supports_weak_signal)
+     стадия / тренд (прогноз): None / None
+     описание: Problem. Placing an LLM agent inside a certified secure operating system breaks the classical reasoning about information-flow security: an unformalizable transformation appears between reading a secret and the agent's observable output, and leakage proceeds through meaning, analogy, and timing rather than bit-by-bit. A mechanism family for trustworthy lay-built and AI-co-created software: a live, revocable membership credential whose standards are public-ledger facts rather than paid opinions — heartbeat-signaled admission of software entities into a gift economy, human–AI co-creation with a custodied agent share and no take-rate, the no-orphan-software steward invariant, and a substrate-general successor-stew
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: Безопасность операционных систем в эпоху ИИ-агентов. От разрывов классических моделей до причинно-бюджетной композиции (doi.org) (документ None)
+     объяснение статуса: Оценка модели 0.97. Признаки: семантическая близость к эталонным слабым сигналам = 0.90 (поддерживает слабый сигнал), число упомянутых организаций (эвристика) = 18.00 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (3):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2026-07-30 | EXTRACTIVE] Безопасность операционных систем в эпоху ИИ-агентов. От разрывов классических моделей до причинно-бюджетной композиции
+         https://doi.org/10.5281/zenodo.21708270
+         резюме: Problem. Placing an LLM agent inside a certified secure operating system breaks the classical reasoning about information-flow security: an unformalizable transformation appears between reading a secret and the agent's observable output, and leakage proceeds through meaning, analogy, and timing rather than bit-by-bit.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-09-09 | EXTRACTIVE] The Fixation of Belief in Machines: Disciplined Contestation as an Alternative to Mutual Adversarial Oversight
+         https://zenodo.org/records/22677338
+         резюме: Current approaches to artificial intelligence reliability are inspectional: opaque models are first trained, and their reliability is evaluated through interpretability, red-teaming, or oversight by equally opaque models.
+       - [zenodo | PREPRINT | MEDIUM | en | 2026-07-07 | EXTRACTIVE] Certification by Circulation
+         https://zenodo.org/records/22246384
+         резюме: A mechanism family for trustworthy lay-built and AI-co-created software: a live, revocable membership credential whose standards are public-ledger facts rather than paid opinions — heartbeat-signaled admission of software entities into a gift economy, human–AI co-creation with a custodied agent share and no take-rate, the no-orphan-software steward invariant, and a substrate-general successor-stew
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [FALLBACK_EXTRACTIVE | Medium | скоринг 65.1%] Технология: AI-Enabled Intrusion Detection
+     автоназвание кластера: AI-Enabled Intrusion Detection
+     решение модели: Калиброванная вероятность слабого сигнала 0.65 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+2.67), число упомянутых организаций (эвристика) (-1.39).
+     близость к запросу (emb_sim_query): 0.914
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.882, вклад +2.67 (supports_weak_signal)
+       Число упомянутых организаций (эвристика): значение 9.000, вклад -1.39 (supports_mature)
+       Семантическая близость к эталонным слабым сигналам: значение 0.887, вклад -0.44 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: 
+     преимущество: Не сформулировано автоматически: генеративная модель недоступна, см. источники ниже.
+     кейс-пример: Advancing Network Security in Industrial IoT: A Deep Dive into AI-Enabled Intrusion Detection Systems (www.semanticscholar.org) (документ None)
+     объяснение статуса: Оценка модели 0.65. Признаки: семантическая близость к эталонным зрелым технологиям = 0.88 (поддерживает слабый сигнал), число упомянутых организаций (эвристика) = 9.00 (указывает на зрелость). Текст собран из источников без генеративной модели.
+     происхождение: провайдер none, модель , промпт insight_v1, классификатор 
+     источники (3):
+       - [semantic_scholar | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-10-01 | EXTRACTIVE] Advancing Network Security in Industrial IoT: A Deep Dive into AI-Enabled Intrusion Detection Systems
+         https://www.semanticscholar.org/paper/771be100441a43285e6459edb7f918984d3e71db
+         резюме: Advancing Network Security in Industrial IoT: A Deep Dive into AI-Enabled Intrusion Detection Systems
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-01-01 | EXTRACTIVE] Privacy and Data Protection in ChatGPT and Other AI Chatbots: Strategies for Securing User Information
+         https://doi.org/10.2139/ssrn.4454761
+         резюме: Privacy and Data Protection in ChatGPT and Other AI Chatbots: Strategies for Securing User Information
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2025-01-01 | EXTRACTIVE] The Impact of AI on Cybersecurity Defense Mechanisms: Future Trends and Challenges
+         https://doi.org/10.2139/ssrn.5258783
+         резюме: The Impact of AI on Cybersecurity Defense Mechanisms: Future Trends and Challenges
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 38
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 93.0% | документов 6] AI Risks
+     Смысловая оценка: обзор или аналитика без конкретной технологии. Рассматриваются риски и регулирование ИИ-технологий, включая генеративные модели и катастрофические угрозы, без детализации конкретных методов защиты.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 75.4% | документов 2] Human AI Safety
+     Смысловая оценка: общее понятие. Общее обсуждение безопасности взаимодействия человека и ИИ, психологических рисков и приватности, без конкретных технологий защиты.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 70.7% | документов 2] Trusted artificial intelligence
+     Смысловая оценка: общее понятие. Статья посвящена общей проблеме создания доверенного ИИ и стандартам безопасного искусственного интеллекта, без детализации конкретных подходов.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 10.8% | документов 8] Cybersecurity for AI
+     Калиброванная вероятность слабого сигнала 0.11 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+3.24), число упомянутых организаций (эвристика) (-2.85).
+  [MATURE | MODEL_SCORE | скоринг 10.6% | документов 5] CyberStrategyInstitute ai-safe2-framework
+     Калиброванная вероятность слабого сигнала 0.11 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-5.12), семантическая близость к эталонным зрелым технологиям (+3.48).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 4.8% | документов 4] Deepfake Audio Detection
+     Калиброванная вероятность слабого сигнала 0.05 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+5.60), число упомянутых организаций (эвристика) (-3.50).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 2.5% | документов 12] Влияние искусственного интеллекта
+     Калиброванная вероятность слабого сигнала 0.02 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+16.79), семантическая близость к эталонным зрелым технологиям (-13.84).
+  [MATURE | MARKET_LEADERS | скоринг 0.0% | документов 17] generative AI perceptions
+     Тексты описывают стадию массового внедрения: упоминаний крупнейших вендоров 6, доля репозиториев и вакансий 0.00 — рынок сформирован.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 10] Large Language Models
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-8.69), семантическая близость к эталонным слабым сигналам (+5.00).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 7] SHAdd0WTAka Zen-Ai-Pentest
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 7 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 24] Awesome-Agentic-AI-Security
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 24 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] lulbitz llm-con
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Repello-AI whistleblower
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Haiwen-Yin AI-Agent-Infra-with-OracleDB-Community-Edition
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Ali-hey-0 ai-runtime-lab
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] OctoGuard--Free-OpenClaw-Security-Supervision-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] cosai-oasis secure-ai-tooling
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] katosh agent_sandbox
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Automated-Vulnerability-Scanning-with-Agentic-AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] 0xN0RMXL BugBountySkills
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Face-Detection-and-Recognition
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] lglucas ai-dev-operating-system
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Keyvanhardani AI-Driven-SIEM-Realtime-Operator-with-Groq-Integration
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] Behavioral Biometrics
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] MCP-Penetration-testing
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] GurpreetKukkar Weapon-Detection-using-Artificial-Intelligence
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Cognitive Infrastructure War
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] ПРОИЗВЕДЕНИЙ СОЗДАННЫХ ИИ
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] AI Phishing Risk
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] Four-Layer Identity Decomposition
+     Кластер слабо связан с запросом: близость 0.84 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] GPT-4o Attack Agent
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 5] Цифровая зрелость транспортной
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Cognitive Integrity Framework
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 4] AI regulation anti-competitive
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] Governing Consequential AI
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 24] AI in Cybersecurity
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-16.15), семантическая близость к эталонным слабым сигналам (+4.06).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] AGI Physical-Layer Security
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 6] исследование про ИИ
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 6 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Защита ИИ» (16) — для сверки выдачи:
+  #2 [стадия: Раннее внедрение | балл 7] Identity & access management для ИИ-агентов (agent identity, scoped permissions)
+  #3 [стадия: Раннее внедрение | балл 7] Автоматизированный red-teaming ИИ-моделей как услуга (continuous AI red teaming)
+  #4 [стадия: Прототип/PoC → Раннее внедрение | балл 7] Сканеры безопасности MCP-серверов и защита от tool poisoning
+  #20 [стадия: Раннее внедрение | балл 6] LLM-файрволы на сетевом/edge-уровне (AI runtime gateway)
+  #21 [стадия: Прототип/PoC → Пилот | балл 6] «Самозалечивающаяся» защита от prompt injection для агентных систем
+  #22 [стадия: Раннее внедрение | балл 6] Автоматизация AI-governance и compliance под EU AI Act (AI-GRC как код)
+  #23 [стадия: Пилот → Раннее внедрение | балл 6] Дифференциально-приватные синтетические данные как контроль безопасности обучения ИИ
+  #24 [стадия: Прототип/PoC → Раннее внедрение | балл 6] Конфиденциальный инференс в TEE с удалённой аттестацией и подписанными «receipts»
+  #25 [стадия: Пилот | балл 6] Статистические водяные знаки для ТЕКСТА LLM под требования EU AI Act
+  #48 [стадия: Прототип/PoC → Пилот | балл 5] Machine unlearning как средство ремедиации рисков модели (удаление данных/поведения без переобучения)
+  #49 [стадия: Исследование → Прототип/PoC | балл 5] Интерпретируемость как операционный защитный контроль (interpretability-based safeguards)
+  #50 [стадия: Пилот | балл 5] Криптографическая верификация трафика агентов (Web Bot Auth, signed agents)
+  #51 [стадия: Прототип/PoC → Пилот | балл 5] Криптографическая подпись моделей и AI-SBOM (провенанс цепочки поставок моделей)
+  #52 [стадия: Исследование → Пилот | балл 5] Мониторинг chain-of-thought для детекции обмана и «scheming» моделей
+  #76 [стадия: Концепция/Исследование | балл 4] Сертифицированная защита от отравления памяти агентов и RAG-хранилищ (memory poisoning defense)
+  #77 [стадия: Исследование → Прототип/PoC | балл 4] Сканирование бэкдоров в open-weight LLM «в масштабе» (backdoored model detection)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+ТЕМА 6/6: Edge — запрос «edge-вычисления и периферийный инференс»
+════════════════════════════════════════════════════════════════════════════════════════════════════
+job_id: 01a0d5f7-56f6-7198-9bae-db049718f7ad   top_n: 15
+  00:29:11 UTC  статус: QUEUED
+  00:29:21 UTC  статус: COLLECTING
+  00:29:41 UTC  статус: ANALYZING
+  00:30:01 UTC  статус: NARRATING
+  00:30:41 UTC  статус: PARTIAL
+итоговый статус: PARTIAL
+ошибка задания: null
+создано / начато / завершено: 2026-09-25T00:29:11.798557+00:00 / 2026-09-25T00:29:12.733086+00:00 / 2026-09-25T00:30:39.119477+00:00
+длительность: 86 с
+прогресс: {"stage": "PARTIAL", "http_requests_total": 35, "sources_processed": 4, "documents_collected": 419, "candidates_found": 40, "narratives_done": 3, "narratives_total": 3}
+
+ИСТОЧНИКИ (collector.adapter_runs):
+  arxiv | FAILED | 0 | 0 | 0 | HTTP_4XX | arXiv не опрашивается после отказа (arXiv ответил кодом 406 (Not Acceptable); причина не установлена — наблюдалась при частых запросах, источник поставлен на паузу), пауза ещё 1105 с
+  gdelt | FAILED | 1 | 0 | 0 | TIMEOUT | таймаут запроса к источнику: таймаут запроса: 
+  github | COMPLETED | 3 | 150 | 0 |  | 
+  openalex | COMPLETED | 22 | 150 | 0 |  | 
+  rss | COMPLETED | 3 | 15 | 0 |  | 
+  semantic_scholar | FAILED | 2 | 50 | 0 | RATE_LIMITED | источник ответил 429
+  zenodo | COMPLETED | 4 | 90 | 0
+
+АНАЛИЗ (analyzer.analyses):
+  documents_input: 419
+  documents_after_dedup: 399
+  clusters_total: 205
+  candidates_scored: 40
+  weak_signals_total: 5
+  weak_signals_confident: 2
+  excluded_mature: 2
+  excluded_hype_or_noise: 0
+  excluded_insufficient_evidence: 24
+  excluded_off_topic: 9
+  weak_signal_threshold: 0.2888
+  duration_ms: 22662
+  model_version_id: wsclf-2026.09.20-2
+
+СТАТИСТИКА ВЫДАЧИ (stats):
+  http_requests_total: 35
+  sources_processed: 4
+  documents_collected: 419
+  candidates_found: 40
+  weak_signals_total: 3
+  weak_signals_confident: 1
+  narratives_generated: 3
+  narratives_fallback: 0
+  model_version_id: wsclf-2026.09.20-2
+  expand_used_fallback: False
+
+ВЫДАЧА: 3 технологий
+
+  #1 [GENERATED | Medium | скоринг 65.0%] Совместные периферийные вычисления для транспортных сетей
+     автоназвание кластера: Эффективные совместные периферийные
+     решение модели: Калиброванная вероятность слабого сигнала 0.65 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+9.54), семантическая близость к эталонным зрелым технологиям (-8.02).
+     близость к запросу (emb_sim_query): 0.887
+     ключевые предикторы:
+       Семантическая близость к эталонным слабым сигналам: значение 0.913, вклад +9.54 (supports_weak_signal)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.912, вклад -8.02 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 8.000, вклад -1.23 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.191, вклад +0.50 (supports_weak_signal)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология эффективных совместных периферийных вычислений предназначена для повышения надёжности и снижения задержек передачи данных в интеллектуальных транспортных системах. Фреймворк CCVEC, реализованный на платформе OpenStack, обеспечивает устойчивую связь и оптимальное распределение вычислительных ресурсов между транспортными средствами через службу кластеризации. Тестирование показало среднюю задержку около 390 мс и пропускную способность 30 кБ/с в оптимальных условиях [doc:1].
+     преимущество: Данная технология способствует повышению стабильности связи и эффективности обработки данных в условиях динамического транспортного потока, что является важным преимуществом для развития интеллектуальных транспортных систем.
+     кейс-пример: Исследователи разработали фреймворк CCVEC, использующий периферийные вычисления для обеспечения устойчивого взаимодействия транспортных средств в интеллектуальной транспортной системе. Тестирование проводилось в различных сценариях движения, включая зоны высокой плотности трафика [doc:1]. (документ 01a0c1b2-f3e8-7f95-9c69-f148babff7d3)
+     объяснение статуса: В пользу слабого сигнала говорит высокая семантическая близость к эталонным слабым сигналам (0.9129) и отсутствие упоминаний крупнейших вендоров (0.0). Против слабого сигнала свидетельствует большое число упомянутых организаций (8.0) и высокая семантическая близость к эталонным зрелым технологиям (0.9119). Решение модели основано на балансе этих факторов.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | ru | 2025-07-01 | ORIGINAL_RU] Эффективные совместные периферийные вычисления для транспортной сети с использованием службы кластеризации
+         https://doi.org/10.26102/2310-6018/2025.50.3.005
+         резюме: Статья рассматривает фреймворк CCVEC для совместной периферийной обработки данных в транспортных сетях, обеспечивающий устойчивую связь и снижение задержек в интеллектуальных транспортных системах .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | ru | 2025-10-01 | ORIGINAL_RU] Теоретико-игровые модели координации ресурсов в распределённых системах потокового анализа данных
+         https://doi.org/10.26102/2310-6018/2025.51.4.068
+         резюме: Работа посвящена применению теоретико-игровых моделей для координации ресурсов в распределённых системах потоковой аналитики данных, таких как Apache Spark .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #2 [GENERATED | High | скоринг 87.8%] Memristor-based унифицированная схема PUF для периферийной защиты данных
+     автоназвание кластера: memristor-based unified PUF
+     решение модели: Калиброванная вероятность слабого сигнала 0.88 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+9.48), семантическая близость к эталонным слабым сигналам (-5.40).
+     близость к запросу (emb_sim_query): 0.906
+     ключевые предикторы:
+       Семантическая близость к эталонным зрелым технологиям: значение 0.863, вклад +9.48 (supports_weak_signal)
+       Семантическая близость к эталонным слабым сигналам: значение 0.874, вклад -5.40 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 14.000, вклад -2.20 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+       Лексика ранней стадии (прототип, пилот, PoC, stealth, seed): значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Memristor-based унифицированная схема PUF представляет собой чип, объединяющий физически неклонируемую функцию (PUF) и генератор истинно случайных чисел (TRNG) на основе мемристора с технологическим процессом 28 нм. Устройство использует вариации условий формирования и считывания тока мемристора в качестве источника энтропии и оснащено компактным экстрактором энтропии на кристалле, обеспечивающим пропускную способность 41,7 мегабита в секунду при минимальном увеличении площади чипа. Для предотвращения утечки данных PUF реализована функция сокрытия информации в режиме ожидания с возможностью восстановления по запросу [doc:1].
+     преимущество: Технология обеспечивает высокую производительность и надежность аутентификации благодаря использованию физических характеристик мемристоров, значительно повышая безопасность периферийных устройств Интернета вещей при низком энергопотреблении и небольших размерах.
+     кейс-пример: Исследователи разработали чип, использующий мемристор для создания единого устройства PUF и TRNG, которое демонстрирует улучшение производительности в задачах аутентификации в 3,82 раза по сравнению с традиционными решениями на базе КМОП-технологий [doc:1]. (документ 01a0cb9c-91e0-7c9b-b7b6-c7d1b886183c)
+     объяснение статуса: В пользу слабого сигнала говорят высокая семантическая близость к эталонным слабым сигналам (0.8736) и низкая доля упоминаний последних двух лет среди всех упомянутых годов (0.0). Эти показатели указывают на недостаточную распространенность и актуальность технологии в текущих публикациях, что свидетельствует о начальной стадии развития или узкой специализации решения.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (3):
+       - [semantic_scholar | SCIENTIFIC_PUBLICATION | HIGH | en | 2024-03-25 | GENERATIVE_SUMMARY] IMCE: An In-Memory Computing and Encrypting Hardware Architecture for Robust Edge Security
+         https://www.semanticscholar.org/paper/bda853f5aab7e0155d67719b2d20288ad46f71ab
+         резюме: Работа посвящена архитектуре IMCE, которая объединяет функции PUF и шифрования в памяти для обеспечения безопасности вычислений на периферии с использованием ферроэлектрических транзисторов.
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | en | 2025-03-26 | GENERATIVE_SUMMARY] A memristor-based unified PUF and TRNG chip with a concealable ability for advanced edge security
+         https://doi.org/10.1126/sciadv.adr0112
+         резюме: Статья описывает создание чипа PUF и TRNG на основе мемристора с функцией сокрытия данных для повышения безопасности периферийных устройств Интернета вещей.
+       - [semantic_scholar | SCIENTIFIC_PUBLICATION | HIGH | en | 2023-08-15 | GENERATIVE_SUMMARY] Machine Learning (ML) assisted Edge security framework on FPGAs
+         https://www.semanticscholar.org/paper/e1928af532ad0d4f390c21d25c3fa8d65aa2fc8e
+         резюме: Статья рассматривает применение машинного обучения и FPGA совместно с PUF-функциями для обнаружения вторжений и усиления безопасности в средах периферийных вычислений.
+     совпадений с датасетом по названию не найдено (эвристика)
+
+  #3 [GENERATED | Low | скоринг 42.0%] Распределённая акустическая Mesh-система мониторинга утечек на основе микроконтроллеров ESP32
+     автоназвание кластера: акустической Mesh-системы мониторинга
+     решение модели: Калиброванная вероятность слабого сигнала 0.42 не ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным слабым сигналам (+8.68), семантическая близость к эталонным зрелым технологиям (-6.65).
+     близость к запросу (emb_sim_query): 0.891
+     ключевые предикторы:
+       Семантическая близость к эталонным слабым сигналам: значение 0.911, вклад +8.68 (supports_weak_signal)
+       Семантическая близость к эталонным зрелым технологиям: значение 0.908, вклад -6.65 (supports_mature)
+       Число упомянутых организаций (эвристика): значение 9.000, вклад -1.39 (supports_mature)
+       Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение): значение 1.000, вклад -0.45 (supports_mature)
+       Доля упоминаний последних двух лет среди всех упомянутых годов: значение 0.000, вклад -0.17 (supports_mature)
+     стадия / тренд (прогноз): None / None
+     описание: Технология представляет собой распределённую систему мониторинга утечек на промышленных объектах, основанную на микроконтроллерах ESP32 и цифровых микрофонах. Система реализует концепцию Edge Computing: первичную обработку сигналов (включая FFT) выполняет непосредственно конечный узел, снижая нагрузку на сеть в 500 раз. Локализация утечки достигается методом TDOA с микросекундной синхронизацией через мастер-узел. Сетевое взаимодействие обеспечивается протоколом ESP-NOW с Mesh-топологией [doc:2].
+     преимущество: Система позволяет значительно снизить нагрузку на каналы связи благодаря предварительной обработке данных на периферии, обеспечивая высокую точность локализации источника утечки (до 0,48 метра) и минимизируя задержки передачи информации.
+     кейс-пример: Разработанная система предназначена для нефтегазового сектора Узбекистана, где она применяется для предсказательного мониторинга состояния оборудования и быстрого обнаружения возможных утечек углеводородов [doc:2]. (документ 01a0cb9c-c49d-7831-a96b-9c651fa91767)
+     объяснение статуса: В пользу слабого сигнала говорит высокая семантическая близость к эталонным слабым сигналам (0.91), а также полное отсутствие лексики зрелости («рынок», «стандарт», «массовое внедрение») и упоминаний крупных вендоров (оба показателя равны 0.0). Против слабого сигнала выступают высокая семантическая близость к зрелым технологиям (0.91), значительное число упомянутых организаций (9.0) и указание максимальной стадии развития как «концепция» (1.0), однако модель сочла первые два признака недостаточными для признания технологии зрелой.
+     происхождение: провайдер gigachat, модель GigaChat-2-Pro:2.0.30.01, промпт insight_v1, классификатор 
+     источники (2):
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | ru | 2026-06-01 | ORIGINAL_RU] Применение архитектур YOLO для распознавания объектов в задачах промышленного мониторинга нефтегазового комплекса
+         https://doi.org/10.47813/2782-2818-2026-6-2-1056-1061
+         резюме: Статья рассматривает применение архитектуры YOLO для задач промышленного мониторинга нефтегазового комплекса, включая контроль безопасности и обнаружение утечек .
+       - [openalex | SCIENTIFIC_PUBLICATION | HIGH | ru | 2026-01-01 | ORIGINAL_RU] Разработка распределённой акустической Mesh-системы мониторинга утечек на промышленных объектах с использованием микроконтроллеров ESP32
+         https://libeldoc.bsuir.by/handle/123456789/64469
+         резюме: Научная работа посвящена созданию распределённой акустической Mesh-системы мониторинга утечек на базе микроконтроллеров ESP32, реализующей концепцию Edge Computing .
+     совпадений с датасетом по названию не найдено (эвристика)
+
+ИСКЛЮЧЁННЫЕ КАНДИДАТЫ: 37
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 81.7% | документов 8] edge-based IIoT security
+     Смысловая оценка: обзор или аналитика без конкретной технологии. Обзор вопросов безопасности и приватности в edge-IoT, без детализации конкретных технологий периферийного инференса.
+  [INSUFFICIENT_EVIDENCE | SEMANTIC_JUDGE | скоринг 60.0% | документов 2] Sustainable Deep Learning
+     Смысловая оценка: общее понятие. Фокус на устойчивых подходах к глубокому обучению и оптимизации моделей, но без прямого отношения к периферийному инференсу или edge-вычислениям.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 19.1% | документов 4] Sustainable Serverless Edge
+     Калиброванная вероятность слабого сигнала 0.19 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+4.78), число упомянутых организаций (эвристика) (-4.31).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 6.3% | документов 3] Resilient Model-Distributed Inference
+     Калиброванная вероятность слабого сигнала 0.06 ниже порога 0.29. Наибольший вклад: семантическая близость к эталонным зрелым технологиям (+4.63), упоминания крупнейших вендоров (список bigtech.txt) (-2.33).
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.2% | документов 8] 6G Network Edge
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-7.55), семантическая близость к эталонным слабым сигналам (+3.04).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] DSFB-Chemical-Engineering Read-Only Residual
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] KochiyaSanaeNya EdgeSecurityAccess
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] DrHazemAli enterprise-system-design
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Hunterdii Awesome-Hacking
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] cloudflare-for-speed-and-security
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] lisonge Disable-CSP
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 8] edgefunctions-examples
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 8 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] edgeloom-oss edgeloom
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 18] Edge Computing Environments
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-14.85), семантическая близость к эталонным слабым сигналам (+8.67).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 4] KOSASIH Blockchain-Nexus
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] Codex-Crusader bruhswer-the-homebrew-pseudo-browser
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] tharanivenkat UAV-Assisted-Edge-Computing-System
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] i1see1you VirbiusAgent
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] azure-enterprise-edge-lab
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 5] Smart-IoT-Security-Framework
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 5 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] MCPServers
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [MATURE | MODEL_SCORE | скоринг 0.0% | документов 18] Vehicular Edge Computing
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-14.20), семантическая близость к эталонным слабым сигналам (+4.16).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] edge-runners-hackathon
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] essex580 shielddos
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] LinkedInLearning ai-for-telecom-network-optimization-and-security-in-5g-edge-systems-5215414
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] ToolsHive Intrudex
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 2] lucahttp HorneroDB
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 2 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] Multimodal Foundation Models
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 2] AI for Low-Resource
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: упоминания крупнейших вендоров (список bigtech.txt) (-53.50), число упомянутых организаций (эвристика) (-16.15).
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] energy-efficient Deep Learning
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 3] artificial intelligence
+     Кластер слабо связан с запросом: близость 0.87 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 4] TechCrunch Disrupt 2026
+     Кластер слабо связан с запросом: близость 0.86 ниже порога 0.88.
+  [OFF_TOPIC | LOW_QUERY_RELEVANCE | скоринг 0.0% | документов 2] Accelerated AIoT
+     Кластер слабо связан с запросом: близость 0.88 ниже порога 0.88.
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 4] Edge-Authoritative OT Enforcement
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 4 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 35] 5G Edge Computing
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-16.15), семантическая близость к эталонным слабым сигналам (+6.05).
+  [INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE | скоринг 0.0% | документов 3] SCIENTIFIC VALIDATION HIV
+     Нет ни одного источника высокой доверенности (научная публикация, препринт, патент, официальный источник): все 3 источников средней или низкой доверенности — репозитории кода, отраслевые СМИ, вакансии. Требуется подтверждение доверенным источником.
+  [INSUFFICIENT_EVIDENCE | MODEL_SCORE | скоринг 0.0% | документов 13] Embodied AI Physical-Layer
+     Калиброванная вероятность слабого сигнала 0.00 ниже порога 0.29. Наибольший вклад: число упомянутых организаций (эвристика) (-16.15), упоминания крупнейших вендоров (список bigtech.txt) (-14.51).
+
+СТРОКИ ДАТАСЕТА ПО ТЕМЕ «Edge» (16) — для сверки выдачи:
+  #1 [стадия: Раннее внедрение | балл 7] Квантово-инспирированное сжатие моделей для запуска LLM на edge-железе
+  #16 [стадия: Раннее внедрение | балл 6] NPU внутри батарейных MCU/SoC для массового IoT (не для AI PC)
+  #17 [стадия: Раннее внедрение | балл 6] Гибридные event-based сенсоры зрения в серийном автопроме
+  #18 [стадия: Пилот | балл 6] Орбитальный edge-компьютинг: инференс на спутниках
+  #19 [стадия: Раннее внедрение | балл 6] Федеративное обучение как инфраструктура «суверенного» приватного развёртывания
+  #44 [стадия: Прототип/PoC | балл 5] Аналоговые compute-in-memory чипы для edge-инференса
+  #45 [стадия: Пилот | балл 5] Нейроморфные edge-процессоры, встраиваемые в стандартные EDA/дизайн-потоки
+  #46 [стадия: Пилот | балл 5] Оркестрация Edge AI на парках из тысяч устройств (control plane для edge-флотов)
+  #47 [стадия: Прототип/PoC | балл 5] Фотонные (оптические) процессоры инференса для компактных SWaP-ограниченных систем
+  #72 [стадия: Прототип/PoC | балл 4] Агентные (multi-step) AI-workflow, исполняемые локально на NPU ПК
+  #73 [стадия: Прототип/PoC | балл 4] Дообучение и мульти-LoRA персонализация прямо на смартфоне
+  #74 [стадия: Прототип/PoC | балл 4] Локальные SLM-рантаймы как «анти-Big-Tech» альтернатива на ноутбуках и смартфонах
+  #75 [стадия: Прототип/PoC | балл 4] Маршрутизирующий слой «устройство ↔ облако» как отдельный продукт (hybrid inference routing)
+  #94 [стадия: Концепция/Исследование | балл 3] Confidential computing на слабых edge-устройствах (TEE + удалённая аттестация на Cortex-M)
+  #95 [стадия: Концепция/Исследование | балл 3] In-sensor / processing-in-pixel вычисления (инференс внутри пиксельной матрицы)
+  #96 [стадия: Концепция/Исследование | балл 3] Спекулятивный декодинг с выгрузкой веса во флеш-память смартфона
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+СВОДКА ПО ТЕМАМ
+════════════════════════════════════════════════════════════════════════════════════════════════════
+тема | статус | время | докум. | кластеров | кандидатов | сигналов | увер.>75% | в выдаче | откл. OFF_TOPIC | LLM/экстр. | совп. датасет
+Индустриальный ИИ | PARTIAL | 109 с | 359 | 107 | 40 | 4 | 2 | 4 | 5 | 2/2 | 0
+Роботы | PARTIAL | 72 с | 200 | 97 | 40 | 2 | 1 | 2 | 15 | 2/0 | 0
+Инфраструктура ИИ | PARTIAL | 70 с | 327 | 158 | 40 | 2 | 2 | 2 | 1 | 2/0 | 0
+Финтех | PARTIAL | 184 с | 321 | 107 | 40 | 9 | 3 | 9 | 5 | 6/3 | 0
+Защита ИИ | PARTIAL | 73 с | 391 | 157 | 40 | 2 | 1 | 2 | 4 | 0/2 | 0
+Edge | PARTIAL | 86 с | 419 | 205 | 40 | 3 | 1 | 3 | 9 | 3/0 | 0
+
+источники по темам:
+  Индустриальный ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+  Роботы: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+  Инфраструктура ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+  Финтех: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+  Защита ИИ: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+  Edge: успешно — github:COMPLETED, openalex:COMPLETED, rss:COMPLETED, zenodo:COMPLETED; отказ — arxiv:FAILED, gdelt:FAILED, semantic_scholar:FAILED
+
+всего технологий в выдаче: 22
+эвристических совпадений с датасетом: 0 (грубая сверка по основам слов, каждое совпадение требует ручной проверки)
+доля инсайтов, написанных моделью: 68% (15 из 22)

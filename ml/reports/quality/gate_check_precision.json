@@ -1,0 +1,62 @@
+{
+ "unlabeled": 81,
+ "by_run": {
+  "20260924-224235": {
+   "groups": 22,
+   "labeled": 0,
+   "R": 0,
+   "U": 0,
+   "precision": null,
+   "ci95": [
+    null,
+    null
+   ]
+  },
+  "20260924-230149": {
+   "groups": 79,
+   "labeled": 0,
+   "R": 0,
+   "U": 0,
+   "precision": null,
+   "ci95": [
+    null,
+    null
+   ]
+  },
+  "в обоих (20260924-224235 и 20260924-230149)": {
+   "groups": 20,
+   "labeled": 0,
+   "R": 0,
+   "U": 0,
+   "precision": null,
+   "ci95": [
+    null,
+    null
+   ]
+  },
+  "только в 20260924-224235": {
+   "groups": 2,
+   "labeled": 0,
+   "R": 0,
+   "U": 0,
+   "precision": null,
+   "ci95": [
+    null,
+    null
+   ]
+  },
+  "только в 20260924-230149": {
+   "groups": 59,
+   "labeled": 0,
+   "R": 0,
+   "U": 0,
+   "precision": null,
+   "ci95": [
+    null,
+    null
+   ]
+  }
+ },
+ "problems": [],
+ "status": "ok"
+}
