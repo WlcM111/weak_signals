@@ -47,6 +47,7 @@ class AnalyzerSettings(BaseServiceSettings):
     near_dup_threshold: float = Field(default=0.92, ge=0.5, le=1.0)
     cluster_distance_threshold: float = Field(default=0.35, ge=0.05, le=1.0)
     min_cluster_size: int = Field(default=2, ge=1, le=50)
+    keep_market_singletons: bool = False
     evidence_max: int = Field(default=8, ge=1, le=50)
     enrichment_timeout_seconds: float = Field(default=60.0, ge=5.0, le=300.0)
     grpc_max_concurrent_rpcs: int = Field(default=16, ge=1, le=256)

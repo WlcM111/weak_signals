@@ -1,5 +1,11 @@
 # Изменения контрактов
 
+## 2026-09-27 — рубрика v2: устойчивость, русская выдача, рыночные сигналы
+- insight: промпт `finalize_v2` (все поля на русском, резюме каждого источника); `FinalizedCard.stage/trend` = 0 —
+  стадию и тренд задаёт рубричная оценка с калибровкой. Контракт proto не менялся.
+- orchestrator: `WS_RUBRIC_LEGACY_FALLBACK`, `WS_RUBRIC_FILL_UNCERTAIN`, `WS_STAGE_CALIBRATION`, `WS_TREND_CALIBRATION`.
+- analyzer: `WS_KEEP_MARKET_SINGLETONS`; журнал `analysis.funnel` — документы по типам источников на шагах анализа.
+
 ## 2026-09-26 — рубричный отбор и пакетная доводка карточек
 - `weaksignals.insight.v1`: `JudgeSource`; поля `JudgeItem.sources`, `JudgeItem.composition_ru`,
   `JudgeCandidatesRequest.mode` ("rubric_v2"), `JudgeVerdict.code/on_topic/concrete/early_stage/verifiable/stage/trend/confidence`;

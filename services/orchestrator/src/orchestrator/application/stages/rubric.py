@@ -6,7 +6,11 @@
 - карточки только из GitHub релевантны в 5 случаях из 40, только из препринтов — в 0 из 8; ТЗ: соцсети, блоги,
   пресс-релизы и т. п. не могут быть единственным основанием — отсюда требование независимого доверенного источника;
 - правило «больше половины источников — обзоры» убирает 31 негатив и 2 позитива;
-- балл = стадия + тренд — как у организаторов: score_calc = stage + trend во всех 100 строках их датасета.
+- балл = стадия + тренд — как у организаторов: score_calc = stage + trend во всех 100 строках их датасета;
+- калибровка (оценка 26.09 на 100 строках организаторов): LLM занижает стадию (1,70 против 2,45) и тренд
+  (1,43 против 2,32); сдвиг на единицу снижает MAE стадии 0,95 → 0,77 и поднимает точность тренда 0,25 → 0,60;
+- рыночные упоминания (инвестиции, пилоты, партнёрства) — в сводке для тренда: у организаторов 61 строка из 100
+  обосновывает тренд рыночными фактами.
 """
 
 from __future__ import annotations
@@ -30,6 +34,11 @@ MARKET_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL
 REVIEW_RE = re.compile(
     r"\b(review|survey|overview|roadmap|state[- ]of[- ]the[- ]art|perspective|tutorial|progress|advances|trends|"
     r"prospects|challenges|обзор|перспектив|тенденци)\w*",
+    re.IGNORECASE,
+)
+MARKET_RE = re.compile(
+    r"(\$|€|₽|\bмлн\b|\bмлрд\b|\bmillion\b|\bbillion\b|раунд|инвестиц|\bseed\b|series [a-d]\b|funding|raises|"
+    r"raised|стартап|startup|пилот|pilot|партн[её]рств|partnership|контракт|contract|внедрен|deploy)",
     re.IGNORECASE,
 )
 TYPE_RU = {
@@ -64,6 +73,7 @@ class Composition:
     independent: int
     market: int
     years: dict[int, int]
+    market_mentions: int = 0
 
     @property
     def review_share(self) -> float:
@@ -100,6 +110,8 @@ def composition_of(documents: Sequence[DocumentView]) -> Composition:
         independent=sum(1 for document in documents if is_independent(document)),
         market=sum(1 for document in documents if document.source_type in MARKET_TYPES),
         years=dict(sorted(years.items())),
+        market_mentions=sum(1 for document in documents
+                            if MARKET_RE.search(f"{document.title or ''} {(document.text or '')[:1500]}")),
     )
 
 
@@ -112,7 +124,8 @@ def composition_ru(composition: Composition) -> str:
     years = ", ".join(f"{year} — {count}" for year, count in composition.years.items()) or "даты неизвестны"
     return (f"Источников {composition.total}: {types}; обзоров {composition.reviews}. Независимых доверенных "
             f"{composition.independent}, рыночных (СМИ, аналитика, пресс-релизы) {composition.market}. "
-            f"Публикации по годам: {years}.")
+            f"Публикации по годам: {years}. Источников с рыночными фактами (инвестиции, пилоты, партнёрства, "
+            f"внедрения): {composition.market_mentions}.")
 
 
 def prefilter(composition: Composition) -> tuple[Decision, str, str] | None:
@@ -129,6 +142,17 @@ def prefilter(composition: Composition) -> tuple[Decision, str, str] | None:
                 f"Больше половины источников — обзоры ({composition.reviews} из {composition.total}): "
                 "это аналитика направления, а не конкретная технология.")
     return None
+
+
+def parse_calibration(spec: str, low: int, high: int) -> dict[int, int]:
+    """Калибровка шкалы «LLM → организаторы» из строки вида "1:2,2:3"; неуказанные значения не меняются."""
+    mapping = {value: value for value in range(low, high + 1)}
+    for part in (spec or "").split(","):
+        if ":" in part:
+            source, target = part.split(":", 1)
+            if source.strip().isdigit() and target.strip().isdigit() and low <= int(source) <= high:
+                mapping[int(source)] = min(max(int(target), low), high)
+    return mapping
 
 
 def pool_candidates(

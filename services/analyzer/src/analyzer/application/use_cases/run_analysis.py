@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import time
+from collections import Counter
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
@@ -64,6 +65,7 @@ from analyzer.domain.values import (
     Decision,
     DecisionReason,
     OperationStatus,
+    SourceType,
 )
 from ws_common.clock import SyncClock
 from ws_common.logging import get_logger
@@ -74,6 +76,15 @@ MAX_ENCYCLOPEDIA_TITLES = 20
 ENCYCLOPEDIA_TITLES_PER_CANDIDATE = 2
 ENCYCLOPEDIA_MIN_WORDS = 2
 MAX_ENCYCLOPEDIA_FAILURES = 2
+
+
+# Типы одиночных документов, которые остаются кандидатами при keep_market_singletons (рыночные сигналы).
+MARKET_SINGLE_TYPES = frozenset({SourceType.INDUSTRY_MEDIA, SourceType.NEWS})
+
+
+def _types(documents: Sequence) -> dict[str, int]:
+    """Число документов по типам источников — для журнала воронки анализа."""
+    return dict(Counter(document.source_type.value for document in documents))
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +103,8 @@ class RunAnalysisConfig:
     near_dup_threshold: float = 0.92
     cluster_distance_threshold: float = 0.35
     min_cluster_size: int = 2
+    # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
+    keep_market_singletons: bool = False
     evidence_max: int = 8
     keyphrases_top_k: int = 10
     encyclopedia_languages: tuple[str, ...] = ("ru", "en")
@@ -232,9 +245,14 @@ class RunAnalysis:
                 for index, value in enumerate(relevances)
                 if float(value) >= self._config.min_doc_query_sim
             ]
+            relevant_set = set(relevant)
+            dropped_types = Counter(documents[index].source_type.value for index in range(len(documents))
+                                    if index not in relevant_set)
             documents = [documents[index] for index in relevant]
             vectors = vectors[relevant]
             relevances = relevances[relevant]
+        self._log.info("analysis.funnel", step="query_relevance", kept=_types(documents),
+                       dropped=dict(dropped_types))
         if not documents:
             raise _NoDocuments("после фильтра релевантности запросу не осталось документов")
         control.check()
@@ -243,8 +261,12 @@ class RunAnalysis:
             clusters = cluster_documents(vectors, self._config.cluster_distance_threshold)
             clusters_total = len(clusters)
             scored_clusters, misc = split_small_clusters(
-                clusters, documents, self._config.min_cluster_size
+                clusters, documents, self._config.min_cluster_size,
+                MARKET_SINGLE_TYPES if self._config.keep_market_singletons else frozenset(),
             )
+            self._log.info("analysis.funnel", step="clustering",
+                           kept=_types([documents[i] for cluster in scored_clusters for i in cluster]),
+                           misc=_types([documents[i] for i in misc]))
             scored_clusters = select_top_clusters(
                 scored_clusters,
                 [float(value) for value in relevances],

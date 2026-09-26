@@ -28,34 +28,47 @@ def verdict_row(short: str, code: str = "R", ok: bool = True, stage: int = 2, tr
 
 
 class RubricJudgeTest(unittest.IsolatedAsyncioTestCase):
-    def judge(self, *responses: str, batch: int = 8) -> tuple[RubricJudge, FakeProvider]:
+    def judge(self, *responses: str, batch: int = 4) -> tuple[RubricJudge, FakeProvider]:
         provider = FakeProvider(responses=list(responses))
         return RubricJudge(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS), batch_size=batch), provider
 
     async def test_batches_map_short_ids_and_keep_criteria(self) -> None:
-        first = json.dumps({"verdicts": [verdict_row(f"c{n}") for n in range(1, 9)]}, ensure_ascii=False)
-        second = json.dumps({"verdicts": [verdict_row("c1", "N-OVR", ok=False), verdict_row("c7")]}, ensure_ascii=False)
-        judge, provider = self.judge(first, second)
+        answers = [json.dumps({"verdicts": [verdict_row(f"c{n}") for n in range(1, 5)]}, ensure_ascii=False)] * 2
+        answers.append(json.dumps({"verdicts": [verdict_row("c1", "N-OVR", ok=False), verdict_row("c2")]},
+                                  ensure_ascii=False))
+        judge, provider = self.judge(*answers)
         outcome = await judge.execute("твердотельные лидары", ITEMS)
-        self.assertFalse(outcome.used_fallback)
-        self.assertEqual(len(provider.calls), 2)
-        self.assertEqual([v.candidate_id for v in outcome.verdicts][-1], "cand-9")  # c7 второй пачки неизвестен
-        self.assertEqual(outcome.verdicts[-1].code, "N-OVR")
-        self.assertEqual((outcome.verdicts[0].stage, outcome.verdicts[0].trend), (2, 3))
+        self.assertEqual(len(provider.calls), 3)
+        self.assertEqual([v.candidate_id for v in outcome.verdicts], [f"cand-{n}" for n in range(1, 11)])
+        self.assertEqual(outcome.verdicts[8].code, "N-OVR")
         self.assertIn('Слабый сигнал — code "R"', provider.calls[0][0].content)
         payload = json.loads(provider.calls[0][1].content)
         self.assertEqual(payload["candidates"][0]["sources"][1]["site"], "rb.ru")
         self.assertNotIn("doc-1", provider.calls[0][1].content)
-        self.assertEqual(RUBRIC_PROMPT_VERSION, "judge_v2")
 
-    async def test_failed_batch_leaves_others(self) -> None:
-        judge, _ = self.judge("не json", json.dumps({"verdicts": [verdict_row("c1")]}))
-        outcome = await judge.execute("q", ITEMS)
-        self.assertEqual([v.candidate_id for v in outcome.verdicts], ["cand-9"])
+    async def test_types_are_coerced_and_bad_verdict_drops_alone(self) -> None:
+        loose = verdict_row("c1")
+        loose.update(stage="3", trend=5, confidence="0.9", on_topic="true", extra="лишнее", reason_ru="Причина. " * 60)
+        broken = verdict_row("c2")
+        broken["code"] = "НЕВЕРНО"
+        judge, _ = self.judge(json.dumps({"verdicts": [loose, broken]}, ensure_ascii=False),
+                              json.dumps({"verdicts": [verdict_row("c1", "N-GEN", ok=False)]}, ensure_ascii=False))
+        outcome = await judge.execute("q", ITEMS[:2])
+        first = outcome.verdicts[0]
+        self.assertEqual((first.candidate_id, first.stage, first.trend, first.confidence), ("cand-1", 3, 3, 0.9))
+        self.assertLessEqual(len(first.reason_ru), 300)
+        self.assertEqual((outcome.verdicts[1].candidate_id, outcome.verdicts[1].code), ("cand-2", "N-GEN"))
+
+    async def test_failed_batch_is_retried_one_by_one(self) -> None:
+        single = json.dumps({"verdicts": [verdict_row("c1")]}, ensure_ascii=False)
+        judge, provider = self.judge("не json", single, single)
+        outcome = await judge.execute("q", ITEMS[:2])
+        self.assertEqual([v.candidate_id for v in outcome.verdicts], ["cand-1", "cand-2"])
+        self.assertEqual(len(provider.calls), 3)
 
     async def test_all_failed_is_fallback(self) -> None:
-        judge, _ = self.judge("не json", "тоже не json")
-        self.assertTrue((await judge.execute("q", ITEMS)).used_fallback)
+        judge, _ = self.judge("не json", "не json", "не json")
+        self.assertTrue((await judge.execute("q", ITEMS[:2])).used_fallback)
 
     def test_r_without_all_criteria_becomes_u(self) -> None:
         row = verdict_row("c1")
@@ -70,9 +83,10 @@ def card_row(short: str, **overrides) -> dict:
            "advantage_ru": "Компактность и отсутствие движущихся частей.",
            "case_example_ru": "Исследователи EPFL показали фотонный движок лидара.", "case_document_id": "d1",
            "why_ru": "Технология на стадии исследований, интерес растёт, есть инвестиции в пилоты.",
-           "companies": ["Lumotive", "Выдуманная Корпорация"], "stage": 2, "trend": 3,
-           "stage_reason_ru": "Лабораторная демонстрация.", "trend_reason_ru": "Инвестиции 45 млн.",
-           "source_summaries": [{"document_id": "d1", "summary_ru": "Показан фотонный лидар."},
+           "companies": ["«Lumotive»", "Выдуманная Корпорация"],
+           "stage_reason_ru": "Лабораторная демонстрация.", "trend_reason_ru": "Инвестиции 45 млн долларов.",
+           "source_summaries": [{"document_id": "d1", "summary_ru": "Показан фотонный лидар для 6G-сетей."},
+                                {"document_id": "d2", "summary_ru": "Lumotive привлекла инвестиции в пилоты."},
                                 {"document_id": "d9", "summary_ru": "Лишнее."}]}
     row.update(overrides)
     return row
@@ -84,27 +98,34 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
     def test_check_card_grounds_companies_case_and_summaries(self) -> None:
         card, reason = check_card(self.CARD, card_row("k1"))
         self.assertEqual(reason, "")
-        self.assertEqual(card.companies, ("Lumotive",))
+        self.assertEqual(card.companies, ("«Lumotive»",))
         self.assertEqual(card.case_document_id, "doc-1")
-        self.assertEqual(card.source_summaries, (("doc-1", "Показан фотонный лидар.", "GENERATIVE_SUMMARY"),))
+        self.assertEqual([s[0] for s in card.source_summaries], ["doc-1", "doc-2"])
+        self.assertEqual([s[2] for s in card.source_summaries], ["GENERATIVE_SUMMARY", "ORIGINAL_RU"])
 
-    def test_check_card_rejects_unsupported_numbers_and_english(self) -> None:
-        self.assertIsNone(check_card(self.CARD, card_row("k1", advantage_ru="Экономия 37 процентов энергии."))[0])
-        self.assertIsNone(check_card(self.CARD, card_row("k1", why_ru="Early stage photonic lidar with investments."))[0])
+    def test_unsupported_number_removes_sentence_not_card(self) -> None:
+        card, _ = check_card(self.CARD, card_row("k1", advantage_ru="Компактность без движущихся частей. "
+                                                                    "Экономия 37 процентов энергии."))
+        self.assertEqual(card.advantage_ru, "Компактность без движущихся частей.")
 
-    async def test_batch_accepts_valid_and_reports_rejected(self) -> None:
-        answer = json.dumps({"cards": [card_row("k1"), card_row("k2", description_ru="Точность 99 процентов."),
-                                       card_row("k7")]}, ensure_ascii=False)
-        provider = FakeProvider(responses=[answer])
+    def test_rejects_english_or_empty_fields_and_missing_summaries(self) -> None:
+        self.assertIn("не на русском", check_card(self.CARD, card_row("k1", why_ru="Early stage photonic lidar."))[1])
+        self.assertIn("пустое", check_card(self.CARD, card_row("k1", advantage_ru="Экономия 37 процентов."))[1])
+        row = card_row("k1")
+        row["source_summaries"] = row["source_summaries"][:1]
+        self.assertIn("нет резюме", check_card(self.CARD, row)[1])
+
+    async def test_batch_accepts_valid_and_retries_rejected_one_by_one(self) -> None:
+        first = json.dumps({"cards": [card_row("k1"), card_row("k2", why_ru="English only text here.")]},
+                           ensure_ascii=False)
+        retry = json.dumps({"cards": [card_row("k1")]}, ensure_ascii=False)
+        provider = FakeProvider(responses=[first, retry])
         use_case = FinalizeCards(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS))
-        cards = [self.CARD, CardInput("cand-2", "X", (), SOURCES), CardInput("cand-3", "Y", (), SOURCES)]
-        outcome = await use_case.execute("лидары", cards)
-        self.assertEqual([card.candidate_id for card in outcome.cards], ["cand-1"])
-        self.assertIn("числа", outcome.rejected["cand-2"])
-        self.assertEqual(outcome.rejected["cand-3"], "нет в ответе модели")
-        self.assertIn("составь на русском языке", provider.calls[0][0].content)
-        self.assertEqual(json.loads(provider.calls[0][1].content)["cards"][0]["sources"][0]["id"], "d1")
-        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v1")
+        outcome = await use_case.execute("лидары", [self.CARD, CardInput("cand-2", "X", (), SOURCES)])
+        self.assertEqual(sorted(card.candidate_id for card in outcome.cards), ["cand-1", "cand-2"])
+        self.assertEqual(outcome.rejected, {})
+        self.assertIn("составь", provider.calls[0][0].content.replace("заполни", "составь"))
+        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v2")
 
     async def test_failed_batch_rejects_all(self) -> None:
         provider = FakeProvider(responses=["{"])

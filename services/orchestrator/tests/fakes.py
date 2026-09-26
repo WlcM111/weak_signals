@@ -472,7 +472,8 @@ class FakeInsight:
                 case_document_id=card.documents[0].document_id if card.documents else "", why_ru="Почему сигнал.",
                 companies=tuple(fields.get("companies", ())), stage=fields.get("stage", card.stage),
                 trend=fields.get("trend", card.trend), stage_reason_ru="Стадия.", trend_reason_ru="Тренд.",
-                source_summaries={}, llm_provider="gigachat", llm_model="GigaChat-2-Max")
+                source_summaries={d.document_id: ("Резюме источника.", "GENERATIVE_SUMMARY") for d in card.documents},
+                llm_provider="gigachat", llm_model="GigaChat-2-Max")
         return result
 
     async def expand_query(self, query_text: str) -> ExpansionView:

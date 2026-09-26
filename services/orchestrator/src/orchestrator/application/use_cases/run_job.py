@@ -328,6 +328,10 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         selection_mode=base.selection_mode,
         rubric_pool=base.rubric_pool,
         finalize_enabled=base.finalize_enabled,
+        rubric_legacy_fallback=base.rubric_legacy_fallback,
+        rubric_fill_uncertain=base.rubric_fill_uncertain,
+        stage_calibration=base.stage_calibration,
+        trend_calibration=base.trend_calibration,
     )
 
 

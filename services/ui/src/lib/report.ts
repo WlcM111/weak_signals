@@ -51,13 +51,17 @@ export function buildInsightReport(item: ResultItem): string {
       `| ${feature.label_ru} | ${feature.value.toFixed(3)} | ${feature.contribution.toFixed(3)} | ${translate(DIRECTION_RU, feature.direction)} |`,
     );
   }
-  const analytical = item.sources.filter((source) =>
+  const reports = item.sources.filter((source) =>
     ["ANALYTICAL_REPORT", "GOVERNMENT", "STANDARD"].includes(source.source_type),
   );
+  const analytical = reports.length > 0 ? reports : item.sources.filter((source) => source.summary_ru);
   lines.push("", "## Оценки в аналитических отчётах", "");
   if (analytical.length === 0) {
     lines.push("Аналитические отчёты по теме среди найденных источников отсутствуют.");
   } else {
+    if (reports.length === 0) {
+      lines.push("Аналитических отчётов среди источников нет — ниже оценки по источникам карточки.", "");
+    }
     for (const source of analytical) {
       lines.push(`- ${source.title} (${translate(SOURCE_TYPE_RU, source.source_type)}): ${source.summary_ru}`);
     }

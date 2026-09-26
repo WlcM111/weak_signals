@@ -1,9 +1,13 @@
 """Стадия 4 в режиме отбора rubric: пул → состав источников → предфильтр → рубричная оценка LLM →
-балл «стадия + тренд» → ТОП-N → пакетная доводка карточек → запись (§ ТЗ: ТОП-15, объяснение, источники).
+калибровка стадии и тренда → балл «стадия + тренд» → ТОП-N → пакетная доводка → запись (ТЗ: ТОП-15 на русском).
 
-Если рубричная оценка недоступна целиком, стадия выполняется прежним способом (narrate.run_narrate с режимом
-legacy): до этого момента ничего не записывается, поэтому переход не создаёт дублей. Карточки, которые пакетная
-доводка не приняла, строятся прежним генератором нарратива или экстрактивно — выдача не теряется.
+Показываются только карточки, прошедшие пакетную доводку: все поля заполнены, тексты и резюме источников на
+русском (ТЗ: «аналитическая выдача должна быть представлена на русском языке»). Карточка, которую доводка не
+приняла, заменяется следующим кандидатом (не более двух раундов — срок задания ограничен). Если слабых
+сигналов R меньше ТОП-N, добираются кандидаты с кодом U с пометкой «требует проверки»: по ответу заказчика,
+в каждой категории слабых сигналов больше 15, а первичная проверка — попадание в них. Если рубричная оценка
+недоступна целиком, выдача пустая с причинами в исключённых; прежняя стадия (английские экстрактивные
+карточки) — только при WS_RUBRIC_LEGACY_FALLBACK=true.
 """
 
 from __future__ import annotations
@@ -25,7 +29,6 @@ from orchestrator.application.stages.narrate import (
     MAX_EVIDENCE,
     NarrateConfig,
     NarrateOutcome,
-    _narrate_candidate,
     build_sources,
     collect_candidates,
     run_narrate,
@@ -36,6 +39,8 @@ from orchestrator.domain.values import Decision, NarrativeStatus
 from ws_common.logging import get_logger
 
 DOCUMENTS_BATCH = 150
+FINALIZE_ROUNDS = 2
+FINALIZE_SOURCES = 5
 log = get_logger("orchestrator.stage.narrate_rubric")
 
 
@@ -51,13 +56,15 @@ async def run_narrate_rubric(
     config: NarrateConfig,
     check: Callable[[], Awaitable[None]],
 ) -> NarrateOutcome:
-    """ТОП-N по рубрике и баллу стадия + тренд; без оценки LLM — прежняя стадия целиком."""
+    """ТОП-N полностью доведённых карточек по рубрике и баллу стадия + тренд."""
     legacy = replace(config, selection_mode="legacy")
-    if insight is None or (config.llm_allowed is not None and not config.llm_allowed()):
+    llm_ok = insight is not None and (config.llm_allowed is None or config.llm_allowed())
+    if not llm_ok and config.rubric_legacy_fallback:
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
     weak, excluded = await collect_candidates(analyzer, analysis_id, check)
+    outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
     pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool)
     documents = await _load_all(collector, pool, check)
     compositions = {c.candidate_id: rubric.composition_of(_docs(c, documents)) for c in pool}
@@ -66,45 +73,58 @@ async def run_narrate_rubric(
     for candidate in pool:
         verdict = rubric.prefilter(compositions[candidate.candidate_id])
         (prefiltered.append((candidate, verdict)) if verdict else judged_pool.append(candidate))
-    verdicts = await _judge(insight, query_text, judged_pool, documents, compositions)
-    if not verdicts:
+    raw = await _judge(insight, query_text, judged_pool, documents, compositions) if llm_ok else {}
+    if not raw:
         log.warning("stage.narrate_rubric.judge_unavailable", pool=len(judged_pool))
-        return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
-                                 job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
-                                 check=check)
-    outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
-    selected = [c for c in judged_pool if c.candidate_id in verdicts and verdicts[c.candidate_id].code == "R"]
-    rejected = [c for c in judged_pool if c.candidate_id in verdicts and verdicts[c.candidate_id].code != "R"]
+        if config.rubric_legacy_fallback:
+            return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
+                                     job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
+                                     check=check)
+        outcome.excluded_written = await results.add_excluded(
+            job_id, _excluded_rows(rest, prefiltered, [], judged_pool, [], [], {}))
+        return outcome
+    stage_map = rubric.parse_calibration(config.stage_calibration, 1, 4)
+    trend_map = rubric.parse_calibration(config.trend_calibration, 1, 3)
+    verdicts = {cid: replace(v, stage=stage_map.get(v.stage, v.stage), trend=trend_map.get(v.trend, v.trend))
+                for cid, v in raw.items()}
+    fill = config.rubric_fill_uncertain
+    accepted = [c for c in judged_pool if c.candidate_id in verdicts and verdicts[c.candidate_id].code == "R"]
+    uncertain = [c for c in judged_pool if c.candidate_id in verdicts and verdicts[c.candidate_id].code == "U"] if fill else []
+    rejected = [c for c in judged_pool if c.candidate_id in verdicts and c not in accepted and c not in uncertain]
     unjudged = [c for c in judged_pool if c.candidate_id not in verdicts]
-    ranked = rubric.rank_selected(selected, verdicts)
-    shown, overflow = ranked[: config.top_n], ranked[config.top_n :]
-    outcome.weak_signals_total = len(ranked)
-    outcome.weak_signals_confident = sum(1 for c in ranked if verdicts[c.candidate_id].confidence >= 0.75)
+    ranked = rubric.rank_selected(accepted, verdicts) + rubric.rank_selected(uncertain, verdicts)
+    uncertain_ids = {c.candidate_id for c in uncertain}
+    finalized: dict[str, FinalizedCardView] = {}
+    tried: list[CandidateView] = []
+    queue = list(ranked)
+    for _ in range(FINALIZE_ROUNDS):
+        need = config.top_n - len(finalized)
+        if need <= 0 or not queue or (config.llm_allowed is not None and not config.llm_allowed()):
+            break
+        batch, queue = queue[:need], queue[need:]
+        tried.extend(batch)
+        finalized.update(await _finalize(insight, query_text, batch, documents, verdicts, config))
+    order = {c.candidate_id: i for i, c in enumerate(ranked)}
+    shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: (
+        c.candidate_id in uncertain_ids, -rubric.priority(verdicts[c.candidate_id]),
+        -verdicts[c.candidate_id].confidence, order[c.candidate_id]))[: config.top_n]
+    text_failed = [c for c in tried if c.candidate_id not in finalized]
+    outcome.weak_signals_total = len(accepted)
+    outcome.weak_signals_confident = sum(1 for c in accepted if verdicts[c.candidate_id].confidence >= 0.75)
     outcome.judge_rejected = len(rejected) + len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
-        rest, prefiltered, rejected, unjudged, overflow, verdicts))
-    finalized = await _finalize(insight, query_text, shown, documents, verdicts, config)
-    final: list[tuple[CandidateView, int, int]] = []
-    for candidate in shown:
-        verdict = verdicts[candidate.candidate_id]
-        card = finalized.get(candidate.candidate_id)
-        final.append((candidate, card.stage if card else verdict.stage, card.trend if card else verdict.trend))
-    order = {c.candidate_id: i for i, c in enumerate(shown)}
-    final.sort(key=lambda row: (-(row[1] + row[2]), -verdicts[row[0].candidate_id].confidence, order[row[0].candidate_id]))
-    for position, (candidate, stage, trend) in enumerate(final, 1):
+        rest, prefiltered, rejected, unjudged, queue, text_failed, verdicts))
+    for position, candidate in enumerate(shown, 1):
         await check()
-        item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
-                                 finalized.get(candidate.candidate_id), _docs(candidate, documents),
-                                 compositions[candidate.candidate_id], stage, trend, config, outcome)
+        item = _build_item(job_id, position, candidate, verdicts[candidate.candidate_id],
+                           finalized[candidate.candidate_id], documents, compositions[candidate.candidate_id],
+                           candidate.candidate_id in uncertain_ids)
         await results.add_item(item)
         outcome.items_written += 1
-        if item.narrative_status is NarrativeStatus.GENERATED:
-            outcome.narratives_generated += 1
-        else:
-            outcome.narratives_fallback += 1
+        outcome.narratives_generated += 1
     log.info("stage.narrate_rubric", pool=len(pool), prefiltered=len(prefiltered), judged=len(verdicts),
-             accepted=len(selected), shown=outcome.items_written, finalized=len(finalized),
-             generated=outcome.narratives_generated, fallback=outcome.narratives_fallback)
+             accepted=len(accepted), uncertain=len(uncertain), tried=len(tried), finalized=len(finalized),
+             shown=outcome.items_written, text_failed=len(text_failed))
     return outcome
 
 
@@ -149,10 +169,10 @@ async def _finalize(
     insight: InsightClient, query_text: str, shown: list[CandidateView], documents: dict[str, DocumentView],
     verdicts: dict[str, JudgeVerdictView], config: NarrateConfig,
 ) -> dict[str, FinalizedCardView]:
-    """Пакетная доводка показанных карточек; при отказе — пустой словарь (карточки строятся прежним способом)."""
-    if not shown or not config.finalize_enabled or (config.llm_allowed is not None and not config.llm_allowed()):
+    """Пакетная доводка; карточки, не прошедшие проверку, в ответ не входят."""
+    if not shown or not config.finalize_enabled:
         return {}
-    cards = [FinalizeRequestCard(c, _docs(c, documents), verdicts[c.candidate_id].stage,
+    cards = [FinalizeRequestCard(c, _docs(c, documents)[:FINALIZE_SOURCES], verdicts[c.candidate_id].stage,
                                  verdicts[c.candidate_id].trend, verdicts[c.candidate_id].reason_ru) for c in shown]
     try:
         return await insight.finalize_cards(query_text, cards)
@@ -167,14 +187,15 @@ def _excluded_rows(
     rejected: list[CandidateView],
     unjudged: list[CandidateView],
     overflow: list[CandidateView],
+    text_failed: list[CandidateView],
     verdicts: dict[str, JudgeVerdictView],
 ) -> list[ExcludedCandidate]:
     """Исключённые кандидаты с причинами (ТЗ: причины исключения зрелых и нерелевантных кандидатов)."""
     rows: list[ExcludedCandidate] = []
 
     def add(candidate: CandidateView, decision: Decision, reason: str, text: str, score: float) -> None:
-        rows.append(ExcludedCandidate(candidate.candidate_id, candidate.title_auto[:200], round(score, 4), decision,
-                                      reason, text[:500], candidate.document_count))
+        rows.append(ExcludedCandidate(candidate.candidate_id, candidate.title_auto[:200], round(min(max(score, 0.0), 1.0), 4),
+                                      decision, reason, text[:500], candidate.document_count))
 
     for candidate in rest:
         decision = candidate.decision if candidate.decision is not Decision.WEAK_SIGNAL else Decision.INSUFFICIENT_EVIDENCE
@@ -189,52 +210,42 @@ def _excluded_rows(
             verdict.confidence)
     for candidate in unjudged:
         add(candidate, Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_UNJUDGED",
-            "Рубричная оценка не получена (пачка отклонена моделью); кандидат не показан.", candidate.score)
+            "Рубричная оценка не получена: модель не ответила разборчиво и при повторе по одному.", candidate.score)
     for candidate in overflow:
         verdict = verdicts[candidate.candidate_id]
         add(candidate, Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_BELOW_TOP_N",
-            f"Слабый сигнал вне ТОП-N по баллу стадия + тренд ({rubric.priority(verdict)} из 7). {verdict.reason_ru}",
+            f"Кандидат вне ТОП-N по баллу стадия + тренд ({rubric.priority(verdict)} из 7). {verdict.reason_ru}",
+            verdict.confidence)
+    for candidate in text_failed:
+        verdict = verdicts[candidate.candidate_id]
+        add(candidate, Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_TEXT_FAILED",
+            "Карточку не удалось полностью заполнить на русском по источникам — показан следующий кандидат.",
             verdict.confidence)
     return rows
 
 
-async def _build_item(
-    insight: InsightClient | None, job_id: str, query_text: str, position: int, candidate: CandidateView,
-    verdict: JudgeVerdictView, card: FinalizedCardView | None, documents: tuple[DocumentView, ...],
-    composition: rubric.Composition, stage: int, trend: int, config: NarrateConfig, outcome: NarrateOutcome,
+def _build_item(
+    job_id: str, position: int, candidate: CandidateView, verdict: JudgeVerdictView, card: FinalizedCardView,
+    documents: dict[str, DocumentView], composition: rubric.Composition, uncertain: bool,
 ) -> ResultItem:
-    """Элемент выдачи: тексты пакетной доводки или прежнего генератора, рубрика — в объяснении и предикторах."""
-    status = rubric.status_explanation(verdict, stage, trend)
-    features = rubric.feature_rows(rubric.rubric_features(verdict, composition, stage, trend), candidate)
-    if card is not None:
-        companies = f" Компании и организации из источников: {', '.join(card.companies)}." if card.companies else ""
-        reasons = " ".join(part for part in (card.stage_reason_ru, card.trend_reason_ru) if part)
-        return ResultItem(
-            job_id=job_id, rank=position, candidate_id=candidate.candidate_id, title_ru=card.title_ru[:200],
-            title_auto=candidate.title_auto[:200], score=round(verdict.confidence, 4), decision_reason="RUBRIC_R",
-            decision_explanation_ru=status, description_ru=card.description_ru, advantage_ru=card.advantage_ru,
-            case_example_ru=card.case_example_ru, case_document_id=card.case_document_id,
-            explanation_ru=f"{card.why_ru}{companies} {reasons} {status}".strip(),
-            narrative_status=NarrativeStatus.GENERATED, llm_provider=card.llm_provider, llm_model=card.llm_model,
-            prompt_version=card.prompt_version, document_count=candidate.document_count, features=features,
-            sources=build_sources(candidate, {d.document_id: d for d in documents}, card.source_summaries),
-            predicted_stage=stage, predicted_trend=trend,
-        )
-    use_llm = config.llm_allowed is None or config.llm_allowed()
-    if not use_llm:
-        outcome.deadline_fallbacks += 1
-    narrative = await _narrate_candidate(insight if use_llm else None, job_id, query_text, candidate,
-                                         {d.document_id: d for d in documents}, config)
+    """Элемент выдачи: тексты пакетной доводки (все поля на русском), рубрика — в объяснении и предикторах."""
+    status = rubric.status_explanation(verdict, verdict.stage, verdict.trend)
+    if uncertain:
+        status = ("Требует экспертной проверки: рубрика не подтвердила все четыре условия слабого сигнала. "
+                  + status)[:500]
+    features = rubric.feature_rows(rubric.rubric_features(verdict, composition, verdict.stage, verdict.trend), candidate)
+    companies = f" Компании и организации из источников: {', '.join(card.companies)}." if card.companies else ""
+    explanation = f"{card.why_ru}{companies} {card.stage_reason_ru} {card.trend_reason_ru}".strip()
+    shown_sources = {doc_id: documents[doc_id] for doc_id in card.source_summaries if doc_id in documents}
     return ResultItem(
-        job_id=job_id, rank=position, candidate_id=candidate.candidate_id,
-        title_ru=(narrative.title_ru or candidate.title_auto)[:200], title_auto=candidate.title_auto[:200],
-        score=round(verdict.confidence, 4), decision_reason="RUBRIC_R", decision_explanation_ru=status,
-        description_ru=narrative.description_ru, advantage_ru=narrative.advantage_ru,
-        case_example_ru=narrative.case_example_ru, case_document_id=narrative.case_document_id,
-        explanation_ru=f"{narrative.explanation_ru} {status}".strip(),
-        narrative_status=NarrativeStatus(narrative.status), llm_provider=narrative.llm_provider,
-        llm_model=narrative.llm_model, prompt_version=narrative.prompt_version,
+        job_id=job_id, rank=position, candidate_id=candidate.candidate_id, title_ru=card.title_ru[:200],
+        title_auto=candidate.title_auto[:200],
+        score=round(min(verdict.confidence, 0.5) if uncertain else verdict.confidence, 4),
+        decision_reason="RUBRIC_U" if uncertain else "RUBRIC_R", decision_explanation_ru=status,
+        description_ru=card.description_ru, advantage_ru=card.advantage_ru, case_example_ru=card.case_example_ru,
+        case_document_id=card.case_document_id, explanation_ru=explanation, narrative_status=NarrativeStatus.GENERATED,
+        llm_provider=card.llm_provider, llm_model=card.llm_model, prompt_version=card.prompt_version,
         document_count=candidate.document_count, features=features,
-        sources=build_sources(candidate, {d.document_id: d for d in documents}, narrative.source_summaries),
-        predicted_stage=stage, predicted_trend=trend,
+        sources=build_sources(candidate, shown_sources, card.source_summaries),
+        predicted_stage=verdict.stage, predicted_trend=verdict.trend,
     )

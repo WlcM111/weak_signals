@@ -213,6 +213,22 @@ def grouped(dataset: str, rows: list[dict], items: list[RubricItem]) -> dict[str
     return groups
 
 
+def calibrated(verdicts: dict[str, RubricVerdict], stage_spec: str, trend_spec: str) -> dict[str, RubricVerdict]:
+    """Та же калибровка шкалы, что в orchestrator (WS_STAGE_CALIBRATION, WS_TREND_CALIBRATION)."""
+    from dataclasses import replace  # noqa: PLC0415
+
+    def mapping(spec: str, low: int, high: int) -> dict[int, int]:
+        result = {value: value for value in range(low, high + 1)}
+        for part in (spec or "").split(","):
+            if ":" in part and all(x.strip().isdigit() for x in part.split(":", 1)):
+                source, target = (int(x) for x in part.split(":", 1))
+                if low <= source <= high:
+                    result[source] = min(max(target, low), high)
+        return result
+    stages, trends = mapping(stage_spec, 1, 4), mapping(trend_spec, 1, 3)
+    return {key: replace(v, stage=stages[v.stage], trend=trends[v.trend]) for key, v in verdicts.items()}
+
+
 def load(paths: Sequence[str]) -> list[dict]:
     rows: list[dict] = []
     for path in paths:
@@ -261,6 +277,7 @@ async def run(args: argparse.Namespace) -> int:
             provider, model = outcome.provider or provider, outcome.model or model
             print(f"оценено {len(verdicts)} из {len(items)} ({query[:40]})", flush=True)
     await pool.close()
+    verdicts = calibrated(verdicts, args.stage_calibration, args.trend_calibration)
     metrics, predictions = summarize(args.dataset, rows, verdicts)
     metrics.update({"provider": provider, "model": model, "prompt_version": "judge_v2", "label": args.label})
     out = Path(args.out)
@@ -283,6 +300,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--label", default="default", help="метка прогона в имени файлов (например, модель)")
     parser.add_argument("--query", default="", help="запрос для оценки A (по умолчанию общий)")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--stage-calibration", default="", help='калибровка стадии, например "1:2,2:3,3:4,4:4"')
+    parser.add_argument("--trend-calibration", default="", help='калибровка тренда, например "1:2,2:3,3:3"')
     return asyncio.run(run(parser.parse_args(argv)))
 
 

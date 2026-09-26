@@ -294,7 +294,7 @@ class GrpcInsightClient:
                     candidate_id=card.candidate.candidate_id,
                     title_auto=card.candidate.title_auto,
                     keyphrases=list(card.candidate.keyphrases[:8]),
-                    sources=[_judge_source(document, 900) for document in card.documents[:6]],
+                    sources=[_judge_source(document, 1500) for document in card.documents[:5]],
                     stage=card.stage,
                     trend=card.trend,
                     judge_reason_ru=card.judge_reason_ru[:300],
@@ -321,7 +321,7 @@ class GrpcInsightClient:
                 prompt_version=response.prompt_version or "finalize_v1",
             )
             for card in response.cards
-            if 1 <= card.stage <= 4 and 1 <= card.trend <= 3 and card.title_ru
+            if card.title_ru
         }
 
     async def generate_insight(

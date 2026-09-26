@@ -68,25 +68,38 @@ class PoolAndRankTest(unittest.TestCase):
         self.assertEqual(rubric.rank_selected([a, b, c], v), [b, c, a])
 
 
+class CalibrationTest(unittest.TestCase):
+    def test_parse_calibration(self) -> None:
+        self.assertEqual(rubric.parse_calibration("1:2,2:3,3:4,4:4", 1, 4), {1: 2, 2: 3, 3: 4, 4: 4})
+        self.assertEqual(rubric.parse_calibration("1:2,9:1,2:7", 1, 3), {1: 2, 2: 3, 3: 3})
+
+    def test_market_mentions_in_composition(self) -> None:
+        comp = rubric.composition_of([doc(1, "INDUSTRY_MEDIA", "Startup raises $20M for pilot"), doc(2)])
+        self.assertEqual(comp.market_mentions, 1)
+        self.assertIn("рыночными фактами", rubric.composition_ru(comp))
+
+
 class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.docs = {i: doc(i) for i in range(1, 7)}
+        self.docs = {i: doc(i) for i in range(1, 8)}
         self.docs[5] = doc(5, "CODE_REPOSITORY")
         self.good_a = cand(1, [self.docs[1], self.docs[2]], rank=1)
         self.good_b = cand(2, [self.docs[3]], Decision.INSUFFICIENT_EVIDENCE, "MODEL_SCORE", score=0.1)
         self.overview = cand(3, [self.docs[4]], rank=2)
         self.github = cand(4, [self.docs[5]], rank=3)
-        self.analyzer = FakeAnalyzer(candidates=[self.good_a, self.good_b, self.overview, self.github])
+        self.maybe = cand(5, [self.docs[6]], rank=4)
+        self.analyzer = FakeAnalyzer(candidates=[self.good_a, self.good_b, self.overview, self.github, self.maybe])
         self.collector = FakeCollector(documents={d.document_id: d for d in self.docs.values()})
         self.results = InMemoryResultRepository()
-        verdicts = {self.good_a.candidate_id: dict(code="R", stage=2, trend=2, confidence=0.8, on_topic=True,
-                                                   concrete=True, early_stage=True, verifiable=True),
-                    self.good_b.candidate_id: dict(code="R", stage=3, trend=3, confidence=0.7, on_topic=True,
-                                                   concrete=True, early_stage=True, verifiable=True),
-                    self.overview.candidate_id: dict(code="N-OVR", stage=1, trend=1, confidence=0.9)}
-        self.insight = FakeInsight(rubric_rule=lambda c: verdicts.get(c.candidate_id),
+        ok = dict(on_topic=True, concrete=True, early_stage=True, verifiable=True)
+        self.verdicts = {self.good_a.candidate_id: dict(code="R", stage=1, trend=2, confidence=0.8, **ok),
+                         self.good_b.candidate_id: dict(code="R", stage=2, trend=2, confidence=0.7, **ok),
+                         self.overview.candidate_id: dict(code="N-OVR", stage=1, trend=1, confidence=0.9),
+                         self.maybe.candidate_id: dict(code="U", stage=1, trend=1, confidence=0.9)}
+        self.finalizable = {self.good_b.candidate_id, self.maybe.candidate_id}
+        self.insight = FakeInsight(rubric_rule=lambda c: self.verdicts.get(c.candidate_id),
                                    finalize_rule=lambda c: ({"title_ru": "Фотонный лидар", "companies": ["EPFL"]}
-                                                            if c.candidate_id == self.good_b.candidate_id else None))
+                                                            if c.candidate_id in self.finalizable else None))
 
     async def narrate(self, **overrides):  # noqa: ANN201
         async def check() -> None:
@@ -96,32 +109,38 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
                                  results=self.results, job_id="job-1", query_text="твердотельные лидары",
                                  analysis_id=self.analyzer.analysis_id, config=config, check=check)
 
-    async def test_rubric_flow_orders_by_score_finalizes_and_explains_exclusions(self) -> None:
+    async def test_only_finalized_cards_are_shown_calibrated_and_uncertain_last(self) -> None:
         outcome = await self.narrate()
         items = sorted(self.results.items["job-1"], key=lambda item: item.rank)
-        self.assertEqual([i.candidate_id for i in items], [self.good_b.candidate_id, self.good_a.candidate_id])
-        top = items[0]
-        self.assertEqual((top.title_ru, top.predicted_stage, top.predicted_trend, top.score), ("Фотонный лидар", 3, 3, 0.7))
-        self.assertIn("EPFL", top.explanation_ru)
+        self.assertEqual([i.candidate_id for i in items], [self.good_b.candidate_id, self.maybe.candidate_id])
+        top, filler = items
+        self.assertEqual((top.predicted_stage, top.predicted_trend), (3, 3))  # 2→3 и 2→3 по калибровке
         self.assertIn("балл 6 из 7", top.decision_explanation_ru)
-        self.assertEqual(top.features[0].feature_name, "rubric_on_topic")
-        self.assertEqual(items[1].title_ru, "Кандидат 1 (нарратив)")  # не прошла доводку → прежний генератор
-        excluded = {e.candidate_id: e for e in self.results.excluded["job-1"]}
-        self.assertEqual(excluded[self.overview.candidate_id].decision_reason, "RUBRIC_N-OVR")
-        self.assertEqual(excluded[self.github.candidate_id].decision_reason, "RUBRIC_NO_INDEPENDENT_SOURCE")
+        self.assertIn("EPFL", top.explanation_ru)
+        self.assertEqual({s.summary_ru for s in top.sources}, {"Резюме источника."})
+        self.assertEqual((filler.decision_reason, filler.score), ("RUBRIC_U", 0.5))
+        self.assertIn("Требует экспертной проверки", filler.decision_explanation_ru)
+        excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
+        self.assertEqual(excluded[self.good_a.candidate_id], "RUBRIC_TEXT_FAILED")
+        self.assertEqual(excluded[self.overview.candidate_id], "RUBRIC_N-OVR")
+        self.assertEqual(excluded[self.github.candidate_id], "RUBRIC_NO_INDEPENDENT_SOURCE")
         self.assertEqual((outcome.weak_signals_total, outcome.items_written), (2, 2))
-        self.assertEqual(self.insight.rubric_calls, [3])
 
-    async def test_without_rubric_verdicts_falls_back_to_legacy(self) -> None:
+    async def test_without_verdicts_output_is_empty_unless_legacy_enabled(self) -> None:
         self.insight.rubric_rule = None
         outcome = await self.narrate()
-        self.assertEqual(outcome.items_written, 3)  # прежняя стадия: три кандидата WEAK_SIGNAL analyzer
-        self.assertFalse(any(i.decision_reason == "RUBRIC_R" for i in self.results.items["job-1"]))
+        self.assertEqual(outcome.items_written, 0)
+        self.assertTrue(all(e.decision_reason.startswith(("RUBRIC_UNJUDGED", "RUBRIC_NO", "MODEL", "RUBRIC_POOL"))
+                            or e.decision_reason for e in self.results.excluded["job-1"]))
+        legacy = await self.narrate(rubric_legacy_fallback=True)
+        self.assertEqual(legacy.items_written, 4)  # прежняя стадия: четыре кандидата WEAK_SIGNAL analyzer
 
     async def test_top_n_overflow_is_explained(self) -> None:
+        self.finalizable = {self.good_a.candidate_id, self.good_b.candidate_id, self.maybe.candidate_id}
         await self.narrate(top_n=1)
         excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
         self.assertEqual(excluded[self.good_a.candidate_id], "RUBRIC_BELOW_TOP_N")
+        self.assertEqual(len(self.results.items["job-1"]), 1)
 
 
 if __name__ == "__main__":

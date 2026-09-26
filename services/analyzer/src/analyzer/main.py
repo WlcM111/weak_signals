@@ -137,6 +137,7 @@ def serve(settings: AnalyzerSettings) -> int:
             near_dup_threshold=settings.near_dup_threshold,
             cluster_distance_threshold=settings.cluster_distance_threshold,
             min_cluster_size=settings.min_cluster_size,
+            keep_market_singletons=settings.keep_market_singletons,
             evidence_max=settings.evidence_max,
             ml_score_ablation=settings.ml_score_ablation,
         ),

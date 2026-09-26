@@ -12,6 +12,12 @@ domains:
   roboticsandautomationnews.com: INDUSTRY_MEDIA
   eetimes.com: INDUSTRY_MEDIA
   pandaily.com: INDUSTRY_MEDIA
+  venturebeat.com: INDUSTRY_MEDIA
+  therobotreport.com: INDUSTRY_MEDIA
+  spectrum.ieee.org: INDUSTRY_MEDIA
+  technologyreview.com: INDUSTRY_MEDIA
+  finextra.com: INDUSTRY_MEDIA
+  helpnetsecurity.com: INDUSTRY_MEDIA
   wired.com: NEWS
   reuters.com: NEWS
   cnews.ru: INDUSTRY_MEDIA

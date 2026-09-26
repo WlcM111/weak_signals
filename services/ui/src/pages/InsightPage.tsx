@@ -126,7 +126,10 @@ export default function InsightPage() {
   }
 
   const data = item.data!;
-  const analytical = data.sources.filter((source) => ANALYTICAL_TYPES.has(source.source_type));
+  const reports = data.sources.filter((source) => ANALYTICAL_TYPES.has(source.source_type));
+  // Аналитических отчётов среди источников может не быть: тогда показываются оценки из самих источников
+  // карточки (научные публикации, патенты, отраслевые СМИ) — их русскоязычные резюме.
+  const analytical = reports.length > 0 ? reports : data.sources.filter((source) => source.summary_ru);
   const caseSource = data.sources.find((source) => source.document_id === data.case_document_id);
 
   function downloadReport() {
@@ -246,6 +249,13 @@ export default function InsightPage() {
           {analytical.length === 0 ? (
             <p className="doc-note">Аналитические отчёты по теме среди найденных источников отсутствуют.</p>
           ) : (
+            <>
+            {reports.length === 0 ? (
+              <p className="doc-note">
+                Аналитических отчётов среди источников нет — ниже оценки по научным публикациям, патентам и
+                отраслевым источникам карточки.
+              </p>
+            ) : null}
             <ul className="analytics">
               {analytical.map((source) => (
                 <li key={source.document_id} className="analytics__item">
@@ -255,6 +265,7 @@ export default function InsightPage() {
                 </li>
               ))}
             </ul>
+            </>
           )}
         </section>
 

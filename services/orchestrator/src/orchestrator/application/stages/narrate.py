@@ -49,6 +49,13 @@ class NarrateConfig:
     selection_mode: str = "legacy"
     rubric_pool: int = 40
     finalize_enabled: bool = True
+    # rubric: при недоступной рубрике — прежняя стадия (с английскими экстрактивными карточками) или пустая выдача.
+    rubric_legacy_fallback: bool = False
+    # rubric: если R меньше ТОП-N, добираются кандидаты с кодом U (помечены «требует проверки»).
+    rubric_fill_uncertain: bool = True
+    # Калибровка стадии и тренда LLM к шкале организаторов ("исходное:итоговое,…").
+    stage_calibration: str = "1:2,2:3,3:4,4:4"
+    trend_calibration: str = "1:2,2:3,3:3"
 
 
 @dataclass(slots=True)

@@ -84,12 +84,17 @@ def cluster_documents(vectors: np.ndarray, distance_threshold: float) -> list[li
 
 
 def split_small_clusters(
-    clusters: Sequence[Sequence[int]], documents: Sequence[DocumentRef], min_cluster_size: int
+    clusters: Sequence[Sequence[int]],
+    documents: Sequence[DocumentRef],
+    min_cluster_size: int,
+    keep_single_types: frozenset[SourceType] = frozenset(),
 ) -> tuple[list[list[int]], list[int]]:
     """Отделяет кластеры меньше минимального размера в «прочее».
 
     Исключение (§12.5): одиночный документ высокой доверенности остаётся кандидатом — решение по нему
-    принимает правило SINGLE_SOURCE, а не молчаливое отбрасывание.
+    принимает правило SINGLE_SOURCE, а не молчаливое отбрасывание. `keep_single_types` — типы, одиночный
+    документ которых тоже остаётся кандидатом: рыночный сигнал (раунд, пилот стартапа) обычно приходит
+    одной заметкой отраслевого СМИ средней доверенности и иначе отбрасывается до любой оценки.
     """
     kept: list[list[int]] = []
     misc: list[int] = []
@@ -98,7 +103,9 @@ def split_small_clusters(
         if len(indexes) >= min_cluster_size:
             kept.append(indexes)
             continue
-        if len(indexes) == 1 and documents[indexes[0]].trust_level is TrustLevel.HIGH:
+        if len(indexes) == 1 and (
+            documents[indexes[0]].trust_level is TrustLevel.HIGH or documents[indexes[0]].source_type in keep_single_types
+        ):
             kept.append(indexes)
             continue
         misc.extend(indexes)
