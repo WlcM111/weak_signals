@@ -1,0 +1,6189 @@
+{
+ "format": "ws-dsb-v2-labeling-1",
+ "created_at": "2026-09-26T03:11:48+00:00",
+ "run_files": [
+  {
+   "name": "analytics-20260922-103814.txt",
+   "sha256": "d95ba66abd2d73a03f05ce52e00e17be26000df396165e828555e6559a5e9801"
+  },
+  {
+   "name": "analytics-20260922-195722.txt",
+   "sha256": "c56d5ca75331159abda2cf31b64df058eee6a49d9aad03bfd59720def2f18345"
+  },
+  {
+   "name": "analytics-20260922-200239.txt",
+   "sha256": "42188a4af812d6022a62fc8b7198cc7dd90d74e374255423d22b09b650f81d2c"
+  },
+  {
+   "name": "analytics-20260922-201357.txt",
+   "sha256": "f1e516aaec6e629a70e68b72e77cc62a57e6c7f8a7d0d4d5131f32563f6e4121"
+  },
+  {
+   "name": "analytics-20260922-205550.txt",
+   "sha256": "9ec56d0c31f436c00c3331d2847c1370276ee9c4970540b080b33adfa0a73aea"
+  },
+  {
+   "name": "analytics-20260922-210344.txt",
+   "sha256": "3658487dfc0ded71087bb033fc42d6d62f4bba85ccd15c966041b929b739879c"
+  },
+  {
+   "name": "analytics-20260922-211240.txt",
+   "sha256": "5a1e9eaf3c60d9f4dc92eb270736ff2fb97a54a836fc14d2ac7d6945a333994a"
+  },
+  {
+   "name": "analytics-20260922-232643.txt",
+   "sha256": "7efb7cafca2d0496c9c6e7ddee7624efe3b9b4f8cd5eeb76e1d73c0881004dec"
+  },
+  {
+   "name": "analytics-20260922-235409.txt",
+   "sha256": "021c818c9a278d016d321dc4d01e747d5a3b8ad300272d04fd43084e01c233bd"
+  },
+  {
+   "name": "analytics-20260923-171322.txt",
+   "sha256": "3b93dafecb15ff2ed30d68e6805a033e502aabe1abb1cfb730830995b15ca940"
+  },
+  {
+   "name": "analytics-20260923-232831.txt",
+   "sha256": "7281e8a2469f6c05818e7acd43c736a5916066356d2d73996cc5d2895f1cd467"
+  },
+  {
+   "name": "analytics-20260924-001616.txt",
+   "sha256": "4618c4731cb7f2569d3c904e0933fbefc6aeb46ea97f7752da368a9830396a92"
+  },
+  {
+   "name": "analytics-20260924-003901.txt",
+   "sha256": "06bdfe312a4d0eea36843907ea237555121df2d7cdd109e6e82248aed720494d"
+  },
+  {
+   "name": "analytics-20260924-221153.txt",
+   "sha256": "adaf409c9d39e160a9b8d3b42f30cfcef379b92489fff87e228656789f27e457"
+  },
+  {
+   "name": "analytics-20260924-224235.txt",
+   "sha256": "e39325932e027ea4b001d825db5b0f859866e794ce9b3a97aff24b52f14c9aa8"
+  },
+  {
+   "name": "analytics-20260925-001736.txt",
+   "sha256": "bef6cbe1c53a02c1b34154d0f5e2efca0dcf36a5b180321f54bc6c860970455a"
+  },
+  {
+   "name": "analytics-20260925-003600.txt",
+   "sha256": "893db6a6618e8c3d3e26cc5ce45f23b156c567b9b46c459e6297146b0af4d996"
+  },
+  {
+   "name": "analytics-20260926-014935.txt",
+   "sha256": "d96969cf775106aba3e160cc6e6e1f46e7201cab286fe69c429be2b8fee6b429"
+  },
+  {
+   "name": "own-topics-20260924-035715.json",
+   "sha256": "22101f25c73280b3e7f862cde154d518e97ce70626da3111834bf160a372b067"
+  },
+  {
+   "name": "own-topics-20260925-013609.json",
+   "sha256": "4dd2dc5f5f9e5e08a74b0a123faa5c275c948871ac1c60d5f6ae01cbdf8ea838"
+  },
+  {
+   "name": "own-topics-20260926-050648.json",
+   "sha256": "b3b9f761a5645947f81df5446bc0b26a54ed3b970324bf01f94ec0b0eb3a8e63"
+  },
+  {
+   "name": "own-topics-20260926-053248.json",
+   "sha256": "a228fc4f6c567dbd376e4ca05f9ee5182ebc0403e05736256831aa1ca7e5cbfe"
+  }
+ ],
+ "holdout_topics": [
+  "биопечать тканей и органов",
+  "интерфейсы мозг-компьютер",
+  "малые модульные ядерные реакторы",
+  "метаматериалы и метаповерхности",
+  "перовскитные солнечные элементы",
+  "улавливание и хранение углерода"
+ ],
+ "holdout_file_sha256": "5c9c7109d9902ce2a0927664f00e636789e91eee718cf6c046ebe0510a6a3dd7",
+ "extra_topics": [
+  "нейроморфные процессоры",
+  "фотонные вычисления",
+  "натрий-ионные аккумуляторы",
+  "постквантовая криптография",
+  "генная терапия на основе CRISPR",
+  "беспилотные грузовые автомобили",
+  "гибкая и печатная электроника",
+  "твердотельные лидары",
+  "умные электросети и виртуальные электростанции",
+  "агророботы и точное земледелие"
+ ],
+ "v1_inputs": {
+  "labels_silver_v1.jsonl": "9da8ed8481d13f8855808cfe396bc5702cf1332119edf4a4833ed25b727a7deb",
+  "duplicates_manifest_v1.jsonl": "e64d37be4964a61b0c2239ba0e985cf36e11f2e2fc40e80dbfd64f616ae4abed",
+  "web_observations_v1.jsonl": "5a7f1cfd9ffabc37e29c1abac10b0b5f7e9b3036c22b130842c3daa457e8bab3"
+ },
+ "groups": {
+  "bgrp-004279c730": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-41f86ae28d945967"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "переработка лигноцеллюлозы грибами — смежная промышленная биотехнология, не синтетическая биология",
+    "v1_groups": [
+     "bgrp-004279c730"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-01f42163d4": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-3c539bb9582f03bf",
+    "obs-4c312fd7b3973a61",
+    "obs-60f20317389c9f11",
+    "obs-77b43bc9c00017e5",
+    "obs-79c2be216fa0caff",
+    "obs-9b621c8e13121b8d",
+    "obs-ad44f7acfa2eb2cd",
+    "obs-e0f53a2f8d780e4c"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзор цифровых двойников в робототехнике",
+    "v1_groups": [
+     "bgrp-01f42163d4"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-0565456e5a": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-13c64c64b3f67db9",
+    "obs-303fa64e705aaf05",
+    "obs-3dbbb1a8d005857f",
+    "obs-8ba24498a862dcfc",
+    "obs-8dd8ed35ced7dce0",
+    "obs-91a580801eeab103",
+    "obs-d854f488d0e2ce15"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные проекты блокчейн-платежей",
+    "v1_groups": [
+     "bgrp-0565456e5a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-075a4beb53": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-fedbbe20e02eb904"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-075a4beb53"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-075b16f855": {
+   "origin": "live",
+   "topic": "перовскитные солнечные элементы",
+   "members": [
+    "obs-f504f31774d47161"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-0a974acb06": {
+   "origin": "live",
+   "topic": "перовскитные солнечные элементы",
+   "members": [
+    "obs-1bd124802fa529a5"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-0c499cc9a6": {
+   "origin": "live",
+   "topic": "ИИ-агенты для разработки программного обеспечения",
+   "members": [
+    "obs-e14e5930067e183a"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "правовые проблемы ИИ и образование, не разработка ПО",
+    "v1_groups": [
+     "bgrp-0c499cc9a6"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-0ca395a51f": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-6ac00aa3b1fcea90"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-0d08786980": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-a69f6fe789177109",
+    "obs-bccf68598619e377"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.6,
+    "rationale": "серийные препринты Zenodo по ИИ в платежах",
+    "v1_groups": [
+     "bgrp-0d08786980"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-0d4f496e6f": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-e7be9f859936aa84"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "биометрия лиц, не инфраструктура ИИ",
+    "v1_groups": [
+     "bgrp-0d4f496e6f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-0d57b7b20f": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-d498fa237f7d632f"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "зелёный синтез наночастиц — лексически близкая другая область",
+    "v1_groups": [
+     "bgrp-0d57b7b20f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-118617ab9c": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-8fab76646e371ac0"
+   ],
+   "runs": [
+    "20260922-235409"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.6,
+    "rationale": "исследования голосования в DAO, не финтех-решение",
+    "v1_groups": [
+     "bgrp-118617ab9c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-13f8e8a7ba": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-485814832ecb9564"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-14d51f288a": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-daccf1bbb8dbf7d9"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-14d51f288a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-162827073d": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-1327e18cc60d1227",
+    "obs-2441098c3750b1b3",
+    "obs-86e09e529b985f91",
+    "obs-c501cbc1628943ea",
+    "obs-cb617ea8711b2829",
+    "obs-e408b836764f2296",
+    "obs-f72ce51c4a16fa78"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории криптоплатёжных шлюзов",
+    "v1_groups": [
+     "bgrp-162827073d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-164b7d91ab": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-a84487ab9128a5af"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-16c8e84f3e": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-81ec5560b0b4d4f7"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "детектор джейлбрейков для русскоязычных ИИ-агентов — конкретная практика защиты",
+    "v1_groups": [
+     "bgrp-16c8e84f3e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-1932faf0d7": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-77eaf73843419b30"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-198b3e9eac": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-a6153aae9965efa8"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.7,
+    "rationale": "объединение неквантовых сенсоров для подводной навигации",
+    "v1_groups": [
+     "bgrp-198b3e9eac"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-19dfc29bc8": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-14ad39e527ce24f3",
+    "obs-63052ea9da522c25",
+    "obs-bdff3bbbf5bb3725"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории вне темы",
+    "v1_groups": [
+     "bgrp-19dfc29bc8"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-1a08083e45": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-642237ea63506ce3",
+    "obs-bb1c8f243dc0da9d",
+    "obs-e3e17235da6f09cd"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "правовые и образовательные тексты",
+    "v1_groups": [
+     "bgrp-1a08083e45"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-1a11e09912": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-a42b7f3e1bd4b887"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-1a494b7d3c": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-d99ef5cc277e2b50"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "атомные сенсоры вращения на медленном свете — раннее исследование",
+    "v1_groups": [
+     "bgrp-1a494b7d3c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-1b1591a15c": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-85be6b38a67e94e1"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-1b454b1cb9": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-0a6b2f9a67bf058e",
+    "obs-0c2c36890dbe8748",
+    "obs-28a46032b8d3f5e1",
+    "obs-60c470e88a0f30bd",
+    "obs-a3f1ed47d975f05d",
+    "obs-d60a5985bf954908",
+    "obs-e4330470094ebb22"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории и руководство по Cloudflare (зрелый CDN)",
+    "v1_groups": [
+     "bgrp-1b454b1cb9"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-1c7d0ace76": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-1b3bf811ee31c14e",
+    "obs-75fa644e51b8a42d"
+   ],
+   "runs": [
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.9,
+    "rationale": "спекулятивные препринты Zenodo",
+    "v1_groups": [
+     "bgrp-1c7d0ace76"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-1d4e54bfcd": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-3b58198f3fe99c25",
+    "obs-46d0b417452d858d",
+    "obs-502b1eb4cad5562d",
+    "obs-53d1ea1e32a794ea",
+    "obs-9cbe0a1b01116648",
+    "obs-c6418f6f9ce525e1",
+    "obs-d2844fad92fc96b7",
+    "obs-ed5499ff2b260d2f",
+    "obs-fbd63dd9ba225cac"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "несвязный кластер",
+    "v1_groups": [
+     "bgrp-1d4e54bfcd"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-1ebfe124d2": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-9c70a11d636ba208"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-204db78482": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-0460540bddee85be",
+    "obs-71711884d6794a8d",
+    "obs-8fc5729470520990",
+    "obs-acd13c0e44125504",
+    "obs-afe3dea678f4a614",
+    "obs-b84f87504efa521f",
+    "obs-c0322d821ed65138",
+    "obs-c17feb3560776033",
+    "obs-cff3c3676301f17a",
+    "obs-e428097ae3f0d022"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "ИИ в здравоохранении и киберразведке",
+    "v1_groups": [
+     "bgrp-204db78482"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-20636401db": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-71d1e99c8aeac23e"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории агентов для производства",
+    "v1_groups": [
+     "bgrp-20636401db"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-20747062e4": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-bbeb556441fe0f2e"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-216265ad0c": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-4936d2f732f26aa8",
+    "obs-f0e1de7dbad583fa",
+    "obs-f6596d76febb99fa"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-216265ad0c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-230b4ec1f1": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-14f2cb3e80500a9e",
+    "obs-5f715c6d956fb0f2",
+    "obs-cfc9e7a08a9f5ea7"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260923-232831"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "спекулятивные препринты Zenodo",
+    "v1_groups": [
+     "bgrp-230b4ec1f1"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-23ee6744ed": {
+   "origin": "live",
+   "topic": "постквантовая криптография",
+   "members": [
+    "obs-5aa249d3bf8c36f0"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-2468cfea07": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-8ee4d427f6e1fdb8"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.8,
+    "rationale": "ЯМР-комагнитометрические гироскопы для инерциальной навигации",
+    "v1_groups": [
+     "bgrp-2468cfea07"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-2598632f59": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-7c9d7f808d641c96"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-264c80bc6c": {
+   "origin": "live",
+   "topic": "агророботы и точное земледелие",
+   "members": [
+    "obs-8bf8502788a3d8b2"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-273211825d": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-c312cf355b49c706"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-287ed2a75d": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-6ff99f725625846c"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "учебная уязвимая LLM-лаборатория и сканер RAG из личных репозиториев: практика есть, подтверждения слабые",
+    "v1_groups": [
+     "bgrp-287ed2a75d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-28e506d185": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-91223ab65d29434c"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-28ee876d3a": {
+   "origin": "live",
+   "topic": "постквантовая криптография",
+   "members": [
+    "obs-76028f55c35891b6"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-2a181880ab": {
+   "origin": "live",
+   "topic": "зелёный водород для промышленности",
+   "members": [
+    "obs-530e4d806686e63c"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "плазменное получение водорода из полимерных отходов и водородно-плазменное восстановление для зелёной стали",
+    "v1_groups": [
+     "bgrp-2a181880ab"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-2cee5837fe": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-362eec20e99c5431",
+    "obs-40fd5714eed8a768",
+    "obs-656a5bb55e26fe6f",
+    "obs-af8830090410b4ca",
+    "obs-f0ca9b6778664726",
+    "obs-f446783050bd9ace",
+    "obs-f9d22a0177bbd4d6"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "списки и учебные репозитории",
+    "v1_groups": [
+     "bgrp-2cee5837fe"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-2d5c5898f6": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-3bd0b4d1cc111451",
+    "obs-63de073ff6cfe3bc",
+    "obs-81f5124d2411034d"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "пересказ темы робототехники",
+    "v1_groups": [
+     "bgrp-2d5c5898f6"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-2f867982d5": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-7dda3fe2bac79d41"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-316a2f7fbf": {
+   "origin": "live",
+   "topic": "зелёный водород для промышленности",
+   "members": [
+    "obs-f44e23e6426d96ff"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "водородная энергетика — общее понятие",
+    "v1_groups": [
+     "bgrp-316a2f7fbf"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-328205e217": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-043f04b86dddd449",
+    "obs-13cf45f928550310",
+    "obs-1af2d4835c6633a3",
+    "obs-353225b4f2ce2017",
+    "obs-50853677e48862b7",
+    "obs-535bfccc1204985e",
+    "obs-59f89823e3d4d384",
+    "obs-5df6d2174a0a36da",
+    "obs-acf2fffc524f4132",
+    "obs-fe4ac436b8530595"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "эссе об автоматизации",
+    "v1_groups": [
+     "bgrp-328205e217"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-32fd3cea4f": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-07ae4254e7df99b2",
+    "obs-25dba62579a16231",
+    "obs-2fe54025e9e9eaf1",
+    "obs-315eecbd2f6f7048",
+    "obs-3c60296b84cdb684",
+    "obs-493b71de8d7b5c23",
+    "obs-5c480ae1fb61cfff",
+    "obs-7d4c7b064e4f35ec",
+    "obs-a54198780656a25b",
+    "obs-ce5b58ab9a248084",
+    "obs-ec341b39cecab549",
+    "obs-f82b24ee4a041550"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [
+    "R",
+    "U"
+   ],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-339c8f4668": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-1bcf19bcd27c38de",
+    "obs-1d8e66c615a2125b",
+    "obs-2e9e1bacbeb77eb0",
+    "obs-3b62ac08ee2f5a8c",
+    "obs-8c35c623c8f7262d",
+    "obs-97450b7e17e8ba69",
+    "obs-a8ed8f0fe1edf0c0"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные робото-репозитории",
+    "v1_groups": [
+     "bgrp-339c8f4668"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-3474b3e5a4": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-00c9ff15422f1b7b",
+    "obs-837ba4a394289a43"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "NV-магнитометрия как квантовый сенсор, связь с навигацией в свидетельствах отсутствует",
+    "v1_groups": [
+     "bgrp-a49a8dfbbc"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-34e60abd2e": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-0522797777bf148e",
+    "obs-3d2cb7975668d805",
+    "obs-491ce834a9baba11",
+    "obs-74087563cca07f0d",
+    "obs-89b4d4814d2f4c0a",
+    "obs-8cb5c4b785de9feb",
+    "obs-ebf8287ecc346b3c"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории многоагентных систем",
+    "v1_groups": [
+     "bgrp-34e60abd2e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-364cd3ab0d": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-b9053e12ec13c6ae"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-369be77aa4": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-17b8405f795aef57",
+    "obs-3cefd1bc52b70864",
+    "obs-48e5a2858a1a4650",
+    "obs-a32def3ee69d39c9"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "политэкономические эссе Zenodo",
+    "v1_groups": [
+     "bgrp-369be77aa4"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-378524099c": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-4b1bf04a9c058a19"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные репозитории",
+    "v1_groups": [
+     "bgrp-378524099c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-3957117411": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-4851be4c38a4482a"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-3a8532d591": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-7cf2ed06532952ca"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-3aa71b5be8": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-0788a86321bfd28d",
+    "obs-1b9fc6f53388f716",
+    "obs-2757b38150f893ba",
+    "obs-8123716d688c2bbd",
+    "obs-8a25ce9a9901d3e0",
+    "obs-9ede911f40e1dd59",
+    "obs-cb7f4e849624569a",
+    "obs-d0ca73217eaa3ed4",
+    "obs-e16c74b383c0539f",
+    "obs-fc0f6d9f46fe602a"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "несвязный кластер",
+    "v1_groups": [
+     "bgrp-3aa71b5be8"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-3c76073859": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-40681798ceff4df8",
+    "obs-4e063efd0abcf40d",
+    "obs-681e2436ffbbf4ef",
+    "obs-7b2adf71fe68344b",
+    "obs-96f85d80d7964927",
+    "obs-f3d57cfb0bd75740"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "синтетические финансовые данные и GAN для обучения антифрод-моделей",
+    "v1_groups": [
+     "bgrp-3c76073859"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-3c8e35f66d": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-0424d9454775a215",
+    "obs-87aa43f65d44003d",
+    "obs-b64bd683a543020f",
+    "obs-d314d3070ae1b5a8",
+    "obs-da6fbc186362515e",
+    "obs-ee218d1d9d636c4e",
+    "obs-f586fcd7601fde06"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "ответственный ИИ и выравнивание, не инфраструктура",
+    "v1_groups": [
+     "bgrp-3c8e35f66d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-3e6219631a": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-0cecd9eea7cc8dac"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-3ee738f4dd": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-027f96970a301f33",
+    "obs-2ceb0a3875b10b19",
+    "obs-2eb86d3365c2eee8",
+    "obs-4708a0c4c4df40c2",
+    "obs-5e09f0d9c155fb53",
+    "obs-7fc136f5739c383a",
+    "obs-e069cacd330a7947",
+    "obs-e8e4d830d4b1e7f5",
+    "obs-e9a03975517f37a9"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "обзоры LLM в робототехнике",
+    "v1_groups": [
+     "bgrp-3ee738f4dd"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-3feee7e38d": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-18ac26c75b306a8c",
+    "obs-1986ca63742ac100",
+    "obs-212b514f3a2e1f95",
+    "obs-4c6aa8559551cdc7",
+    "obs-d561de9f6657f80e"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.6,
+    "rationale": "несвязные тексты о NFT",
+    "v1_groups": [
+     "bgrp-3feee7e38d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-405108ca3a": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-5ec71e8d7195c6ab"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-408ad2e10b": {
+   "origin": "live",
+   "topic": "умные электросети и виртуальные электростанции",
+   "members": [
+    "obs-198d0dfcb5224357"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-40ca3280af": {
+   "origin": "live",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "obs-efc5d38cc2e23d1e"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "симуляция электромобилей",
+    "v1_groups": [
+     "bgrp-40ca3280af"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-42487edaf2": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-486623d8b89b4ad4",
+    "obs-5021fe98a6e0d6b0",
+    "obs-5196465242308db1",
+    "obs-7863ac1b7e19c0ed",
+    "obs-931ea0d8b235efb9",
+    "obs-a4300655770acc59"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.6,
+    "rationale": "отчёт о разработке учебно-прикладной системы на ESP32, не рыночный сдвиг",
+    "v1_groups": [
+     "bgrp-42487edaf2"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-42c8376685": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-15f97cde10b33cf0",
+    "obs-3f23d6e911921472",
+    "obs-537960dbcbec5a41",
+    "obs-5e960b73f00e795a",
+    "obs-70e9f54b1bb7c438",
+    "obs-bb4301d9c4fa0c20",
+    "obs-d90040b96e373035"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "рабочие группы CoSAI/OASIS по безопасности цепочки поставок ИИ — ранняя отраслевая практика",
+    "v1_groups": [
+     "bgrp-42c8376685"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-4350c07601": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-13fac0f85158abb7"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.8,
+    "rationale": "инженерия бактериальной целлюлозы и мицелия методами синтетической биологии",
+    "v1_groups": [
+     "bgrp-4350c07601"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-43a1c347d3": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-511ae8380949155b",
+    "obs-847572dc84f58598",
+    "obs-a741f07af5ee26c8"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "учебные репозитории UAV-edge",
+    "v1_groups": [
+     "bgrp-43a1c347d3"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-43d7ec7b0c": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-47e7e0ae4f27fa31",
+    "obs-e7942135f6822b30"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "препринт Zenodo о психологических рисках и статья о GDPR",
+    "v1_groups": [
+     "bgrp-43d7ec7b0c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-43f90fada7": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-a457af70f658c10e"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "учёт расходных материалов офисной техники — вне темы",
+    "v1_groups": [
+     "bgrp-43f90fada7"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-44b0ae5c83": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-a9c076db2d2eaec3"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-45bb7d4933": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-854e1c791190a104"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "нанокомпозиты без синтетической биологии",
+    "v1_groups": [
+     "bgrp-45bb7d4933"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-46334451be": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-14ff6117dcb93c75"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-46b8f7e990": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-264a22840e485562",
+    "obs-60225bef6c5f2a39",
+    "obs-67225d44e220613a",
+    "obs-7360e798d538165d",
+    "obs-92a0032ba3ee995f",
+    "obs-b26aad2850877129",
+    "obs-fb81b70187e3b1fa"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "общее понятие LLM, несвязный кластер",
+    "v1_groups": [
+     "bgrp-46b8f7e990"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-4898de48ab": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-e889065757fe1546"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "LLM для химии",
+    "v1_groups": [
+     "bgrp-4898de48ab"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-490a62316d": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-78bcef577437cc44"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-4bf425c1d3": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-4b79236a06ea974b",
+    "obs-8be206f823debd2f",
+    "obs-f9cdf6975daab88d"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзор ИИ в цифровой трансформации промышленности",
+    "v1_groups": [
+     "bgrp-4bf425c1d3"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-4c02d71a5c": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-bf8c5104b10f49d9"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-4ceabf00b7": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-213b246b86accffb",
+    "obs-87ec4e4988de76d7"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "цифровой двойник SOH батарей LFP: один личный репозиторий и нерелевантная статья",
+    "v1_groups": [
+     "bgrp-4ceabf00b7"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-4e9bfca45c": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-38e6732393007535",
+    "obs-3c6c6ceb72990045",
+    "obs-5f555369fecdefb5",
+    "obs-855ae6cefe06c285",
+    "obs-a6794f6eca2cda28",
+    "obs-a90db37c61fcb16a",
+    "obs-e53d50a31750386e"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-4e9bfca45c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-504a204349": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-5d382cddbd777a05",
+    "obs-649946e6997b40c2"
+   ],
+   "runs": [
+    "20260925-001736",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-50d93f025e": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-64c140cec4d2623d",
+    "obs-f39eeb82e25c50a9"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "многоуровневый цифровой двойник конструкций, связь с энергетикой не показана",
+    "v1_groups": [
+     "bgrp-50d93f025e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-515e838f22": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-8d2953d9c728e588"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-5381621002": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-650b5b113f3832f2",
+    "obs-8dc49a2c6b72c7d6"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "цифровые двойники для вероятностного прогноза нагрузки энергосистем",
+    "v1_groups": [
+     "bgrp-5381621002"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-53c88fbe9c": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-058af1d9f24e6fb9"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзоры Индустрии 4.0",
+    "v1_groups": [
+     "bgrp-53c88fbe9c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-570d1d69c3": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-0b54912046929929",
+    "obs-72053858242adeff",
+    "obs-896e7003465c9e7b",
+    "obs-e381ec19fd0f3f23"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "общие статьи Хабра об ИИ",
+    "v1_groups": [
+     "bgrp-570d1d69c3"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-58d54203ef": {
+   "origin": "live",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "obs-d5988055b1e52d73"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "переработка Li-ion, не твердотельные",
+    "v1_groups": [
+     "bgrp-58d54203ef"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-596fa3011d": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-3cf4d1a830309a49",
+    "obs-6aa44cafdb7977af",
+    "obs-94e84d2bff956465"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "доверенный ИИ — общее понятие",
+    "v1_groups": [
+     "bgrp-a01181fe47"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-5a5f1f8266": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-2edc124df6ac0ea6",
+    "obs-312dd5972133609a",
+    "obs-5ca007780eef62fd",
+    "obs-652192f7e620976a",
+    "obs-6ce80df81c030675",
+    "obs-7e6fb58ff84aa708",
+    "obs-ef1ee9c409623eaf"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.7,
+    "rationale": "ИИ для кибербезопасности (IDS), а не защита систем ИИ — лексически близкая другая тема",
+    "v1_groups": [
+     "bgrp-5a5f1f8266"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-5adcf65816": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-f9b1103c93d620fa"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-5dbaf2aeac": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-101961c2ee6270ea"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-608a25541f": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-63cd13aec3857ebc"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "пересказ темы и учебный репозиторий",
+    "v1_groups": [
+     "bgrp-608a25541f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-6112c1c0fa": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-1eeb1f26d2903622",
+    "obs-205e4a77bffda5ff",
+    "obs-29d4aec40910bd6b",
+    "obs-2bb3f28ca5be5de9",
+    "obs-852b7ffe49d6d533",
+    "obs-8835588e6f4a36c9"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-6112c1c0fa"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-6155f8f042": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-971e602d608e5b28"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "аналитический обзор краевых вычислений в энергетике",
+    "v1_groups": [
+     "bgrp-6155f8f042"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-63082305bc": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-1be3dea066af0bce",
+    "obs-1d73826ef0ab0ec1",
+    "obs-25adfd173a9e0a0c",
+    "obs-4de903f7ac2f341f",
+    "obs-982f77ebc23f9c96",
+    "obs-9b1a00912bee6f36",
+    "obs-a25c74190e36f53e",
+    "obs-c18125fbf2d687f7",
+    "obs-d8af7606e36be288",
+    "obs-f31852784b9e2817"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.7,
+    "rationale": "MEC — стандартизированная парадигма ETSI, общее понятие темы",
+    "v1_groups": [
+     "bgrp-63082305bc"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-637d04b9cf": {
+   "origin": "live",
+   "topic": "NFT и метавселенная",
+   "members": [
+    "obs-9b94dc81fd12fd5c"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзоры перспектив метавселенной без конкретной технологии",
+    "v1_groups": [
+     "bgrp-637d04b9cf"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-6419edc66a": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-880987f243c3ef1e"
+   ],
+   "runs": [
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-641b9de87a": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-0f89fc25b389286f",
+    "obs-49f65ed1b430d6a6",
+    "obs-56708070ebf00d81",
+    "obs-9041ef1f44ea35af",
+    "obs-bcdffb7527ba3411",
+    "obs-cc1ea7fc4d48009f",
+    "obs-fa1e209cca61606f",
+    "obs-fcd705169d8d60a7"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "обнаружение оружия камерами — ИИ для физической охраны",
+    "v1_groups": [
+     "bgrp-641b9de87a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-64776ce65d": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-29095667e516fa8f",
+    "obs-2ab295b6dd5f6538",
+    "obs-4478fdf7e319c8b4",
+    "obs-4b68d21b8eb4672e",
+    "obs-7fb1cf8dc7bc453c",
+    "obs-9502d1b628d247dc",
+    "obs-9e6aa30d4bbecec1",
+    "obs-a1336c667b2e84ab"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзоры взаимодействия человека и ИИ и XAI",
+    "v1_groups": [
+     "bgrp-64776ce65d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-64f0968a27": {
+   "origin": "live",
+   "topic": "агророботы и точное земледелие",
+   "members": [
+    "obs-0978b65afae659b2"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-65f1d23e0d": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-38acd5b42e52a51b",
+    "obs-5b4647ced3834b6d",
+    "obs-ab8f7ef6b0d8890d"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории",
+    "v1_groups": [
+     "bgrp-65f1d23e0d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-65f6ebfde7": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-d3be4c259fcb82ed"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-66eb9b91a0": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-08abb56867b98d1f",
+    "obs-77bfa09c1d766c32",
+    "obs-d547a97ed00a1058"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "опыт внедрения ИИ-агентов без аспекта безопасности",
+    "v1_groups": [
+     "bgrp-66eb9b91a0"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-6c285d6409": {
+   "origin": "live",
+   "topic": "беспилотная доставка последней мили",
+   "members": [
+    "obs-472b9d2727201313"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "пересказ темы: обзоры автономной доставки без конкретного решения",
+    "v1_groups": [
+     "bgrp-6c285d6409"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-6cb37217f9": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-87a3b1e2b9d250e7"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-6d128033ec": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-1692a02bff50c6a0"
+   ],
+   "runs": [
+    "20260922-235409"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "фреймворки ИИ-агентов на Raspberry Pi 2 ГБ: агентный инференс на слабом edge-железе, ранняя стадия",
+    "v1_groups": [
+     "bgrp-6d128033ec"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-6e241b6858": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-28c34aa0c2f6da93"
+   ],
+   "runs": [
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-6e657bf18c": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-70a21249dac3d988",
+    "obs-8f0df03ffdeddc86",
+    "obs-be4e58a3f3ffe38d",
+    "obs-eddf6de4c79a9e9e"
+   ],
+   "runs": [
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-6f1844fb1b": {
+   "origin": "live",
+   "topic": "интерфейсы мозг-компьютер",
+   "members": [
+    "obs-c18a7a480ec93d1e"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-6f647fb6b0": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-76780e7d34b93c5c"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-7295bee77d": {
+   "origin": "live",
+   "topic": "зелёный водород для промышленности",
+   "members": [
+    "obs-6e510dea8181e63f"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "перспективы водородной энергетики по странам",
+    "v1_groups": [
+     "bgrp-7295bee77d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-72c55e7144": {
+   "origin": "live",
+   "topic": "беспилотная доставка последней мили",
+   "members": [
+    "obs-1eef37929cb9eac5"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.7,
+    "rationale": "GPT-4 и LLM для автопилота, не доставка последней мили",
+    "v1_groups": [
+     "bgrp-72c55e7144"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-72e88f8c70": {
+   "origin": "live",
+   "topic": "цифровой рубль и программируемые деньги",
+   "members": [
+    "obs-a43505d225b43db0"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "перспективы цифрового рубля — обзор",
+    "v1_groups": [
+     "bgrp-72e88f8c70"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-73e93b2f46": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-9a9c52f2f40e48de"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "цифровые технологии — общее понятие",
+    "v1_groups": [
+     "bgrp-73e93b2f46"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-743b32204e": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-5db9c6fa60260f15",
+    "obs-5f4aceb49bd381b2",
+    "obs-73a403b89504d073",
+    "obs-814f9f0dce5fb613",
+    "obs-aa0151f534eefb60",
+    "obs-bd4dabb4364aa5b8",
+    "obs-dd4a5b266e9dfc57"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "политика развития ИИ в России",
+    "v1_groups": [
+     "bgrp-743b32204e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-760df3fa2d": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-3a1ab8b9b019f016",
+    "obs-5496aac979ef9b4f",
+    "obs-9e7a221e6f7e3a01",
+    "obs-c3986918ca215149",
+    "obs-ef8bfa991cb52085"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "инструмент тестирования утечки системного промпта от стартапа ИИ-red-teaming",
+    "v1_groups": [
+     "bgrp-760df3fa2d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-77dfaad589": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-10fdb291abc37b69",
+    "obs-505f32ac256609b3",
+    "obs-a59826e7d548912b"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.5,
+    "rationale": "слои надзора и песочницы для автономных персональных ИИ-агентов, ранние проекты",
+    "v1_groups": [
+     "bgrp-77dfaad589"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-789403f054": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-35204be581580076",
+    "obs-767101d8667525e8",
+    "obs-8a12604cc3ae119d",
+    "obs-b7b3f659ec28e2ee",
+    "obs-c20ff44474ca3ceb",
+    "obs-d71d256fab534095",
+    "obs-de8d438e8d470999"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные репозитории",
+    "v1_groups": [
+     "bgrp-789403f054"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-79a5328da7": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-7a628fc55db31364",
+    "obs-a0db5f2569847539",
+    "obs-b3b1d012e35e9a63"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260923-171322"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "пересказ темы индустриального ИИ",
+    "v1_groups": [
+     "bgrp-79a5328da7"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-79ab29e01c": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-bcc78d507126f389"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-7be08f1280": {
+   "origin": "live",
+   "topic": "NFT и метавселенная",
+   "members": [
+    "obs-aa857d0c98227fa0"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "смешанный кластер: потребительская ценность NFT и одно конкретное применение (права на цифровые двойники)",
+    "v1_groups": [
+     "bgrp-7be08f1280"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-7bec2db951": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-26c05e7031a0defa",
+    "obs-2e2877d9d60ab507",
+    "obs-66fccb1ce6448bef",
+    "obs-9249b47ae3544eec",
+    "obs-ba16ab401d65051a",
+    "obs-bfda570c21990b2f",
+    "obs-ed034f79e5ec3724"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.9,
+    "rationale": "спекулятивные препринты Zenodo",
+    "v1_groups": [
+     "bgrp-7bec2db951"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-7ccb4079ee": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-298666c77985ec73",
+    "obs-48a3a9d4d7e287f3",
+    "obs-a8e1be5d534b0fd6",
+    "obs-d29fd8f9132b1e51",
+    "obs-e8a40ec366d83d23",
+    "obs-eb319916f6f24998",
+    "obs-eff49694d4a3757a"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории смарт-контрактов",
+    "v1_groups": [
+     "bgrp-7ccb4079ee"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-7d8fd209d1": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-8e54d1068522c576"
+   ],
+   "runs": [
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-7dee8a2f6b": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-8c3944431398c9ce"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-7e277d223d": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-ca0a60c07bce2754"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-7fc6e6a377": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-a8edd41c68493a52"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "обзоры биоразлагаемых полимеров",
+    "v1_groups": [
+     "bgrp-7fc6e6a377"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-80d4b7b40d": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-e091fd39c84517e3"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-816fd2bf17": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-e1f80d9ec8d7049e"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-82b43d123c": {
+   "origin": "live",
+   "topic": "натрий-ионные аккумуляторы",
+   "members": [
+    "obs-4158f5b6a1e74232"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-8510164080": {
+   "origin": "live",
+   "topic": "облачные вычисления",
+   "members": [
+    "obs-4d03bf8b48b1d913"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.8,
+    "rationale": "cloud native — зрелая практика",
+    "v1_groups": [
+     "bgrp-8510164080"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-8536b156cb": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-5abaef1b21928f5d"
+   ],
+   "runs": [
+    "20260923-171322"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "управленческие исследования трансформации",
+    "v1_groups": [
+     "bgrp-8536b156cb"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-85bc1cc614": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-d80b06ba190aa9a7"
+   ],
+   "runs": [
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-86f04d5424": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-136539999d89ed26"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "социальные эффекты LLM",
+    "v1_groups": [
+     "bgrp-86f04d5424"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-8951ff0829": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-03e315b115f714c7",
+    "obs-25444e12d7641cf2",
+    "obs-415c7138efe907bb",
+    "obs-49a88762ba985e9b",
+    "obs-52b628727ba1f387",
+    "obs-6a4b9b0b906330b3",
+    "obs-7131ed507ef23ca4",
+    "obs-b63b3a01727b57be",
+    "obs-ebb99a85d0b2f366",
+    "obs-f3e2875ddc99600b",
+    "obs-fc7a12e47c80dc8a"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.7,
+    "rationale": "эконометрика связей криптоактивов",
+    "v1_groups": [
+     "bgrp-8951ff0829"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-899b39f756": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-1694024dca893fb3",
+    "obs-493a9ae7469b5968",
+    "obs-849594cff0351246",
+    "obs-bee50447c8e0d82e",
+    "obs-d4660562c711783b",
+    "obs-d8e9eddc2e8cfeed"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "инструменты пентеста MCP-серверов — ранняя практика безопасности агентов",
+    "v1_groups": [
+     "bgrp-899b39f756"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-89cef6215f": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-ca006db119ff6961"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории видеоанализа",
+    "v1_groups": [
+     "bgrp-89cef6215f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-89efb869d3": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-1fc2c75fdacc999e"
+   ],
+   "runs": [
+    "20260923-171322"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "статьи про агентов и промпты, не инфраструктура",
+    "v1_groups": [
+     "bgrp-89efb869d3"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-8a283d743f": {
+   "origin": "live",
+   "topic": "генная терапия на основе CRISPR",
+   "members": [
+    "obs-58c3a943a30a9993"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-8b02725e4a": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-3960902be2f38f5f"
+   ],
+   "runs": [
+    "20260923-171322"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "мультимодальное восприятие и интеллект мягких роботов — ранние исследования",
+    "v1_groups": [
+     "bgrp-8b02725e4a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-8b9af9cb9b": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-031b208dc762fe05"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.6,
+    "rationale": "личные репозитории голосовых ассистентов",
+    "v1_groups": [
+     "bgrp-8b9af9cb9b"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-8baf0bff6b": {
+   "origin": "live",
+   "topic": "натрий-ионные аккумуляторы",
+   "members": [
+    "obs-99f951a214116ccf"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-8c4ed12dce": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-847c17c9db03381d"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9139a3146a": {
+   "origin": "live",
+   "topic": "постквантовая криптография",
+   "members": [
+    "obs-004dcbc202d5af0b"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-91e8e77b74": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-7391ea4e0bd99e56"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-922fc16b00": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-05ecb6eacb8adeae"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9301e5b7f2": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-f769fabe4486b75c"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-95f0fcad2c": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-3011a39950934dce",
+    "obs-b75cf22fa393cb5a",
+    "obs-eb492197ed9716a4"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории Solana",
+    "v1_groups": [
+     "bgrp-95f0fcad2c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-962cb43279": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-f27838bac55e1950"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзор цифровизации электроэнергетики",
+    "v1_groups": [
+     "bgrp-962cb43279"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-97404a2790": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-4807cf83fd88b33e",
+    "obs-5d2fe9ab28f362d8",
+    "obs-717405f130c13e2d",
+    "obs-7fe69bbb3cfb8eeb",
+    "obs-8cbf5ea0fcaf7e1a",
+    "obs-a97acfb529caccac",
+    "obs-fd51de613369f6a6"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "учебный репозиторий по проектированию систем",
+    "v1_groups": [
+     "bgrp-97404a2790"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-99ad3edd99": {
+   "origin": "live",
+   "topic": "агророботы и точное земледелие",
+   "members": [
+    "obs-5d160563486224a9"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9a30152b77": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-d9ba95118530b04c"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "микропластик — вне темы",
+    "v1_groups": [
+     "bgrp-9a30152b77"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-9b67db9965": {
+   "origin": "live",
+   "topic": "вертикальные фермы и агротехнологии",
+   "members": [
+    "obs-ac07d2b7d56e021a"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "компьютерное зрение в сельском хозяйстве — общее понятие, обзоры",
+    "v1_groups": [
+     "bgrp-9b67db9965"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-9c2b24733c": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-270c1efc23b55a2d"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9ccfc08508": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-191931cc8255d493"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9eab697202": {
+   "origin": "live",
+   "topic": "умные электросети и виртуальные электростанции",
+   "members": [
+    "obs-815854be8afd473d"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9efd32108f": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-05f2ac0ae157503f",
+    "obs-365d186d0717a282",
+    "obs-50904f46482f231c",
+    "obs-5c71e6eee20fb7e9",
+    "obs-7f0fd360cce8aada",
+    "obs-8d3218ff802f7a55",
+    "obs-be577b43abb8fd46",
+    "obs-c8069d156f1634eb"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.6,
+    "rationale": "CNN-IDS для IIoT — рутинное направление исследований",
+    "v1_groups": [
+     "bgrp-9efd32108f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-9f1c5ced83": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-31ec2ea2f02dc8c1",
+    "obs-80fd6e0842cd0aba",
+    "obs-a06ba2e62bd92481",
+    "obs-b1405cfeeb7b7be9",
+    "obs-be5f886b6dcd210f",
+    "obs-c25fe2198fecf413",
+    "obs-f9a8eb808ced1db4"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "хакатонные и личные репозитории",
+    "v1_groups": [
+     "bgrp-9f1c5ced83"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-9f4bb384b6": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-fb528ce7de87bc56"
+   ],
+   "runs": [
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-9f53ee401f": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-03bfbbaaf76ceaf8",
+    "obs-0b104e5565206e17",
+    "obs-28ace0847ebb53ae",
+    "obs-5f29606d93552fc3",
+    "obs-984e7a229c96ca87"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-221153",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "обзоры ИИ в медицине",
+    "v1_groups": [
+     "bgrp-9f53ee401f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-9faf2408b8": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-a4a9f93b9698a685"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "федеративное few-shot обучение языковых моделей на мобильных устройствах",
+    "v1_groups": [
+     "bgrp-9faf2408b8"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-a0ef360a9a": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-06b6ef99cd2c9a26",
+    "obs-6a353dd363f372f5",
+    "obs-725249f2192568b8",
+    "obs-cb58337d00859dec"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "Vehicular Edge Computing — исследовательская область; обзор и одна статья, стадию оценить нельзя",
+    "v1_groups": [
+     "bgrp-a0ef360a9a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-a14bf1b39b": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-005db0e7811e7884",
+    "obs-2313a329076d08f0",
+    "obs-26a1f70e96fbb7b0",
+    "obs-98b2a631fd610e6c",
+    "obs-aab46fa7e5d07462",
+    "obs-dbc2fd192510bfcd"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "обзоры федеративного обучения на блокчейне",
+    "v1_groups": [
+     "bgrp-e0facad205"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-a286316093": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-2b84d357ccda13df"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-a2a54dab78": {
+   "origin": "live",
+   "topic": "беспилотные грузовые автомобили",
+   "members": [
+    "obs-5b88f60379b79efc"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-a32ab4ff87": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-eef7c79e40ad01b3"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-a6e5bacba7": {
+   "origin": "live",
+   "topic": "облачные вычисления",
+   "members": [
+    "obs-08b202e28d5daad5"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "континуум облако–периферия–IoT: новая исследовательская рамка, свидетельства — обзоры",
+    "v1_groups": [
+     "bgrp-a6e5bacba7"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-a7ea4f7665": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-799f3cdaff22e135",
+    "obs-c157a28881806f06"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "ИИ в кибербезопасности, не защита систем ИИ",
+    "v1_groups": [
+     "bgrp-a7ea4f7665"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-a9224dee50": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-585f4aa5085508ec"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-a92b208b7d": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-6c28efde7c346af6"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-ac74dc8a33": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-e0483cb91f0e0683"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-aceb63cd16": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-2c9bbbf35d387943"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-af728ee8ec": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-aca2909bc08123e5"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-b07e5e6314": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-1b2c2a9d93430e79",
+    "obs-6535a372225650ca",
+    "obs-af9149dd57917d25",
+    "obs-d9f6a6c8198a5b26",
+    "obs-e0ed60d7a31253a6",
+    "obs-faff929ac2455295"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "несвязный кластер препринтов Zenodo низкого качества",
+    "v1_groups": [
+     "bgrp-b07e5e6314"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b09841a9db": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-22a17a6f948941fc"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-b0ad826018": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-09c05b757b58d9ab",
+    "obs-274b75183f336df7",
+    "obs-7d49fee589aad6f2",
+    "obs-a4ad88ad30ef6cff",
+    "obs-a53ef7cb5393af90",
+    "obs-b7ce430271e05bd8",
+    "obs-cce3a970e0bf3ea6"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные проекты",
+    "v1_groups": [
+     "bgrp-b0ad826018"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b418e8e16f": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-9735e3b77b127b36"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-b4a8fded69": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-0132ff3abf59d5d5",
+    "obs-46c164be3acf4c74",
+    "obs-4abd0d9050939ab5",
+    "obs-5851c31832fd624d",
+    "obs-61db72e20823ac77",
+    "obs-6ad9d8d23c0e8526",
+    "obs-7da9515291032e6c",
+    "obs-8526626181f2e9f8",
+    "obs-caf81e253b878624",
+    "obs-d15d5dabff9ef3fa",
+    "obs-fa0edd7df41ea500",
+    "obs-fd8e04ec07f7cee5",
+    "obs-feb47de884549890"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "RAG и мультимодальная инспекция на производстве: явление раннее, подтверждение только личными репозиториями",
+    "v1_groups": [
+     "bgrp-b4a8fded69"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-b51a3f6024": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-8e1caf08407ba969"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-b59f299bb0": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-373f9b2fec330e1d",
+    "obs-3778fc24ff8cd238",
+    "obs-4d6e36e394afb3e7",
+    "obs-6ff65700a2857f19",
+    "obs-71db4387c73da817",
+    "obs-861cc12b58a5ce5a",
+    "obs-a50e8ae60731c6bd",
+    "obs-bf1cbbf0a722e2dd",
+    "obs-ced558506a56be33",
+    "obs-e17e1b726c95bb2e",
+    "obs-f2948a968fe4ea2a"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.6,
+    "rationale": "прогноз цены криптовалют ML — рутинная тема",
+    "v1_groups": [
+     "bgrp-b59f299bb0"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b66c3dfc04": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-05411cfc5411d4c7",
+    "obs-1dbe22234c29c86a",
+    "obs-2576172dfb4fb13f",
+    "obs-4edf184ac9492bca",
+    "obs-55a1e7e87abd5893",
+    "obs-5f4d5cc8d44bff3b",
+    "obs-7d64d4189e25b083",
+    "obs-8a6910a6c7d5e873",
+    "obs-9918323cac768e35",
+    "obs-a2622fb96661ed5f",
+    "obs-ad998f3ed0da8de8",
+    "obs-ba344b20ef0b6d51",
+    "obs-d2f0f4c4a80d41e9"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзор катастрофических рисков ИИ | регулирование ИИ — политика",
+    "v1_groups": [
+     "bgrp-9c823ed0e1",
+     "bgrp-b66c3dfc04"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b78e2aa68f": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-0384c994f4cca1be",
+    "obs-074708351257f133",
+    "obs-0b4777f35066786d",
+    "obs-2e035436d00e26a4",
+    "obs-887cf4a24bba9723",
+    "obs-8e168f7ba280fd0f",
+    "obs-940178b848012bf1",
+    "obs-b421e72d82380f9c",
+    "obs-b6a2242bf9a7ef66",
+    "obs-b920b07c5054783f",
+    "obs-d434ae44eb386136"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "no-code платформа ИИ для промышленности из препринта Zenodo, подтверждений нет",
+    "v1_groups": [
+     "bgrp-b78e2aa68f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-b802395636": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-cb3d905bf4f981bf"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "общее понятие малых языковых моделей и личные репозитории",
+    "v1_groups": [
+     "bgrp-b802395636"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b8e942a031": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-856425114bf7bed7"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "honeypot и СУБД из личных репозиториев, вне темы",
+    "v1_groups": [
+     "bgrp-b8e942a031"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-b8f969e315": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-26c1a6310dcd5140",
+    "obs-6dd88e73c4c09a34",
+    "obs-8bdb31d13d8920d8",
+    "obs-b9c7b9c18b29de99",
+    "obs-f1f04ad24092a3b1",
+    "obs-f8139ac4020daca3",
+    "obs-fe7d56e67b5e4b5f"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "статьи о кодовых агентах, не робототехника",
+    "v1_groups": [
+     "bgrp-b8f969e315"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-ba4388c240": {
+   "origin": "live",
+   "topic": "цифровые двойники в энергетике",
+   "members": [
+    "obs-e7c846c49e380a9f"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "пересказ темы",
+    "v1_groups": [
+     "bgrp-ba4388c240"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-bb9e65d4b2": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-992351c4a694a125"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "микросервисные V2X с edge: неясно, новое ли это явление",
+    "v1_groups": [
+     "bgrp-bb9e65d4b2"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-bd13bc0245": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-c064b80a33c5d3bf"
+   ],
+   "runs": [
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-be0c52f908": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-81c71d0e86767c65"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-beb5501b2c": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-5008418b48c46464"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-beb6e8d457": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-3e5f0cea0379c6ac",
+    "obs-442a2088d5a6dbc7",
+    "obs-52185f6b9e7d105f"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "псевдотехнические препринты Zenodo",
+    "v1_groups": [
+     "bgrp-beb6e8d457"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-bf7c7f18ee": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-803aca2405eba72a"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-c11945ae28": {
+   "origin": "live",
+   "topic": "ИИ-агенты для разработки программного обеспечения",
+   "members": [
+    "obs-19a4f32b8ebc15df"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.8,
+    "rationale": "общие тексты об ИИ в разных отраслях",
+    "v1_groups": [
+     "bgrp-c11945ae28"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-c1485cd78d": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-00e0447145c11caa",
+    "obs-c22f66b3d741ada5"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "квантовые сенсорные сети и метрология вращений — раннее направление для навигации",
+    "v1_groups": [
+     "bgrp-080916fed5"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-c1c4ea653c": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-220a691e10b9478a",
+    "obs-723e1b3fcd8e0ee7",
+    "obs-7e1b60dac639cce9",
+    "obs-8ba69970011dd336",
+    "obs-92715bdc93237308",
+    "obs-9600a80dcc1a1fc7",
+    "obs-d13a05ea6685c5e5"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории edge-проектов",
+    "v1_groups": [
+     "bgrp-c1c4ea653c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-c535890e05": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-83ba655d841efe31",
+    "obs-c938990c22c1bb43"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "Индустрия 5.0 — политическая концепция",
+    "v1_groups": [
+     "bgrp-c535890e05"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-c734f4c8bd": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-0340c5ca8213ea63",
+    "obs-312fcd8ba6c804e8",
+    "obs-95190dc996596137",
+    "obs-b79d947bc6a9d5b6",
+    "obs-f56343825498c9b5"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.8,
+    "rationale": "умный дом",
+    "v1_groups": [
+     "bgrp-c734f4c8bd"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-c85efd7518": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-65274e379f7af5c5"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "лазеры и гребёнки малых габаритов для полевых квантовых сенсоров и атомных часов",
+    "v1_groups": [
+     "bgrp-c85efd7518"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-c87d35991e": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-200a8213bdbaab4e",
+    "obs-53a70fcf3c19dcd1",
+    "obs-97e7429ca2fd3621",
+    "obs-a24b928562fb46da",
+    "obs-cccba1dc05d189f9",
+    "obs-d45842d27b50576b"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзор LLM в финансах",
+    "v1_groups": [
+     "bgrp-c87d35991e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-c9b1ecfc80": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-b837546b43f556b2"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-ca1db674c1": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-154889bc842229cd",
+    "obs-98229fad67e15c75",
+    "obs-f57cd46faef8c229",
+    "obs-fd390af6ef5fa6a2"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "препринты Zenodo о фишинге с ИИ низкого качества",
+    "v1_groups": [
+     "bgrp-ca1db674c1"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-cb6bc0c781": {
+   "origin": "live",
+   "topic": "гибкая и печатная электроника",
+   "members": [
+    "obs-7890add983a8ad54"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-cbbc3685a4": {
+   "origin": "live",
+   "topic": "NFT и метавселенная",
+   "members": [
+    "obs-d167fe386346eaab"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "конкретное направление: zero-trust/беспарольная аутентификация и защищённая семантическая связь в метавселенной, исследовательская стадия",
+    "v1_groups": [
+     "bgrp-cbbc3685a4"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-cc6010878c": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-271d5f37a0758b2f",
+    "obs-43ad154b37890c19",
+    "obs-54f3abb8480c480f",
+    "obs-5d8c88bcd5204680",
+    "obs-68aa78a7069a0b8c",
+    "obs-7fe2a0952a6adb37",
+    "obs-9bf62b038495d4a4"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "zero trust на периферии сети медицинского IoT: конкретное раннее направление",
+    "v1_groups": [
+     "bgrp-cc6010878c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-ccf253360d": {
+   "origin": "live",
+   "topic": "облачные вычисления",
+   "members": [
+    "obs-c9c121adbad4cbb3"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.7,
+    "rationale": "RNN для прогнозирования трафика — рутинное направление",
+    "v1_groups": [
+     "bgrp-ccf253360d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-cf1df6efda": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-b250b2fe3aea4c4d"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-cf9d3b1748": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-acfae276c33da656"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d05728c9f0": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-10068bea48345b65"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d25384bf53": {
+   "origin": "live",
+   "topic": "зелёный водород для промышленности",
+   "members": [
+    "obs-9fdbd778c1849408"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.7,
+    "rationale": "модели энергосистем с водородом, без конкретной технологии",
+    "v1_groups": [
+     "bgrp-d25384bf53"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-d2951c0126": {
+   "origin": "live",
+   "topic": "генная терапия на основе CRISPR",
+   "members": [
+    "obs-97ccad79c774c1ff"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d72bb7d10e": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-00abfbec07651b23",
+    "obs-11aa982ad8977907",
+    "obs-8b4b917fe9b27bbb",
+    "obs-9085a49e807fdefc",
+    "obs-ac3e0530a1d96363",
+    "obs-b9baf30dfe845278",
+    "obs-da98342c0857ab01"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260925-001736",
+    "20260925-003600",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "перспективы финтеха — обзор",
+    "v1_groups": [
+     "bgrp-d72bb7d10e"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-d8717afe9c": {
+   "origin": "live",
+   "topic": "перовскитные солнечные элементы",
+   "members": [
+    "obs-a380d810ec95d26b"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d8c8de6773": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-7e12d7e3453b8534"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d8d8f40789": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-f2715f3ca7aabf90"
+   ],
+   "runs": [
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-d90d98702c": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-398ec44ac06a35ad"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "личные репозитории bug bounty",
+    "v1_groups": [
+     "bgrp-d90d98702c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-db45a6c296": {
+   "origin": "live",
+   "topic": "малые модульные ядерные реакторы",
+   "members": [
+    "obs-455cc9912cf393a4"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-dc1d2517ab": {
+   "origin": "live",
+   "topic": "постквантовая криптография",
+   "members": [
+    "obs-dcc63273de7b931e"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-dca96d5d6a": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-350d176d74d10848"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.7,
+    "rationale": "учебные материалы по ISO 42001 в личных репозиториях",
+    "v1_groups": [
+     "bgrp-dca96d5d6a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-dd35fab0e5": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-481ead934cdd38b9",
+    "obs-d41a5cd9f5af672f",
+    "obs-f24c4c1c0b7d2267"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "управленческие статьи",
+    "v1_groups": [
+     "bgrp-dd35fab0e5"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-deb3b1f00f": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-b05168b581d418e6",
+    "obs-db022a085815166b"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260925-003600"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "обучение на устройстве (TinyTrain) и сжатие со смешанной точностью для edge",
+    "v1_groups": [
+     "bgrp-deb3b1f00f"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-e112e8ebfb": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-63bce90db152f06b"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "алгоритм оптимизации",
+    "v1_groups": [
+     "bgrp-e112e8ebfb"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-e2d2fed275": {
+   "origin": "live",
+   "topic": "индустриальный искусственный интеллект на производстве",
+   "members": [
+    "obs-10df205b241dbb9d",
+    "obs-326a754ff12f6f09",
+    "obs-3847379753fa092a",
+    "obs-c64a1e93139e086a",
+    "obs-dde0ddd1a3415007",
+    "obs-e2fda09a0948eed7",
+    "obs-fe65c453bea9c51e"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные и демонстрационные репозитории",
+    "v1_groups": [
+     "bgrp-e2d2fed275"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-e45bd78801": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-383adb1dc72774be"
+   ],
+   "runs": [
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-e4e43555f0": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-109af874e1773c26",
+    "obs-251f467a25e9eb0f",
+    "obs-2e3ba34551847e72",
+    "obs-41def58dd6c135c7",
+    "obs-4c7d66c6c6f90444",
+    "obs-6e9e767debf27877",
+    "obs-f348f510e6ce2c2f"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории защиты от DDoS",
+    "v1_groups": [
+     "bgrp-e4e43555f0"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-e6850fb6ba": {
+   "origin": "live",
+   "topic": "улавливание и хранение углерода",
+   "members": [
+    "obs-ad521be91aa06598"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-e6bddd6ce8": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-cf6e8c21214779ae"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-e700ffa557": {
+   "origin": "live",
+   "topic": "биопечать тканей и органов",
+   "members": [
+    "obs-81a0b80b58c8b3a0"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-e74641c9b4": {
+   "origin": "live",
+   "topic": "малые языковые модели на мобильных устройствах",
+   "members": [
+    "obs-554df9b7d86086dc"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.7,
+    "rationale": "малые модели для бизнеса, не мобильные устройства",
+    "v1_groups": [
+     "bgrp-e74641c9b4"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-e96ed3b81f": {
+   "origin": "live",
+   "topic": "твердотельные лидары",
+   "members": [
+    "obs-2f6f2f09620b7fb7"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-ea5dcdf7d5": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-52f7f9b9dd5e798d"
+   ],
+   "runs": [
+    "20260922-210344"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.9,
+    "rationale": "общее понятие ИИ",
+    "v1_groups": [
+     "bgrp-ea5dcdf7d5"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-ebf39dab0b": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-8f33caf039e9d55d"
+   ],
+   "runs": [
+    "20260922-103814"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.8,
+    "rationale": "архитектура 5G — зрелая тема",
+    "v1_groups": [
+     "bgrp-ebf39dab0b"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-ec3aae1463": {
+   "origin": "live",
+   "topic": "перспективные решения в финтехе",
+   "members": [
+    "obs-06c0684e2056cd05",
+    "obs-09d8e0c7e8bfd770",
+    "obs-0ea0c6dae74482fc",
+    "obs-68e286c57500fb14",
+    "obs-958e8dae60f798eb",
+    "obs-a655bd8158f20ead",
+    "obs-fa5ad36c2d54a8bc"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "учебные смарт-контракты",
+    "v1_groups": [
+     "bgrp-ec3aae1463"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-ec8598a8df": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-741c4ff53f8b7550"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-ecf499bc52": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-73a1bcf7a53b09dc"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-edf028044c": {
+   "origin": "live",
+   "topic": "метаматериалы и метаповерхности",
+   "members": [
+    "obs-f1e7d388fb9dc1ab"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-efdc454719": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-3faccddcbdc61ce5",
+    "obs-5006f2a00227092e",
+    "obs-b331235485d14d93",
+    "obs-e2bafa1f02ada9f5",
+    "obs-f39e21e315c95421",
+    "obs-f88b2e9519b6b86b"
+   ],
+   "runs": [
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "кооперативные периферийные вычисления для транспорта: академично, конкретика неясна",
+    "v1_groups": [
+     "bgrp-efdc454719"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-f00d7b5447": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-1e86ba9686bd46cb",
+    "obs-d9b9242578add411"
+   ],
+   "runs": [
+    "20260922-211240",
+    "20260922-232643"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "локальный корпоративный ИИ без выноса данных: явление правдоподобно, источники — мнения на Zenodo",
+    "v1_groups": [
+     "bgrp-f00d7b5447"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-f1a65d1ba7": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-035e9eea66de2aec",
+    "obs-081ed91879f1b30c",
+    "obs-140b28ae126907e7",
+    "obs-32dc3099743aca33",
+    "obs-685d089f3da7fa5f",
+    "obs-98a0e2da68024d56",
+    "obs-a03cb40b6d9a055f"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-NOI",
+    "confidence": 0.8,
+    "rationale": "личные репозитории безопасности",
+    "v1_groups": [
+     "bgrp-f1a65d1ba7"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-f1efea83e5": {
+   "origin": "live",
+   "topic": "ИИ-агенты для разработки программного обеспечения",
+   "members": [
+    "obs-ce137c677dc74567"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "многоагентные среды разработки ПО (ChatDev, OpenHands, детерминированное исполнение агентов)",
+    "v1_groups": [
+     "bgrp-f1efea83e5"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-f3f2c794f8": {
+   "origin": "live",
+   "topic": "edge-вычисления и периферийный инференс",
+   "members": [
+    "obs-090ef67003ad9577",
+    "obs-20d30101907d1d39",
+    "obs-3ff08755eacc5e08",
+    "obs-408d63f8e5d80730",
+    "obs-490abc1e85a4ab0f",
+    "obs-7445421f833a878b",
+    "obs-7810613acc6faa7e",
+    "obs-7c067b41b04b6728",
+    "obs-8f72494ef3763b26",
+    "obs-9ef6522b0279837b",
+    "obs-d1c8469cb57abf82",
+    "obs-dba995e3ee75575d"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "учебный курс и обзор edge AI для телекома",
+    "v1_groups": [
+     "bgrp-f3f2c794f8"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-f421e1d73e": {
+   "origin": "live",
+   "topic": "генная терапия на основе CRISPR",
+   "members": [
+    "obs-d7d72a87fa65ed4e",
+    "obs-fd1869663417a453"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-f483329619": {
+   "origin": "live",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "obs-0497b1d6fba002ab",
+    "obs-0a4aaa5d2cd98822",
+    "obs-3748e51ee02b6abd",
+    "obs-868f08668ad91977",
+    "obs-a4e146a51a836945",
+    "obs-c71848e91038cbff",
+    "obs-ce1c2f452186d9c0",
+    "obs-d15192682f10e731"
+   ],
+   "runs": [
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-003901",
+    "20260924-221153",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "правовые аспекты",
+    "v1_groups": [
+     "bgrp-f483329619"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-f50416324c": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-612b0aa8582fcaf7",
+    "obs-853f8abe55ea03b6",
+    "obs-8c7e501cebe870d8",
+    "obs-a3e3e49a3299b19f",
+    "obs-cbe591561af86f3b",
+    "obs-e03b1f34259ffab0",
+    "obs-fad62794d9099693"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OFF",
+    "confidence": 0.9,
+    "rationale": "генераторы счетов",
+    "v1_groups": [
+     "bgrp-f50416324c"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-f507d073ef": {
+   "origin": "live",
+   "topic": "нейроморфные процессоры",
+   "members": [
+    "obs-d6fe95255717d6f7"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-f5562eaf6d": {
+   "origin": "live",
+   "topic": "синтетическая биология в производстве материалов",
+   "members": [
+    "obs-784a1025e1c4a247"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "общее понятие LLM",
+    "v1_groups": [
+     "bgrp-f5562eaf6d"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-f82ab8e377": {
+   "origin": "live",
+   "topic": "перовскитные солнечные элементы",
+   "members": [
+    "obs-5e522011988863a7",
+    "obs-95c63f00be6fec92"
+   ],
+   "runs": [
+    "20260926-050648"
+   ],
+   "holdout": true,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-f969b5560b": {
+   "origin": "live",
+   "topic": "натрий-ионные аккумуляторы",
+   "members": [
+    "obs-4b9e4bf28a32a576"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-f98120790a": {
+   "origin": "live",
+   "topic": "защита и безопасность систем искусственного интеллекта",
+   "members": [
+    "obs-2d5eea4247f1bde2",
+    "obs-7ab9515fb1127afa",
+    "obs-91c3819d8ef84718",
+    "obs-be8273ee2d8d3253",
+    "obs-d0c9aa55b16be2c2",
+    "obs-e00b515be7dd3a0b",
+    "obs-e7fa505c97e1120e"
+   ],
+   "runs": [
+    "20260922-103814",
+    "20260922-211240",
+    "20260922-232643",
+    "20260922-235409",
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "песочницы исполнения для ИИ-агентов (TakoVM, agent_sandbox) — ранняя практика",
+    "v1_groups": [
+     "bgrp-f98120790a"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-fba341451e": {
+   "origin": "live",
+   "topic": "квантовые сенсоры для навигации",
+   "members": [
+    "obs-bb9b49dcfad8fa9e",
+    "obs-ce2d856ab0be3457"
+   ],
+   "runs": [
+    "20260924-035715",
+    "20260925-013609"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "квантовое оптическое зондирование — общее понятие без навигации",
+    "v1_groups": [
+     "bgrp-9c7b37e2c6"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-fbc9bb5c44": {
+   "origin": "live",
+   "topic": "фотонные вычисления",
+   "members": [
+    "obs-2ed5a8c3755709d7"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-fcd0dde903": {
+   "origin": "live",
+   "topic": "постквантовая криптография",
+   "members": [
+    "obs-cea8229ef7c38f7e"
+   ],
+   "runs": [
+    "20260926-053248"
+   ],
+   "holdout": false,
+   "silver": null,
+   "silver_conflict": [],
+   "required": true,
+   "queue": 1
+  },
+  "bgrp-fd4d15d193": {
+   "origin": "live",
+   "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+   "members": [
+    "obs-3d2eb8bf15545547",
+    "obs-47e710bdf9744734",
+    "obs-62f56e73b160c40c",
+    "obs-74dfa513422bfc4c",
+    "obs-9a9a7029dd5fbfeb",
+    "obs-cec9b80f87cd71aa",
+    "obs-f3349b606aad5d2e",
+    "obs-f55cc3b27f708227"
+   ],
+   "runs": [
+    "20260923-171322",
+    "20260923-232831",
+    "20260924-001616",
+    "20260924-221153",
+    "20260924-224235",
+    "20260925-001736",
+    "20260925-003600",
+    "20260926-014935"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.5,
+    "rationale": "ЦОД для ИИ с энергией из переработки отходов; в кластере также спекулятивные тексты",
+    "v1_groups": [
+     "bgrp-fd4d15d193"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-fd895f81d6": {
+   "origin": "live",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "obs-49c13a3fded0595b"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-GEN",
+    "confidence": 0.7,
+    "rationale": "пересказ темы без конкретной технологии",
+    "v1_groups": [
+     "bgrp-fd895f81d6"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bgrp-fdde33d6f8": {
+   "origin": "live",
+   "topic": "ИИ-агенты для разработки программного обеспечения",
+   "members": [
+    "obs-0588fd23c16099fc"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "смешанный кластер: аудит ИБ, экономика, агент инженерии требований",
+    "v1_groups": [
+     "bgrp-fdde33d6f8"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bgrp-ffb1f52312": {
+   "origin": "live",
+   "topic": "зелёный водород для промышленности",
+   "members": [
+    "obs-aa12d3e95c8634ee"
+   ],
+   "runs": [
+    "20260924-035715"
+   ],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзоры стоимости и состояния водородной отрасли",
+    "v1_groups": [
+     "bgrp-ffb1f52312"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-agility-spac-valuation": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-agility-spac-valuation"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-FUND",
+    "confidence": 0.6,
+    "rationale": "обычная сделка финансирования и масштабирования без нового явления",
+    "v1_groups": [
+     "bweb-agility-spac-valuation"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-assb-pilot-lines-oem-sampling": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-assb-pilot-lines-oem-sampling"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "пилотные линии и валидация образцов ячеек у автопроизводителей (QuantumScape Eagle Line, Nissan, Samsung SDI): стадия пилота",
+    "v1_groups": [
+     "bweb-assb-pilot-lines-oem-sampling"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bweb-chery-600whkg-claim": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-chery-600whkg-claim"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-HYP",
+    "confidence": 0.6,
+    "rationale": "демонстрационное заявление о рекордной плотности без независимого подтверждения",
+    "v1_groups": [
+     "bweb-chery-600whkg-claim"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-consumer-home-humanoids": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-consumer-home-humanoids"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "первые поставки гуманоидов в дома заявлены, подтверждение — один блог",
+    "v1_groups": [
+     "bweb-consumer-home-humanoids"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bweb-humanoid-airport-ground-handling": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-humanoid-airport-ground-handling"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.6,
+    "rationale": "пилот гуманоидов на наземном обслуживании в аэропорту (JAL, май 2026): нетривиальное применение на ранней стадии",
+    "v1_groups": [
+     "bweb-humanoid-airport-ground-handling"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bweb-humanoid-market-guides": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-humanoid-market-guides"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "обзоры рынка и списки моделей без конкретного нового явления",
+    "v1_groups": [
+     "bweb-humanoid-market-guides"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-optimus-million-units-claim": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-optimus-million-units-claim"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-HYP",
+    "confidence": 0.7,
+    "rationale": "прогнозные заявления о мощности 1 и 10 млн роботов в год без подтверждённых поставок — хайп",
+    "v1_groups": [
+     "bweb-optimus-million-units-claim"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-physical-ai-automotive-production-pilots": {
+   "origin": "web",
+   "topic": "робототехника и физический искусственный интеллект",
+   "members": [
+    "bweb-physical-ai-automotive-production-pilots"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "R",
+    "confidence": 0.7,
+    "rationale": "центр компетенций Physical AI в производстве и пилоты гуманоидов на линиях (BMW Лейпциг и Спартанбург): стадия пилота",
+    "v1_groups": [
+     "bweb-physical-ai-automotive-production-pilots"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bweb-semi-solid-production-cars": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-semi-solid-production-cars"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-MAT",
+    "confidence": 0.6,
+    "rationale": "полутвердотельные батареи уже в серийных автомобилях — не ранний сигнал",
+    "v1_groups": [
+     "bweb-semi-solid-production-cars"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-ssb-company-listicles": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-ssb-company-listicles"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "N-OVR",
+    "confidence": 0.8,
+    "rationale": "списки компаний и акций — обзор без нового явления",
+    "v1_groups": [
+     "bweb-ssb-company-listicles"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 2
+  },
+  "bweb-ssb-pack-assembly-equipment": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-ssb-pack-assembly-equipment"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "новые требования к сборке пакетов — правдоподобная зарождающаяся инфраструктура, источник — продавец оборудования",
+    "v1_groups": [
+     "bweb-ssb-pack-assembly-equipment"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  },
+  "bweb-ssb-robots-first-market": {
+   "origin": "web",
+   "topic": "твердотельные аккумуляторы для электротранспорта",
+   "members": [
+    "bweb-ssb-robots-first-market"
+   ],
+   "runs": [],
+   "holdout": false,
+   "silver": {
+    "code": "U",
+    "confidence": 0.5,
+    "rationale": "первым рынком твердотельных ячеек называют роботов и дроны, а не электромобили: технология та же, контекст темы другой",
+    "v1_groups": [
+     "bweb-ssb-robots-first-market"
+    ]
+   },
+   "silver_conflict": [],
+   "required": false,
+   "queue": 1
+  }
+ }
+}

@@ -1,59 +1,59 @@
 {
- "unlabeled": 81,
+ "unlabeled": 0,
  "by_run": {
   "20260924-224235": {
    "groups": 22,
-   "labeled": 0,
-   "R": 0,
-   "U": 0,
-   "precision": null,
+   "labeled": 19,
+   "R": 4,
+   "U": 3,
+   "precision": 0.211,
    "ci95": [
-    null,
-    null
+    0.085,
+    0.433
    ]
   },
   "20260924-230149": {
    "groups": 79,
-   "labeled": 0,
-   "R": 0,
-   "U": 0,
-   "precision": null,
+   "labeled": 74,
+   "R": 6,
+   "U": 5,
+   "precision": 0.081,
    "ci95": [
-    null,
-    null
+    0.038,
+    0.166
    ]
   },
   "в обоих (20260924-224235 и 20260924-230149)": {
    "groups": 20,
-   "labeled": 0,
-   "R": 0,
-   "U": 0,
-   "precision": null,
+   "labeled": 17,
+   "R": 2,
+   "U": 3,
+   "precision": 0.118,
    "ci95": [
-    null,
-    null
+    0.033,
+    0.343
    ]
   },
   "только в 20260924-224235": {
    "groups": 2,
-   "labeled": 0,
-   "R": 0,
+   "labeled": 2,
+   "R": 2,
    "U": 0,
-   "precision": null,
+   "precision": 1.0,
    "ci95": [
-    null,
-    null
+    0.342,
+    1.0
    ]
   },
   "только в 20260924-230149": {
    "groups": 59,
-   "labeled": 0,
-   "R": 0,
-   "U": 0,
-   "precision": null,
+   "labeled": 57,
+   "R": 4,
+   "U": 2,
+   "precision": 0.07,
    "ci95": [
-    null,
-    null
+    0.028,
+    0.167
    ]
   }
  },

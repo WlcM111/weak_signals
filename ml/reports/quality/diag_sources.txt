@@ -1,0 +1,11 @@
+arXiv (Mac): код 200, 0.884185 с
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/FaV/C29BbpE5kz3DJIxeZ8zhScc</id>
+  <title>arXiv Query: search_query=all:"quantum sensor"&a
+Semantic Scholar без ключа: код 429, 0.844456 с
+{"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+arXiv (контейнер collector): код 200 0.7 с
+обращений collector к GDELT за 15 минут: 0
+GDELT после паузы 120 с: код 429, 12.371246 с
+Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries. All high-traffic users should switch to our ngrams dataset: https://blog.gdeltproject.org/using-the
