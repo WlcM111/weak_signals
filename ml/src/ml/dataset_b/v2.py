@@ -45,6 +45,9 @@ MANIFEST_FILE = "manifest.json"
 EXPERT_SHEETS = ("expert1.csv", "expert2.csv")
 ARBITRATION_SHEET = "arbitration.csv"
 LABELS_FILE = "labels_v2.jsonl"
+# Silver-метки v2 (LLM-разметка по рубрике, без экспертов): закрывают группы без метки и могут заменить
+# перенесённую silver-метку v1; в holdout допускаются только явным флагом сборки --allow-silver-holdout.
+SILVER_FILE = "labels_v2_silver.jsonl"
 SHEET_FIELDS = ["group_id", "queue", "topic", "title", "cluster_title", "evidence", "urls", "label", "comment"]
 ARBITRATION_FIELDS = ["group_id", "topic", "title", "cluster_title", "evidence", "urls", "expert1_label",
                       "expert1_comment", "expert2_label", "expert2_comment", "label", "comment"]
@@ -158,7 +161,8 @@ def _paths(b_dir: Path) -> dict[str, Path]:
     v2 = Path(b_dir) / V2_DIR
     lab = v2 / LABELING_DIR
     return {"b": Path(b_dir), "v2": v2, "lab": lab, "manifest": lab / MANIFEST_FILE,
-            "labels": v2 / LABELS_FILE, "holdout": v2 / HOLDOUT_FILE, "extra": v2 / EXTRA_FILE}
+            "labels": v2 / LABELS_FILE, "holdout": v2 / HOLDOUT_FILE, "extra": v2 / EXTRA_FILE,
+            "silver": v2 / SILVER_FILE}
 
 
 def _read_topics(path: Path) -> list[str]:
@@ -480,11 +484,62 @@ def merge(b_dir: Path) -> dict[str, Any]:
             "labeled_by_one_expert_only_not_used": single, "required_still_missing": required_missing}
 
 
+def import_silver(b_dir: Path, sheet: Path) -> dict[str, Any]:
+    """Silver-метки v2 из листа (group_id, label, confidence, comment) → labels_v2_silver.jsonl.
+
+    Лист должен покрывать группы из manifest.json; коды — по рубрике LABELING_PROTOCOL.md, уверенность —
+    число от 0 до 1. Файл перезаписывается целиком: источник правды — лист.
+    """
+    paths = _paths(b_dir)
+    manifest = _load_manifest(paths)
+    known = set(manifest["groups"])
+    problems: list[str] = []
+    entries: dict[str, dict[str, Any]] = {}
+    for row in read_sheet(sheet):
+        gid = row.get("group_id", "")
+        if not gid:
+            continue
+        if gid not in known:
+            problems.append(f"{gid}: нет в manifest.json")
+            continue
+        code, _ = normalize_code(row.get("label", ""))
+        if code in (None, "?"):
+            problems.append(f"{gid}: неверный или пустой код «{row.get('label', '')}»")
+            continue
+        try:
+            confidence = float((row.get("confidence") or "").replace(",", "."))
+        except ValueError:
+            confidence = -1.0
+        if not 0.0 <= confidence <= 1.0:
+            problems.append(f"{gid}: уверенность «{row.get('confidence', '')}» не число от 0 до 1")
+            continue
+        if gid in entries:
+            problems.append(f"{gid} встречается дважды")
+            continue
+        entries[gid] = {"group_id": gid, "code": code, "confidence": confidence,
+                        "rationale": row.get("comment", "") or "silver-метка v2", "annotator": ANNOTATOR}
+    if problems:
+        return {"status": "problems", "problems": problems}
+    _write_jsonl(paths["silver"], [entries[g] for g in sorted(entries)])
+    expert = {row["group_id"] for row in _jsonl(paths["labels"])} if paths["labels"].is_file() else set()
+    covered = set(entries) | expert
+    return {"status": "ok", "silver_file": str(paths["silver"]), "labeled": len(entries),
+            "by_code": dict(sorted(Counter(e["code"] for e in entries.values()).items())),
+            "required_not_labeled": sorted(g for g, rec in manifest["groups"].items()
+                                           if rec["required"] and g not in covered),
+            "holdout_not_labeled": sorted(g for g, rec in manifest["groups"].items()
+                                          if rec["holdout"] and g not in covered)}
+
+
 # ---------------------------------------------------------------- сборка v2
 
 
-def build_v2(project_root: Path, b_dir: Path) -> dict[str, Any]:
-    """Датасет B v2 из прогонов manifest.json; файлы датасета пишутся только при отсутствии проблем."""
+def build_v2(project_root: Path, b_dir: Path, *, allow_silver_holdout: bool = False) -> dict[str, Any]:
+    """Датасет B v2 из прогонов manifest.json; файлы датасета пишутся только при отсутствии проблем.
+
+    allow_silver_holdout — группам holdout-тем достаточно silver-метки v2 (без экспертов); источник меток
+    holdout записывается в отчёт (holdout_label_sources).
+    """
     paths = _paths(b_dir)
     manifest = _load_manifest(paths)
     problems: list[str] = []
@@ -506,15 +561,18 @@ def build_v2(project_root: Path, b_dir: Path) -> dict[str, Any]:
     if set(groups) != live:
         raise DatasetV2Error("группы прогонов не совпадают с manifest.json: пересоберите выгрузку")
     expert = {row["group_id"]: row for row in _jsonl(paths["labels"])} if paths["labels"].is_file() else {}
+    silver = {row["group_id"]: row for row in _jsonl(paths["silver"])} if paths["silver"].is_file() else {}
+    origins: Counter = Counter()
     rows: list[dict[str, Any]] = []
     duplicates: list[dict[str, Any]] = []
     sources = Counter()
     for gid, members in sorted(groups.items()):
         rep = representative(members)
-        label = _resolve(gid, manifest["groups"][gid], expert, problems)
+        label = _resolve(gid, manifest["groups"][gid], expert, silver, problems, allow_silver_holdout)
         if label is None:
             continue
         sources[label["annotation_method"]] += 1
+        origins[label["origin"]] += 1
         row = _row(sample_id=f"b-{gid[5:]}", origin=f"live_runs_{rep['run_id'][:4]}_{rep['run_id'][4:6]}",
                    topic=rep["topic"], title=rep["title_auto"], evidence=rep["evidence"], code=label["code"],
                    confidence=label["confidence"], rationale=label["rationale"], counterevidence="",
@@ -527,10 +585,11 @@ def build_v2(project_root: Path, b_dir: Path) -> dict[str, Any]:
                            "representative": m["obs_id"] == rep["obs_id"]} for m in members)
     for web in _jsonl(paths["b"] / "web_observations_v1.jsonl"):
         gid = web["web_id"]
-        label = _resolve(gid, manifest["groups"][gid], expert, problems)
+        label = _resolve(gid, manifest["groups"][gid], expert, silver, problems, allow_silver_holdout)
         if label is None:
             continue
         sources[label["annotation_method"]] += 1
+        origins[label["origin"]] += 1
         row = _row(sample_id=f"b-{gid[5:]}", origin="web_search_2026_09_24", topic=web["topic"],
                    title=web["title"], evidence=web["evidence"], code=label["code"],
                    confidence=label["confidence"], rationale=label["rationale"],
@@ -554,6 +613,10 @@ def build_v2(project_root: Path, b_dir: Path) -> dict[str, Any]:
     if not any(r["label"] == 1 for r in supervised if r["split"] != "holdout"):
         problems.append("в dev нет ни одного позитива")
     report = _report_v2(rows, supervised, uncertain, problems, files, excluded, sources, holdout_topics)
+    report["label_origins"] = dict(sorted(origins.items()))
+    report["allow_silver_holdout"] = allow_silver_holdout
+    report["holdout_label_sources"] = dict(sorted(Counter(
+        f"{r['annotation_method']}:{r['annotator']}" for r in rows if r["split"] == "holdout").items()))
     paths["v2"].mkdir(parents=True, exist_ok=True)
     if not problems:
         _write_jsonl(paths["v2"] / "dataset_b_v2.jsonl", supervised)
@@ -576,25 +639,36 @@ def build_v2(project_root: Path, b_dir: Path) -> dict[str, Any]:
             "dataset_b_v2.jsonl", "dataset_b_v2_uncertain.jsonl", "splits_v2.json")}
     report["input_sha256"] = {e["name"]: e["sha256"] for e in manifest["run_files"]}
     report["input_sha256"][LABELS_FILE] = _sha_file(paths["labels"]) if paths["labels"].is_file() else None
+    report["input_sha256"][SILVER_FILE] = _sha_file(paths["silver"]) if paths["silver"].is_file() else None
     report["input_sha256"].update(manifest["v1_inputs"])
     (paths["v2"] / "validation_report_v2.json").write_text(_dump(report), encoding="utf-8")
     return report
 
 
 def _resolve(gid: str, record: dict[str, Any], expert: dict[str, dict[str, Any]],
-             problems: list[str]) -> dict[str, Any] | None:
-    """Метка группы: экспертная; иначе silver v1 (кроме holdout); иначе — проблема «нет метки»."""
+             silver_v2: dict[str, dict[str, Any]], problems: list[str],
+             allow_silver_holdout: bool) -> dict[str, Any] | None:
+    """Метка группы: экспертная; иначе silver v2 (в holdout — только с флагом); иначе silver v1 (кроме
+    holdout); иначе — проблема «нет метки»."""
     if gid in expert:
         entry = expert[gid]
         return {"code": entry["code"], "confidence": float(entry["confidence"]), "rationale": entry["rationale"],
-                "annotation_method": EXPERT_METHOD, "annotators": entry["annotators"], "review_status": "reviewed"}
+                "annotation_method": EXPERT_METHOD, "annotators": entry["annotators"], "review_status": "reviewed",
+                "origin": "expert"}
+    if gid in silver_v2 and (allow_silver_holdout or not record["holdout"]):
+        entry = silver_v2[gid]
+        return {"code": entry["code"], "confidence": float(entry["confidence"]), "rationale": entry["rationale"],
+                "annotation_method": SILVER_METHOD, "annotators": [entry.get("annotator", ANNOTATOR)],
+                "review_status": "pending_human_review", "origin": "silver_v2"}
     if record["holdout"]:
-        problems.append(f"{gid}: группа holdout-темы «{record['topic']}» без экспертной метки")
+        need = "экспертной метки" + ("" if allow_silver_holdout else " (silver v2 — только с --allow-silver-holdout)")
+        problems.append(f"{gid}: группа holdout-темы «{record['topic']}» без {need}")
         return None
     if record["silver"] is not None:
         silver = record["silver"]
         return {"code": silver["code"], "confidence": float(silver["confidence"]), "rationale": silver["rationale"],
-                "annotation_method": SILVER_METHOD, "annotators": [ANNOTATOR], "review_status": "pending_human_review"}
+                "annotation_method": SILVER_METHOD, "annotators": [ANNOTATOR], "review_status": "pending_human_review",
+                "origin": "silver_v1"}
     reason = f"silver-метки v1 расходятся {record['silver_conflict']}" if record["silver_conflict"] else "новая группа"
     problems.append(f"{gid}: нет экспертной метки ({reason}, тема «{record['topic']}»)")
     return None
@@ -745,7 +819,11 @@ def main(argv: list[str] | None = None) -> int:
     agr = sub.add_parser("agreement", help="каппа Коэна и лист арбитража")
     agr.add_argument("--force", action="store_true", help="перезаписать заполненный лист арбитража")
     sub.add_parser("merge", help="итоговые экспертные метки labels_v2.jsonl")
-    sub.add_parser("build", help="сборка датасета B v2")
+    silver = sub.add_parser("import-silver", help="silver-метки v2 из листа → labels_v2_silver.jsonl")
+    silver.add_argument("sheet", help="CSV с колонками group_id, label, confidence, comment")
+    build = sub.add_parser("build", help="сборка датасета B v2")
+    build.add_argument("--allow-silver-holdout", action="store_true",
+                       help="допустить silver-метки v2 в группах holdout-тем (без экспертов)")
     runs = sub.add_parser("export-runs", help="слепой лист выдачи нескольких прогонов для замера точности")
     runs.add_argument("--out", required=True, help="путь к CSV; рядом пишется .manifest.json")
     runs.add_argument("--force", action="store_true")
@@ -765,8 +843,10 @@ def main(argv: list[str] | None = None) -> int:
             result = agreement(b_dir, force=args.force)
         elif args.command == "merge":
             result = merge(b_dir)
+        elif args.command == "import-silver":
+            result = import_silver(b_dir, Path(args.sheet))
         elif args.command == "build":
-            result = build_v2(root, b_dir)
+            result = build_v2(root, b_dir, allow_silver_holdout=args.allow_silver_holdout)
         elif args.command == "export-runs":
             result = export_runs([Path(p) for p in args.runs], Path(args.out), force=args.force)
             result["status"] = "ok"

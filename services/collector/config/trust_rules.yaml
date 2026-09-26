@@ -16,6 +16,9 @@ source_defaults:
   zenodo:       { type: PREPRINT,               trust: MEDIUM, trust_ceiling: MEDIUM }
   # Новости о пилотах, контрактах и финансировании: подсказывают деловой сигнал, но не подтверждают его в одиночку.
   gdelt:        { type: INDUSTRY_MEDIA,         trust: MEDIUM }
+  # Патенты Роспатента: платформа на домене .gov.ru, но документы — патенты (authoritative: тип адаптера
+  # не пересматривается правилом государственных доменов).
+  rospatent:    { type: PATENT,                 trust: HIGH, authoritative: true }
 
 # Доверенность по типу источника (применяется после определения типа).
 type_trust:

@@ -1,5 +1,10 @@
 # Изменения контрактов
 
+## 2026-09-25 — источник Роспатент
+- `weaksignals.common.v1.SourceKey`: добавлено значение `SOURCE_KEY_ROSPATENT = 11` (обратно совместимо).
+- collector: миграция `0007_rospatent.sql` (каталог источников), переменная окружения `WS_ROSPATENT_TOKEN`.
+- Правила доверенности: у источника может быть флаг `authoritative` — тип адаптера не пересматривается доменными правилами.
+
 ## 2026-09-24 — ml-rework v2
 - model-store: манифест v2 (`feature_schema_version: "v2"`, `model_family: "logreg_seq_laplace"`, файл `model_v2.json`), схема `schemas/model_manifest_v2.schema.json`; v1 без изменений.
 - Окружение: `WS_CANDIDATE_JUDGE_ORDER` (orchestrator, `ml`|`llm`, по умолчанию `ml`), `WS_ML_SCORE_ABLATION` (analyzer, `none`|`constant`|`shuffle`).

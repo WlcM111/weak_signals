@@ -258,6 +258,53 @@ class PipelineTest(unittest.TestCase):
         self.assertFalse((self.fx.b / "v2" / "dataset_b_v2.jsonl").exists(), "при проблемах датасет не пишется")
         self.assertEqual(report["label_sources"].get("llm_assisted_silver"), 3)
 
+    def _silver_sheet(self, codes: dict[str, str]) -> Path:
+        path = Path(self._tmp.name) / "silver.csv"
+        _write(path, [{"group_id": gid, "label": code, "confidence": "0.7", "comment": "silver v2"}
+                      for gid, code in codes.items()])
+        return path
+
+    def test_silver_v2_labels_need_explicit_flag_for_holdout(self) -> None:
+        self._export()
+        manifest = self._manifest()
+        codes = {g: ("R" if r["holdout"] else "N-GEN") for g, r in manifest["groups"].items()}
+        codes[next(g for g, r in manifest["groups"].items() if not r["holdout"])] = "R"  # позитив в dev
+        result = v2.import_silver(self.fx.b, self._silver_sheet(codes))
+        self.assertEqual(result["status"], "ok", result)
+        self.assertEqual((result["required_not_labeled"], result["holdout_not_labeled"]), ([], []))
+        strict = v2.build_v2(self.fx.root, self.fx.b)
+        self.assertEqual(strict["status"], "problems")
+        self.assertTrue(all("--allow-silver-holdout" in p for p in strict["problems"] if "holdout-темы" in p))
+        built = v2.build_v2(self.fx.root, self.fx.b, allow_silver_holdout=True)
+        self.assertEqual(built["status"], "ok", built["problems"])
+        self.assertEqual(built["label_origins"], {"silver_v2": len(codes)})
+        self.assertEqual(built["holdout_label_sources"], {"llm_assisted_silver:claude-opus-5.5": 6})
+        rows = [json.loads(x) for x in (self.fx.b / "v2" / "dataset_b_v2.jsonl").read_text(
+            encoding="utf-8").splitlines()]
+        self.assertTrue(all(r["review_status"] == "pending_human_review" for r in rows))
+
+    def test_expert_label_wins_over_silver_v2(self) -> None:
+        self._export()
+        manifest = self._manifest()
+        self._label_all(set())
+        self.assertEqual(v2.agreement(self.fx.b)["status"], "ok")
+        self.assertEqual(v2.merge(self.fx.b)["status"], "ok")
+        codes = {g: "N-OFF" for g in manifest["groups"]}
+        self.assertEqual(v2.import_silver(self.fx.b, self._silver_sheet(codes))["status"], "ok")
+        built = v2.build_v2(self.fx.root, self.fx.b, allow_silver_holdout=True)
+        self.assertEqual(built["label_origins"], {"expert": len(codes)})
+
+    def test_import_silver_rejects_bad_rows(self) -> None:
+        self._export()
+        gid = next(iter(self._manifest()["groups"]))
+        path = Path(self._tmp.name) / "bad.csv"
+        _write(path, [{"group_id": gid, "label": "R", "confidence": "высокая", "comment": ""},
+                      {"group_id": "bgrp-нет-такой", "label": "R", "confidence": "0.7", "comment": ""}])
+        result = v2.import_silver(self.fx.b, path)
+        self.assertEqual(result["status"], "problems")
+        self.assertEqual(len(result["problems"]), 2)
+        self.assertFalse((self.fx.b / "v2" / "labels_v2_silver.jsonl").exists())
+
     def test_build_refuses_changed_inputs(self) -> None:
         self._export()
         run = self.fx.root / "analytics-20260902-100000.txt"

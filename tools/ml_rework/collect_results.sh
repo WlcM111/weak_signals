@@ -13,7 +13,10 @@ for run in "$@"; do
 done
 if [ -f ml/reports/experiments/holdout_usage.jsonl ]; then cp ml/reports/experiments/holdout_usage.jsonl "$out/"; fi
 # Датасет B v2 и замеры точности выдачи (если уже есть).
-for f in ml/data/dataset_b/v2/validation_report_v2.json ml/data/dataset_b/v2/labeling/agreement_report.json; do
+for f in ml/data/dataset_b/v2/validation_report_v2.json ml/data/dataset_b/v2/labeling/agreement_report.json \
+         ml/data/dataset_b/v2/labeling/manifest.json ml/data/dataset_b/v2/labeling/expert1.csv \
+         ml/data/dataset_b/v2/holdout_topics.txt ml/data/dataset_b/v2/extra_topics.txt \
+         ml/data/dataset_b/v2/labels_v2_silver.jsonl; do
   if [ -f "$f" ]; then cp "$f" "$out/"; fi
 done
 if [ -d ml/reports/quality ]; then cp -R ml/reports/quality "$out/quality"; fi

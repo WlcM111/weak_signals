@@ -44,6 +44,7 @@ class SourceKey(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SOURCE_KEY_SEMANTIC_SCHOLAR: _ClassVar[SourceKey]
     SOURCE_KEY_ZENODO: _ClassVar[SourceKey]
     SOURCE_KEY_GDELT: _ClassVar[SourceKey]
+    SOURCE_KEY_ROSPATENT: _ClassVar[SourceKey]
 
 class OperationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -84,6 +85,7 @@ SOURCE_KEY_WIKIPEDIA: SourceKey
 SOURCE_KEY_SEMANTIC_SCHOLAR: SourceKey
 SOURCE_KEY_ZENODO: SourceKey
 SOURCE_KEY_GDELT: SourceKey
+SOURCE_KEY_ROSPATENT: SourceKey
 OPERATION_STATUS_UNSPECIFIED: OperationStatus
 OPERATION_STATUS_PENDING: OperationStatus
 OPERATION_STATUS_RUNNING: OperationStatus

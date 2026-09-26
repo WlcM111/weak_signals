@@ -27,10 +27,13 @@ def build_classification_config(
     """Собирает конфигурацию классификации из разобранных структур YAML."""
     source_defaults: dict[SourceKey, tuple[SourceType, TrustLevel]] = {}
     source_trust_ceiling: dict[SourceKey, TrustLevel] = {}
+    authoritative_sources: set[SourceKey] = set()
     for key, value in (trust_rules.get("source_defaults") or {}).items():
         source_defaults[SourceKey(key)] = (SourceType(value["type"]), TrustLevel(value["trust"]))
         if "trust_ceiling" in value:
             source_trust_ceiling[SourceKey(key)] = TrustLevel(value["trust_ceiling"])
+        if value.get("authoritative") is True:
+            authoritative_sources.add(SourceKey(key))
     type_trust = {
         SourceType(name): TrustLevel(level) for name, level in (trust_rules.get("type_trust") or {}).items()
     }
@@ -41,6 +44,7 @@ def build_classification_config(
         source_defaults=source_defaults,
         type_trust=type_trust,
         source_trust_ceiling=source_trust_ceiling,
+        authoritative_sources=frozenset(authoritative_sources),
         government_domains=tuple(trust_rules.get("government_domains") or ()),
         government_suffixes=tuple(trust_rules.get("government_suffixes") or ()),
         press_release_domains=tuple(trust_rules.get("press_release_domains") or ()),

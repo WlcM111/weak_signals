@@ -71,6 +71,16 @@ class BaseSourceAdapter:
         """Текстовый запрос (XML/Atom/RSS) с соблюдением лимита источника."""
         return str(await self._fetch(url, params=params, headers=headers, as_json=False))
 
+    async def fetch_json_post(
+        self,
+        url: str,
+        *,
+        json_body: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
+    ) -> Any:
+        """POST-запрос с JSON-телом (параметры поиска в теле) с соблюдением лимита источника."""
+        return await self._fetch(url, params=None, headers=headers, as_json=True, json_body=json_body)
+
     async def _fetch(
         self,
         url: str,
@@ -78,6 +88,7 @@ class BaseSourceAdapter:
         params: Mapping[str, str | int] | None,
         headers: Mapping[str, str] | None,
         as_json: bool,
+        json_body: Mapping[str, Any] | None = None,
     ) -> Any:
         """Общий путь запроса: лимитер → HTTP → перевод ошибок в `AdapterFailure`."""
         await self._limiter.acquire(self.key)
@@ -86,7 +97,11 @@ class BaseSourceAdapter:
         if accounting is not None:
             accounting.count_request(self.key)
         try:
-            if as_json:
+            if json_body is not None:
+                payload = await self._http.post_json(
+                    url, allowed_hosts=self.allowed_hosts, json_body=json_body, headers=headers
+                )
+            elif as_json:
                 payload = await self._http.get_json(
                     url, allowed_hosts=self.allowed_hosts, params=params, headers=headers
                 )

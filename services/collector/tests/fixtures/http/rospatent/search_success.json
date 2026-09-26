@@ -1,0 +1,71 @@
+{
+  "total": 10538,
+  "available": 1000,
+  "hits": [
+    {
+      "common": {
+        "publishing_office": "UA",
+        "document_number": "0000028083",
+        "kind": "C2",
+        "publication_date": "2000.10.16",
+        "application": {"number": "97062738", "filing_date": "1997.06.10", "rights_start_date": "2000.10.16"},
+        "classification": {"ipc": [{"main_group": "9", "classification_value": "invention", "subgroup": "00",
+                                    "subclass": "K", "section": "F", "fullname": "F02K9/00", "class": "02"}]}
+      },
+      "meta": {"source": {"path": "/CIS_2009/UA/C2/20001016/0000028083", "file": "0000028083.xml",
+                          "index": "CIS_2009", "from": "patsearch"}},
+      "biblio": {
+        "ru": {"inventor": [{"name": "Емельяненко Юрий Петрович (UA)"}], "title": "РАКЕТА СО СТАБИЛИЗАТОРОМ В СОПЛЕ",
+               "patentee": [{"name": "Омельяненко Юрий Петрович (UA)"}],
+               "applicant": [{"name": "Омельяненко Юрий Петрович (UA)"}]},
+        "en": {"inventor": [{"name": "Omelianenko Yurii Petrovych (UA)"}], "title": "ROCKET WITH STABILIZATION IN NOZZLE",
+               "patentee": [{"name": "Omelianenko Yurii Petrovych (UA)"}],
+               "applicant": [{"name": "Omelianenko Yurii Petrovych (UA)"}]}
+      },
+      "id": "UA0000028083C2_20001016",
+      "index": "jun_cis_2009",
+      "dataset": "cis",
+      "similarity": 89.88599,
+      "similarity_norm": 0.9889972040795286,
+      "snippet": {
+        "title": "<em>РАКЕТА</em> СО СТАБИЛИЗАТОРОМ В СОПЛЕ",
+        "description": "Недостатком <em>ракеты</em> является расположение перьев стабилизатора, до ее старта, внутри и снаружи корпуса с продольными пазами",
+        "lang": "ru",
+        "applicant": "Омельяненко Юрий Петрович (UA)",
+        "inventor": "Емельяненко Юрий Петрович (UA)",
+        "patentee": "Омельяненко Юрий Петрович (UA)",
+        "classification": {"ipc": "F02K9/00"}
+      }
+    },
+    {
+      "common": {
+        "publishing_office": "RU",
+        "document_number": "2625135",
+        "kind": "C1",
+        "publication_date": "2017.07.11",
+        "classification": {"ipc": [{"main_group": "15", "classification_value": "invention", "subgroup": "00",
+                                    "subclass": "B", "section": "F", "fullname": "F42B15/00", "class": "42"}]}
+      },
+      "biblio": {
+        "en": {"inventor": [{"name": "Staroverov Nikolaj Evgenevich (RU)"}],
+               "title": "METHOD OF STEAM START OF ANTI-AIRCRAFT MISSILES",
+               "patentee": [{"name": "Staroverov Nikolaj Evgenevich (RU)"}]}
+      },
+      "id": "RU2625135C1_20170711",
+      "index": "jun_rupat_new_2009",
+      "dataset": "ru_since_1994",
+      "similarity": 80.77343,
+      "similarity_norm": 0.9877710889710754,
+      "snippet": {
+        "title": "Способ парного пуска противосамолётных <em>ракет</em>",
+        "description": "Тогда траектория второй <em>ракеты</em> будет пролегать несколько выше траектории первой <em>ракеты</em> и соударения второй <em>ракеты</em> с отделившейся ступенью исключено.",
+        "lang": "ru",
+        "inventor": "Староверов Николай Евгеньевич (RU)",
+        "patentee": "Староверов Николай Евгеньевич (RU)",
+        "classification": {"ipc": "F42B15/00"}
+      }
+    },
+    {"id": "", "biblio": {"ru": {"title": "без идентификатора"}}},
+    "не объект"
+  ]
+}

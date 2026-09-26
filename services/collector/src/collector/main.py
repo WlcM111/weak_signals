@@ -29,6 +29,7 @@ from collector.adapters.outbound.sources.openalex import OpenAlexAdapter
 from collector.adapters.outbound.sources.rss import RssAdapter
 from collector.adapters.outbound.sources.semantic_scholar import SemanticScholarAdapter
 from collector.adapters.outbound.sources.gdelt import GdeltAdapter
+from collector.adapters.outbound.sources.rospatent import RospatentAdapter
 from collector.adapters.outbound.sources.zenodo import ZenodoAdapter
 from collector.adapters.outbound.sources.wikipedia import WikipediaProbe
 from collector.application.ports import SourceAdapter
@@ -223,6 +224,8 @@ def _create_adapter(
         return ZenodoAdapter(http_client, limiter, clock)
     if source_key is SourceKey.GDELT:
         return GdeltAdapter(http_client, limiter, clock)
+    if source_key is SourceKey.ROSPATENT:
+        return RospatentAdapter(http_client, limiter, clock, settings.rospatent_token)
     return None  # patentsview и hh включаются после подтверждения условий API (§6.5 ТЗ)
 
 

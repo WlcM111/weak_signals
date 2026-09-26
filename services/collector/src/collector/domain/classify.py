@@ -28,6 +28,9 @@ class ClassificationConfig:
     # модерации (Zenodo) не должен получать доверенность препринта arXiv. Задаётся явно и только там,
     # где нужен, чтобы не понижать документы, переклассифицированные доменными правилами.
     source_trust_ceiling: dict[SourceKey, TrustLevel] = field(default_factory=dict)
+    # Источники, чей тип документа не пересматривается доменными правилами: патентная платформа
+    # Роспатента живёт на домене .gov.ru, но её документы — патенты, а не документы госоргана.
+    authoritative_sources: frozenset[SourceKey] = frozenset()
 
     def trust_for(self, source_type: SourceType) -> TrustLevel:
         """Уровень доверенности по типу источника (умолчание LOW для типов вне справочника)."""
@@ -67,6 +70,9 @@ def _resolve_source_type(
     config: ClassificationConfig, source_key: SourceKey, origin_domain: str, title: str
 ) -> SourceType:
     """Определяет тип источника по домену и заголовку; для не-RSS адаптеров умолчание фиксировано."""
+    authoritative = config.source_defaults.get(source_key)
+    if authoritative is not None and source_key in config.authoritative_sources:
+        return authoritative[0]
     if any(domain_matches(origin_domain, pattern) for pattern in config.government_domains) or any(
         origin_domain.lower().endswith(suffix) for suffix in config.government_suffixes
     ):

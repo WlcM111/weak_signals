@@ -25,6 +25,7 @@ class SourceKey(StrEnum):
     SEMANTIC_SCHOLAR = "semantic_scholar"
     ZENODO = "zenodo"
     GDELT = "gdelt"
+    ROSPATENT = "rospatent"
 
 
 class SourceType(StrEnum):

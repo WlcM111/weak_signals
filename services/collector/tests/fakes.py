@@ -325,10 +325,27 @@ class FakeHttpClient:
     ) -> str:
         return str(self._next(url, params, headers))
 
-    def _next(
-        self, url: str, params: Mapping[str, str | int] | None, headers: Mapping[str, str] | None
+    async def post_json(
+        self,
+        url: str,
+        *,
+        allowed_hosts: frozenset[str],
+        json_body: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
     ) -> Any:
-        self.calls.append((url, {"params": dict(params or {}), "headers": dict(headers or {})}))
+        return self._next(url, None, headers, json_body)
+
+    def _next(
+        self,
+        url: str,
+        params: Mapping[str, str | int] | None,
+        headers: Mapping[str, str] | None,
+        json_body: Mapping[str, Any] | None = None,
+    ) -> Any:
+        call: dict[str, Any] = {"params": dict(params or {}), "headers": dict(headers or {})}
+        if json_body is not None:
+            call["json"] = dict(json_body)
+        self.calls.append((url, call))
         if not self.responses:
             raise AssertionError(f"нет подготовленного ответа для {url}")
         response = self.responses.pop(0)

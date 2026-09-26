@@ -25,6 +25,7 @@ class CollectorSettings(BaseServiceSettings):
     github_token: str = ""
     semantic_scholar_api_key: str = ""
     patentsview_api_key: str = ""
+    rospatent_token: str = ""
     collector_rss_feeds: str = ""
     contact_email: str = "team@example.org"
     collector_workers: int = Field(default=2, ge=1, le=10)

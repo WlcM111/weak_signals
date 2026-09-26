@@ -89,6 +89,23 @@ class HttpxClient:
         body = await self._get(url, allowed_hosts=allowed_hosts, params=params, headers=headers)
         return decode_body(body)
 
+    async def post_json(
+        self,
+        url: str,
+        *,
+        allowed_hosts: frozenset[str],
+        json_body: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
+    ) -> Any:
+        """POST с JSON-телом и разбором JSON; поисковый POST идемпотентен, поэтому повторы допустимы."""
+        body = await self._request(
+            "POST", url, allowed_hosts=allowed_hosts, params=None, headers=headers, json_body=json_body
+        )
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise HttpPayloadError(f"ответ не является JSON: {exc}") from exc
+
     async def _get(
         self,
         url: str,
@@ -96,6 +113,19 @@ class HttpxClient:
         allowed_hosts: frozenset[str],
         params: Mapping[str, str | int] | None,
         headers: Mapping[str, str] | None,
+    ) -> bytes:
+        """GET с ретраями; возвращает тело ответа в пределах лимита размера."""
+        return await self._request("GET", url, allowed_hosts=allowed_hosts, params=params, headers=headers)
+
+    async def _request(
+        self,
+        method: str,
+        url: str,
+        *,
+        allowed_hosts: frozenset[str],
+        params: Mapping[str, str | int] | None,
+        headers: Mapping[str, str] | None,
+        json_body: Mapping[str, Any] | None = None,
     ) -> bytes:
         """Выполняет запрос с ретраями; возвращает тело ответа в пределах лимита размера."""
         self._check_host(url, allowed_hosts)
@@ -105,7 +135,7 @@ class HttpxClient:
         while True:
             self.attempts_total += 1
             try:
-                return await self._attempt(url, params, headers)
+                return await self._attempt(url, params, headers, method, json_body)
             except (HttpStatusError, HttpTimeoutError, HttpTransportError) as exc:
                 retryable = isinstance(exc, (HttpTimeoutError, HttpTransportError)) or (
                     isinstance(exc, HttpStatusError) and exc.status in RETRYABLE_STATUSES
@@ -127,11 +157,16 @@ class HttpxClient:
                 await asyncio.sleep(delay)
 
     async def _attempt(
-        self, url: str, params: Mapping[str, str | int] | None, headers: Mapping[str, str] | None
+        self,
+        url: str,
+        params: Mapping[str, str | int] | None,
+        headers: Mapping[str, str] | None,
+        method: str = "GET",
+        json_body: Mapping[str, Any] | None = None,
     ) -> bytes:
         """Один HTTP-запрос с потоковым чтением и контролем размера ответа."""
         try:
-            request = self._client.build_request("GET", url, params=params, headers=headers)
+            request = self._client.build_request(method, url, params=params, headers=headers, json=json_body)
             response = await self._client.send(request, stream=True)
         except httpx.TimeoutException as exc:
             raise HttpTimeoutError(f"таймаут запроса: {exc}") from exc

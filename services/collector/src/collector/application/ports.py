@@ -69,6 +69,16 @@ class HttpClient(Protocol):
     ) -> str:
         """GET с возвратом текста (XML/Atom/RSS)."""
 
+    async def post_json(
+        self,
+        url: str,
+        *,
+        allowed_hosts: frozenset[str],
+        json_body: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
+    ) -> Any:
+        """POST с JSON-телом и разбором JSON-ответа (поисковые API с параметрами в теле запроса)."""
+
 
 class RateLimiter(Protocol):
     """Token bucket на адаптер (§13.4 ТЗ)."""

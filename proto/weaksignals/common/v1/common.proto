@@ -45,6 +45,7 @@ enum SourceKey {
   SOURCE_KEY_SEMANTIC_SCHOLAR = 8;
   SOURCE_KEY_ZENODO = 9;
   SOURCE_KEY_GDELT = 10;
+  SOURCE_KEY_ROSPATENT = 11;
 }
 
 // Документ открытого источника. Владелец данных — collector.
