@@ -1,0 +1,14 @@
+ОТКАЗ  код   0 записей   0  SiliconANGLE — ИИ: https://siliconangle.com/category/ai/feed/  (нет ответа: The read operation timed out)
+ОТКАЗ  код   0 записей   0  SiliconANGLE — все материалы: https://siliconangle.com/feed/  (нет ответа: The read operation timed out)
+OK     код 200 записей   9  The AI Insider: https://theaiinsider.tech/feed/
+OK     код 200 записей  35  GeekWire: https://www.geekwire.com/feed/
+OK     код 200 записей  20  DataCenterDynamics: https://www.datacenterdynamics.com/en/rss/
+ОТКАЗ  код   0 записей   0  Robotics & Automation News: https://roboticsandautomationnews.com/feed/  (нет ответа: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1077))
+ОТКАЗ  код   0 записей   0  EE Times: https://www.eetimes.com/feed/  (нет ответа: The read operation timed out)
+ОТКАЗ  код   0 записей   0  Pandaily: https://pandaily.com/feed/  (нет ответа: The read operation timed out)
+рабочих лент: 3 из 8
+Python не доверяет сертификатам HTTPS: запустите «Install Certificates.command» из папки /Applications/Python 3.x и повторите
+ДОБАВЛЕНО в .env: 3; всего лент: 22; копия .env: /Users/zorinmihail/ws-backups/env.bak-rss-20260926-162002
+  + https://theaiinsider.tech/feed/
+  + https://www.geekwire.com/feed/
+  + https://www.datacenterdynamics.com/en/rss/

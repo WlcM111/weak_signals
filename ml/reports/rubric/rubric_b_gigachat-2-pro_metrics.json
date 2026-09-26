@@ -1,0 +1,56 @@
+{
+ "dataset": "b",
+ "rows": 268,
+ "labeled": 243,
+ "judged": 166,
+ "coverage": 0.6831,
+ "filter": {
+  "n": 166,
+  "accuracy": 0.7169,
+  "precision": 0.3774,
+  "recall": 0.5882,
+  "f1": 0.4598,
+  "tp": 20,
+  "fp": 33,
+  "fn": 14,
+  "tn": 99
+ },
+ "codes": {
+  "N-OFF": 65,
+  "R": 64,
+  "N-OVR": 21,
+  "N-NOI": 20,
+  "U": 9,
+  "N-MAT": 5,
+  "N-GEN": 4,
+  "N-FUND": 1
+ },
+ "by_split": {
+  "dev": {
+   "n": 155,
+   "accuracy": 0.7484,
+   "precision": 0.4048,
+   "recall": 0.5484,
+   "f1": 0.4658,
+   "tp": 17,
+   "fp": 25,
+   "fn": 14,
+   "tn": 99
+  },
+  "holdout": {
+   "n": 11,
+   "accuracy": 0.2727,
+   "precision": 0.2727,
+   "recall": 1.0,
+   "f1": 0.4286,
+   "tp": 3,
+   "fp": 8,
+   "fn": 0,
+   "tn": 0
+  }
+ },
+ "provider": "gigachat",
+ "model": "GigaChat-2-Pro:2.0.30.01",
+ "prompt_version": "judge_v2",
+ "label": "gigachat-2-pro"
+}

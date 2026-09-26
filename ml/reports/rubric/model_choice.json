@@ -1,0 +1,1 @@
+{"choice": "GigaChat-2-Pro", "rule": "max if coverage>=0.9 and F1 and stage accuracy both better"}

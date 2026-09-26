@@ -1,0 +1,52 @@
+{
+ "own-topics-20260926-213226.json": {
+  "cards": 36,
+  "generated": 28,
+  "generated_share": 0.778,
+  "template_titles": 8,
+  "empty_descriptions": 1,
+  "rubric_cards": 29,
+  "with_stage_trend": 29,
+  "with_companies": 0
+ },
+ "own-topics-20260926-211432.json": {
+  "cards": 32,
+  "generated": 23,
+  "generated_share": 0.719,
+  "template_titles": 9,
+  "empty_descriptions": 2,
+  "rubric_cards": 32,
+  "with_stage_trend": 32,
+  "with_companies": 0
+ },
+ "own-topics-20260926-205909.json": {
+  "cards": 26,
+  "generated": 12,
+  "generated_share": 0.462,
+  "template_titles": 14,
+  "empty_descriptions": 0,
+  "rubric_cards": 16,
+  "with_stage_trend": 16,
+  "with_companies": 0
+ },
+ "own-topics-20260926-050648.json": {
+  "cards": 37,
+  "generated": 23,
+  "generated_share": 0.622,
+  "template_titles": 13,
+  "empty_descriptions": 2,
+  "rubric_cards": 0,
+  "with_stage_trend": 0,
+  "with_companies": 0
+ },
+ "own-topics-20260926-053248.json": {
+  "cards": 54,
+  "generated": 40,
+  "generated_share": 0.741,
+  "template_titles": 14,
+  "empty_descriptions": 2,
+  "rubric_cards": 0,
+  "with_stage_trend": 0,
+  "with_companies": 0
+ }
+}

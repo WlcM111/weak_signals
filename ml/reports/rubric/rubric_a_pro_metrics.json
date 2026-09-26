@@ -1,0 +1,79 @@
+{
+ "dataset": "a",
+ "rows": 225,
+ "labeled": 225,
+ "judged": 219,
+ "coverage": 0.9733,
+ "filter": {
+  "n": 219,
+  "accuracy": 0.9269,
+  "precision": 0.9468,
+  "recall": 0.89,
+  "f1": 0.9175,
+  "tp": 89,
+  "fp": 5,
+  "fn": 11,
+  "tn": 114
+ },
+ "codes": {
+  "R": 94,
+  "N-MAT": 63,
+  "N-GEN": 20,
+  "N-OFF": 18,
+  "N-HYP": 16,
+  "N-OVR": 5,
+  "N-NOI": 3
+ },
+ "stage": {
+  "n": 100,
+  "accuracy": 0.36,
+  "mae": 0.95,
+  "qwk": 0.2588,
+  "majority_class": 2,
+  "majority_accuracy": 0.35,
+  "majority_mae": 0.85,
+  "confusion": {
+   "1->1": 16,
+   "1->2": 3,
+   "1->4": 1,
+   "2->1": 19,
+   "2->2": 13,
+   "2->3": 2,
+   "2->4": 1,
+   "3->1": 9,
+   "3->2": 11,
+   "3->3": 5,
+   "4->1": 5,
+   "4->2": 9,
+   "4->3": 4,
+   "4->4": 2
+  }
+ },
+ "trend": {
+  "n": 100,
+  "accuracy": 0.25,
+  "mae": 0.91,
+  "qwk": 0.1053,
+  "majority_class": 2,
+  "majority_accuracy": 0.6,
+  "majority_mae": 0.4,
+  "confusion": {
+   "1->1": 3,
+   "1->2": 1,
+   "2->1": 40,
+   "2->2": 20,
+   "3->1": 16,
+   "3->2": 18,
+   "3->3": 2
+  }
+ },
+ "score": {
+  "n": 100,
+  "spearman": 0.275,
+  "mae": 1.78
+ },
+ "provider": "gigachat",
+ "model": "GigaChat-2-Pro:2.0.30.01",
+ "prompt_version": "judge_v2",
+ "label": "pro"
+}

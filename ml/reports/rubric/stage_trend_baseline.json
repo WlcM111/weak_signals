@@ -1,0 +1,41 @@
+{
+ "data": "/data/labels/dataset_ds-2026.09.19-v2.jsonl",
+ "rows": 100,
+ "stage": {
+  "n": 100,
+  "distribution": {
+   "1": 20,
+   "2": 35,
+   "3": 25,
+   "4": 20
+  },
+  "model": {
+   "accuracy": 0.336,
+   "accuracy_std": 0.0933,
+   "mae": 0.902,
+   "qwk": 0.2643
+  },
+  "majority": {
+   "accuracy": 0.35,
+   "mae": 0.85
+  }
+ },
+ "trend": {
+  "n": 100,
+  "distribution": {
+   "1": 4,
+   "2": 60,
+   "3": 36
+  },
+  "model": {
+   "accuracy": 0.608,
+   "accuracy_std": 0.0845,
+   "mae": 0.398,
+   "qwk": 0.1679
+  },
+  "majority": {
+   "accuracy": 0.6,
+   "mae": 0.4
+  }
+ }
+}
