@@ -10,8 +10,10 @@ from insight.application import fallback
 from insight.application.json_output import OutputRejected, parse, parse_and_validate, repair_json
 from insight.application.prompt_builder import (
     EXPAND_PROMPT_VERSION,
+    FINALIZE_PROMPT_VERSION,
     JUDGE_PROMPT_VERSION,
     INSIGHT_PROMPT_VERSION,
+    RUBRIC_PROMPT_VERSION,
     PromptBuilder,
 )
 from insight.application.use_cases.expand_query import Glossary, clean_terms, normalize
@@ -139,7 +141,8 @@ class PromptBuilderTest(unittest.TestCase):
 
     def test_definitions_cover_both_prompts(self) -> None:
         versions = {definition.prompt_version for definition in self.builder.definitions()}
-        self.assertEqual(versions, {INSIGHT_PROMPT_VERSION, EXPAND_PROMPT_VERSION, JUDGE_PROMPT_VERSION})
+        self.assertEqual(versions, {INSIGHT_PROMPT_VERSION, EXPAND_PROMPT_VERSION, JUDGE_PROMPT_VERSION,
+                                    RUBRIC_PROMPT_VERSION, FINALIZE_PROMPT_VERSION})
         for definition in self.builder.definitions():
             self.assertEqual(len(definition.template_sha256), 64)
 

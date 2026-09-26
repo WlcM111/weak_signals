@@ -44,6 +44,16 @@ class InsightServiceStub(object):
                 request_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightRequest.SerializeToString,
                 response_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightResponse.FromString,
                 _registered_method=True)
+        self.JudgeCandidates = channel.unary_unary(
+                '/weaksignals.insight.v1.InsightService/JudgeCandidates',
+                request_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesRequest.SerializeToString,
+                response_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesResponse.FromString,
+                _registered_method=True)
+        self.FinalizeCards = channel.unary_unary(
+                '/weaksignals.insight.v1.InsightService/FinalizeCards',
+                request_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsRequest.SerializeToString,
+                response_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsResponse.FromString,
+                _registered_method=True)
         self.GetProviderStatus = channel.unary_unary(
                 '/weaksignals.insight.v1.InsightService/GetProviderStatus',
                 request_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.GetProviderStatusRequest.SerializeToString,
@@ -69,6 +79,21 @@ class InsightServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def JudgeCandidates(self, request, context):
+        """Смысловая оценка кандидатов перед нарративом: конкретная ли технология, относится ли к запросу, ранняя ли стадия.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FinalizeCards(self, request, context):
+        """Пакетная доводка показанных карточек (режим отбора rubric): название, описание, преимущество, кейс,
+        объяснение статуса, компании, стадия и тренд — одним структурированным ответом модели.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetProviderStatus(self, request, context):
         """Состояние провайдеров LLM (для readiness и UI). Deadline 5 s. Retry: да.
         """
@@ -88,6 +113,16 @@ def add_InsightServiceServicer_to_server(servicer, server):
                     servicer.GenerateInsight,
                     request_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightRequest.FromString,
                     response_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightResponse.SerializeToString,
+            ),
+            'JudgeCandidates': grpc.unary_unary_rpc_method_handler(
+                    servicer.JudgeCandidates,
+                    request_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesRequest.FromString,
+                    response_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesResponse.SerializeToString,
+            ),
+            'FinalizeCards': grpc.unary_unary_rpc_method_handler(
+                    servicer.FinalizeCards,
+                    request_deserializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsRequest.FromString,
+                    response_serializer=weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsResponse.SerializeToString,
             ),
             'GetProviderStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetProviderStatus,
@@ -149,6 +184,60 @@ class InsightService(object):
             '/weaksignals.insight.v1.InsightService/GenerateInsight',
             weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightRequest.SerializeToString,
             weaksignals_dot_insight_dot_v1_dot_insight__pb2.GenerateInsightResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def JudgeCandidates(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/weaksignals.insight.v1.InsightService/JudgeCandidates',
+            weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesRequest.SerializeToString,
+            weaksignals_dot_insight_dot_v1_dot_insight__pb2.JudgeCandidatesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def FinalizeCards(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/weaksignals.insight.v1.InsightService/FinalizeCards',
+            weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsRequest.SerializeToString,
+            weaksignals_dot_insight_dot_v1_dot_insight__pb2.FinalizeCardsResponse.FromString,
             options,
             channel_credentials,
             insecure,

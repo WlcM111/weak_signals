@@ -325,6 +325,9 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         judge_enabled=base.judge_enabled,
         judge_pool=base.judge_pool,
         judge_order=base.judge_order,
+        selection_mode=base.selection_mode,
+        rubric_pool=base.rubric_pool,
+        finalize_enabled=base.finalize_enabled,
     )
 
 

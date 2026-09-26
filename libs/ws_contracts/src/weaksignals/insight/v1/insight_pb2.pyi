@@ -175,6 +175,164 @@ class GenerateInsightResponse(_message.Message):
     from_cache: bool
     def __init__(self, insight_id: _Optional[str] = ..., status: _Optional[_Union[InsightStatus, str]] = ..., narrative: _Optional[_Union[Narrative, _Mapping]] = ..., source_summaries: _Optional[_Iterable[_Union[SourceSummary, _Mapping]]] = ..., grounding: _Optional[_Union[GroundingCheck, _Mapping]] = ..., provenance: _Optional[_Union[Provenance, _Mapping]] = ..., from_cache: bool = ...) -> None: ...
 
+class JudgeSource(_message.Message):
+    __slots__ = ("document_id", "title", "source_key", "source_type", "trust_level", "published", "language_code", "snippet", "domain")
+    DOCUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_KEY_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    TRUST_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    PUBLISHED_FIELD_NUMBER: _ClassVar[int]
+    LANGUAGE_CODE_FIELD_NUMBER: _ClassVar[int]
+    SNIPPET_FIELD_NUMBER: _ClassVar[int]
+    DOMAIN_FIELD_NUMBER: _ClassVar[int]
+    document_id: str
+    title: str
+    source_key: str
+    source_type: str
+    trust_level: str
+    published: str
+    language_code: str
+    snippet: str
+    domain: str
+    def __init__(self, document_id: _Optional[str] = ..., title: _Optional[str] = ..., source_key: _Optional[str] = ..., source_type: _Optional[str] = ..., trust_level: _Optional[str] = ..., published: _Optional[str] = ..., language_code: _Optional[str] = ..., snippet: _Optional[str] = ..., domain: _Optional[str] = ...) -> None: ...
+
+class JudgeItem(_message.Message):
+    __slots__ = ("candidate_id", "title", "keyphrases", "evidence", "sources", "composition_ru")
+    CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    KEYPHRASES_FIELD_NUMBER: _ClassVar[int]
+    EVIDENCE_FIELD_NUMBER: _ClassVar[int]
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
+    COMPOSITION_RU_FIELD_NUMBER: _ClassVar[int]
+    candidate_id: str
+    title: str
+    keyphrases: _containers.RepeatedScalarFieldContainer[str]
+    evidence: _containers.RepeatedScalarFieldContainer[str]
+    sources: _containers.RepeatedCompositeFieldContainer[JudgeSource]
+    composition_ru: str
+    def __init__(self, candidate_id: _Optional[str] = ..., title: _Optional[str] = ..., keyphrases: _Optional[_Iterable[str]] = ..., evidence: _Optional[_Iterable[str]] = ..., sources: _Optional[_Iterable[_Union[JudgeSource, _Mapping]]] = ..., composition_ru: _Optional[str] = ...) -> None: ...
+
+class JudgeCandidatesRequest(_message.Message):
+    __slots__ = ("query_text", "items", "mode")
+    QUERY_TEXT_FIELD_NUMBER: _ClassVar[int]
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    MODE_FIELD_NUMBER: _ClassVar[int]
+    query_text: str
+    items: _containers.RepeatedCompositeFieldContainer[JudgeItem]
+    mode: str
+    def __init__(self, query_text: _Optional[str] = ..., items: _Optional[_Iterable[_Union[JudgeItem, _Mapping]]] = ..., mode: _Optional[str] = ...) -> None: ...
+
+class JudgeVerdict(_message.Message):
+    __slots__ = ("candidate_id", "verdict", "relevance", "reason_ru", "code", "on_topic", "concrete", "early_stage", "verifiable", "stage", "trend", "confidence")
+    CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    VERDICT_FIELD_NUMBER: _ClassVar[int]
+    RELEVANCE_FIELD_NUMBER: _ClassVar[int]
+    REASON_RU_FIELD_NUMBER: _ClassVar[int]
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    ON_TOPIC_FIELD_NUMBER: _ClassVar[int]
+    CONCRETE_FIELD_NUMBER: _ClassVar[int]
+    EARLY_STAGE_FIELD_NUMBER: _ClassVar[int]
+    VERIFIABLE_FIELD_NUMBER: _ClassVar[int]
+    STAGE_FIELD_NUMBER: _ClassVar[int]
+    TREND_FIELD_NUMBER: _ClassVar[int]
+    CONFIDENCE_FIELD_NUMBER: _ClassVar[int]
+    candidate_id: str
+    verdict: str
+    relevance: int
+    reason_ru: str
+    code: str
+    on_topic: bool
+    concrete: bool
+    early_stage: bool
+    verifiable: bool
+    stage: int
+    trend: int
+    confidence: float
+    def __init__(self, candidate_id: _Optional[str] = ..., verdict: _Optional[str] = ..., relevance: _Optional[int] = ..., reason_ru: _Optional[str] = ..., code: _Optional[str] = ..., on_topic: bool = ..., concrete: bool = ..., early_stage: bool = ..., verifiable: bool = ..., stage: _Optional[int] = ..., trend: _Optional[int] = ..., confidence: _Optional[float] = ...) -> None: ...
+
+class JudgeCandidatesResponse(_message.Message):
+    __slots__ = ("verdicts", "provider", "model", "used_fallback")
+    VERDICTS_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_FIELD_NUMBER: _ClassVar[int]
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    USED_FALLBACK_FIELD_NUMBER: _ClassVar[int]
+    verdicts: _containers.RepeatedCompositeFieldContainer[JudgeVerdict]
+    provider: str
+    model: str
+    used_fallback: bool
+    def __init__(self, verdicts: _Optional[_Iterable[_Union[JudgeVerdict, _Mapping]]] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ..., used_fallback: bool = ...) -> None: ...
+
+class FinalizeCard(_message.Message):
+    __slots__ = ("candidate_id", "title_auto", "keyphrases", "sources", "stage", "trend", "judge_reason_ru")
+    CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_AUTO_FIELD_NUMBER: _ClassVar[int]
+    KEYPHRASES_FIELD_NUMBER: _ClassVar[int]
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
+    STAGE_FIELD_NUMBER: _ClassVar[int]
+    TREND_FIELD_NUMBER: _ClassVar[int]
+    JUDGE_REASON_RU_FIELD_NUMBER: _ClassVar[int]
+    candidate_id: str
+    title_auto: str
+    keyphrases: _containers.RepeatedScalarFieldContainer[str]
+    sources: _containers.RepeatedCompositeFieldContainer[JudgeSource]
+    stage: int
+    trend: int
+    judge_reason_ru: str
+    def __init__(self, candidate_id: _Optional[str] = ..., title_auto: _Optional[str] = ..., keyphrases: _Optional[_Iterable[str]] = ..., sources: _Optional[_Iterable[_Union[JudgeSource, _Mapping]]] = ..., stage: _Optional[int] = ..., trend: _Optional[int] = ..., judge_reason_ru: _Optional[str] = ...) -> None: ...
+
+class FinalizeCardsRequest(_message.Message):
+    __slots__ = ("query_text", "cards")
+    QUERY_TEXT_FIELD_NUMBER: _ClassVar[int]
+    CARDS_FIELD_NUMBER: _ClassVar[int]
+    query_text: str
+    cards: _containers.RepeatedCompositeFieldContainer[FinalizeCard]
+    def __init__(self, query_text: _Optional[str] = ..., cards: _Optional[_Iterable[_Union[FinalizeCard, _Mapping]]] = ...) -> None: ...
+
+class FinalizedCard(_message.Message):
+    __slots__ = ("candidate_id", "title_ru", "description_ru", "advantage_ru", "case_example_ru", "case_document_id", "why_ru", "companies", "stage", "trend", "stage_reason_ru", "trend_reason_ru", "source_summaries")
+    CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_RU_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_RU_FIELD_NUMBER: _ClassVar[int]
+    ADVANTAGE_RU_FIELD_NUMBER: _ClassVar[int]
+    CASE_EXAMPLE_RU_FIELD_NUMBER: _ClassVar[int]
+    CASE_DOCUMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    WHY_RU_FIELD_NUMBER: _ClassVar[int]
+    COMPANIES_FIELD_NUMBER: _ClassVar[int]
+    STAGE_FIELD_NUMBER: _ClassVar[int]
+    TREND_FIELD_NUMBER: _ClassVar[int]
+    STAGE_REASON_RU_FIELD_NUMBER: _ClassVar[int]
+    TREND_REASON_RU_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_SUMMARIES_FIELD_NUMBER: _ClassVar[int]
+    candidate_id: str
+    title_ru: str
+    description_ru: str
+    advantage_ru: str
+    case_example_ru: str
+    case_document_id: str
+    why_ru: str
+    companies: _containers.RepeatedScalarFieldContainer[str]
+    stage: int
+    trend: int
+    stage_reason_ru: str
+    trend_reason_ru: str
+    source_summaries: _containers.RepeatedCompositeFieldContainer[SourceSummary]
+    def __init__(self, candidate_id: _Optional[str] = ..., title_ru: _Optional[str] = ..., description_ru: _Optional[str] = ..., advantage_ru: _Optional[str] = ..., case_example_ru: _Optional[str] = ..., case_document_id: _Optional[str] = ..., why_ru: _Optional[str] = ..., companies: _Optional[_Iterable[str]] = ..., stage: _Optional[int] = ..., trend: _Optional[int] = ..., stage_reason_ru: _Optional[str] = ..., trend_reason_ru: _Optional[str] = ..., source_summaries: _Optional[_Iterable[_Union[SourceSummary, _Mapping]]] = ...) -> None: ...
+
+class FinalizeCardsResponse(_message.Message):
+    __slots__ = ("cards", "provider", "model", "prompt_version", "used_fallback")
+    CARDS_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_FIELD_NUMBER: _ClassVar[int]
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    USED_FALLBACK_FIELD_NUMBER: _ClassVar[int]
+    cards: _containers.RepeatedCompositeFieldContainer[FinalizedCard]
+    provider: str
+    model: str
+    prompt_version: str
+    used_fallback: bool
+    def __init__(self, cards: _Optional[_Iterable[_Union[FinalizedCard, _Mapping]]] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ..., prompt_version: _Optional[str] = ..., used_fallback: bool = ...) -> None: ...
+
 class GetProviderStatusRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

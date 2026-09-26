@@ -115,6 +115,15 @@ class JudgeVerdictView:
     verdict: str
     relevance: int
     reason_ru: str
+    # Режим отбора rubric: код рубрики, четыре критерия, стадия 1–4, тренд 1–3, уверенность 0..1.
+    code: str = ""
+    on_topic: bool = False
+    concrete: bool = False
+    early_stage: bool = False
+    verifiable: bool = False
+    stage: int = 0
+    trend: int = 0
+    confidence: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,3 +213,45 @@ class ScoreTextView:
     enrichment_applied: bool
     predicted_stage: int | None = None
     predicted_trend: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RubricRequestItem:
+    """Кандидат для рубричной оценки: сам кандидат, его документы и сводка состава источников."""
+
+    candidate: CandidateView
+    documents: tuple[DocumentView, ...]
+    composition_ru: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class FinalizeRequestCard:
+    """Показанная карточка для пакетной доводки."""
+
+    candidate: CandidateView
+    documents: tuple[DocumentView, ...]
+    stage: int = 0
+    trend: int = 0
+    judge_reason_ru: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class FinalizedCardView:
+    """Карточка после пакетной доводки (прошла проверку по источникам в insight)."""
+
+    candidate_id: str
+    title_ru: str
+    description_ru: str
+    advantage_ru: str
+    case_example_ru: str
+    case_document_id: str
+    why_ru: str
+    companies: tuple[str, ...]
+    stage: int
+    trend: int
+    stage_reason_ru: str
+    trend_reason_ru: str
+    source_summaries: dict[str, tuple[str, str]] = field(default_factory=dict)
+    llm_provider: str = ""
+    llm_model: str = ""
+    prompt_version: str = "finalize_v1"

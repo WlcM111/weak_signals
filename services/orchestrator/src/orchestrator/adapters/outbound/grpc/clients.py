@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from urllib.parse import urlsplit
 
 import grpc
 from weaksignals.analyzer.v1 import analyzer_pb2, analyzer_pb2_grpc
@@ -12,7 +13,10 @@ from weaksignals.insight.v1 import insight_pb2, insight_pb2_grpc
 
 from orchestrator.adapters.outbound.grpc import mappers
 from orchestrator.application.dto import (
+    FinalizedCardView,
+    FinalizeRequestCard,
     JudgeVerdictView,
+    RubricRequestItem,
     AnalysisView,
     CandidateView,
     CollectionView,
@@ -35,6 +39,9 @@ EXPAND_DEADLINE = 30.0
 INSIGHT_DEADLINE = 120.0
 # Один пакетный вызов LLM на до 30 кандидатов; GigaChat отвечает на такой запрос за 10–60 с.
 JUDGE_DEADLINE = 150.0
+# Рубричная оценка идёт пачками по 8 кандидатов, доводка — по 5 карточек: до 5 и 3 последовательных вызовов LLM.
+RUBRIC_DEADLINE = 420.0
+FINALIZE_DEADLINE = 420.0
 log = get_logger("orchestrator.upstream")
 
 
@@ -244,6 +251,79 @@ class GrpcInsightClient:
             for verdict in response.verdicts
         }
 
+    async def judge_rubric(
+        self, query_text: str, items: Sequence[RubricRequestItem]
+    ) -> dict[str, JudgeVerdictView]:
+        """Рубричная оценка (режим rubric_v2); ответ с used_fallback даёт пустой словарь."""
+        request = insight_pb2.JudgeCandidatesRequest(
+            query_text=query_text,
+            mode="rubric_v2",
+            items=[
+                insight_pb2.JudgeItem(
+                    candidate_id=item.candidate.candidate_id,
+                    title=item.candidate.title_auto,
+                    keyphrases=list(item.candidate.keyphrases[:8]),
+                    sources=[_judge_source(document, 400) for document in item.documents[:6]],
+                    composition_ru=item.composition_ru[:600],
+                )
+                for item in items
+            ],
+        )
+        try:
+            response = await self._stub.JudgeCandidates(request, timeout=RUBRIC_DEADLINE, metadata=_md())
+        except grpc.aio.AioRpcError as error:
+            raise _fail("JudgeCandidates", error) from error
+        return {
+            v.candidate_id: JudgeVerdictView(
+                v.candidate_id, v.verdict, v.relevance, v.reason_ru, code=v.code, on_topic=v.on_topic,
+                concrete=v.concrete, early_stage=v.early_stage, verifiable=v.verifiable, stage=v.stage,
+                trend=v.trend, confidence=round(float(v.confidence), 4),
+            )
+            for v in response.verdicts
+            if v.code and 1 <= v.stage <= 4 and 1 <= v.trend <= 3
+        }
+
+    async def finalize_cards(
+        self, query_text: str, cards: Sequence[FinalizeRequestCard]
+    ) -> dict[str, FinalizedCardView]:
+        """Пакетная доводка карточек; в ответе только карточки, прошедшие проверку по источникам."""
+        request = insight_pb2.FinalizeCardsRequest(
+            query_text=query_text,
+            cards=[
+                insight_pb2.FinalizeCard(
+                    candidate_id=card.candidate.candidate_id,
+                    title_auto=card.candidate.title_auto,
+                    keyphrases=list(card.candidate.keyphrases[:8]),
+                    sources=[_judge_source(document, 900) for document in card.documents[:6]],
+                    stage=card.stage,
+                    trend=card.trend,
+                    judge_reason_ru=card.judge_reason_ru[:300],
+                )
+                for card in cards
+            ],
+        )
+        try:
+            response = await self._stub.FinalizeCards(request, timeout=FINALIZE_DEADLINE, metadata=_md())
+        except grpc.aio.AioRpcError as error:
+            raise _fail("FinalizeCards", error) from error
+        return {
+            card.candidate_id: FinalizedCardView(
+                candidate_id=card.candidate_id, title_ru=card.title_ru, description_ru=card.description_ru,
+                advantage_ru=card.advantage_ru, case_example_ru=card.case_example_ru,
+                case_document_id=card.case_document_id, why_ru=card.why_ru, companies=tuple(card.companies),
+                stage=card.stage, trend=card.trend, stage_reason_ru=card.stage_reason_ru,
+                trend_reason_ru=card.trend_reason_ru,
+                source_summaries={
+                    summary.document_id: (summary.summary_ru, insight_pb2.SummaryKind.Name(summary.kind).removeprefix("SUMMARY_KIND_"))
+                    for summary in card.source_summaries
+                },
+                llm_provider=response.provider, llm_model=response.model,
+                prompt_version=response.prompt_version or "finalize_v1",
+            )
+            for card in response.cards
+            if 1 <= card.stage <= 4 and 1 <= card.trend <= 3 and card.title_ru
+        }
+
     async def generate_insight(
         self,
         idempotency_key: str,
@@ -319,3 +399,20 @@ class GrpcInsightClient:
                 for summary in response.source_summaries
             },
         )
+
+
+def _judge_source(document: DocumentView, snippet_chars: int):  # noqa: ANN202 - insight_pb2.JudgeSource
+    """Документ → источник для рубричной оценки и доводки (полный контекст, фрагмент ограничен)."""
+    published = document.published_at.date().isoformat() if document.published_at else ""
+    host = urlsplit(document.url or "").hostname or ""
+    return insight_pb2.JudgeSource(
+        document_id=document.document_id,
+        title=(document.title or "")[:300],
+        source_key=document.source_key,
+        source_type=document.source_type,
+        trust_level=str(getattr(document.trust_level, "value", document.trust_level)),
+        published=published,
+        language_code=document.language_code,
+        snippet=" ".join((document.text or "").split())[:snippet_chars],
+        domain=host.removeprefix("www."),
+    )

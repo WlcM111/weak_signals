@@ -1,5 +1,11 @@
 # Изменения контрактов
 
+## 2026-09-26 — рубричный отбор и пакетная доводка карточек
+- `weaksignals.insight.v1`: `JudgeSource`; поля `JudgeItem.sources`, `JudgeItem.composition_ru`,
+  `JudgeCandidatesRequest.mode` ("rubric_v2"), `JudgeVerdict.code/on_topic/concrete/early_stage/verifiable/stage/trend/confidence`;
+  RPC `FinalizeCards` (`FinalizeCard`, `FinalizeCardsRequest`, `FinalizedCard`, `FinalizeCardsResponse`). Обратно совместимо.
+- orchestrator: `WS_SELECTION_MODE` (legacy | rubric), `WS_RUBRIC_POOL`, `WS_FINALIZE_ENABLED`.
+
 ## 2026-09-25 — источник Роспатент
 - `weaksignals.common.v1.SourceKey`: добавлено значение `SOURCE_KEY_ROSPATENT = 11` (обратно совместимо).
 - collector: миграция `0007_rospatent.sql` (каталог источников), переменная окружения `WS_ROSPATENT_TOKEN`.

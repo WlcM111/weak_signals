@@ -15,6 +15,9 @@ service InsightService {
   rpc GenerateInsight(GenerateInsightRequest) returns (GenerateInsightResponse);
   // Смысловая оценка кандидатов перед нарративом: конкретная ли технология, относится ли к запросу, ранняя ли стадия.
   rpc JudgeCandidates(JudgeCandidatesRequest) returns (JudgeCandidatesResponse);
+  // Пакетная доводка показанных карточек (режим отбора rubric): название, описание, преимущество, кейс,
+  // объяснение статуса, компании, стадия и тренд — одним структурированным ответом модели.
+  rpc FinalizeCards(FinalizeCardsRequest) returns (FinalizeCardsResponse);
   // Состояние провайдеров LLM (для readiness и UI). Deadline 5 s. Retry: да.
   rpc GetProviderStatus(GetProviderStatusRequest) returns (GetProviderStatusResponse);
 }
@@ -116,16 +119,32 @@ message GenerateInsightResponse {
   bool from_cache = 7;
 }
 
+// Источник кандидата для рубричной оценки и доводки карточки (полный контекст, а не только фрагмент).
+message JudgeSource {
+  string document_id = 1;
+  string title = 2;
+  string source_key = 3;
+  string source_type = 4;
+  string trust_level = 5;
+  string published = 6;       // YYYY-MM-DD или ""
+  string language_code = 7;
+  string snippet = 8;         // до 600 символов
+  string domain = 9;
+}
+
 message JudgeItem {
   string candidate_id = 1;
   string title = 2;
   repeated string keyphrases = 3; // 0..8
-  repeated string evidence = 4;   // 0..3 фрагмента доказательств
+  repeated string evidence = 4;   // 0..3 фрагмента доказательств (режим judge_v1)
+  repeated JudgeSource sources = 5; // режим rubric_v2: до 8 источников
+  string composition_ru = 6;        // режим rubric_v2: состав источников и динамика упоминаний
 }
 
 message JudgeCandidatesRequest {
   string query_text = 1;          // 2..500
   repeated JudgeItem items = 2;   // 1..40
+  string mode = 3;                // "" — judge_v1; "rubric_v2" — рубричная оценка со стадией и трендом
 }
 
 message JudgeVerdict {
@@ -133,6 +152,14 @@ message JudgeVerdict {
   string verdict = 2;   // EMERGING_TECHNOLOGY | MATURE_TECHNOLOGY | OVERVIEW | GENERIC_CONCEPT | OFF_TOPIC | NOISE
   int32 relevance = 3;  // 0..3
   string reason_ru = 4;
+  string code = 5;      // rubric_v2: R | N-OFF | N-GEN | N-OVR | N-MAT | N-NOI | N-HYP | N-FUND | U
+  bool on_topic = 6;
+  bool concrete = 7;
+  bool early_stage = 8;
+  bool verifiable = 9;
+  int32 stage = 10;     // 1..4; 0 — не определена
+  int32 trend = 11;     // 1..3; 0 — не определён
+  float confidence = 12; // 0..1
 }
 
 message JudgeCandidatesResponse {
@@ -140,6 +167,45 @@ message JudgeCandidatesResponse {
   string provider = 2;
   string model = 3;
   bool used_fallback = 4;             // true = модель недоступна или ответ отклонён; кандидаты не оцениваются
+}
+
+message FinalizeCard {
+  string candidate_id = 1;
+  string title_auto = 2;
+  repeated string keyphrases = 3;
+  repeated JudgeSource sources = 4;
+  int32 stage = 5;
+  int32 trend = 6;
+  string judge_reason_ru = 7;
+}
+
+message FinalizeCardsRequest {
+  string query_text = 1;            // 2..500
+  repeated FinalizeCard cards = 2;  // 1..15
+}
+
+message FinalizedCard {
+  string candidate_id = 1;
+  string title_ru = 2;
+  string description_ru = 3;
+  string advantage_ru = 4;
+  string case_example_ru = 5;
+  string case_document_id = 6;
+  string why_ru = 7;
+  repeated string companies = 8;
+  int32 stage = 9;
+  int32 trend = 10;
+  string stage_reason_ru = 11;
+  string trend_reason_ru = 12;
+  repeated SourceSummary source_summaries = 13;
+}
+
+message FinalizeCardsResponse {
+  repeated FinalizedCard cards = 1;  // только прошедшие проверку карточки
+  string provider = 2;
+  string model = 3;
+  string prompt_version = 4;
+  bool used_fallback = 5;            // true — модель недоступна или весь ответ отклонён
 }
 
 message GetProviderStatusRequest {}

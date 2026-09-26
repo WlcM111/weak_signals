@@ -24,6 +24,10 @@ INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"
 JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
+RUBRIC_PROMPT_VERSION = "judge_v2"
+RUBRIC_SCHEMA_FILE = "judge_v2_llm_output.schema.json"
+FINALIZE_PROMPT_VERSION = "finalize_v1"
+FINALIZE_SCHEMA_FILE = "finalize_llm_output.schema.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +57,8 @@ class PromptBuilder:
             INSIGHT_SCHEMA_FILE: self._read_schema(INSIGHT_SCHEMA_FILE),
             EXPAND_SCHEMA_FILE: self._read_schema(EXPAND_SCHEMA_FILE),
             JUDGE_SCHEMA_FILE: self._read_schema(JUDGE_SCHEMA_FILE),
+            RUBRIC_SCHEMA_FILE: self._read_schema(RUBRIC_SCHEMA_FILE),
+            FINALIZE_SCHEMA_FILE: self._read_schema(FINALIZE_SCHEMA_FILE),
         }
 
     def _read_schema(self, name: str) -> dict:
@@ -94,6 +100,20 @@ class PromptBuilder:
                 template_sha256=self.template_sha256("judge_v1.j2"),
                 output_schema_version=f"{JUDGE_SCHEMA_FILE}@1",
                 description="Смысловая оценка кандидатов: технология, тема, стадия",
+            ),
+            PromptDefinition(
+                prompt_version=RUBRIC_PROMPT_VERSION,
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v2.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубричная оценка: тема, конкретность, стадия, проверяемость; стадия 1–4 и тренд 1–3",
+            ),
+            PromptDefinition(
+                prompt_version=FINALIZE_PROMPT_VERSION,
+                purpose=Purpose.INSIGHT,
+                template_sha256=self.template_sha256("finalize_v1.j2"),
+                output_schema_version=f"{FINALIZE_SCHEMA_FILE}@1",
+                description="Пакетная доводка карточек: название, описание, why, компании, стадия и тренд",
             ),
         ]
 
@@ -160,6 +180,24 @@ class PromptBuilder:
         )
         user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
         return self._bundle(system, user, schema, JUDGE_PROMPT_VERSION)
+
+    def build_rubric_prompt(self, query_text: str, candidates: Sequence[dict]) -> PromptBundle:
+        """Промпт рубричной оценки: кандидаты с полным списком источников и сводкой их состава."""
+        schema = self._schemas[RUBRIC_SCHEMA_FILE]
+        system = self._environment.get_template("judge_v2.j2").render(
+            schema=json.dumps(schema, ensure_ascii=False, indent=2)
+        )
+        user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
+        return self._bundle(system, user, schema, RUBRIC_PROMPT_VERSION)
+
+    def build_finalize_prompt(self, query_text: str, cards: Sequence[dict]) -> PromptBundle:
+        """Промпт пакетной доводки показанных карточек."""
+        schema = self._schemas[FINALIZE_SCHEMA_FILE]
+        system = self._environment.get_template("finalize_v1.j2").render(
+            schema=json.dumps(schema, ensure_ascii=False, indent=2)
+        )
+        user = json.dumps({"query": query_text, "cards": list(cards)}, ensure_ascii=False)
+        return self._bundle(system, user, schema, FINALIZE_PROMPT_VERSION)
 
     @staticmethod
     def _bundle(system: str, user: str, schema: dict, version: str) -> PromptBundle:

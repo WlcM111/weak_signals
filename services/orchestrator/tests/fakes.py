@@ -437,6 +437,44 @@ class FakeInsight:
             c.candidate_id: JudgeVerdictView(c.candidate_id, *self.judge_rule(c), "Причина оценки.") for c in candidates
         }
 
+    # Режим rubric: правило рубричной оценки (кандидат → поля вердикта или None) и правило доводки.
+    rubric_rule: Callable[[CandidateView], dict | None] | None = None
+    finalize_rule: Callable[[CandidateView], dict | None] | None = None
+    rubric_calls: list[int] = field(default_factory=list)
+    finalize_calls: list[int] = field(default_factory=list)
+
+    async def judge_rubric(self, query_text: str, items) -> dict[str, JudgeVerdictView]:  # noqa: ANN001
+        """Рубричная оценка по правилу теста."""
+        self.rubric_calls.append(len(items))
+        if self.rubric_rule is None:
+            return {}
+        verdicts = {}
+        for item in items:
+            fields = self.rubric_rule(item.candidate)
+            if fields is not None:
+                verdicts[item.candidate.candidate_id] = JudgeVerdictView(
+                    item.candidate.candidate_id, "EMERGING_TECHNOLOGY", 3, "Причина рубрики.", **fields)
+        return verdicts
+
+    async def finalize_cards(self, query_text: str, cards) -> dict:  # noqa: ANN001
+        """Пакетная доводка по правилу теста."""
+        from orchestrator.application.dto import FinalizedCardView  # noqa: PLC0415
+
+        self.finalize_calls.append(len(cards))
+        result = {}
+        for card in cards:
+            fields = self.finalize_rule(card.candidate) if self.finalize_rule else None
+            if fields is None:
+                continue
+            result[card.candidate.candidate_id] = FinalizedCardView(
+                candidate_id=card.candidate.candidate_id, title_ru=fields.get("title_ru", "Название"),
+                description_ru="Описание технологии.", advantage_ru="Преимущество.", case_example_ru="Кейс.",
+                case_document_id=card.documents[0].document_id if card.documents else "", why_ru="Почему сигнал.",
+                companies=tuple(fields.get("companies", ())), stage=fields.get("stage", card.stage),
+                trend=fields.get("trend", card.trend), stage_reason_ru="Стадия.", trend_reason_ru="Тренд.",
+                source_summaries={}, llm_provider="gigachat", llm_model="GigaChat-2-Max")
+        return result
+
     async def expand_query(self, query_text: str) -> ExpansionView:
         """Расширение запроса."""
         if self.fail_expand:

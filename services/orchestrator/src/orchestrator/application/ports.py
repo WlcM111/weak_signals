@@ -7,7 +7,10 @@ from datetime import datetime
 from typing import Protocol
 
 from orchestrator.application.dto import (
+    FinalizedCardView,
+    FinalizeRequestCard,
     JudgeVerdictView,
+    RubricRequestItem,
     AnalysisView,
     CandidateView,
     CollectionView,
@@ -154,6 +157,16 @@ class InsightClient(Protocol):
         self, query_text: str, candidates: Sequence[CandidateView]
     ) -> dict[str, JudgeVerdictView]:
         """Смысловая оценка кандидатов; пустой словарь — оценка недоступна."""
+
+    async def judge_rubric(
+        self, query_text: str, items: Sequence[RubricRequestItem]
+    ) -> dict[str, JudgeVerdictView]:
+        """Рубричная оценка кандидатов с полным контекстом источников (режим отбора rubric)."""
+
+    async def finalize_cards(
+        self, query_text: str, cards: Sequence[FinalizeRequestCard]
+    ) -> dict[str, FinalizedCardView]:
+        """Пакетная доводка показанных карточек; не прошедшие проверку карточки в ответ не входят."""
 
 
 class MetricsSink(Protocol):

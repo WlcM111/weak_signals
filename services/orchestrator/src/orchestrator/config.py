@@ -54,6 +54,11 @@ class OrchestratorSettings(BaseServiceSettings):
     candidate_judge_pool: int = Field(default=30, ge=5, le=40)
     # ml — порядок выдачи задаёт локальная модель, смысловая оценка только исключает; llm — прежний порядок.
     candidate_judge_order: str = Field(default="ml", pattern="^(ml|llm)$")
+    # Режим отбора выдачи: legacy — прежний (порог модели analyzer + смысловая оценка); rubric — рубричная оценка
+    # LLM с полным контекстом источников, балл «стадия + тренд», пакетная доводка карточек. Откат — legacy.
+    selection_mode: str = Field(default="legacy", pattern="^(legacy|rubric)$")
+    rubric_pool: int = Field(default=40, ge=5, le=40)
+    finalize_enabled: bool = True
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)

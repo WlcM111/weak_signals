@@ -4,6 +4,14 @@
 version: 1
 domains:
   techcrunch.com: NEWS
+  # Рыночные источники (шаг 5): самые частые площадки в источниках датасета организаторов.
+  siliconangle.com: INDUSTRY_MEDIA
+  theaiinsider.tech: INDUSTRY_MEDIA
+  geekwire.com: INDUSTRY_MEDIA
+  datacenterdynamics.com: INDUSTRY_MEDIA
+  roboticsandautomationnews.com: INDUSTRY_MEDIA
+  eetimes.com: INDUSTRY_MEDIA
+  pandaily.com: INDUSTRY_MEDIA
   wired.com: NEWS
   reuters.com: NEWS
   cnews.ru: INDUSTRY_MEDIA

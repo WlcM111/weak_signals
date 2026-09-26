@@ -44,6 +44,11 @@ class NarrateConfig:
     judge_pool: int = 30
     # ml — порядок выдачи задаёт локальная модель, LLM только исключает; llm — прежний порядок по релевантности LLM.
     judge_order: str = "ml"
+    # Режим отбора: legacy — порог модели analyzer + смысловая оценка; rubric — рубричная оценка LLM с полным
+    # контекстом источников, балл «стадия + тренд» и пакетная доводка карточек (narrate_rubric.py).
+    selection_mode: str = "legacy"
+    rubric_pool: int = 40
+    finalize_enabled: bool = True
 
 
 @dataclass(slots=True)
@@ -165,6 +170,12 @@ async def run_narrate(
     check: Callable[[], Awaitable[None]],
 ) -> NarrateOutcome:
     """Формирует ТОП-N элементов и записывает исключённых кандидатов с причинами."""
+    if config.selection_mode == "rubric":
+        from orchestrator.application.stages.narrate_rubric import run_narrate_rubric  # noqa: PLC0415 - цикл импорта
+
+        return await run_narrate_rubric(analyzer=analyzer, collector=collector, insight=insight, results=results,
+                                        job_id=job_id, query_text=query_text, analysis_id=analysis_id,
+                                        config=config, check=check)
     outcome = NarrateOutcome()
     weak, excluded = await collect_candidates(analyzer, analysis_id, check)
     outcome.candidates_found = len(weak) + len(excluded)
