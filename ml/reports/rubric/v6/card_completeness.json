@@ -1,0 +1,32 @@
+{
+ "own-topics-20260928-004755.json": {
+  "cards": 28,
+  "generated": 28,
+  "generated_share": 1.0,
+  "template_titles": 0,
+  "empty_descriptions": 0,
+  "rubric_cards": 28,
+  "with_stage_trend": 0,
+  "with_companies": 4
+ },
+ "own-topics-20260928-011957.json": {
+  "cards": 23,
+  "generated": 23,
+  "generated_share": 1.0,
+  "template_titles": 0,
+  "empty_descriptions": 0,
+  "rubric_cards": 23,
+  "with_stage_trend": 0,
+  "with_companies": 1
+ },
+ "own-topics-20260928-015624.json": {
+  "cards": 32,
+  "generated": 32,
+  "generated_share": 1.0,
+  "template_titles": 0,
+  "empty_descriptions": 0,
+  "rubric_cards": 32,
+  "with_stage_trend": 0,
+  "with_companies": 1
+ }
+}
