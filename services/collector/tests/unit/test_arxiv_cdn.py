@@ -25,6 +25,14 @@ class ArxivCdnTest(unittest.TestCase):
         self.assertNotIn("CDN arXiv", _as_rate_limit(AdapterFailure(AdapterErrorCode.HTTP_4XX.value,
                                                                     "источник ответил кодом 406")).message)
 
+    def test_search_query_uses_significant_words(self) -> None:
+        from collector.adapters.outbound.sources.arxiv import search_query
+
+        self.assertEqual(search_query("photonic FMCW lidar on silicon chip"),
+                         "all:photonic AND all:FMCW AND all:lidar AND all:silicon")
+        self.assertEqual(search_query("perovskite"), 'all:"perovskite"')
+        self.assertEqual(search_query("AI for the edge"), 'all:"AI for the edge"')
+
     def test_status_error_keeps_cdn_headers(self) -> None:
         error = HttpStatusError(406, "источник ответил кодом 406", None, {"via": "1.1 varnish"})
         self.assertEqual((error.status, error.cdn_headers), (406, {"via": "1.1 varnish"}))

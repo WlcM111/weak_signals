@@ -41,3 +41,17 @@ class MarketReserveTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PhraseRelevanceTest(unittest.TestCase):
+    def test_max_takes_nearest_phrase_mean_blurs(self) -> None:
+        import numpy as np
+
+        from analyzer.application.use_cases.run_analysis import phrase_relevance
+
+        phrases = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
+        mean = phrases.mean(axis=0) / np.linalg.norm(phrases.mean(axis=0))
+        niche = np.array([[0.0, 1.0]], dtype=np.float32)
+        self.assertAlmostEqual(float(phrase_relevance(niche, mean, phrases, "max")[0]), 1.0, places=5)
+        self.assertAlmostEqual(float(phrase_relevance(niche, mean, phrases, "mean")[0]), 0.7071, places=3)
+        self.assertAlmostEqual(float(phrase_relevance(niche, mean, None, "max")[0]), 0.7071, places=3)

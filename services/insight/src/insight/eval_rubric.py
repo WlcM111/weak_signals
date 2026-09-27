@@ -173,7 +173,9 @@ def summarize(dataset: str, rows: list[dict], verdicts: dict[str, RubricVerdict]
             "pred_code": verdict.code if verdict else "", "stage_true": row.get("stage_ordinal") or "",
             "stage_pred": verdict.stage if verdict else "", "trend_true": row.get("trend_ordinal") or "",
             "trend_pred": verdict.trend if verdict else "", "confidence": verdict.confidence if verdict else "",
-            "reason_ru": verdict.reason_ru if verdict else "", "title": row.get("title", "")[:200]})
+            "reason_ru": verdict.reason_ru if verdict else "", "title": row.get("title", "")[:200],
+            "topic": row.get("topic", row.get("domain_tag", "")),
+            "technology_ru": verdict.technology_ru if verdict else "", "profile_ru": verdict.profile_ru if verdict else ""})
         if verdict is None or label is None:
             continue
         y_true.append(int(label))

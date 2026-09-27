@@ -90,7 +90,9 @@ async def run_narrate_rubric(
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
     model = rubric_model.load(config.rubric_model_path) if config.rubric_model_path else None
-    classifier = signal_classifier.load(config.signal_model_path) if config.signal_model_path else None
+    classifier = signal_classifier.load(config.profile_model_path) if config.profile_model_path else None
+    if classifier is None and config.signal_model_path:
+        classifier = signal_classifier.load(config.signal_model_path)
     weak, excluded = await collect_candidates(analyzer, analysis_id, check)
     outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
     pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool)
@@ -118,10 +120,12 @@ async def run_narrate_rubric(
     order = {c.candidate_id: i for i, c in enumerate(judged)}
     ranked = sorted(judged, key=lambda c: (-scored[c.candidate_id][0], -rubric.priority(verdicts[c.candidate_id]),
                                            order[c.candidate_id]))
-    # Порог показа: кандидаты ниже него не показываются; если выше порога меньше минимума — добираются лучшие.
-    eligible = [c for c in ranked if scored[c.candidate_id][0] >= config.rubric_min_probability]
-    if len(eligible) < config.rubric_min_cards:
-        eligible = ranked[: max(config.rubric_min_cards, len(eligible))]
+    # Решение о показе — рубрика (R), порядок внутри R — локальная модель. 27.09 порог модели скрыл 15 кандидатов R
+    # и показал общие. Если R меньше минимума — добираются лучшие по модели кандидаты U, затем прочие (с пометкой).
+    accepted = [c for c in ranked if verdicts[c.candidate_id].code == "R"]
+    rest_ranked = sorted((c for c in ranked if verdicts[c.candidate_id].code != "R"),
+                         key=lambda c: (verdicts[c.candidate_id].code != "U", -scored[c.candidate_id][0]))
+    eligible = accepted + rest_ranked[: max(0, config.rubric_min_cards - len(accepted))]
     below = [c for c in ranked if c not in eligible]
     ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
@@ -141,7 +145,7 @@ async def run_narrate_rubric(
     if fallback:  # пустой выдачи при найденных кандидатах не бывает: прежний генератор карточек
         shown, text_failed = ranked[: config.top_n], []
         queue = ranked[config.top_n :]
-    outcome.weak_signals_total = sum(1 for c in judged if scored[c.candidate_id][0] >= LIKELY)
+    outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
     outcome.weak_signals_confident = sum(1 for c in judged if scored[c.candidate_id][0] >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
@@ -286,7 +290,7 @@ async def _build_item(
     """Элемент выдачи: уверенность и предикторы — локальная модель, тексты — пакетная доводка на русском."""
     prob, values = scored
     status = (f"Вероятность слабого сигнала по локальному классификатору: {prob:.0%}"
-              + (" — кандидат, требует экспертной проверки. " if prob < LIKELY else ". ")
+              + (". " if verdict.code == "R" else " — кандидат не признан слабым сигналом рубрикой, требует экспертной проверки. ")
               + rubric.status_explanation(verdict, verdict.stage, verdict.trend))[:500]
     features = model_features(model, values, candidate)
     common = dict(job_id=job_id, rank=position, candidate_id=candidate.candidate_id,

@@ -14,6 +14,11 @@ SHIPPED = Path(__file__).resolve().parents[2] / "services" / "orchestrator" / "c
 
 
 class SignalClassifierTest(unittest.TestCase):
+    def test_years_function_words_and_source_words_are_not_features(self) -> None:
+        keys = sc.features("Препринт 2026 года для систем: первые пилотные испытания")
+        self.assertFalse(any(k.isdigit() or k in ("для", "препри", "систем") for k in keys))
+        self.assertIn("пилотн_испыта", keys)
+
     def test_features_are_length_normalized(self) -> None:
         short, long = sc.features("Пилотные испытания"), sc.features("Пилотные испытания прототипа на заводе в 2026 году")
         self.assertAlmostEqual(sum(v * v for v in short.values()), 1.0)

@@ -63,6 +63,8 @@ class NarrateConfig:
     rubric_min_cards: int = 3
     # Локальный классификатор слабого сигнала по профилю (ws_common.signal_classifier); пусто — модель v3.
     signal_model_path: str = ""
+    # Классификатор, обученный на профилях живого конвейера (ml.profile_classifier); есть — используется первым.
+    profile_model_path: str = ""
 
 
 @dataclass(slots=True)

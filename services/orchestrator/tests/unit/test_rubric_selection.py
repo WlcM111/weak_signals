@@ -160,6 +160,24 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(outcome.items_written, 4)
         self.assertFalse(any(i.decision_reason == "RUBRIC_MODEL" for i in self.results.items["job-1"]))
 
+    async def test_rubric_r_is_shown_even_with_low_model_probability(self) -> None:
+        self.verdicts[self.good_a.candidate_id]["profile_ru"] = MATURE
+        await self.narrate()
+        shown = {i.candidate_id: i for i in self.results.items["job-1"]}
+        self.assertIn(self.good_a.candidate_id, shown)  # 27.09 порог модели скрыл 15 таких кандидатов
+        self.assertLess(shown[self.good_a.candidate_id].score, 0.5)
+        ranks = {cid: item.rank for cid, item in shown.items()}
+        self.assertGreater(ranks[self.good_a.candidate_id], ranks[self.good_b.candidate_id])
+
+    async def test_untrusted_and_far_candidates_enter_rubric_pool(self) -> None:
+        media = doc(9, "INDUSTRY_MEDIA", "Startup pilots silicon photonics lidar", TrustLevel.MEDIUM)
+        self.collector.documents[media.document_id] = media
+        untrusted = cand(7, [media, self.docs[7]], Decision.INSUFFICIENT_EVIDENCE, "NO_TRUSTED_SOURCE", score=0.2)
+        far = cand(8, [self.docs[2]], Decision.OFF_TOPIC, "LOW_QUERY_RELEVANCE", score=0.3)
+        self.analyzer.candidates.extend([untrusted, far])
+        await self.narrate()
+        self.assertEqual(self.insight.rubric_calls, [7])  # 5 прежних + NO_TRUSTED_SOURCE + LOW_QUERY_RELEVANCE
+
     async def test_without_classifier_model_v3_is_used(self) -> None:
         await self.narrate(signal_model_path="", rubric_min_probability=0.0)
         items = self.results.items["job-1"]

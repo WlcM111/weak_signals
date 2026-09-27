@@ -14,13 +14,23 @@ import math
 import re
 from pathlib import Path
 
-TOKEN_RE = re.compile(r"[a-zа-яё0-9]+", re.IGNORECASE)
+TOKEN_RE = re.compile(r"[a-zа-яё]+", re.IGNORECASE)
 STEM = 6
+# Поверхностные признаки, на которых модель v4 решала в живом конвейере 27.09 («2026» +0,54, «для» +0,17,
+# «препринт» +0,19, «систем» −0,25): годы и числа не берутся вовсе, служебные слова и слова о типе источника — по списку.
+STOP = frozenset({
+    "для", "как", "нет", "или", "это", "что", "при", "его", "она", "они", "так", "также", "может", "быть", "был",
+    "была", "были", "этот", "эта", "эти", "которы", "где", "когда", "чем", "более", "менее", "очень", "все", "всех",
+    "уже", "ещё", "еще", "только", "над", "под", "без", "про", "через", "между", "после", "перед", "then", "the",
+    "and", "for", "with", "from", "that", "this", "are", "was", "препри", "preprint", "статья", "статьи", "публик",
+    "источн", "докуме", "систем", "технол", "решени", "примен", "исполь", "област", "направ", "метод", "подход",
+})
 
 
 def features(text: str) -> dict[str, float]:
     """Бинарные признаки основ и пар основ, нормированные на корень из их числа."""
-    words = [word[:STEM] for word in TOKEN_RE.findall((text or "").lower()) if len(word) >= 3]
+    words = [stem for stem in (word[:STEM] for word in TOKEN_RE.findall((text or "").lower()) if len(word) >= 3)
+             if stem not in STOP]
     keys = set(words) | {f"{a}_{b}" for a, b in zip(words, words[1:])}
     if not keys:
         return {}

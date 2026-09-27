@@ -173,10 +173,11 @@ class ArxivTest(unittest.IsolatedAsyncioTestCase):
             await collect(self.adapter)
         self.assertEqual(ctx.exception.code, AdapterErrorCode.PARSE_ERROR.value)
 
-    async def test_query_uses_exact_phrase(self) -> None:
+    async def test_query_uses_significant_words(self) -> None:
+        # 27.09: точная фраза дала 0 документов в 5 темах из 6 — слова фразы ищутся через AND.
         self.http.enqueue(load_text("arxiv/query_success.xml"))
         await collect(self.adapter)
-        self.assertEqual(self.http.calls[0][1]["params"]["search_query"], 'all:"neuromorphic chips"')
+        self.assertEqual(self.http.calls[0][1]["params"]["search_query"], "all:neuromorphic AND all:chips")
 
 
 class RssTest(unittest.IsolatedAsyncioTestCase):

@@ -169,7 +169,14 @@ def pool_candidates(
     # такие кандидаты идут в пул раньше исключённых порогом модели — решают рубрика и локальная модель.
     market = sorted((item for item in excluded if item.decision_reason == "SINGLE_SOURCE"
                      and any(e.source_type in MARKET_TYPES for e in item.evidence)), key=lambda item: -item.score)
-    ordered = sorted(weak, key=lambda item: item.rank) + market + by_model
+    # Режим rubric: NO_TRUSTED_SOURCE и LOW_QUERY_RELEVANCE analyzer не решают судьбу кандидата. 27.09 по темам кейса
+    # они исключили 98 и 58 кандидатов из 240 до любой оценки: заметки отраслевых СМИ (средняя доверенность; ТЗ
+    # считает их доверенными) и ниши поднаправлений. Правило ТЗ о независимом источнике проверяет предфильтр,
+    # тему — рубрика (N-OFF).
+    untrusted = sorted((item for item in excluded if item.decision_reason == "NO_TRUSTED_SOURCE"),
+                       key=lambda item: -item.score)
+    far = sorted((item for item in excluded if item.decision_reason == "LOW_QUERY_RELEVANCE"), key=lambda item: -item.score)
+    ordered = sorted(weak, key=lambda item: item.rank) + market + untrusted + by_model + far
     taken = {item.candidate_id for item in ordered}
     rest = [item for item in excluded if item.candidate_id not in taken]
     return ordered[:limit], ordered[limit:] + rest

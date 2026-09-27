@@ -138,6 +138,7 @@ def serve(settings: AnalyzerSettings) -> int:
             cluster_distance_threshold=settings.cluster_distance_threshold,
             min_cluster_size=settings.min_cluster_size,
             keep_market_singletons=settings.keep_market_singletons,
+            query_relevance_mode=settings.query_relevance_mode,
             market_reserved_candidates=settings.market_reserved_candidates,
             evidence_max=settings.evidence_max,
             ml_score_ablation=settings.ml_score_ablation,

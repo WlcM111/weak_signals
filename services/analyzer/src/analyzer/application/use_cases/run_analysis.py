@@ -82,6 +82,13 @@ MAX_ENCYCLOPEDIA_FAILURES = 2
 MARKET_SINGLE_TYPES = frozenset({SourceType.INDUSTRY_MEDIA, SourceType.NEWS})
 
 
+def phrase_relevance(rows: np.ndarray, mean_vector: np.ndarray, phrases: np.ndarray | None, mode: str) -> np.ndarray:
+    """Косинусная близость строк (нормированных) к запросу: к среднему вектору или к ближайшей фразе."""
+    if mode == "max" and phrases is not None and len(phrases):
+        return (rows @ phrases.T).max(axis=1)
+    return rows @ mean_vector
+
+
 def _types(documents: Sequence) -> dict[str, int]:
     """Число документов по типам источников — для журнала воронки анализа."""
     return dict(Counter(document.source_type.value for document in documents))
@@ -105,6 +112,10 @@ class RunAnalysisConfig:
     min_cluster_size: int = 2
     # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
     keep_market_singletons: bool = False
+    # Близость к запросу: mean — к среднему вектору запроса и его расширений (прежнее поведение); max — к ближайшей
+    # фразе (исходный запрос или любое поднаправление). С поднаправлениями среднее размывается: 26–27.09 исключений
+    # LOW_QUERY_RELEVANCE стало 58 против 33, и ниши, ради которых шёл поиск, отсекались как «не по теме».
+    query_relevance_mode: str = "mean"
     # Сколько из max_candidates мест зарезервировать под кластеры с документами СМИ (0 — без резерва).
     market_reserved_candidates: int = 0
     evidence_max: int = 8
@@ -240,8 +251,9 @@ class RunAnalysis:
         control.check()
 
         with self._step("query_relevance"):
-            query_vector = self._embed_query(analysis.query_text)
-            relevances = normalize_rows(vectors) @ query_vector
+            query_vector, query_phrases = self._embed_query(analysis.query_text)
+            relevances = phrase_relevance(normalize_rows(vectors), query_vector, query_phrases,
+                                          self._config.query_relevance_mode)
             relevant = [
                 index
                 for index, value in enumerate(relevances)
@@ -289,7 +301,7 @@ class RunAnalysis:
         with self._step("keyphrases"):
             views = []
             for index, cluster in enumerate(scored_clusters):
-                views.append(self._build_view(index, cluster, documents, vectors, query_vector))
+                views.append(self._build_view(index, cluster, documents, vectors, query_vector, query_phrases))
                 control.check()  # эмбеддинги фраз десятков кластеров на CPU идут дольше аренды
         control.check()
 
@@ -377,7 +389,7 @@ class RunAnalysis:
         self._log.info("analysis.step", step="embeddings", computed=len(fresh), cache_hits=hits)
         return np.vstack([vector for vector in vectors if vector is not None])
 
-    def _embed_query(self, query_text: str) -> np.ndarray:
+    def _embed_query(self, query_text: str) -> tuple[np.ndarray, np.ndarray]:
         """Двуязычный вектор запроса: среднее нормированных векторов запроса и его расширений.
 
         Orchestrator передаёт в query_text исходную фразу и расширения ExpandQuery через « | ».
@@ -394,8 +406,8 @@ class RunAnalysis:
         norms[norms == 0.0] = 1.0
         vector = (encoded / norms).mean(axis=0)
         norm = float(np.linalg.norm(vector))
-        self._log.info("analysis.query_vector", phrases=len(texts))
-        return vector if norm == 0.0 else vector / norm
+        self._log.info("analysis.query_vector", phrases=len(texts), mode=self._config.query_relevance_mode)
+        return (vector if norm == 0.0 else vector / norm), (encoded / norms).astype(np.float32)
 
     def _build_view(
         self,
@@ -404,6 +416,7 @@ class RunAnalysis:
         documents: Sequence[DocumentRef],
         vectors: np.ndarray,
         query_vector: np.ndarray,
+        query_phrases: np.ndarray | None = None,
     ) -> _ClusterView:
         """Метка кластера, ключевые фразы и близости документов к центроиду."""
         cluster_documents_list = [documents[index] for index in cluster]
@@ -432,7 +445,8 @@ class RunAnalysis:
             centroid=cluster_centroid,
             title_auto=title[:200],
             keyphrases=keyphrases[:10],
-            query_relevance=float(max(0.0, min(1.0, cosine(cluster_centroid, query_vector)))),
+            query_relevance=float(max(0.0, min(1.0, float(phrase_relevance(
+                cluster_centroid[None, :], query_vector, query_phrases, self._config.query_relevance_mode)[0])))),
         )
 
     def _encyclopedia_signals(

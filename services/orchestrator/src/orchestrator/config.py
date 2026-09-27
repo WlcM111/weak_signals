@@ -66,6 +66,7 @@ class OrchestratorSettings(BaseServiceSettings):
     rubric_model_path: str = str(SERVICE_ROOT / "config" / "rubric_ranker.json")
     rubric_min_probability: float = Field(default=0.5, ge=0.0, le=1.0)
     signal_model_path: str = str(SERVICE_ROOT / "config" / "signal_classifier.json")
+    profile_model_path: str = str(SERVICE_ROOT / "config" / "profile_classifier.json")
     rubric_min_cards: int = Field(default=3, ge=0, le=15)
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"

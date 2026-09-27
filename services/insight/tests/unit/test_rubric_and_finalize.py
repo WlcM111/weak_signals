@@ -137,7 +137,7 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(card.candidate_id for card in outcome.cards), ["cand-1", "cand-2"])
         self.assertEqual(outcome.rejected, {})
         self.assertIn("составь", provider.calls[0][0].content.replace("заполни", "составь"))
-        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v2")
+        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v3")
 
     async def test_failed_batch_rejects_all(self) -> None:
         provider = FakeProvider(responses=["{"])

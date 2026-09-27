@@ -100,7 +100,7 @@ class ArxivAdapter(BaseSourceAdapter):
                     return
                 body = await self._fetch_page(
                     {
-                        "search_query": f'all:"{term}"',
+                        "search_query": search_query(term),
                         "start": page * PAGE_SIZE,
                         "max_results": PAGE_SIZE,
                         "sortBy": "submittedDate",
@@ -158,6 +158,17 @@ def _status(failure: AdapterFailure) -> int | None:
 
 
 _VIA_RE = re.compile(r"via=([^;\]]*)")
+_WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9\-]{2,}")
+_QUERY_STOP = frozenset({"and", "for", "the", "with", "from", "into", "based", "using", "via", "new", "novel"})
+
+
+def search_query(term: str) -> str:
+    """Запрос arXiv: значимые слова фразы через AND, а не точная фраза. 27.09 точная фраза из двух первых фраз
+    расширения дала 0 документов в 5 темах кейса из 6; однословная фраза остаётся как есть."""
+    words = [w for w in _WORD_RE.findall(term) if w.lower() not in _QUERY_STOP][:4]
+    if len(words) < 2:
+        return f'all:"{term}"'
+    return " AND ".join(f"all:{word}" for word in words)
 
 
 def _as_rate_limit(failure: AdapterFailure) -> AdapterFailure:
