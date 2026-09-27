@@ -77,7 +77,7 @@ class RospatentAdapterTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([call[0] for call in self.http.calls], [API_URL, API_URL])
         first, second = (call[1] for call in self.http.calls)
         self.assertEqual(first["headers"], {"Authorization": "Bearer секретный-ключ"})
-        self.assertEqual(first["json"], {"qn": "ракета", "limit": 25,
+        self.assertEqual(first["json"], {"qn": "ракета", "limit": 10,
                                          "filter": {"date_published": {"range": {"gte": "20000101"}}}})
         self.assertEqual(second["json"]["qn"], "rocket")
         self.assertNotIn("секретный-ключ", json.dumps(first["json"], ensure_ascii=False))
@@ -121,7 +121,7 @@ class RospatentAdapterTest(unittest.IsolatedAsyncioTestCase):
     def test_query_plan_takes_first_phrase_of_each_language(self) -> None:
         self.assertEqual(query_plan(TERMS), [("ракета", "ru"), ("rocket", "en")])
         self.assertEqual(query_plan(SearchTerms(en=("rocket",))), [("rocket", "en")])
-        self.assertEqual(request_body("x", replace(LIMITS, max_documents_per_source=150))["limit"], 25)
+        self.assertEqual(request_body("x", replace(LIMITS, max_documents_per_source=150))["limit"], 10)
 
     def test_publication_date_formats(self) -> None:
         self.assertEqual(parse_publication_date("2016.07.10").isoformat(), "2016-07-10T00:00:00+00:00")

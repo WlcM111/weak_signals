@@ -56,6 +56,8 @@ class NarrateConfig:
     # Калибровка стадии и тренда LLM к шкале организаторов ("исходное:итоговое,…").
     stage_calibration: str = "1:2,2:3,3:4,4:4"
     trend_calibration: str = "1:2,2:3,3:3"
+    # Путь к JSON локальной модели слабого сигнала (ws_common.rubric_model); пусто — порядок рубрики.
+    rubric_model_path: str = ""
 
 
 @dataclass(slots=True)

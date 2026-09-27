@@ -128,7 +128,7 @@ def composition_ru(composition: Composition) -> str:
             f"внедрения): {composition.market_mentions}.")
 
 
-def prefilter(composition: Composition) -> tuple[Decision, str, str] | None:
+def prefilter(composition: Composition, check_reviews: bool = True) -> tuple[Decision, str, str] | None:
     """Исключение до LLM по составу источников: (решение, код причины, объяснение) или None."""
     if composition.total == 0:
         return Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_NO_SOURCES", "Нет доступных источников для проверки."
@@ -137,7 +137,7 @@ def prefilter(composition: Composition) -> tuple[Decision, str, str] | None:
         return (Decision.HYPE_OR_NOISE, "RUBRIC_NO_INDEPENDENT_SOURCE",
                 f"Нет независимого доверенного источника (только {kinds}): по ТЗ такие источники не могут быть "
                 "единственным основанием для включения в выдачу.")
-    if composition.review_share >= 0.5:
+    if check_reviews and composition.review_share >= 0.5:
         return (Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_REVIEWS",
                 f"Больше половины источников — обзоры ({composition.reviews} из {composition.total}): "
                 "это аналитика направления, а не конкретная технология.")

@@ -31,7 +31,9 @@ from ws_common.clock import Clock
 
 API_URL = "https://searchplatform.rospatent.gov.ru/patsearch/v0.2/search"
 DOC_URL = "https://searchplatform.rospatent.gov.ru/doc/"
-PAGE_SIZE = 25
+# 10, а не 25 документов на фразу: 26.09 патенты заняли 25 из 31 источника карточек по темам кейса, и карточки
+# стали общими («промышленный IoT с ИИ»), а сигналы организаторов — рыночные.
+PAGE_SIZE = 10
 TERMS_PER_LANGUAGE = 1
 MAX_IPC = 5
 MAX_NAMES = 3

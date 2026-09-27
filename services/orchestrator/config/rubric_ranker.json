@@ -1,0 +1,108 @@
+{
+ "features": [
+  "code_R",
+  "code_U",
+  "code_GEN",
+  "code_OVR",
+  "code_OFF",
+  "code_MAT",
+  "code_NOISE",
+  "llm_confidence",
+  "stage",
+  "trend",
+  "sources",
+  "independent_share",
+  "market_share",
+  "patent_share",
+  "code_share",
+  "review_share",
+  "recent_share",
+  "analyzer_score"
+ ],
+ "mean": [
+  0.400826,
+  0.045455,
+  0.03719,
+  0.123967,
+  0.289256,
+  0.008264,
+  0.095041,
+  0.983058,
+  2.859504,
+  2.677686,
+  3.508264,
+  0.692626,
+  0.028237,
+  0.038499,
+  0.207025,
+  0.135473,
+  0.809942,
+  0.724237
+ ],
+ "scale": [
+  0.490066,
+  0.208299,
+  0.189227,
+  0.329544,
+  0.453417,
+  0.090533,
+  0.293272,
+  0.062342,
+  0.84115,
+  0.467362,
+  1.739768,
+  0.410169,
+  0.156748,
+  0.178704,
+  0.380177,
+  0.223139,
+  0.25649,
+  0.2348
+ ],
+ "coef": [
+  0.789696,
+  0.314647,
+  -0.036006,
+  -0.829992,
+  -0.017344,
+  -0.26547,
+  -0.478442,
+  -0.257482,
+  0.244866,
+  0.460628,
+  -0.085187,
+  0.375441,
+  0.075309,
+  -0.172604,
+  0.020038,
+  -0.92517,
+  -0.301156,
+  -0.097256
+ ],
+ "intercept": -1.887104,
+ "trained_on": {
+  "data_dir": "ml/data/dataset_b/v2",
+  "predictions": "rubric_b_pro_v2_predictions.csv"
+ },
+ "rows": 242,
+ "positives": 61,
+ "topics": 33,
+ "cv_by_topic": {
+  "local_model": {
+   "roc_auc": 0.7892,
+   "pr_auc": 0.5349,
+   "precision_top3_per_topic": 0.4138,
+   "brier": 0.156
+  },
+  "rubric_only": {
+   "roc_auc": 0.7725,
+   "pr_auc": 0.4536,
+   "precision_top3_per_topic": 0.3908
+  },
+  "analyzer_only": {
+   "roc_auc": 0.5235,
+   "pr_auc": 0.2542,
+   "precision_top3_per_topic": 0.2644
+  }
+ }
+}

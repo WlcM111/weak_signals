@@ -63,6 +63,7 @@ class OrchestratorSettings(BaseServiceSettings):
     rubric_fill_uncertain: bool = True
     stage_calibration: str = Field(default="1:2,2:3,3:4,4:4", pattern=r"^(\d:\d)(,\d:\d)*$")
     trend_calibration: str = Field(default="1:2,2:3,3:3", pattern=r"^(\d:\d)(,\d:\d)*$")
+    rubric_model_path: str = str(SERVICE_ROOT / "config" / "rubric_ranker.json")
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)

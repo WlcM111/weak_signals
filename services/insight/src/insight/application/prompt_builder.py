@@ -24,7 +24,7 @@ INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"
 JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
-RUBRIC_PROMPT_VERSION = "judge_v2"
+RUBRIC_PROMPT_VERSION = "judge_v3"
 RUBRIC_SCHEMA_FILE = "judge_v2_llm_output.schema.json"
 FINALIZE_PROMPT_VERSION = "finalize_v2"
 FINALIZE_SCHEMA_FILE = "finalize_v2_llm_output.schema.json"
@@ -104,9 +104,9 @@ class PromptBuilder:
             PromptDefinition(
                 prompt_version=RUBRIC_PROMPT_VERSION,
                 purpose=Purpose.JUDGE,
-                template_sha256=self.template_sha256("judge_v2.j2"),
+                template_sha256=self.template_sha256("judge_v3.j2"),
                 output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
-                description="Рубричная оценка: тема, конкретность, стадия, проверяемость; стадия 1–4 и тренд 1–3",
+                description="Рубричная оценка v3: общие формулировки — N-GEN, рыночные свидетельства; стадия и тренд",
             ),
             PromptDefinition(
                 prompt_version=FINALIZE_PROMPT_VERSION,
@@ -184,7 +184,7 @@ class PromptBuilder:
     def build_rubric_prompt(self, query_text: str, candidates: Sequence[dict]) -> PromptBundle:
         """Промпт рубричной оценки: кандидаты с полным списком источников и сводкой их состава."""
         schema = self._schemas[RUBRIC_SCHEMA_FILE]
-        system = self._environment.get_template("judge_v2.j2").render(
+        system = self._environment.get_template("judge_v3.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2)
         )
         user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)

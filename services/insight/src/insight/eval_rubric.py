@@ -25,6 +25,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from insight.application.prompt_builder import RUBRIC_PROMPT_VERSION
 from insight.application.use_cases.rubric_judge import MAX_ITEMS, RubricItem, RubricSource, RubricVerdict
 
 SCIENCE = ("arxiv.org", "nature.com", "sciencedirect.com", "springer.com", "ieee.org", "acm.org", "doi.org",
@@ -279,7 +280,7 @@ async def run(args: argparse.Namespace) -> int:
     await pool.close()
     verdicts = calibrated(verdicts, args.stage_calibration, args.trend_calibration)
     metrics, predictions = summarize(args.dataset, rows, verdicts)
-    metrics.update({"provider": provider, "model": model, "prompt_version": "judge_v2", "label": args.label})
+    metrics.update({"provider": provider, "model": model, "prompt_version": RUBRIC_PROMPT_VERSION, "label": args.label})
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     stem = f"rubric_{args.dataset}_{args.label}"

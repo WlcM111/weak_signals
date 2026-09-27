@@ -163,6 +163,7 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 rubric_fill_uncertain=settings.rubric_fill_uncertain,
                 stage_calibration=settings.stage_calibration,
                 trend_calibration=settings.trend_calibration,
+                rubric_model_path=settings.rubric_model_path,
             ),
         ),
         metrics=context["metrics"],
