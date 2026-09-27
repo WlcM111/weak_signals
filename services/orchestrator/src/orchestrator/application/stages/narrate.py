@@ -65,6 +65,10 @@ class NarrateConfig:
     signal_model_path: str = ""
     # Классификатор, обученный на профилях живого конвейера (ml.profile_classifier); есть — используется первым.
     profile_model_path: str = ""
+    # Финальная проверка конкретности готовых карточек рубрикой (общее/зрелое/не по теме заменяется следующим).
+    final_check_enabled: bool = False
+    # Уверенность принятого рубрикой сигнала ≥ 50 %: 0,5 + 0,5 × вероятность модели; прочих — 0,5 × вероятность.
+    confidence_calibration: bool = False
 
 
 @dataclass(slots=True)

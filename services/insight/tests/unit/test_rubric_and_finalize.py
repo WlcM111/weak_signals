@@ -90,7 +90,7 @@ class RubricJudgeTest(unittest.IsolatedAsyncioTestCase):
 
 
 def card_row(short: str, **overrides) -> dict:
-    row = {"candidate_id": short, "title_ru": "Фотонный FMCW-лидар на чипе",
+    row = {"candidate_id": short, "source_ids": ["d1", "d2"], "title_ru": "Фотонный лидар на чипе (FMCW LiDAR)",
            "description_ru": "Интегральный фотонный лидар с частотной модуляцией измеряет дальность до 200 м.",
            "advantage_ru": "Компактность и отсутствие движущихся частей.",
            "case_example_ru": "Исследователи EPFL показали фотонный движок лидара.", "case_document_id": "d1",
@@ -115,6 +115,15 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([s[0] for s in card.source_summaries], ["doc-1", "doc-2"])
         self.assertEqual([s[2] for s in card.source_summaries], ["GENERATIVE_SUMMARY", "ORIGINAL_RU"])
 
+    def test_only_chosen_sources_and_original_term_required(self) -> None:
+        card, _ = check_card(self.CARD, card_row("k1", source_ids=["d1"], trend_reason_ru="Публикации появляются регулярно.",
+                                                 source_summaries=[{"document_id": "d1",
+                                                                    "summary_ru": "Показан фотонный лидар для 6G-сетей."}]))
+        self.assertEqual([s[0] for s in card.source_summaries], ["doc-1"])  # второй источник отброшен
+        self.assertIn("не выбраны", check_card(self.CARD, card_row("k1", source_ids=[]))[1])
+        self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Фотонный лидар на чипе"))[1])
+        self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Лидар (Quantum Radar)"))[1])
+
     def test_unsupported_number_removes_sentence_not_card(self) -> None:
         card, _ = check_card(self.CARD, card_row("k1", advantage_ru="Компактность без движущихся частей. "
                                                                     "Экономия 37 процентов энергии."))
@@ -137,7 +146,7 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(card.candidate_id for card in outcome.cards), ["cand-1", "cand-2"])
         self.assertEqual(outcome.rejected, {})
         self.assertIn("составь", provider.calls[0][0].content.replace("заполни", "составь"))
-        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v3")
+        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v4")
 
     async def test_failed_batch_rejects_all(self) -> None:
         provider = FakeProvider(responses=["{"])

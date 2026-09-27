@@ -49,6 +49,7 @@ class AnalyzerSettings(BaseServiceSettings):
     min_cluster_size: int = Field(default=2, ge=1, le=50)
     keep_market_singletons: bool = False
     query_relevance_mode: str = Field(default="mean", pattern="^(mean|max)$")
+    market_notes_separate: bool = False
     market_reserved_candidates: int = Field(default=0, ge=0, le=40)
     evidence_max: int = Field(default=8, ge=1, le=50)
     enrichment_timeout_seconds: float = Field(default=60.0, ge=5.0, le=300.0)

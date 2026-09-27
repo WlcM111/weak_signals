@@ -24,10 +24,10 @@ INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"
 JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
-RUBRIC_PROMPT_VERSION = "judge_v4"
+RUBRIC_PROMPT_VERSION = "judge_v5"
 RUBRIC_SCHEMA_FILE = "judge_v4_llm_output.schema.json"
-FINALIZE_PROMPT_VERSION = "finalize_v3"
-FINALIZE_SCHEMA_FILE = "finalize_v2_llm_output.schema.json"
+FINALIZE_PROMPT_VERSION = "finalize_v4"
+FINALIZE_SCHEMA_FILE = "finalize_v4_llm_output.schema.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,14 +104,14 @@ class PromptBuilder:
             PromptDefinition(
                 prompt_version=RUBRIC_PROMPT_VERSION,
                 purpose=Purpose.JUDGE,
-                template_sha256=self.template_sha256("judge_v4.j2"),
+                template_sha256=self.template_sha256("judge_v5.j2"),
                 output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
                 description="Рубрика v4: код, критерии, стадия, тренд; извлечение технологии и профиля для классификатора",
             ),
             PromptDefinition(
                 prompt_version=FINALIZE_PROMPT_VERSION,
                 purpose=Purpose.INSIGHT,
-                template_sha256=self.template_sha256("finalize_v3.j2"),
+                template_sha256=self.template_sha256("finalize_v4.j2"),
                 output_schema_version=f"{FINALIZE_SCHEMA_FILE}@1",
                 description="Пакетная доводка карточек v2: все поля на русском, резюме каждого источника, компании"
             ),
@@ -184,7 +184,7 @@ class PromptBuilder:
     def build_rubric_prompt(self, query_text: str, candidates: Sequence[dict]) -> PromptBundle:
         """Промпт рубричной оценки: кандидаты с полным списком источников и сводкой их состава."""
         schema = self._schemas[RUBRIC_SCHEMA_FILE]
-        system = self._environment.get_template("judge_v4.j2").render(
+        system = self._environment.get_template("judge_v5.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2)
         )
         user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
@@ -193,7 +193,7 @@ class PromptBuilder:
     def build_finalize_prompt(self, query_text: str, cards: Sequence[dict]) -> PromptBundle:
         """Промпт пакетной доводки показанных карточек."""
         schema = self._schemas[FINALIZE_SCHEMA_FILE]
-        system = self._environment.get_template("finalize_v3.j2").render(
+        system = self._environment.get_template("finalize_v4.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2)
         )
         user = json.dumps({"query": query_text, "cards": list(cards)}, ensure_ascii=False)

@@ -129,6 +129,7 @@ async def run_narrate_rubric(
     below = [c for c in ranked if c not in eligible]
     ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
+    final_dropped: dict[str, JudgeVerdictView] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
     for _ in range(FINALIZE_ROUNDS):
@@ -138,9 +139,14 @@ async def run_narrate_rubric(
         batch, queue = queue[:need], queue[need:]
         tried.extend(batch)
         finalized.update(await _finalize(insight, query_text, batch, documents, verdicts, config))
+        if config.final_check_enabled:
+            final_dropped.update(await _final_check(insight, query_text, batch, finalized, documents))
+            for candidate_id in final_dropped:
+                finalized.pop(candidate_id, None)
     rank_of = {c.candidate_id: i for i, c in enumerate(ranked)}
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
-    text_failed = [c for c in tried if c.candidate_id not in finalized]
+    text_failed = [c for c in tried if c.candidate_id not in finalized and c.candidate_id not in final_dropped]
+    dropped_final = [c for c in tried if c.candidate_id in final_dropped]
     fallback = not shown and bool(ranked)
     if fallback:  # пустой выдачи при найденных кандидатах не бывает: прежний генератор карточек
         shown, text_failed = ranked[: config.top_n], []
@@ -149,7 +155,7 @@ async def run_narrate_rubric(
     outcome.weak_signals_confident = sum(1 for c in judged if scored[c.candidate_id][0] >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
-        rest, prefiltered, unjudged, queue + below, text_failed, verdicts, scored))
+        rest, prefiltered, unjudged, queue + below, text_failed, verdicts, scored, dropped_final, final_dropped))
     for position, candidate in enumerate(shown, 1):
         await check()
         item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
@@ -230,6 +236,8 @@ def _excluded_rows(
     text_failed: list[CandidateView],
     verdicts: dict[str, JudgeVerdictView],
     scored: dict[str, tuple[float, dict[str, float]]],
+    dropped_final: list[CandidateView] | None = None,
+    final_dropped: dict[str, JudgeVerdictView] | None = None,
 ) -> list[ExcludedCandidate]:
     """Исключённые кандидаты с причинами (ТЗ: причины исключения зрелых и нерелевантных кандидатов)."""
     rows: list[ExcludedCandidate] = []
@@ -257,7 +265,46 @@ def _excluded_rows(
             ("Карточку не удалось заполнить на русском по источникам — показан следующий кандидат. " if failed else
              f"Вне ТОП-N: вероятность локальной модели {prob:.0%}; рубрика — "
              f"{rubric.CODE_RU.get(verdict.code, verdict.code)}. ") + verdict.reason_ru, prob)
+    for candidate in dropped_final or []:
+        verdict = (final_dropped or {})[candidate.candidate_id]
+        add(candidate, rubric.CODE_DECISION.get(verdict.code, Decision.INSUFFICIENT_EVIDENCE), f"RUBRIC_FINAL_{verdict.code}",
+            f"Финальная проверка готовой карточки: {rubric.CODE_RU.get(verdict.code, verdict.code)}. {verdict.reason_ru}",
+            verdict.confidence)
     return rows
+
+
+FINAL_DROP = frozenset({"N-GEN", "N-MAT", "N-OVR", "N-OFF", "N-NOI", "N-HYP", "N-FUND"})
+
+
+async def _final_check(
+    insight: InsightClient, query_text: str, batch: list[CandidateView], finalized: dict[str, FinalizedCardView],
+    documents: dict[str, DocumentView],
+) -> dict[str, JudgeVerdictView]:
+    """Рубрика по готовой карточке: название и описание — конкретная ранняя технология по теме? Общее, зрелое,
+    обзор и не по теме возвращаются для замены следующим кандидатом. Сбой проверки карточки не отбрасывает."""
+    items = []
+    for candidate in batch:
+        card = finalized.get(candidate.candidate_id)
+        if card is None:
+            continue
+        docs = tuple(documents[d] for d in card.source_summaries if d in documents)
+        items.append(RubricRequestItem(replace(candidate, title_auto=card.title_ru[:200], keyphrases=()), docs,
+                                       f"Итоговая карточка. Название: {card.title_ru}. Описание: {card.description_ru}"))
+    if not items:
+        return {}
+    try:
+        verdicts = await insight.judge_rubric(query_text, items)
+    except (UpstreamUnavailable, StageFailed) as error:
+        log.warning("stage.narrate_rubric.final_check_failed", error=str(error)[:200])
+        return {}
+    return {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP}
+
+
+def display_score(prob: float, code: str, calibrate: bool) -> float:
+    """Отображаемая уверенность: принятый рубрикой сигнал — 0,5 + 0,5 × вероятность модели (порядок сохраняется)."""
+    if not calibrate:
+        return prob
+    return round(0.5 + 0.5 * prob, 4) if code == "R" else round(0.5 * prob, 4)
 
 
 def model_features(model: dict | None, values: dict[str, float], candidate: CandidateView) -> tuple[FeatureRow, ...]:
@@ -294,7 +341,8 @@ async def _build_item(
               + rubric.status_explanation(verdict, verdict.stage, verdict.trend))[:500]
     features = model_features(model, values, candidate)
     common = dict(job_id=job_id, rank=position, candidate_id=candidate.candidate_id,
-                  title_auto=candidate.title_auto[:200], score=prob, decision_reason="RUBRIC_MODEL",
+                  title_auto=candidate.title_auto[:200], score=display_score(prob, verdict.code, config.confidence_calibration),
+                  decision_reason="RUBRIC_MODEL",
                   decision_explanation_ru=status, document_count=candidate.document_count, features=features,
                   predicted_stage=verdict.stage, predicted_trend=verdict.trend)
     if card is not None:

@@ -35,6 +35,7 @@ from analyzer.domain.clustering import (
     near_dup_filter,
     normalize_rows,
     select_top_clusters,
+    split_market_glue,
     split_small_clusters,
     trust_weights,
 )
@@ -116,6 +117,9 @@ class RunAnalysisConfig:
     # фразе (исходный запрос или любое поднаправление). С поднаправлениями среднее размывается: 26–27.09 исключений
     # LOW_QUERY_RELEVANCE стало 58 против 33, и ниши, ради которых шёл поиск, отсекались как «не по теме».
     query_relevance_mode: str = "mean"
+    # Заметки СМИ не склеиваются между собой: в кластере остаётся одна (ближайшая к центру), остальные — отдельные
+    # кандидаты. 27.09 новости о раундах разных компаний (PicoJool, BigHat, Feather) склеились по словам «raises Series».
+    market_notes_separate: bool = False
     # Сколько из max_candidates мест зарезервировать под кластеры с документами СМИ (0 — без резерва).
     market_reserved_candidates: int = 0
     evidence_max: int = 8
@@ -273,6 +277,8 @@ class RunAnalysis:
 
         with self._step("clustering"):
             clusters = cluster_documents(vectors, self._config.cluster_distance_threshold)
+            if self._config.market_notes_separate:
+                clusters = split_market_glue(clusters, documents, vectors, MARKET_SINGLE_TYPES)
             clusters_total = len(clusters)
             scored_clusters, misc = split_small_clusters(
                 clusters, documents, self._config.min_cluster_size,

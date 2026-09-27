@@ -178,6 +178,31 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         await self.narrate()
         self.assertEqual(self.insight.rubric_calls, [7])  # 5 прежних + NO_TRUSTED_SOURCE + LOW_QUERY_RELEVANCE
 
+    async def test_final_check_replaces_generic_card_and_calibrates_confidence(self) -> None:
+        judged_once = set()
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id == self.good_b.candidate_id:
+                if candidate.candidate_id in judged_once:
+                    return None
+                judged_once.add(candidate.candidate_id)
+                return dict(code="N-GEN", stage=1, trend=1, confidence=0.9)
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        await self.narrate(final_check_enabled=True, confidence_calibration=True)
+        shown = {i.candidate_id: i for i in self.results.items["job-1"]}
+        self.assertNotIn(self.good_b.candidate_id, shown)
+        excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
+        self.assertEqual(excluded[self.good_b.candidate_id], "RUBRIC_FINAL_N-GEN")
+        self.assertTrue(all(i.score >= 0.5 for i in shown.values()))  # принятые рубрикой — не ниже 50 %
+
+    def test_display_score_is_monotone(self) -> None:
+        from orchestrator.application.stages.narrate_rubric import display_score
+        self.assertEqual(display_score(0.2, "R", True), 0.6)
+        self.assertEqual(display_score(0.2, "U", True), 0.1)
+        self.assertEqual(display_score(0.2, "R", False), 0.2)
+
     async def test_without_classifier_model_v3_is_used(self) -> None:
         await self.narrate(signal_model_path="", rubric_min_probability=0.0)
         items = self.results.items["job-1"]

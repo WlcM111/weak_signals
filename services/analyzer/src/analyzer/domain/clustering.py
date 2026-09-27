@@ -13,7 +13,7 @@ from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial.distance import pdist
 
 from analyzer.domain.entities import DocumentRef
-from analyzer.domain.values import TrustLevel
+from analyzer.domain.values import SourceType, TrustLevel
 
 FAR_FUTURE_ORDER = 10**12
 
@@ -156,3 +156,28 @@ def select_top_clusters(
     taken = {tuple(item[2]) for item in market}
     rest = [item for item in scored if tuple(item[2]) not in taken][: max_candidates - len(market)]
     return sorted([cluster for _, _, cluster in market + rest], key=min)
+
+
+def split_market_glue(
+    clusters: Sequence[Sequence[int]], documents: Sequence[DocumentRef], vectors: np.ndarray,
+    market_types: frozenset[SourceType],
+) -> list[list[int]]:
+    """В кластере остаётся одна заметка СМИ — ближайшая к центру кластера; остальные становятся отдельными кластерами.
+
+    Заметки о раундах разных компаний похожи по лексике («raises $X Series A») и склеивались в одного кандидата.
+    Смешанные кластеры «статья + заметка о той же технологии» сохраняются.
+    """
+    result: list[list[int]] = []
+    for cluster in clusters:
+        market = [i for i in cluster if documents[i].source_type in market_types]
+        if len(market) < 2:
+            result.append(list(cluster))
+            continue
+        rows = vectors[list(cluster)].astype(np.float32)
+        rows = rows / np.maximum(np.linalg.norm(rows, axis=1, keepdims=True), 1e-12)
+        center = rows.mean(axis=0)
+        center = center / max(float(np.linalg.norm(center)), 1e-12)
+        keep = max(market, key=lambda i: float(rows[list(cluster).index(i)] @ center))
+        result.append([i for i in cluster if i not in market or i == keep])
+        result.extend([i] for i in market if i != keep)
+    return result

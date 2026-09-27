@@ -42,6 +42,7 @@ LIMITS = {"title_ru": 200, "description_ru": 1200, "advantage_ru": 600, "case_ex
 STANDALONE_NUMBER_RE = re.compile(r"(?<![\w.,])\d+(?:[.,]\d+)?(?![\w])")
 SENTENCE_RE = re.compile(r"(?<=[.!?…])\s+")
 _QUOTES_RE = re.compile(r"[«»\"'“”„()\[\]]")
+TERM_RE = re.compile(r"\(([^()]{2,80})\)")
 
 log = get_logger("insight.finalize")
 
@@ -143,6 +144,14 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
         return None, "ответ по карточке не объект"
     sources = card.sources[:MAX_SOURCES]
     doc_ids = {f"d{number}": source.document_id for number, source in enumerate(sources, 1)}
+    # Карточка строится только по источникам, которые описывают выбранную технологию (27.09: в одну карточку
+    # попадали несвязанные заметки о раундах и статьи о других технологиях).
+    chosen = list(dict.fromkeys(doc_ids[key] for key in (str(x).strip() for x in row.get("source_ids") or [])
+                                if key in doc_ids))
+    if not chosen:
+        return None, "не выбраны источники, описывающие технологию"
+    sources = tuple(source for source in sources if source.document_id in chosen)
+    doc_ids = {key: value for key, value in doc_ids.items() if value in chosen}
     supported = supported_numbers(sources)
     clean: dict[str, str] = {}
     for key in TEXT_FIELDS:
@@ -150,13 +159,16 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
         clean[key] = text if key == "title_ru" else repair_numbers(text, supported)
     if unsupported(clean["title_ru"], supported):
         return None, "в названии число, которого нет в источниках"
+    corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
+    terms = [term for term in TERM_RE.findall(clean["title_ru"]) if normalize_name(term)]
+    if not any(normalize_name(term) in corpus for term in terms):
+        return None, "в названии нет оригинального термина из выбранных источников"
     for key in TEXT_FIELDS:
         minimum, share = (3, MIN_CYRILLIC_TITLE) if key == "title_ru" else (MIN_TEXT, MIN_CYRILLIC)
         if len(clean[key]) < minimum:
             return None, f"{key}: поле пустое"
         if grounding.cyrillic_share(clean[key]) < share:
             return None, f"{key}: текст не на русском языке"
-    corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
     companies: list[str] = []
     for name in row.get("companies") or []:
         name = " ".join(str(name).split())

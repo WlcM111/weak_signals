@@ -168,6 +168,8 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 rubric_min_cards=settings.rubric_min_cards,
                 signal_model_path=settings.signal_model_path,
                 profile_model_path=settings.profile_model_path,
+                final_check_enabled=settings.final_specificity_check,
+                confidence_calibration=settings.confidence_calibration,
             ),
         ),
         metrics=context["metrics"],

@@ -55,3 +55,18 @@ class PhraseRelevanceTest(unittest.TestCase):
         self.assertAlmostEqual(float(phrase_relevance(niche, mean, phrases, "max")[0]), 1.0, places=5)
         self.assertAlmostEqual(float(phrase_relevance(niche, mean, phrases, "mean")[0]), 0.7071, places=3)
         self.assertAlmostEqual(float(phrase_relevance(niche, mean, None, "max")[0]), 0.7071, places=3)
+
+
+class MarketGlueTest(unittest.TestCase):
+    def test_one_market_note_per_cluster_rest_become_singletons(self) -> None:
+        import numpy as np
+
+        from analyzer.domain.clustering import split_market_glue
+
+        docs = [doc(SourceType.SCIENTIFIC_PUBLICATION, TrustLevel.HIGH), doc(SourceType.INDUSTRY_MEDIA, TrustLevel.MEDIUM),
+                doc(SourceType.INDUSTRY_MEDIA, TrustLevel.MEDIUM), doc(SourceType.NEWS, TrustLevel.MEDIUM)]
+        vectors = np.array([[1.0, 0.0], [0.9, 0.1], [0.1, 0.9], [0.0, 1.0]], dtype=np.float32)
+        result = split_market_glue([[0, 1, 2, 3]], docs, vectors, frozenset({SourceType.INDUSTRY_MEDIA, SourceType.NEWS}))
+        self.assertEqual(result[0], [0, 1])  # статья и ближайшая к центру заметка
+        self.assertEqual(sorted(result[1:]), [[2], [3]])
+        self.assertEqual(split_market_glue([[0, 1]], docs, vectors, frozenset({SourceType.INDUSTRY_MEDIA})), [[0, 1]])
