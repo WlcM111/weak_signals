@@ -86,6 +86,8 @@ class RubricVerdict:
     relevance: int
     confidence: float
     reason_ru: str
+    technology_ru: str = ""
+    profile_ru: str = ""
 
     @property
     def verdict(self) -> str:
@@ -155,7 +157,12 @@ def coerce_verdict(row: object) -> dict | None:
         out["confidence"] = min(max(float(str(row.get("confidence")).strip()), 0.0), 1.0)
     except (TypeError, ValueError):
         out["confidence"] = None
-    return None if any(value is None for value in out.values()) else out
+    if any(value is None for value in out.values()):
+        return None
+    # Извлечённая сущность и профиль — данные для локального классификатора; без них вердикт остаётся годным.
+    out["technology_ru"] = " ".join(str(row.get("technology_ru", "") or "").split())[:200]
+    out["profile_ru"] = " ".join(str(row.get("profile_ru", "") or "").split())[:700]
+    return out
 
 
 def to_verdict(candidate_id: str, row: dict) -> RubricVerdict:
@@ -176,6 +183,8 @@ def to_verdict(candidate_id: str, row: dict) -> RubricVerdict:
         relevance=int(row["relevance"]),
         confidence=round(float(row["confidence"]), 4),
         reason_ru=str(row["reason_ru"]).strip()[:300],
+        technology_ru=str(row.get("technology_ru", "")).strip()[:200],
+        profile_ru=str(row.get("profile_ru", "")).strip()[:700],
     )
 
 

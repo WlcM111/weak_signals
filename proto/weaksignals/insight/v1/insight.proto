@@ -160,6 +160,8 @@ message JudgeVerdict {
   int32 stage = 10;     // 1..4; 0 — не определена
   int32 trend = 11;     // 1..3; 0 — не определён
   float confidence = 12; // 0..1
+  string technology_ru = 13; // rubric_v2: название технологии, извлечённое из источников
+  string profile_ru = 14;    // rubric_v2: профиль по источникам — вход локального классификатора
 }
 
 message JudgeCandidatesResponse {

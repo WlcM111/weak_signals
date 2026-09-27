@@ -126,6 +126,8 @@ def select_top_clusters(
     relevances: Sequence[float],
     max_candidates: int,
     weights: Sequence[float] | None = None,
+    reserved_mask: Sequence[bool] | None = None,
+    reserved: int = 0,
 ) -> list[list[int]]:
     """Оставляет `max_candidates` кластеров по произведению размера на среднюю релевантность.
 
@@ -144,5 +146,13 @@ def select_top_clusters(
         for cluster in clusters
     ]
     scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    selected = [cluster for _, _, cluster in scored[:max_candidates]]
-    return sorted(selected, key=min)
+    if reserved_mask is None or reserved <= 0:
+        selected = [cluster for _, _, cluster in scored[:max_candidates]]
+        return sorted(selected, key=min)
+    # Места для кластеров с рыночными документами: вес «размер × релевантность» даёт заметке СМИ ~0,8 против
+    # ~8 у научного кластера из десяти статей, и без резерва рыночные сигналы в кандидаты не попадают.
+    marked = {tuple(cluster) for cluster, flag in zip(clusters, reserved_mask) if flag}
+    market = [item for item in scored if tuple(item[2]) in marked][: min(reserved, max_candidates)]
+    taken = {tuple(item[2]) for item in market}
+    rest = [item for item in scored if tuple(item[2]) not in taken][: max_candidates - len(market)]
+    return sorted([cluster for _, _, cluster in market + rest], key=min)

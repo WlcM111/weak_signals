@@ -278,6 +278,7 @@ class GrpcInsightClient:
                 v.candidate_id, v.verdict, v.relevance, v.reason_ru, code=v.code, on_topic=v.on_topic,
                 concrete=v.concrete, early_stage=v.early_stage, verifiable=v.verifiable, stage=v.stage,
                 trend=v.trend, confidence=round(float(v.confidence), 4),
+                technology_ru=v.technology_ru, profile_ru=v.profile_ru,
             )
             for v in response.verdicts
             if v.code and 1 <= v.stage <= 4 and 1 <= v.trend <= 3

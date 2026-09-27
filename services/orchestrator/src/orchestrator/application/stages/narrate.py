@@ -58,6 +58,11 @@ class NarrateConfig:
     trend_calibration: str = "1:2,2:3,3:3"
     # Путь к JSON локальной модели слабого сигнала (ws_common.rubric_model); пусто — порядок рубрики.
     rubric_model_path: str = ""
+    # Порог показа по вероятности локальной модели и минимум карточек (добор лучших ниже порога с пометкой).
+    rubric_min_probability: float = 0.5
+    rubric_min_cards: int = 3
+    # Локальный классификатор слабого сигнала по профилю (ws_common.signal_classifier); пусто — модель v3.
+    signal_model_path: str = ""
 
 
 @dataclass(slots=True)

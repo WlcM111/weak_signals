@@ -1,6 +1,9 @@
 # Образ сервиса collector (§15.2 ARCHITECTURE_TZ.md): base → deps → runtime.
 # Контекст сборки — корень репозитория (см. compose.yaml: context "." ).
-FROM python:3.12-slim AS base
+# bookworm (Debian 12, OpenSSL 3.0), а не slim/trixie (OpenSSL 3.5): CDN arXiv (Fastly) отвечает 406 на TLS-рукопожатие
+# OpenSSL 3.5.7 — проверено 26.09.2026 матрицей образов (docs/collector/DECISIONS.md). Переход на trixie — только после
+# повторной проверки матрицей.
+FROM python:3.12-slim-bookworm AS base
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 UV_LINK_MODE=copy
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /usr/local/bin/uv
 WORKDIR /app

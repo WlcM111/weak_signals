@@ -157,9 +157,21 @@ def _status(failure: AdapterFailure) -> int | None:
     return int(match.group(1)) if match else None
 
 
+_VIA_RE = re.compile(r"via=([^;\]]*)")
+
+
 def _as_rate_limit(failure: AdapterFailure) -> AdapterFailure:
-    """406 от arXiv: причина не установлена, поэтому код HTTP_4XX; пауза источника всё равно включается."""
+    """406 от arXiv. Без узла «google» в via запрос отклонил CDN (Fastly) и до сервера arXiv не дошёл: так CDN
+    отвечает на TLS-рукопожатие OpenSSL 3.5 (проверено 26.09.2026, docs/collector/DECISIONS.md). Код остаётся
+    HTTP_4XX (контракт не меняется), причина — в тексте отказа; пауза источника включается, повторов нет."""
     status = _status(failure)
+    via = _VIA_RE.search(failure.message or "")
+    if status == 406 and via is not None and "google" not in via.group(1).lower():
+        details = (failure.message or "").split("[", 1)[-1].rstrip("]")
+        return AdapterFailure(
+            AdapterErrorCode.HTTP_4XX.value,
+            f"CDN arXiv отклонил TLS-клиент, запрос не дошёл до сервера (406 без узла google в via) [{details}]",
+        )
     if status in RATE_LIMIT_STATUSES:
         return AdapterFailure(
             AdapterErrorCode.HTTP_4XX.value,

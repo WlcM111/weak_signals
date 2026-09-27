@@ -105,6 +105,8 @@ class RunAnalysisConfig:
     min_cluster_size: int = 2
     # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
     keep_market_singletons: bool = False
+    # Сколько из max_candidates мест зарезервировать под кластеры с документами СМИ (0 — без резерва).
+    market_reserved_candidates: int = 0
     evidence_max: int = 8
     keyphrases_top_k: int = 10
     encyclopedia_languages: tuple[str, ...] = ("ru", "en")
@@ -272,6 +274,8 @@ class RunAnalysis:
                 [float(value) for value in relevances],
                 analysis.params.max_candidates,
                 trust_weights(documents) if self._config.trust_weighted_selection else None,
+                [any(documents[i].source_type in MARKET_SINGLE_TYPES for i in cluster) for cluster in scored_clusters],
+                self._config.market_reserved_candidates,
             )
         self._log.info(
             "analysis.step",

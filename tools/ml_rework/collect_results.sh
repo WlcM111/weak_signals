@@ -21,6 +21,7 @@ for f in ml/data/dataset_b/v2/validation_report_v2.json ml/data/dataset_b/v2/lab
 done
 if [ -d ml/reports/quality ]; then cp -R ml/reports/quality "$out/quality"; fi
 if [ -d ml/reports/rubric ]; then cp -R ml/reports/rubric "$out/rubric"; fi
+if [ -d ml/reports/signal_classifier ]; then cp -R ml/reports/signal_classifier "$out/signal_classifier"; fi
 # Живые прогоны за последние 3 суток (analytics, own-topics, relevance).
 find . -maxdepth 1 \( -name 'analytics-*.txt' -o -name 'own-topics-*.json' -o -name 'relevance-*.csv' \) -mtime -3 \
   -exec cp {} "$out/" \;

@@ -1,5 +1,12 @@
 # Изменения контрактов
 
+## 2026-09-27 — v4: классификатор по схеме ТЗ, поиск ниш, рыночные сигналы, arXiv
+- `weaksignals.insight.v1`: `JudgeVerdict.technology_ru` (13), `JudgeVerdict.profile_ru` (14) — извлечённая технология
+  и профиль по источникам для локального классификатора. Обратно совместимо.
+- insight: промпты `judge_v4` и `expand_v2` (поднаправления запроса); orchestrator: решение — локальный классификатор
+  `ws_common.signal_classifier` (`services/orchestrator/config/signal_classifier.json`), `WS_RUBRIC_MIN_PROBABILITY`,
+  `WS_RUBRIC_MIN_CARDS`; analyzer: `WS_MARKET_RESERVED_CANDIDATES`; collector: образ bookworm, заголовки CDN в отказах.
+
 ## 2026-09-27 — рубрика v3: локальная модель решает, выдача не бывает пустой
 - orchestrator: ранжирование и уверенность — локальная модель `ws_common.rubric_model` (JSON
   `services/orchestrator/config/rubric_ranker.json`, обучение — `python -m ml.rubric_ranker`); кандидаты ранжируются,

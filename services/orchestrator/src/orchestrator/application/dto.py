@@ -124,6 +124,8 @@ class JudgeVerdictView:
     stage: int = 0
     trend: int = 0
     confidence: float = 0.0
+    technology_ru: str = ""  # сущность, извлечённая LLM из источников
+    profile_ru: str = ""     # профиль технологии по источникам — вход локального классификатора
 
 
 @dataclass(frozen=True, slots=True)

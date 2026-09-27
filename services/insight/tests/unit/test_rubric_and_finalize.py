@@ -70,6 +70,18 @@ class RubricJudgeTest(unittest.IsolatedAsyncioTestCase):
         judge, _ = self.judge("не json", "не json", "не json")
         self.assertTrue((await judge.execute("q", ITEMS[:2])).used_fallback)
 
+    def test_technology_and_profile_are_extracted_and_optional(self) -> None:
+        from insight.application.use_cases.rubric_judge import coerce_verdict
+
+        row = verdict_row("c1")
+        row.update(technology_ru="Фотонный FMCW-лидар", profile_ru="Первые пилоты в 2026 году. " * 80)
+        clean = coerce_verdict(row)
+        verdict = to_verdict("x", clean)
+        self.assertEqual(verdict.technology_ru, "Фотонный FMCW-лидар")
+        self.assertLessEqual(len(verdict.profile_ru), 700)
+        bare = coerce_verdict(verdict_row("c1"))
+        self.assertEqual((bare["technology_ru"], bare["profile_ru"]), ("", ""))
+
     def test_r_without_all_criteria_becomes_u(self) -> None:
         row = verdict_row("c1")
         row["verifiable"] = False

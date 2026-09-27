@@ -224,7 +224,7 @@ class JudgeCandidatesRequest(_message.Message):
     def __init__(self, query_text: _Optional[str] = ..., items: _Optional[_Iterable[_Union[JudgeItem, _Mapping]]] = ..., mode: _Optional[str] = ...) -> None: ...
 
 class JudgeVerdict(_message.Message):
-    __slots__ = ("candidate_id", "verdict", "relevance", "reason_ru", "code", "on_topic", "concrete", "early_stage", "verifiable", "stage", "trend", "confidence")
+    __slots__ = ("candidate_id", "verdict", "relevance", "reason_ru", "code", "on_topic", "concrete", "early_stage", "verifiable", "stage", "trend", "confidence", "technology_ru", "profile_ru")
     CANDIDATE_ID_FIELD_NUMBER: _ClassVar[int]
     VERDICT_FIELD_NUMBER: _ClassVar[int]
     RELEVANCE_FIELD_NUMBER: _ClassVar[int]
@@ -237,6 +237,8 @@ class JudgeVerdict(_message.Message):
     STAGE_FIELD_NUMBER: _ClassVar[int]
     TREND_FIELD_NUMBER: _ClassVar[int]
     CONFIDENCE_FIELD_NUMBER: _ClassVar[int]
+    TECHNOLOGY_RU_FIELD_NUMBER: _ClassVar[int]
+    PROFILE_RU_FIELD_NUMBER: _ClassVar[int]
     candidate_id: str
     verdict: str
     relevance: int
@@ -249,7 +251,9 @@ class JudgeVerdict(_message.Message):
     stage: int
     trend: int
     confidence: float
-    def __init__(self, candidate_id: _Optional[str] = ..., verdict: _Optional[str] = ..., relevance: _Optional[int] = ..., reason_ru: _Optional[str] = ..., code: _Optional[str] = ..., on_topic: bool = ..., concrete: bool = ..., early_stage: bool = ..., verifiable: bool = ..., stage: _Optional[int] = ..., trend: _Optional[int] = ..., confidence: _Optional[float] = ...) -> None: ...
+    technology_ru: str
+    profile_ru: str
+    def __init__(self, candidate_id: _Optional[str] = ..., verdict: _Optional[str] = ..., relevance: _Optional[int] = ..., reason_ru: _Optional[str] = ..., code: _Optional[str] = ..., on_topic: bool = ..., concrete: bool = ..., early_stage: bool = ..., verifiable: bool = ..., stage: _Optional[int] = ..., trend: _Optional[int] = ..., confidence: _Optional[float] = ..., technology_ru: _Optional[str] = ..., profile_ru: _Optional[str] = ...) -> None: ...
 
 class JudgeCandidatesResponse(_message.Message):
     __slots__ = ("verdicts", "provider", "model", "used_fallback")

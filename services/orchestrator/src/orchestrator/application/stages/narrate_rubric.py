@@ -37,7 +37,7 @@ from orchestrator.application.stages.narrate import (
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem
 from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
 from orchestrator.domain.values import Decision, FeatureDirection, NarrativeStatus
-from ws_common import rubric_model
+from ws_common import rubric_model, signal_classifier
 from ws_common.logging import get_logger
 
 DOCUMENTS_BATCH = 150
@@ -48,9 +48,18 @@ CONFIDENT = 0.75
 log = get_logger("orchestrator.stage.narrate_rubric")
 
 
+def profile_text(verdict: JudgeVerdictView, candidate: CandidateView) -> str:
+    """Профиль для классификатора: извлечённое название технологии и её профиль по источникам."""
+    return f"{verdict.technology_ru or candidate.title_auto}. {verdict.profile_ru or verdict.reason_ru}"
+
+
 def probability(model: dict | None, verdict: JudgeVerdictView, candidate: CandidateView,
-                documents: tuple[DocumentView, ...]) -> tuple[float, dict[str, float]]:
-    """Вероятность слабого сигнала по локальной модели; без файла модели — порядок рубрики (R > U > отказ)."""
+                documents: tuple[DocumentView, ...], classifier: dict | None = None) -> tuple[float, dict[str, float]]:
+    """Вероятность слабого сигнала: локальный классификатор по профилю (этап 1 ТЗ); без него — модель v3
+    на признаках рубрики и источников; без обеих — порядок рубрики (R > U > отказ)."""
+    if classifier is not None:
+        text = profile_text(verdict, candidate)
+        return round(signal_classifier.predict(classifier, text), 4), {"__profile__": text}
     values = rubric_model.features(
         verdict.code, verdict.confidence, verdict.stage, verdict.trend, [d.source_type for d in documents],
         [str(getattr(d.trust_level, "value", d.trust_level)) for d in documents], [d.title or "" for d in documents],
@@ -81,6 +90,7 @@ async def run_narrate_rubric(
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
     model = rubric_model.load(config.rubric_model_path) if config.rubric_model_path else None
+    classifier = signal_classifier.load(config.signal_model_path) if config.signal_model_path else None
     weak, excluded = await collect_candidates(analyzer, analysis_id, check)
     outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
     pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool)
@@ -103,10 +113,17 @@ async def run_narrate_rubric(
                 for cid, v in raw.items()}
     judged = [c for c in judged_pool if c.candidate_id in verdicts]
     unjudged = [c for c in judged_pool if c.candidate_id not in verdicts]
-    scored = {c.candidate_id: probability(model, verdicts[c.candidate_id], c, _docs(c, documents)) for c in judged}
+    scored = {c.candidate_id: probability(model, verdicts[c.candidate_id], c, _docs(c, documents), classifier)
+              for c in judged}
     order = {c.candidate_id: i for i, c in enumerate(judged)}
     ranked = sorted(judged, key=lambda c: (-scored[c.candidate_id][0], -rubric.priority(verdicts[c.candidate_id]),
                                            order[c.candidate_id]))
+    # Порог показа: кандидаты ниже него не показываются; если выше порога меньше минимума — добираются лучшие.
+    eligible = [c for c in ranked if scored[c.candidate_id][0] >= config.rubric_min_probability]
+    if len(eligible) < config.rubric_min_cards:
+        eligible = ranked[: max(config.rubric_min_cards, len(eligible))]
+    below = [c for c in ranked if c not in eligible]
+    ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
@@ -128,12 +145,12 @@ async def run_narrate_rubric(
     outcome.weak_signals_confident = sum(1 for c in judged if scored[c.candidate_id][0] >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
-        rest, prefiltered, unjudged, queue, text_failed, verdicts, scored))
+        rest, prefiltered, unjudged, queue + below, text_failed, verdicts, scored))
     for position, candidate in enumerate(shown, 1):
         await check()
         item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
                                  finalized.get(candidate.candidate_id), documents, scored[candidate.candidate_id],
-                                 model, config, outcome)
+                                 classifier or model, config, outcome)
         await results.add_item(item)
         outcome.items_written += 1
         if item.narrative_status is NarrativeStatus.GENERATED:
@@ -142,7 +159,7 @@ async def run_narrate_rubric(
             outcome.narratives_fallback += 1
     log.info("stage.narrate_rubric", pool=len(pool), prefiltered=len(prefiltered), judged=len(judged),
              likely=outcome.weak_signals_total, tried=len(tried), finalized=len(finalized),
-             shown=outcome.items_written, fallback=fallback, model=bool(model))
+             shown=outcome.items_written, fallback=fallback, model=bool(model), classifier=bool(classifier))
     return outcome
 
 
@@ -191,7 +208,9 @@ async def _finalize(
     if not shown or not config.finalize_enabled:
         return {}
     cards = [FinalizeRequestCard(c, _docs(c, documents)[:FINALIZE_SOURCES], verdicts[c.candidate_id].stage,
-                                 verdicts[c.candidate_id].trend, verdicts[c.candidate_id].reason_ru) for c in shown]
+                                 verdicts[c.candidate_id].trend,
+                                 f"{verdicts[c.candidate_id].technology_ru}: {verdicts[c.candidate_id].reason_ru}".strip(": "))
+             for c in shown]
     try:
         return await insight.finalize_cards(query_text, cards)
     except (UpstreamUnavailable, StageFailed) as error:
@@ -240,7 +259,12 @@ def _excluded_rows(
 def model_features(model: dict | None, values: dict[str, float], candidate: CandidateView) -> tuple[FeatureRow, ...]:
     """Ключевые предикторы: вклады признаков локальной модели по модулю, затем признаки analyzer."""
     rows: list[FeatureRow] = []
-    if model is not None:
+    if model is not None and "__profile__" in values:
+        for token, contribution in signal_classifier.contributions(model, values["__profile__"]):
+            direction = (FeatureDirection.SUPPORTS_WEAK_SIGNAL if contribution > 0 else FeatureDirection.SUPPORTS_MATURE)
+            rows.append(FeatureRow(f"sc_{token}"[:64], f"Признак профиля «{token.replace('_', ' ')}»", 1.0,
+                                   round(float(contribution), 4), direction, len(rows) + 1))
+    elif model is not None:
         for name, value, contribution in rubric_model.contributions(model, values):
             direction = (FeatureDirection.SUPPORTS_WEAK_SIGNAL if contribution > 0.02 else
                          FeatureDirection.SUPPORTS_MATURE if contribution < -0.02 else FeatureDirection.NEUTRAL)
@@ -261,7 +285,7 @@ async def _build_item(
 ) -> ResultItem:
     """Элемент выдачи: уверенность и предикторы — локальная модель, тексты — пакетная доводка на русском."""
     prob, values = scored
-    status = (f"Вероятность слабого сигнала по локальной модели: {prob:.0%}"
+    status = (f"Вероятность слабого сигнала по локальному классификатору: {prob:.0%}"
               + (" — кандидат, требует экспертной проверки. " if prob < LIKELY else ". ")
               + rubric.status_explanation(verdict, verdict.stage, verdict.trend))[:500]
     features = model_features(model, values, candidate)

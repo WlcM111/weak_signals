@@ -174,10 +174,15 @@ class HttpxClient:
             raise HttpTransportError(f"сетевая ошибка: {exc}") from exc
         try:
             if response.status_code >= 400:
+                # Заголовки CDN показывают, кто отказал: сервер источника или промежуточный узел (arXiv, 406).
+                cdn = {name: response.headers.get(name, "")[:120] for name in ("via", "x-cache", "x-served-by")
+                       if response.headers.get(name)}
+                details = "; ".join(f"{name}={value}" for name, value in cdn.items())
                 raise HttpStatusError(
                     response.status_code,
-                    f"источник ответил кодом {response.status_code}",
+                    f"источник ответил кодом {response.status_code}" + (f" [{details}]" if details else ""),
                     _retry_after(response.headers.get("Retry-After")),
+                    cdn,
                 )
             chunks: list[bytes] = []
             size = 0

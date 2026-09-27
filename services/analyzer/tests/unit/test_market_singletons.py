@@ -25,5 +25,19 @@ class MarketSingletonsTest(unittest.TestCase):
         self.assertEqual((kept, misc), ([[0], [2]], [1]))
 
 
+
+
+class MarketReserveTest(unittest.TestCase):
+    def test_reserved_slots_take_market_clusters(self) -> None:
+        from analyzer.domain.clustering import select_top_clusters
+
+        clusters = [[0, 1, 2, 3], [4, 5, 6], [7, 8], [9]]
+        relevances = [0.9] * 10
+        self.assertEqual(select_top_clusters(clusters, relevances, 2), [[0, 1, 2, 3], [4, 5, 6]])
+        mask = [False, False, False, True]
+        self.assertEqual(select_top_clusters(clusters, relevances, 2, None, mask, 1), [[0, 1, 2, 3], [9]])
+        self.assertEqual(select_top_clusters(clusters, relevances, 2, None, mask, 0), [[0, 1, 2, 3], [4, 5, 6]])
+
+
 if __name__ == "__main__":
     unittest.main()

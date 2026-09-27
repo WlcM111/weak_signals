@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import ssl
 import signal
 import sys
 from collections.abc import Mapping
@@ -78,13 +79,21 @@ async def serve(settings: CollectorSettings) -> int:
         max_bytes=settings.http_max_bytes,
         retries=settings.collector_http_retries,
     )
+    # arXiv — без внутренних повторов клиента: шлюз частоты и 30-минутная пауза адаптера закрывают все отказы,
+    # а повторы 429/5xx в обход шлюза нарушали бы правило arXiv «один запрос в 3 секунды».
+    arxiv_http_client = HttpxClient(
+        contact_email=settings.contact_email,
+        read_timeout_seconds=settings.collector_http_timeout_seconds,
+        max_bytes=settings.http_max_bytes,
+        retries=0,
+    )
     limiter = TokenBucketRateLimiter(
         rates={entry.source_key: entry.rate_limit_rps for entry in catalog.values()},
         clock=clock,
         replicas=settings.collector_replicas,
         on_wait=metrics.rate_limit_wait,
     )
-    adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock)
+    adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock, arxiv_http_client)
     log.info(
         "sources.configured",
         enabled=[key.value for key in adapters],
@@ -152,7 +161,8 @@ async def serve(settings: CollectorSettings) -> int:
     ]
     tasks = [asyncio.create_task(worker.run_forever(stop)) for worker in workers]
     tasks.append(asyncio.create_task(MaintenanceWorker(collections, purge).run_forever(stop)))
-    log.info("service.started", grpc_port=settings.grpc_port, http_port=settings.http_port)
+    log.info("service.started", grpc_port=settings.grpc_port, http_port=settings.http_port,
+             openssl=ssl.OPENSSL_VERSION)
 
     await stop.wait()
     log.info("service.stopping")
@@ -163,6 +173,7 @@ async def serve(settings: CollectorSettings) -> int:
     await asyncio.gather(*tasks, return_exceptions=True)
     await ops.stop()
     await http_client.aclose()
+    await arxiv_http_client.aclose()
     released = await collections.release_expired_leases()
     log.info("service.stopped", leases_released=released)
     await pool.close()
@@ -188,7 +199,7 @@ def build_adapters(
             unavailable[source_key] = AdapterErrorCode.DISABLED
             continue
         try:
-            adapter = _create_adapter(source_key, settings, http_client, limiter, clock)
+            adapter = _create_adapter(source_key, settings, http_client, limiter, clock, arxiv_http_client)
         except ValueError as exc:
             unavailable[source_key] = (
                 AdapterErrorCode.AUTH_MISSING if entry.requires_api_key else AdapterErrorCode.DISABLED
@@ -208,12 +219,13 @@ def _create_adapter(
     http_client: HttpxClient,
     limiter: TokenBucketRateLimiter,
     clock: SystemClock,
+    arxiv_http_client: HttpxClient | None = None,
 ) -> SourceAdapter | None:
     """Создаёт адаптер источника; ValueError означает отсутствие обязательной настройки."""
     if source_key is SourceKey.OPENALEX:
         return OpenAlexAdapter(http_client, limiter, clock, settings.openalex_api_key)
     if source_key is SourceKey.ARXIV:
-        return ArxivAdapter(http_client, limiter, clock)
+        return ArxivAdapter(arxiv_http_client or http_client, limiter, clock)
     if source_key is SourceKey.RSS:
         return RssAdapter(http_client, limiter, clock, settings.rss_feeds)
     if source_key is SourceKey.GITHUB:

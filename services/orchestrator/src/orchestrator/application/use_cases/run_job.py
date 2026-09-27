@@ -333,6 +333,9 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         stage_calibration=base.stage_calibration,
         trend_calibration=base.trend_calibration,
         rubric_model_path=base.rubric_model_path,
+        rubric_min_probability=base.rubric_min_probability,
+        rubric_min_cards=base.rubric_min_cards,
+        signal_model_path=base.signal_model_path,
     )
 
 

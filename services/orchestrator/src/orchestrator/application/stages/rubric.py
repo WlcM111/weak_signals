@@ -165,8 +165,13 @@ def pool_candidates(
     в пул не входят. Возвращает (пул, остальные).
     """
     by_model = sorted((item for item in excluded if item.decision_reason == "MODEL_SCORE"), key=lambda item: -item.score)
-    ordered = sorted(weak, key=lambda item: item.rank) + by_model
-    rest = [item for item in excluded if item.decision_reason != "MODEL_SCORE"]
+    # Одиночная заметка СМИ (раунд, пилот, продукт) исключается правилом SINGLE_SOURCE analyzer до любой оценки;
+    # такие кандидаты идут в пул раньше исключённых порогом модели — решают рубрика и локальная модель.
+    market = sorted((item for item in excluded if item.decision_reason == "SINGLE_SOURCE"
+                     and any(e.source_type in MARKET_TYPES for e in item.evidence)), key=lambda item: -item.score)
+    ordered = sorted(weak, key=lambda item: item.rank) + market + by_model
+    taken = {item.candidate_id for item in ordered}
+    rest = [item for item in excluded if item.candidate_id not in taken]
     return ordered[:limit], ordered[limit:] + rest
 
 

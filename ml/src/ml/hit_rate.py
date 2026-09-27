@@ -50,8 +50,9 @@ def load_cards(paths: list[str]) -> dict[str, list[dict]]:
             for item in parse_analytics(path)[0]:
                 titles = [getattr(e, "title", None) or (e.get("title", "") if isinstance(e, dict) else "")
                           for e in item.evidence[:3]]
-                text = item.title + ". " + "; ".join(titles)
-                cards.setdefault(item.topic, []).append({"title": item.title, "text": text})
+                title = item.title_ru or item.title_auto
+                text = title + ". " + "; ".join(titles)
+                cards.setdefault(item.topic, []).append({"title": title, "text": text})
     return cards
 
 

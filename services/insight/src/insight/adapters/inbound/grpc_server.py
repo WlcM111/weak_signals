@@ -105,6 +105,7 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
                     candidate_id=v.candidate_id, verdict=v.verdict, relevance=v.relevance, reason_ru=v.reason_ru,
                     code=v.code, on_topic=v.on_topic, concrete=v.concrete, early_stage=v.early_stage,
                     verifiable=v.verifiable, stage=v.stage, trend=v.trend, confidence=v.confidence,
+                    technology_ru=v.technology_ru, profile_ru=v.profile_ru,
                 )
                 for v in outcome.verdicts
             ],

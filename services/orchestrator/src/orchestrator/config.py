@@ -64,6 +64,9 @@ class OrchestratorSettings(BaseServiceSettings):
     stage_calibration: str = Field(default="1:2,2:3,3:4,4:4", pattern=r"^(\d:\d)(,\d:\d)*$")
     trend_calibration: str = Field(default="1:2,2:3,3:3", pattern=r"^(\d:\d)(,\d:\d)*$")
     rubric_model_path: str = str(SERVICE_ROOT / "config" / "rubric_ranker.json")
+    rubric_min_probability: float = Field(default=0.5, ge=0.0, le=1.0)
+    signal_model_path: str = str(SERVICE_ROOT / "config" / "signal_classifier.json")
+    rubric_min_cards: int = Field(default=3, ge=0, le=15)
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)

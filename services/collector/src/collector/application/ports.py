@@ -28,10 +28,12 @@ class HttpError(Exception):
 class HttpStatusError(HttpError):
     """Ответ с кодом ≥ 400; `retry_after` — секунды из заголовка `Retry-After`, если он был."""
 
-    def __init__(self, status: int, message: str, retry_after: float | None = None) -> None:
+    def __init__(self, status: int, message: str, retry_after: float | None = None,
+                 cdn_headers: dict[str, str] | None = None) -> None:
         super().__init__(message)
         self.status = status
         self.retry_after = retry_after
+        self.cdn_headers = cdn_headers or {}
 
 
 class HttpTimeoutError(HttpError):
