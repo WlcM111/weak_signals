@@ -186,6 +186,7 @@ def build_adapters(
     http_client: HttpxClient,
     limiter: TokenBucketRateLimiter,
     clock: SystemClock,
+    arxiv_http_client: HttpxClient | None = None,
 ) -> tuple[dict[SourceKey, SourceAdapter], dict[SourceKey, AdapterErrorCode]]:
     """Собирает включённые адаптеры; недоступные источники получают код отказа вместо заглушки."""
     override = settings.source_override
