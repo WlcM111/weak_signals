@@ -1,0 +1,85 @@
+{
+ "by_domain": {
+  "industrial_ai": {
+   "organizer_signals": 17,
+   "cards": 0,
+   "hits@0.80": 0,
+   "hits@0.83": 0,
+   "hits@0.86": 0,
+   "hits@0.89": 0,
+   "best_mean": 0.0
+  },
+  "robotics": {
+   "organizer_signals": 17,
+   "cards": 2,
+   "hits@0.80": 17,
+   "hits@0.83": 17,
+   "hits@0.86": 3,
+   "hits@0.89": 0,
+   "best_mean": 0.8527
+  },
+  "ai_infrastructure": {
+   "organizer_signals": 17,
+   "cards": 0,
+   "hits@0.80": 0,
+   "hits@0.83": 0,
+   "hits@0.86": 0,
+   "hits@0.89": 0,
+   "best_mean": 0.0
+  },
+  "fintech": {
+   "organizer_signals": 17,
+   "cards": 10,
+   "hits@0.80": 17,
+   "hits@0.83": 17,
+   "hits@0.86": 7,
+   "hits@0.89": 0,
+   "best_mean": 0.856
+  },
+  "ai_security": {
+   "organizer_signals": 16,
+   "cards": 5,
+   "hits@0.80": 16,
+   "hits@0.83": 16,
+   "hits@0.86": 10,
+   "hits@0.89": 0,
+   "best_mean": 0.864
+  },
+  "edge": {
+   "organizer_signals": 16,
+   "cards": 9,
+   "hits@0.80": 15,
+   "hits@0.83": 15,
+   "hits@0.86": 5,
+   "hits@0.89": 0,
+   "best_mean": 0.8462
+  }
+ },
+ "total": {
+  "hits@0.80": {
+   "hits": 65,
+   "of": 100,
+   "share": 0.65
+  },
+  "hits@0.83": {
+   "hits": 65,
+   "of": 100,
+   "share": 0.65
+  },
+  "hits@0.86": {
+   "hits": 25,
+   "of": 100,
+   "share": 0.25
+  },
+  "hits@0.89": {
+   "hits": 0,
+   "of": 100,
+   "share": 0.0
+  }
+ },
+ "label": "rubric_v1",
+ "runs": [
+  "own-topics-20260926-205909.json"
+ ],
+ "model": "intfloat/multilingual-e5-base"
+}

@@ -81,7 +81,7 @@
  ],
  "intercept": -1.887104,
  "trained_on": {
-  "data_dir": "ml/data/dataset_b/v2",
+  "data_dir": "/data/dataset_b/v2",
   "predictions": "rubric_b_pro_v2_predictions.csv"
  },
  "rows": 242,

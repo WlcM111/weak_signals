@@ -1,0 +1,4089 @@
+[
+  {
+    "topic": "индустриальный искусственный интеллект на производстве",
+    "job": {
+      "job_id": "01a0dfc1-c727-7b91-9664-5765a5d4d259",
+      "query_id": "01a0dfc1-c727-712d-841c-a875c77ffb0c",
+      "query_text": "индустриальный искусственный интеллект на производстве",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:06:53.735974+00:00",
+      "started_at": "2026-09-26T22:06:55.099968+00:00",
+      "finished_at": "2026-09-26T22:10:12.931062+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 47,
+        "sources_processed": 5,
+        "documents_collected": 393,
+        "candidates_found": 40,
+        "narratives_done": 3,
+        "narratives_total": 3
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0dfc4-d125-7bdd-9142-1eaef0b59002",
+        "rank": 1,
+        "title_ru": "Промышленные большие языковые модели",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Кандидат соответствует всем критериям: технология связана с индустриальным искусственным интеллектом, конкретные продукты и подходы, научные публикации подтверждают раннюю стадию развития.",
+        "narrative_status": "GENERATED",
+        "source_count": 4,
+        "job_id": "01a0dfc1-c727-7b91-9664-5765a5d4d259",
+        "query_text": "индустриальный искусственный интеллект на производстве",
+        "title_auto": "Large Language Model",
+        "description_ru": "Технология применения больших языковых моделей (LLMs) в промышленности, включающая федеративное обучение, защиту интеллектуальной собственности и приватность данных. Предлагаются специализированные промышленные знания и методы повышения эффективности обучения.",
+        "advantage_ru": "Позволяет малым и средним предприятиям эффективно обучать языковые модели, сохраняя конфиденциальность данных и адаптируя модели под специфику промышленного сектора.",
+        "case_example_ru": "Разработан федеративный учебный фреймворк FATE-LLM, обеспечивающий эффективное совместное обучение языковых моделей с защитой данных и интеллектуальной собственности.",
+        "explanation_ru": "Технология находится на ранней стадии внедрения: опубликованы научные статьи и открыты исходные коды, наблюдается активный научный интерес и разработка специализированных промышленных подходов. Прототип: представлены исследовательские фреймворки и методики, идет разработка и тестирование промышленных приложений. Рост публикаций и интереса к применению LLMs в промышленности отмечен в научных статьях начиная с 2023 года, появляются специализированные подходы и стандарты.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 4.0,
+            "contribution": 4.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8782045245170593,
+            "contribution": 3.960040144287807,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 20.0,
+            "contribution": -3.176565184138208,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8861042261123657,
+            "contribution": -0.6501573507473777,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.08305647840531562,
+            "contribution": 0.12595973836876875,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 3.6506582412937387,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.6094379124341003,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8950698971748352,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.5370933244215337,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.08305647840531562,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1043.4233367449651,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 3.4830654832675805,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 5.298317366548036,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0cb8b-2473-7304-aba0-6995f1409151",
+            "title": "Inadequacies of Large Language Model Benchmarks in the Era of Generative Artificial Intelligence",
+            "url": "http://arxiv.org/abs/2402.09880",
+            "published_at": "2024-02-15T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Анализируются недостатки существующих бенчмарков для оценки больших языковых моделей и предлагается новый подход к оценке их поведения и рисков.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "The rapid rise in popularity of Large Language Models (LLMs) with emerging capabilities has spurred public curiosity to evaluate and compare different LLMs, leading many researchers to propose their own LLM benchmarks. Noticing preliminary inadequacies in those benchmarks, we embarked on a study to critically assess 23 state-of-the-art LLM benchmarks, using our novel unified evaluation framework through the lenses of people, process, and technology, under the pillars of benchmark functionality and integrity.",
+            "similarity": 0.95192146
+          },
+          {
+            "document_id": "01a0cb8b-1e83-7496-8a95-20024345648c",
+            "title": "FATE-LLM: A Industrial Grade Federated Learning Framework for Large Language Models",
+            "url": "http://arxiv.org/abs/2310.10049",
+            "published_at": "2023-10-16T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Представлен федеративный учебный фреймворк FATE-LLM для эффективного совместного обучения языковых моделей с сохранением приватности и защиты данных.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Large Language Models (LLMs), such as ChatGPT, LLaMA, GLM, and PaLM, have exhibited remarkable performances across various tasks in recent years. However, LLMs face two main challenges in real-world applications. One challenge is that training LLMs consumes vast computing resources, preventing LLMs from being adopted by small and medium-sized enterprises with limited computing resources. Another is that training LLM requires a large amount of high-quality data, which are often scattered among enterprises.",
+            "similarity": 0.94894695
+          },
+          {
+            "document_id": "01a0cb8b-1977-71c4-9988-8555a281ff6f",
+            "title": "A Unified Industrial Large Knowledge Model Framework in Industry 4.0 and Smart Manufacturing",
+            "url": "http://arxiv.org/abs/2312.14428",
+            "published_at": "2023-12-22T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Предлагается унифицированная концепция промышленной большой знаниевой модели (ILKM) для интеграции в промышленность 4.0 и умное производство, подчеркивается важность отраслевых знаний.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "The recent emergence of large language models (LLMs) demonstrates the potential for artificial general intelligence, revealing new opportunities in Industry 4. 0 and smart manufacturing. However, a notable gap exists in applying these LLMs in industry, primarily due to their training on general knowledge rather than domain-specific knowledge. Such specialized domain knowledge is vital for effectively addressing the complex needs of industrial applications.",
+            "similarity": 0.9463657
+          },
+          {
+            "document_id": "01a0cb8b-12e1-70c7-bff0-84b83d6fae49",
+            "title": "GPT-4 Technical Report",
+            "url": "http://arxiv.org/abs/2303.08774",
+            "published_at": "2023-03-15T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Рассматривается проблема стохастичности языковых моделей и предложена архитектура MFOUR Vibe Framework для преобразования вероятностных намерений языка в детерминированные программные артефакты.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Abstract—Large Language Models (LLMs) suffer from inherent stochasticity, limiting their utility in high-stakes enterprise environments where determinism and auditability are required. This paper introduces the MFOUR Vibe Framework (MVF), a platform-agnostic architectural standard that transforms probabilistic natural language intent into deterministic software artifacts. We define a five-layer topology, comprising the Kernel Identity, Synaptic Routing, Interface Contracts, Context Anchoring, and the Mirror Test.",
+            "similarity": 0.94162726
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0cb8b-1e83-7496-8a95-20024345648c",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0dfc4-d134-7b39-b7c6-0aa3ce9029a6",
+        "rank": 2,
+        "title_ru": "Интеллектуальная проверка моделей для промышленного цифрового двойника",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Соответствует критериям: технология связана с промышленным применением ИИ, описаны конкретные патенты решений, подтверждена ранней стадией разработки независимыми источниками.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0dfc1-c727-7b91-9664-5765a5d4d259",
+        "query_text": "индустриальный искусственный интеллект на производстве",
+        "title_auto": "intelligent model validation",
+        "description_ru": "Патентованная технология интеллектуального подтверждения корректности моделей промышленного цифрового двойника с использованием искусственного интеллекта и учета аппаратных ограничений.",
+        "advantage_ru": "Обеспечивает интеграцию аппаратных ограничений в процесс проектирования и повышает точность цифровых двойников благодаря использованию ИИ.",
+        "case_example_ru": "Получен патент на систему AI Advisor, которая интегрирует ограничения оборудования в процессы проектирования промышленных систем.",
+        "explanation_ru": "Технология находится на ранней стадии внедрения: получены патенты на решения, направленные на использование ИИ для проверки моделей и учета ограничений оборудования в промышленности. Исследования и патенты: разработаны и защищены патентами технические решения, демонстрирующие потенциал технологии. Появление новых патентов в начале 2024 года свидетельствует о росте интереса к интеллектуальному подтверждению моделей и цифровому моделированию в промышленности.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.858694851398468,
+            "contribution": -11.061327757812416,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8614145517349243,
+            "contribution": 9.93481353639148,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 2.0,
+            "contribution": -0.25765673359714336,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8946952819824219,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 2.7102623867076394,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 973.4233367449652,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db67-63c2-74f1-8f7f-66276aea37e6",
+            "title": "AI extensions and intelligent model validation for an industrial digital twin",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011900277B2_20240213",
+            "published_at": "2024-02-13T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает применение ИИ для сбора, обработки и визуализации информации из промышленных контроллеров в рамках цифрового двойника предприятия.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "—can collect selected subsets of information available in industrial controllers 206 and present this information as formatted data 210 to a user in accordance with data presentation formats defined in the applications 208. Collecting and delivering some or all of this information to a user in meaningful presentation formats can offer valuable insights into past, current, and future operation of the industrial assets 202.",
+            "similarity": 0.96518797
+          },
+          {
+            "document_id": "01a0db67-63cc-78ab-9e7a-d83f5b2d0473",
+            "title": "AI ADVISOR FOR INCORPORATION OF HARDWARE CONSTRAINTS INTO DESIGN",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240012953A1_20240111",
+            "published_at": "2024-01-11T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент предлагает систему AI Advisor, использующую ИИ для учета аппаратных ограничений в процессе проектирования промышленных систем.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Industrial system 170 may be partially or fully deployed during the design project being constructed and tested by the application software 112. For example, the design project may involve a multidisciplinary design with engineers of various disciplines each performing computer aided design using engineering software tools configured for respective disciplines.",
+            "similarity": 0.9651879
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db67-63cc-78ab-9e7a-d83f5b2d0473",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0dfc4-d13c-7091-b534-8285ed65466e",
+        "rank": 3,
+        "title_ru": "Интеллектуальная когнитивная система-помощник на производстве",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 2 (растёт), балл 5 из 7; уверенность 100%. Документы содержат конкретные патенты по интеллектуальным когнитивным ассистентам и адаптивному производству, относящиеся к ранней стадии развития индустриального ИИ на производстве.",
+        "narrative_status": "GENERATED",
+        "source_count": 3,
+        "job_id": "01a0dfc1-c727-7b91-9664-5765a5d4d259",
+        "query_text": "индустриальный искусственный интеллект на производстве",
+        "title_auto": "manufacturing system",
+        "description_ru": "Система фиксирует данные производственного процесса, включая параметры качества, отслеживания и ответственности в реальном времени. Она использует промышленную систему компьютерного зрения и обученные нейронные сети для мониторинга сложных производственных процессов и определения завершения операций.",
+        "advantage_ru": "Позволяет автоматизировать контроль качества и учет производственных этапов, обеспечивая прозрачность и точность учета.",
+        "case_example_ru": "Патент описывает методику фиксации видео и ключевых параметров производственного процесса, таких как оператор, тип продукта и номер партии, с сохранением этих данных в базе вместе с временным штампом (2023 год).",
+        "explanation_ru": "Технология находится на ранней стадии внедрения благодаря патентованию новых подходов к автоматизации контроля производства с использованием ИИ и компьютерного зрения. Технология находится на стадии исследования и разработки, подтверждением чему служат патенты, описывающие принципы работы системы. Рост числа патентов и разработок в области интеллектуальных когнитивных помощников указывает на повышение интереса к внедрению индустриального ИИ на производстве.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8701744675636292,
+            "contribution": -6.700913069381335,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8747735023498535,
+            "contribution": 5.180981965834491,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 12.0,
+            "contribution": -1.87927253945329,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.3862943611198906,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.9051830172538757,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.6739858637781384,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1045.9233367449651,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db67-63c6-7d43-8ab8-593c75198d78",
+            "title": "INTELLIGENT COGNITIVE ASSISTANT SYSTEM AND METHOD",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230367286A1_20231116",
+            "published_at": "2023-11-16T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "(Patent) Описан интеллектуальный когнитивный помощник для мониторинга производственного процесса с применением промышленного зрения и нейросетей.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "In at least one embodiment, data relevant to the manufacturing process is recorded. In at least one embodiment the data record comprises manufacturing variables, such as temperature, pressure or tolerances. In at least one embodiment, the data for quality control, traceability and accountability in real time, that encompasses visual and textual data. In at least one embodiment, the monitor is an industrial vision system. In at least one embodiment the method monitors a complex manufacturing process through the use of an Industrial Vision System.",
+            "similarity": 0.9547316
+          },
+          {
+            "document_id": "01a0db67-63c7-7603-a0e3-d6c036f38d26",
+            "title": "Reconfigurable, fixtureless manufacturing system and method assisted by learning software",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011559897B2_20230124",
+            "published_at": "2023-01-24T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "(Patent) Представлена пере конфигурабельная производственная система без оснастки, управляемая обучаемым программным обеспечением на основе ИИ.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "2 illustrates an exemplary logic for operating the and AI driven fixtureless and reconfigurable manufacturing system 10. Each part 26 for a given subassembly 20 may be obtained. In exemplary embodiments, the parts 26 may be stored in, and obtained from, a respective part bin 22, though multiple types of parts may be stored in a given part bin 22. Each part 26 may be locatable by way of an RFID chip, an optically scannable code, an indicator, a datum 40, some combination thereof, or the like.",
+            "similarity": 0.950266
+          },
+          {
+            "document_id": "01a0db67-63bb-7f12-8f52-ef776d5b33a0",
+            "title": "Computer-Implemented Methods Referring to an Industrial Process for Manufacturing a Product and System for Performing Said Methods",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240168467A1_20240523",
+            "published_at": "2024-05-23T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "(Patent) Рассматриваются компьютерные методы анализа промышленных процессов и система для реализации этих методов с выводом показателей эффективности.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "In one example, the analytics application can detect or simulate that a variation of one element of the industrial process, such as e. g. a throughput of a processing station, does not correspond to the observed variation and adapt the information metamodel to better represent the industrial process. The output processing data may be used for generating of a key performance indicator (KPI) dashboard.",
+            "similarity": 0.9481388
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db67-63c6-7d43-8ab8-593c75198d78",
+        "predicted_stage": 3,
+        "predicted_trend": 2
+      }
+    ],
+    "stats": {
+      "http_requests_total": 47,
+      "sources_processed": 5,
+      "documents_collected": 393,
+      "candidates_found": 40,
+      "weak_signals_total": 3,
+      "weak_signals_confident": 3,
+      "narratives_generated": 3,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  },
+  {
+    "topic": "робототехника и физический искусственный интеллект",
+    "job": {
+      "job_id": "01a0dfc4-d692-7d7f-aad4-2d54ec9433d1",
+      "query_id": "01a0dfc4-d692-78a7-95d7-52b5d2fc28d2",
+      "query_text": "робототехника и физический искусственный интеллект",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:10:14.290857+00:00",
+      "started_at": "2026-09-26T22:10:14.954781+00:00",
+      "finished_at": "2026-09-26T22:13:09.045578+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 40,
+        "sources_processed": 5,
+        "documents_collected": 222,
+        "candidates_found": 40,
+        "narratives_done": 3,
+        "narratives_total": 3
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0dfc7-8122-7b68-bcc6-c36cb5f8c9ab",
+        "rank": 1,
+        "title_ru": "Система впрыска под поверхностью с управлением ИИ-роботом",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 3 (растёт быстро), балл 5 из 7; уверенность 100%. Два патента 2024 года описывают системы впрыска под управлением ИИ-робота, конкретные технические детали подтверждают раннюю стадию разработки и физическую реализацию искусственного интеллекта.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0dfc4-d692-7d7f-aad4-2d54ec9433d1",
+        "query_text": "робототехника и физический искусственный интеллект",
+        "title_auto": "SUB-SURFACE INJECTION SYSTEM",
+        "description_ru": "Технология представляет собой систему впрыска материалов под поверхностью, управляемую искусственным интеллектом через робота. Система включает крылья с датчиками на основе лидар-технологий и вторичными выдвижными лезвиями, контролируемыми компьютером, ПЛК, энкодером и сенсорами.",
+        "advantage_ru": "Позволяет точно дозировать и смешивать материалы на глубине, повышая эффективность процессов бурения и создания горизонтов.",
+        "case_example_ru": "Патент описывает использование крыльев с сенсорами и вторичными лезвиями, управляемых ИИ-роботом, для улучшения процесса бурения и преодоления препятствий, таких как глины и горные породы.",
+        "explanation_ru": "Это ранний этап внедрения физического искусственного интеллекта в роботизированные системы, подтверждается двумя патентными заявками 2024 года, демонстрирующими активное развитие технологии. Технология находится на этапе исследования и ранней разработки, подтверждением чему служат патенты без информации о коммерческих продуктах. Рост интереса к физической реализации искусственного интеллекта в робототехнике виден по появлению новых патентов в начале 2024 года.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8538338541984558,
+            "contribution": 12.632432557112635,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8569414019584656,
+            "contribution": -11.727357578287739,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 10.0,
+            "contribution": -1.554949378282061,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8923262357711792,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 2.6719385419169392,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 972.425552435162,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db69-b7fd-789d-aec8-ec53d03f1d56",
+            "title": "SUB-SURFACE INJECTION SYSTEM FOR SUBSURFACE BLENDING AND HORIZON CREATION",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240023477A1_20240125",
+            "published_at": "2024-01-25T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает систему управления крыльями с помощью ИИ-робота, включающую датчики и вторичные лезвия для повышения эффективности бурения.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "The wings (105B, 519A, 511C, 513C, 519C) are controlled by the artificial intelligence ( AI ) robot (1107C), the lens (1205). the computer (1111C), the PLC (1105C), the encoder (1305B), the limit switch (1409B), and the sensor. The wings (511C, 513C, 519C) exist within a below portion or an above portion of a hollow shaft drilling array and are individually controlled by one or more of the artificial intelligence ( AI ) robot (1107C), the lens (1205), the computer (1111C), the PLC (1105C), the encoder (1305B), the limit switch (1409B), and the sensor.",
+            "similarity": 0.9674733
+          },
+          {
+            "document_id": "01a0db69-b805-7aa9-a733-8d44d7cdeaf8",
+            "title": "DEVICE DISPENSING CONSTITUENT MATERIALS BY WEIGHT, VOLUMES, FLOWS, TIME INTERVALS, DEPTHS THROUGH ACTUATED DISPENSER OPENINGS CONNECTING CHAMBERS AND VESSELS",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240032460A1_20240201",
+            "published_at": "2024-02-01T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Второй патент раскрывает устройство дозирования компонентов по весу, объёму и координатам GPS с использованием физического ИИ-робота и датчиков.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "In an aspect, the gate, the actuator a physical gate, and the load cell enable dispensing of targeted volumes of the multiple constituents via the AI robot , the lens, the computer, the PLC, the encoder, and the limit switch, and the sensor. In an aspect, the gate, the actuator a physical gate, and the load cell are used to dispense by physical volume the space a constituent takes up via the AI robot , the lens, the computer, the PLC, the encoder, the limit switch, and the sensor.",
+            "similarity": 0.96747327
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db69-b7fd-789d-aec8-ec53d03f1d56",
+        "predicted_stage": 2,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0dfc7-8129-7fe1-96be-211cd3f17bf0",
+        "rank": 2,
+        "title_ru": "Промышленный Интернет вещей с поддержкой искусственного интеллекта",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 2 (растёт), балл 4 из 7; уверенность 100%. Документ описывает технологию промышленного Интернета вещей с искусственным интеллектом, конкретно связанную с робототехникой и физическим применением ИИ, подтверждён патентом 2023 года.",
+        "narrative_status": "GENERATED",
+        "source_count": 1,
+        "job_id": "01a0dfc4-d692-7d7f-aad4-2d54ec9433d1",
+        "query_text": "робототехника и физический искусственный интеллект",
+        "title_auto": "Artificial Intelligence empowered",
+        "description_ru": "Технология представляет собой промышленный Интернет вещей, интегрированный с искусственным интеллектом, обеспечивающим интеллектуальное управление промышленными роботами и устройствами.",
+        "advantage_ru": "Обеспечивает повышение производительности промышленных роботов благодаря внедрению визуального распознавания и других ИИ-функций непосредственно в контроллеры устройств.",
+        "case_example_ru": "Патент описывает текущие ограничения промышленных роботов, требующих подключения внешнего компьютера для выполнения задач искусственного интеллекта, и предлагает решение этих проблем посредством интеграции ИИ-моделей прямо в промышленные компьютеры.",
+        "explanation_ru": "Технология является перспективным направлением развития промышленной автоматизации, подтверждается патентом 2023 года, отражающим растущий интерес к интеграции ИИ в физические производственные процессы. На данный момент технология находится на исследовательском и экспериментальном этапах, поскольку описаны проблемы и предлагаемые решения, но нет сведений о массовом внедрении. Интерес к теме растёт, о чём свидетельствует появление патентов и публикаций, посвящённых интеграции ИИ в промышленную автоматизацию и робототехнику.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8215858936309814,
+            "contribution": 24.10798759512705,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8244261741638184,
+            "contribution": -24.077934011648154,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 2.0,
+            "contribution": -0.25765673359714336,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 0.6931471805599453,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8821126818656921,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.4440124638881917,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1257.925552435162,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 7.278216776003182,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db69-b805-754b-86af-d41d5d05424f",
+            "title": "Artificial Intelligence empowered industrial Internet of Things",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011630444B2_20230418",
+            "published_at": "2023-04-18T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент рассматривает современные ограничения промышленных роботов при использовании искусственного интеллекта и предлагает пути их устранения путём интеграции ИИ-моделей в контроллеры роботов.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Currently, most industrial robots require an attached industrial computer as a controller, where the robot control logic is deployed and executed to drive the physical operation of the robots . When a robot requires AI capabilities (e. g. , visual recognition based on camera sensors), the camera sensor has to be attached to an I/O interface on the industrial computer, and the AI models need to be developed and deployed to the industrial computer, potentially requiring multiple rounds of integration and testing.",
+            "similarity": 1.0
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db69-b805-754b-86af-d41d5d05424f",
+        "predicted_stage": 2,
+        "predicted_trend": 2
+      },
+      {
+        "item_id": "01a0dfc7-812f-7b21-a11d-5a686ba5bedd",
+        "rank": 3,
+        "title_ru": "Интеллектуальное хранение и доставка для роботов",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 2 (растёт), балл 4 из 7; уверенность 100%. Патенты 2024 года посвящены интеллектуальной системе хранения и доставки для роботов, что прямо соответствует запросу на робототехнику и физический искусственный интеллект.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0dfc4-d692-7d7f-aad4-2d54ec9433d1",
+        "query_text": "робототехника и физический искусственный интеллект",
+        "title_auto": "SMART ON-DEMAND STORAGE",
+        "description_ru": "Технология интеллектуальных сервисов хранения и доставки, предназначенных специально для роботов, работающих в умных сообществах.",
+        "advantage_ru": "Позволяет оптимизировать использование пространства и ресурсов путем интеллектуального управления хранением и перемещением физических роботов.",
+        "case_example_ru": "Система направляет выбранного физического робота переместиться в третье местоположение для обеспечения хранения третьего физического робота внутри себя.",
+        "explanation_ru": "Это патентная заявка 2024 года, отражающая ранние разработки в области физической робототехники и ИИ, связанной с управлением физическим пространством и ресурсами для роботов. Технология находится на стадии патентов и предварительных разработок, отсутствует информация о реальных внедрениях. Рост числа патентных заявок в этой сфере указывает на повышенный исследовательский интерес к интеллектуальному управлению роботизированными системами.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8496149182319641,
+            "contribution": -14.51024742372883,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8533568978309631,
+            "contribution": 12.802159229732487,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 3.0,
+            "contribution": -0.41981831418275806,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8805835247039795,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 2.403629164777993,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 877.925552435162,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db69-b807-7966-956f-cda770f1d017",
+            "title": "SMART ON-DEMAND MARKETPLACE AND SERVICE DELIVERY FOR ROBOTS",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240139965A1_20240502",
+            "published_at": "2024-05-02T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает систему, которая получает демографические данные пользователей роботов для оптимизации работы в умных сообществах.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "2D , step 2101 comprises obtaining demographic data associated with first, second, and third physical robots operating in a smart community, wherein the demographic data is indicative of a first age of a first user of the first physical robot , second age of a second user of the second physical robot , and third age of a third user of the third physical robot , and wherein the second user is older than the first user.",
+            "similarity": 0.9739534
+          },
+          {
+            "document_id": "01a0db69-b7ff-765e-99c0-9494772f6666",
+            "title": "SMART ON-DEMAND STORAGE FOR ROBOTS",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240139958A1_20240502",
+            "published_at": "2024-05-02T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент раскрывает механизм выбора и направления одного робота для транспортировки и хранения другого робота.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "third physical robot , selecting as the selected physical robot the second physical robot ; and directing the selected physical robot to move to the third location to provide storage of the third physical robot within the selected physical robot .",
+            "similarity": 0.9739534
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db69-b7ff-765e-99c0-9494772f6666",
+        "predicted_stage": 2,
+        "predicted_trend": 2
+      }
+    ],
+    "stats": {
+      "http_requests_total": 40,
+      "sources_processed": 5,
+      "documents_collected": 222,
+      "candidates_found": 40,
+      "weak_signals_total": 3,
+      "weak_signals_confident": 3,
+      "narratives_generated": 3,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  },
+  {
+    "topic": "инфраструктура для искусственного интеллекта и дата-центры",
+    "job": {
+      "job_id": "01a0dfc7-83f1-75fd-83f6-ba5e87b1e362",
+      "query_id": "01a0dfc7-83f1-76cf-b64b-f2edc76eea63",
+      "query_text": "инфраструктура для искусственного интеллекта и дата-центры",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:13:09.745431+00:00",
+      "started_at": "2026-09-26T22:13:10.304487+00:00",
+      "finished_at": "2026-09-26T22:15:46.415718+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 39,
+        "sources_processed": 5,
+        "documents_collected": 368,
+        "candidates_found": 40,
+        "narratives_done": 1,
+        "narratives_total": 1
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0dfc9-e7e6-750e-8713-97f99ae53fa3",
+        "rank": 1,
+        "title_ru": "Платформа Agentic-Energy-AI для управления энергией на основе ИИ",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 2 (растёт), балл 5 из 7; уверенность 100%. Кандидат соответствует всем критериям: технология связана с инфраструктурой ИИ и дата-центрами, представлена конкретным решением (патентом и реализацией), находится на ранней стадии развития, подтверждена независимым источником.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0dfc7-83f1-75fd-83f6-ba5e87b1e362",
+        "query_text": "инфраструктура для искусственного интеллекта и дата-центры",
+        "title_auto": "Data-Projects-AGN Agentic-Energy-AI",
+        "description_ru": "Платформа Agentic-Energy-AI представляет собой систему на базе искусственного интеллекта для автономного управления энергопотреблением и оптимизацией инфраструктуры центров обработки данных. Она включает подсистемы оркестрации выработки, хранения, потребления и доставки энергии, а также интеграции с системами охлаждения и контроля климата.",
+        "advantage_ru": "Технология позволяет автоматизировать управление энергопотреблением в центрах обработки данных, повышая энергоэффективность и снижая затраты.",
+        "case_example_ru": "Компания Data-Projects-AGN реализовала агентную ИИ-систему для обработки счетов Duke Energy с использованием мульти-облачной архитектуры, включающей хранилище объектов Oracle, векторное хранилище Milvus, модель Ollama LLM и инструменты аналитики Databricks.",
+        "explanation_ru": "Это решение находится на ранней стадии внедрения, подтверждено патентом и открытым кодом проекта, наблюдается рост интереса к подобным автономным энергетическим платформам на базе ИИ. Компании и организации из источников: Data-Projects-AGN. Технология находится на этапе раннего внедрения, существуют патентные заявки и реализация в открытом проекте. Интерес к технологиям автономного управления энергией в ЦОД растет: появились патенты и реальные проекты с применением ИИ-платформ, публикации о таких системах выходят начиная с 2023 года.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 0.5,
+            "contribution": 0.5,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8661525845527649,
+            "contribution": 8.24876718132716,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.872215986251831,
+            "contribution": -5.925463093818743,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 1.0,
+            "contribution": -2.328432702091009,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 12.0,
+            "contribution": -1.87927253945329,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.9137621521949768,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.1510676845648278,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 0.5,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 765.395706741007,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.5,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 0.5,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db6c-56b3-70fc-bfb1-c209022d2ce3",
+            "title": "AI-Based Energy Edge Platform, Systems, and Methods Having an Adaptive Energy Data Pipeline Having Adaptive, Autonomous Data Handling",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230246437A1_20230803",
+            "published_at": "2023-08-03T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает платформу на базе искусственного интеллекта для оптимизации и автоматизации управления энергией в центрах обработки данных и промышленных системах.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "This may include AI -based algorithms for automatically managing energy for devices and systems in such devices. For example, artificial intelligence may enable autonomous data center cooling and industrial control. In embodiments, DERs 128 may be integrated into or with, for example, AI -driven computing infrastructure, smart PDUs, UPS systems , energy-enabled air flow management systems , and HVAC systems , among others.",
+            "similarity": 0.96417606
+          },
+          {
+            "document_id": "01a0c1a8-9087-74df-a7ca-1d4e49212c2b",
+            "title": "Data-Projects-AGN/Agentic-Energy-AI",
+            "url": "https://github.com/Data-Projects-AGN/Agentic-Energy-AI",
+            "published_at": "2025-09-12T01:31:29+00:00",
+            "source_type": "CODE_REPOSITORY",
+            "source_key": "github",
+            "language_code": "en",
+            "trust_level": "MEDIUM",
+            "summary_ru": "Открытый проект демонстрирует реализацию системы Agentic-Energy-AI для автоматической обработки счетов энергетической компании с помощью мульти-облачной инфраструктуры и инструментов ИИ.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Built an agentic AI pipeline to process Duke Energy bills using a multi-cloud setup: Oracle object storage for raw data ingestion, Oracle-hosted Milvus for vector storage, Ollama LLM for RAG-based insights, and Databricks for analytics dashboards. The system updates automatically with each new bill.",
+            "similarity": 0.96417606
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0c1a8-9087-74df-a7ca-1d4e49212c2b",
+        "predicted_stage": 3,
+        "predicted_trend": 2
+      }
+    ],
+    "stats": {
+      "http_requests_total": 39,
+      "sources_processed": 5,
+      "documents_collected": 368,
+      "candidates_found": 40,
+      "weak_signals_total": 1,
+      "weak_signals_confident": 1,
+      "narratives_generated": 1,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  },
+  {
+    "topic": "перспективные решения в финтехе",
+    "job": {
+      "job_id": "01a0dfc9-f68d-7b56-a020-46063ab06961",
+      "query_id": "01a0dfc9-f68d-7d1e-a620-3e85911b6c11",
+      "query_text": "перспективные решения в финтехе",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:15:50.158104+00:00",
+      "started_at": "2026-09-26T22:15:50.440434+00:00",
+      "finished_at": "2026-09-26T22:18:30.189027+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 37,
+        "sources_processed": 5,
+        "documents_collected": 279,
+        "candidates_found": 40,
+        "narratives_done": 0,
+        "narratives_total": 1
+      }
+    },
+    "cards": [],
+    "stats": {
+      "http_requests_total": 37,
+      "sources_processed": 5,
+      "documents_collected": 279,
+      "candidates_found": 40,
+      "weak_signals_total": 1,
+      "weak_signals_confident": 1,
+      "narratives_generated": 0,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  },
+  {
+    "topic": "защита и безопасность систем искусственного интеллекта",
+    "job": {
+      "job_id": "01a0dfcc-690c-7067-a3e5-af0476fa9880",
+      "query_id": "01a0dfcc-690b-71f2-b794-0f486748ecb9",
+      "query_text": "защита и безопасность систем искусственного интеллекта",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:18:30.540364+00:00",
+      "started_at": "2026-09-26T22:18:32.090901+00:00",
+      "finished_at": "2026-09-26T22:21:07.119605+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 37,
+        "sources_processed": 5,
+        "documents_collected": 438,
+        "candidates_found": 40,
+        "narratives_done": 1,
+        "narratives_total": 1
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0dfce-cca6-78c8-abd8-3a6fa0a890c5",
+        "rank": 1,
+        "title_ru": "Безопасность систем искусственного интеллекта",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 3 (растёт быстро), балл 5 из 7; уверенность 100%. Кандидат соответствует всем критериям: тематика защиты систем ИИ, конкретные патенты, ранние стадии разработки, наличие независимых достоверных источников.",
+        "narrative_status": "GENERATED",
+        "source_count": 5,
+        "job_id": "01a0dfcc-690c-7067-a3e5-af0476fa9880",
+        "query_text": "защита и безопасность систем искусственного интеллекта",
+        "title_auto": "AI based security",
+        "description_ru": "Технология включает методы обнаружения рисков кибербезопасности в моделях искусственного интеллекта, мониторинг безопасности на этапах разработки ИИ в облачных средах, а также системы обеспечения безопасности для устройств периферийных вычислений и автономных транспортных средств.",
+        "advantage_ru": "Позволяет выявлять уязвимости и угрозы на всех стадиях жизненного цикла ИИ-моделей, обеспечивая защиту данных и предотвращая атаки.",
+        "case_example_ru": "Предложено решение для мониторинга и обеспечения безопасности физического пространства с помощью ИИ-систем, способных предсказывать возможные угрозы и предпринимать корректирующие меры (патент от 2024 года).",
+        "explanation_ru": "Это слабый сигнал, поскольку технология находится на ранних стадиях внедрения, активно патентуются различные подходы к защите ИИ, наблюдается рост числа заявок и публикаций по теме начиная с 2023 года. Технология находится на стадии исследования и разработки, представлены патенты, описывающие концепции и методики, но нет сведений об успешных внедренных продуктах. Рост числа патентных заявок и публикаций по теме безопасности ИИ подтверждает увеличение внимания к проблеме с 2023 года.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 8.0,
+            "contribution": 8.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 36.0,
+            "contribution": -5.771150473508043,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.892776370048523,
+            "contribution": 1.8841882235271412,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 1.0,
+            "contribution": -0.44929985895516994,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8898619413375854,
+            "contribution": -0.1882943851196042,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.058788947677836566,
+            "contribution": 0.0073817374342247544,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 2.5649493574615367,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.9408634305000305,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.246902603988738,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 0.6666666666666666,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 900.9311761068865,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.08333333333333333,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 0.9166666666666666,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db71-553a-7c3d-b1d8-b95cbccf91b4",
+            "title": "Techniques for detecting artificial intelligence model cybersecurity risk in a computing environment",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0012003529B1_20240604",
+            "published_at": "2024-06-04T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Методика выявления киберугроз в моделях искусственного интеллекта в среде облачных вычислений.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "TECHNICAL FIELD The present disclosure relates generally to detecting artificial intelligence models, and specifically to implementing cybersecurity monitoring solutions on an AI development pipeline of a cloud computing environment. BACKGROUND Artificial intelligence ( AI ) applications are increasingly prevalent, as costs of computing hardware have plummeted significantly, and as AI models have improved their computational resource consumption, leading to an overall performance improvement.",
+            "similarity": 0.9518779
+          },
+          {
+            "document_id": "01a0db71-553c-7637-ae0d-119e21b64f2f",
+            "title": "GENERATIVE ARTIFICIAL INTELLIGENCE METHOD AND SYSTEM CONFIGURED TO PROVIDE OUTPUTS FOR COMPANY COMPLIANCE",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230208869A1_20230629",
+            "published_at": "2023-06-29T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Генеративная система на основе искусственного интеллекта для обеспечения корпоративного соответствия и управления угрозами в режиме реального времени.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "However, with rapid advances in machine learning and autonomous systems , these technologies can help detect in near real time and hence, a huge business opportunity for using this adaptive AI -based Threat Control Technology. The concern for network security has led to a need for more sophisticated security systems than most organizations have needed until now.",
+            "similarity": 0.9451299
+          },
+          {
+            "document_id": "01a0db71-5533-721c-8ec8-3afea5e0dcd8",
+            "title": "SYSTEMS AND METHODS FOR SECURING ARTIFICIAL INTELLIGENCE SYSTEMS FOR EDGE COMPUTING SYSTEMS",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/EP4242926A1_20230913",
+            "published_at": "2023-09-13T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Методы обеспечения безопасности ИИ-систем для периферийных вычислений с учетом угроз и сжатием моделей без увеличения уязвимости.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Systems and methods disclosed herein leverage cybersecurity threat models, particular ML/ AI -based threats that are likely to target edge computing systems , as part of an iterative model pruning process that compresses an ML/ AI model while also ensuring that one or more risk metrics are satisfied.",
+            "similarity": 0.94001687
+          },
+          {
+            "document_id": "01a0db71-4efc-7465-b8e7-d46dbe415fe3",
+            "title": "Artificial intelligence (AI)-based security systems for monitoring and securing physical locations",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011954990B2_20240409",
+            "published_at": "2024-04-09T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "ИИ-системы для мониторинга и обеспечения безопасности физических объектов путем прогнозирования угроз и принятия мер реагирования.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "FIELD Aspects described herein generally relate to the field of electronic security systems for monitoring physical locations, and more specifically to predicting possible security threats and initiating remedial measures. BACKGROUND Conventional approaches to securing physical locations (e. g. , offices, malls, banks, public venues, etc. ) generally use electronic surveillance systems (e. g. , audio/video surveillance systems ), manual approaches (e. g. , security personnel), or a combination of the two.",
+            "similarity": 0.93871176
+          },
+          {
+            "document_id": "01a0db71-5536-7b6a-972c-8a1341570936",
+            "title": "SECURING ARTIFICIAL INTELLIGENCE MODELS FOR LANE/TRAFFIC MANAGEMENT IN AN AUTONOMOUS SYSTEM",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230342456A1_20231026",
+            "published_at": "2023-10-26T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Система защиты ИИ-моделей, используемых в управлении полосой движения и трафиком в адаптивных и автономных транспортных средствах.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "There is a need for sufficient protection of the AI models, particularly for AI models used in lane management and traffic management in ADAS and autonomous vehicles. SUMMARY The inventive subject matter proposes a system and method to secure AI models for lane/traffic management that may be utilized by ML systems in ADAS and autonomous vehicles. Active lane/traffic management is intended to increase peak capacity and smooth traffic flows on roads and the AI models use standardized signals from authentic government authorities which may be verified.",
+            "similarity": 0.93096095
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db71-4efc-7465-b8e7-d46dbe415fe3",
+        "predicted_stage": 2,
+        "predicted_trend": 3
+      }
+    ],
+    "stats": {
+      "http_requests_total": 37,
+      "sources_processed": 5,
+      "documents_collected": 438,
+      "candidates_found": 40,
+      "weak_signals_total": 1,
+      "weak_signals_confident": 1,
+      "narratives_generated": 1,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  },
+  {
+    "topic": "edge-вычисления и периферийный инференс",
+    "job": {
+      "job_id": "01a0dfce-dbb0-7339-88f9-4c27a5392b80",
+      "query_id": "01a0dfce-dbb0-7622-ba67-371d42e50499",
+      "query_text": "edge-вычисления и периферийный инференс",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-26T22:21:10.961108+00:00",
+      "started_at": "2026-09-26T22:21:11.137088+00:00",
+      "finished_at": "2026-09-26T22:24:20.369057+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 39,
+        "sources_processed": 5,
+        "documents_collected": 379,
+        "candidates_found": 40,
+        "narratives_done": 3,
+        "narratives_total": 3
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0dfd1-bf7f-71a9-a48c-cec239e360a8",
+        "rank": 1,
+        "title_ru": "Контейнеризация нейроморфных нагрузок на виртуальном краю",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 3 (растёт быстро), балл 5 из 7; уверенность 100%. Кандидат соответствует всем критериям: тема edge-вычислений и neuromorphic workloads, конкретные технологии, ранние стадии разработки, наличие независимых достоверных источников.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0dfce-dbb0-7339-88f9-4c27a5392b80",
+        "query_text": "edge-вычисления и периферийный инференс",
+        "title_auto": "WORKLOADS ON EDGE",
+        "description_ru": "Технология контейнеризации нейроморфных вычислительных нагрузок (включая спайковые нейронные сети) в средах виртуальных граничных вычислений с использованием оркестрации Kubernetes. Исследуется влияние ограничения ресурсов на производительность таких нагрузок.",
+        "advantage_ru": "Использование нейроморфных вычислений позволяет значительно повысить энергоэффективность обработки задач машинного обучения на границе сети.",
+        "case_example_ru": "Проведены эксперименты по развертыванию и масштабированию SNN-нагрузок в среде виртуального края на базе Kubernetes, запущенной на одном узле кластера K3d под управлением Windows 11 с WSL2 и Docker Desktop.",
+        "explanation_ru": "Технология находится на ранней стадии исследования: проведены лабораторные эксперименты, выявлены зависимости производительности от доступности ресурсов, обсуждаются проблемы балансировки нагрузки. Источники подтверждают растущий интерес к теме контейнеризации и нейроморфных вычислений на крае. Исследовательская стадия: выполнены предварительные эксперименты, результаты показывают чувствительность нейроморфных нагрузок к ресурсам. Рост интереса подтверждается публикацией новых исследований и патентованием решений автоматизации безопасных контейнеризированных нагрузок на краю (2024–2026 годы).",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 0.5,
+            "contribution": 0.5,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8525609970092773,
+            "contribution": 13.085383456112504,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8600383996963501,
+            "contribution": -10.550994690189386,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 8.0,
+            "contribution": -1.2306262171108313,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8883860111236572,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 2.652794173514336,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 553.9330718761112,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.5,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 0.5,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0cab6-31de-7859-9721-ca5187461592",
+            "title": "Evaluating Container Orchestration for Neuromorphic Workloads in Virtual Edge Environments",
+            "url": "https://zenodo.org/records/20124585",
+            "published_at": "2026-05-11T00:00:00+00:00",
+            "source_type": "PREPRINT",
+            "source_key": "zenodo",
+            "language_code": "en",
+            "trust_level": "MEDIUM",
+            "summary_ru": "(Zenodo, 2026) Оценивается использование контейнерной оркестрации для нейроморфных нагрузок в виртуальной пограничной инфраструктуре на основе Kubernetes.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "The growing adoption of edge computing has created an increasing need for workloads capable of operating under strict resource and energy constraints. Neuromorphic computing, and spiking neural networks (SNNs) in particular, offers an energy-efficient alternative to conventional machine learning through event-driven computation. However, how SNN workloads behave when deployed within modern container orchestration frameworks, especially in edge environments, remains largely unexplored.",
+            "similarity": 0.9688982
+          },
+          {
+            "document_id": "01a0db73-3405-7b8c-a27d-a5a515e250fe",
+            "title": "AUTOMATING SECURED DEPLOYMENT OF CONTAINERIZED WORKLOADS ON EDGE DEVICES",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240039804A1_20240201",
+            "published_at": "2024-02-01T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "(Роспатент, 2024) Описан метод автоматизированного безопасного развёртывания контейнеризованных нагрузок на устройствах границы с применением изоляции и механизмов безопасности на базе Kubernetes.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "At 116, after the pre-deployment sanity checks, security constructs are set up to isolate the SD-WAN network functions (NFs) from the compute service at edge device 106 to ensure both resource and namespace isolation between the SD-WAN core processes and the workload processes at edge device 106.",
+            "similarity": 0.9688981
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0cab6-31de-7859-9721-ca5187461592",
+        "predicted_stage": 2,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0dfd1-bf85-7f5e-a140-3cc60b1e4fad",
+        "rank": 2,
+        "title_ru": "Безопасность периферийных устройств и защита данных в edge-вычислениях",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 3 (растёт быстро), балл 5 из 7; уверенность 100%. Кандидат соответствует всем критериям: тема edge-вычислений и защиты данных, конкретные технические решения, подтверждённые патентами, ранние стадии разработки, независимые достоверные источники.",
+        "narrative_status": "GENERATED",
+        "source_count": 5,
+        "job_id": "01a0dfce-dbb0-7339-88f9-4c27a5392b80",
+        "query_text": "edge-вычисления и периферийный инференс",
+        "title_auto": "edge device",
+        "description_ru": "Технология обеспечивает безопасность данных и защиту периферийных устройств в средах edge-вычислений путём выбора совместимых по уровню безопасности устройств, внедрения аппаратных модулей безопасности и централизованного контроля доступа через брокера безопасности.",
+        "advantage_ru": "Повышение уровня защищённости данных и устройств на границе сети благодаря использованию аппаратных средств шифрования и централизованной проверке доступа.",
+        "case_example_ru": "Патент описывает методику подбора edge-устройств по уровню соответствия требованиям безопасности для безопасного исполнения задач распределёнными группами устройств совместно с облачными узлами (document_id: d1).",
+        "explanation_ru": "Технология находится на ранней стадии развития, подтверждена несколькими патентными заявками за 2023–2024 годы, демонстрируя растущий интерес к вопросам безопасности в edge-среде. Исследования и разработка, подтверждены патентами, продукт находится на стадии концептуализации и тестирования. Рост числа патентных заявок по теме безопасности edge-устройств и периферийного инференса наблюдается с 2023 года, что указывает на активное развитие направления.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 8.0,
+            "contribution": 8.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.865800678730011,
+            "contribution": 8.373994158976199,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8680426478385925,
+            "contribution": -7.510662969412624,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 13.0,
+            "contribution": -2.041434120038905,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.04156275976724855,
+            "contribution": 0.041646734289469155,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 2.1972245773362196,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.9193477630615234,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.5398578285451365,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1189.4330718761112,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 20.711705149000434,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db73-3407-76b2-bd36-0ec423f7eb17",
+            "title": "PERFORM EDGE PROCESSING BY SELECTING EDGE DEVICES BASED ON SECURITY LEVELS",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230090200A1_20230323",
+            "published_at": "2023-03-23T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Методика отбора edge-устройств для выполнения задач на основе сопоставления их уровня безопасности с требованиями политики безопасности.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "A number of the edge devices that are to be included in a participating group to execute the job is identified. A subset of edge devices that meet the security level are identified by comparing security data of each of the edge devices with the security level. In response to determining that the subset of edge devices includes that number of edge devices, the edge devices from the subset are added to the participating group.",
+            "similarity": 0.9471706
+          },
+          {
+            "document_id": "01a0db73-3409-74b9-95ec-d3a731bdaf71",
+            "title": "SECURE DATA INGESTION WITH EDGE COMPUTING",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240171391A1_20240523",
+            "published_at": "2024-05-23T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Аппаратные модули безопасности встраиваются непосредственно в edge-устройства для обеспечения безопасной передачи и обработки данных.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "The edge device is configured to establish and maintain a network connection to a cloud platform (e. g. , an access point of the cloud platform). The network connection is used to transmit, or ingest, the data stream being input to the edge device from other devices in the trusted environment. To implement the secure operations, the edge device is one that is configured with a hardware security module. The hardware security module is a physical device that safeguards and manages keys and performs encryption and decryption functions via secure cryptographic processors or chips.",
+            "similarity": 0.94212914
+          },
+          {
+            "document_id": "01a0db73-3412-7a5d-9fa6-0ecce2ad842b",
+            "title": "SECURITY BROKER FOR EDGE COMPUTING ENVIRONMENT",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230224332A1_20230713",
+            "published_at": "2023-07-13T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Брокер безопасности контролирует доступ к ресурсам edge-среды, проверяя запросы и обеспечивая доставку сообщений только авторизованным устройствам.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "If the verification is successful, the security broker may then deliver the request message to the targeted edge resource message queue. Otherwise, the security broker prevents the source from accessing the edge resource. In cases where the edge resource is a physically isolated from the security broker resource including, as a non-limiting example, a dark site data center, the security broker may format the request message as a file in accordance with a known file format supported by the edge resource and transfer the message file to the edge resource.",
+            "similarity": 0.94066703
+          },
+          {
+            "document_id": "01a0db73-3406-7da7-929f-299d9b269d48",
+            "title": "DEVICE PROTECTION METHOD, AND DEVICES",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20230177153A1_20230608",
+            "published_at": "2023-06-08T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Распределённая система безопасности перемещает вычислительные операции из центрального облака в защищённые зоны на краю сети, используя ресурсы edge-устройств.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Apparently, the above method deploys a function of the cloud security center to each edge security region. Since these edge security regions are distributed over the edge of the network as needed, the method can make full use of computing resources of the edge security regions and move the analysis operations from the cloud security center to the edge security regions, thereby sharing computing resources of the edge security regions. An edge security region can also be referred to as an ES ( Edge Security ) region, that is, an ES-region.",
+            "similarity": 0.9364491
+          },
+          {
+            "document_id": "01a0db73-340e-7e91-b5f4-f0cfd8b529f9",
+            "title": "Manufacturer usage description (MUD) extensions for secure access service edge (SASE) services",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011929984B2_20240312",
+            "published_at": "2024-03-12T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Расширения MUD-протокола обеспечивают безопасную работу сервисов SASE на уровне пограничных узлов сети, управляя профилями безопасности конечных точек.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "For example, the SASE engine 120 may be deployed at an edge node 114 of the computing resource network 102. In some examples, the edge node 114 may be configured to communicate with one or more enterprise network(s) 104 via one or more network(s) 130. Additionally, or alternatively, an edge node 114 may be configured to execute and/or maintain the SASE engine 120 and/or a security profiles data store 122.",
+            "similarity": 0.9363351
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db73-3407-76b2-bd36-0ec423f7eb17",
+        "predicted_stage": 2,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0dfd1-bf8b-7517-9c0b-5bf2ced1f4c6",
+        "rank": 3,
+        "title_ru": "Безопасность мобильных edge-вычислений",
+        "score": 1.0,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          }
+        ],
+        "decision_explanation_ru": "Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 2 (растёт), балл 4 из 7; уверенность 100%. Документы касаются мобильных edge-вычислений и безопасности сервисов, соответствуют ранней стадии и имеют независимые источники.",
+        "narrative_status": "GENERATED",
+        "source_count": 3,
+        "job_id": "01a0dfce-dbb0-7339-88f9-4c27a5392b80",
+        "query_text": "edge-вычисления и периферийный инференс",
+        "title_auto": "mobile edge computing",
+        "description_ru": "Технология обеспечивает безопасность сервисов мобильных edge-вычислений (MEC) в сетях 5G путем корреляции сетевых идентификаторов и выполнения различных функций защиты информации в средах сетевого сегментирования.",
+        "advantage_ru": "Повышает уровень защищенности мобильных edge-сервисов благодаря специализированным модулям безопасности и аутентификации соединений.",
+        "case_example_ru": "Предложено устройство и метод обеспечения безопасности трафика в сервисе мобильного edge-вычисления с использованием сегментирования сети (network slicing), описаны модули безопасности с первого по десятый (306_1–306_10).",
+        "explanation_ru": "Технология находится на ранней стадии внедрения: представлены патенты с описанием методов и устройств, подтверждающих растущий интерес к обеспечению безопасности edge-сетей и мобильной периферийной обработки. Исследования и патентование решений, связанных с безопасностью edge-вычислений, указывают на стадию разработки и отсутствия массового внедрения. Рост числа патентов и публикаций по теме безопасности мобильных edge-вычислений свидетельствует об увеличении внимания к этой области в период с 2023 по 2024 год.",
+        "features": [
+          {
+            "feature_name": "rubric_on_topic",
+            "label_ru": "Относится к запросу (рубрика LLM)",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_concrete",
+            "label_ru": "Конкретная технология, а не обзор или общее понятие",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_early_stage",
+            "label_ru": "Ранняя стадия, не массовое внедрение",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "rubric_verifiable",
+            "label_ru": "Есть проверяемый независимый источник",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage",
+            "label_ru": "Стадия: 1 — исследование, 2 — прототип, 3 — пилот, 4 — раннее внедрение",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trend",
+            "label_ru": "Тренд: 1 — слабый интерес, 2 — растёт, 3 — растёт быстро",
+            "value": 2.0,
+            "contribution": 2.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "independent_sources",
+            "label_ru": "Независимых доверенных источников",
+            "value": 3.0,
+            "contribution": 3.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "market_sources",
+            "label_ru": "Рыночных источников (СМИ, аналитика, пресс-релизы)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "review_share",
+            "label_ru": "Доля обзоров среди источников",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_share",
+            "label_ru": "Доля публикаций двух последних лет",
+            "value": 1.0,
+            "contribution": 1.0,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8466339707374573,
+            "contribution": -15.642529814836719,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.845612108707428,
+            "contribution": 15.558170843520683,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 0.0,
+            "contribution": 0.06666642757408604,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.3862943611198906,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8962185978889465,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.2633348990447946,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1117.9330718761112,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 5.219554605232844,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0db73-3410-741b-8c15-5768626be5a9",
+            "title": "Multi-access edge computing services security in mobile networks by parsing application programming interfaces",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011750662B2_20230905",
+            "published_at": "2023-09-05T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает методы повышения безопасности MEC-сервисов в мобильных сетях 5G через корреляцию сетевых идентификаторов.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "As will be further described below, the disclosed techniques can be performed to provide enhanced MEC security in mobile networks, such as for a service consumer that is a mobile edge application and/or a mobile edge platform. In some embodiments, the disclosed techniques for providing MEC security in mobile networks include providing mobile network identifiers correlation in 5G networks for MEC security in 5G networks, such as further described below.",
+            "similarity": 0.9662794
+          },
+          {
+            "document_id": "01a0db73-3412-7dac-a3cc-38f0443d75aa",
+            "title": "Apparatus and method for traffic security processing in 5G mobile edge computing slicing service",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US0011991522B2_20240521",
+            "published_at": "2024-05-21T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Устройство и метод обеспечивают безопасность трафика в сервисах мобильного edge-вычисления с применением сегментирования сети и специализированных модулей безопасности.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Each of the first security module 306_1 to the tenth security module 306_10 executes each security function suitable for a network slicing configuration of the mobile edge computing (MEC).",
+            "similarity": 0.9617333
+          },
+          {
+            "document_id": "01a0db73-3408-7d10-bba3-5f49e6296bbb",
+            "title": "Method and apparatus for establishing secure connections for edge computing services",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/CN116325846A_20230623",
+            "published_at": "2023-06-23T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Метод установления безопасного соединения для edge-вычислительных сервисов включает первичную аутентификацию сети, настройку начального контекста безопасности и создание защищенного соединения с сервером конфигурации края.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "A method in a wireless network for establishing a secure connection for an edge computing service is provided.",
+            "similarity": 0.9472332
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Pro:2.0.30.01",
+          "prompt_version": "finalize_v2",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0db73-3412-7dac-a3cc-38f0443d75aa",
+        "predicted_stage": 2,
+        "predicted_trend": 2
+      }
+    ],
+    "stats": {
+      "http_requests_total": 39,
+      "sources_processed": 5,
+      "documents_collected": 379,
+      "candidates_found": 40,
+      "weak_signals_total": 3,
+      "weak_signals_confident": 3,
+      "narratives_generated": 3,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  }
+]

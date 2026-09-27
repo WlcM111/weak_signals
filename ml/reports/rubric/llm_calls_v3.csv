@@ -1,0 +1,11 @@
+prompt_version,status,error_code,calls,avg_ms,max_ms,avg_out_tokens
+finalize_v1,OK,,10,13511,29653,1013
+finalize_v1,PROVIDER_ERROR,PROVIDER_ERROR,5,30029,30046,
+finalize_v1,RATE_LIMITED,PROVIDER_RATE_LIMITED,4,528,605,
+finalize_v2,OK,,236,9139,29799,661
+insight_v1,OK,,54,10992,17360,796
+insight_v1,RATE_LIMITED,PROVIDER_RATE_LIMITED,1,595,595,
+judge_v1,OK,,2,5768,6845,423
+judge_v2,OK,,270,5007,15378,344
+judge_v3,OK,,223,4555,12810,310
+(9 rows)
