@@ -37,6 +37,7 @@ packages = ["src/ml"]
 ws-common = { workspace = true }
 ws-contracts = { workspace = true }
 analyzer = { workspace = true }
+torch = { index = "pytorch-cpu" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
