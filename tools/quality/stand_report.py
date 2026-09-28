@@ -30,7 +30,7 @@ ACTIVE = {"QUEUED", "COLLECTING", "ANALYZING", "NARRATING"}
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 FINTECH = "перспективные решения в финтехе"
 OUT_DIR = Path("ml/reports/stand")
-KEY = next((line.split("=", 1)[1].strip() for line in Path(".env").read_text(encoding="utf-8").splitlines()
+KEY = next((line.split("=", 1)[1].strip() for line in reversed(Path(".env").read_text(encoding="utf-8").splitlines())
             if line.startswith("WS_API_KEY=")), "") if Path(".env").is_file() else ""
 
 TR = dict(zip("абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
@@ -53,12 +53,16 @@ def ascii_text(text: object, limit: int = 0) -> str:
     return s[: limit - 1] + "~" if limit and len(s) > limit else s
 
 
-def call(method: str, path: str, body: dict | None = None) -> tuple[int, object]:
+def call(method: str, path: str, body: dict | None = None, headers: dict | None = None) -> tuple[int, object]:
     request = urllib.request.Request(f"{API}{path}", method=method,
                                      data=json.dumps(body).encode() if body is not None else None)
-    request.add_header("Content-Type", "application/json")
+    request.add_header("Accept", "application/json")
+    if body is not None:
+        request.add_header("Content-Type", "application/json")
     if KEY:
         request.add_header("X-API-Key", KEY)
+    for name, value in (headers or {}).items():
+        request.add_header(name, value)
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             return response.status, json.loads(response.read() or b"null")
@@ -110,7 +114,6 @@ print(json.dumps(rows))
 
 def resource_checks() -> list[list]:
     """One light request per external resource, from the container that really uses it."""
-    ym = datetime.now().strftime("%Y%m01")
     groups = {
         "collector": [
             ["openalex", "https://api.openalex.org/works?search=edge%20ai&per-page=1", "GET", None, ""],
@@ -120,7 +123,7 @@ def resource_checks() -> list[list]:
             ["zenodo", "https://zenodo.org/api/records?q=edge%20inference&size=1", "GET", None, ""],
             ["doi_resolver", "https://doi.org/10.1038/nature14539", "GET", None, ""],
             ["gdelt", "https://api.gdeltproject.org/api/v2/doc/doc?query=%22edge%20computing%22&mode=artlist&maxrecords=1&format=json", "GET", None, ""],
-            ["wikimedia", f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Edge_computing/monthly/{ym}/{ym}", "GET", None, ""],
+            ["wikimedia", "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Edge_computing/daily/20260901/20260907", "GET", None, ""],
             ["rospatent", "https://searchplatform.rospatent.gov.ru/patsearch/v0.2/search", "POST", {"qn": "нейросеть", "limit": 1}, "WS_ROSPATENT_TOKEN"],
         ],
         "insight": [
@@ -158,11 +161,12 @@ def verdict(name: str, code: int) -> str:
     return f"HTTP_{code}"
 
 
-def run_topic(topic: str, top_n: int) -> dict:
-    status, accepted = call("POST", "/api/v1/queries", {"query_text": topic, "top_n": top_n})
+def run_topic(topic: str, top_n: int, idem: str) -> dict:
+    status, accepted = call("POST", "/api/v1/queries", {"query_text": topic, "top_n": top_n}, {"Idempotency-Key": idem})
     job_id = accepted.get("job_id") if isinstance(accepted, dict) else None
     if not job_id:
-        return {"topic": topic, "job": {"status": f"SUBMIT_FAILED_{status}"}, "cards": [], "stats": None}
+        return {"topic": topic, "job": {"status": f"SUBMIT_FAILED_{status}", "error": ascii_text(accepted, 200)},
+                "cards": [], "stats": None}
     started, job = time.time(), {}
     while time.time() - started < 1500:
         _, job = call("GET", f"/api/v1/jobs/{job_id}")
@@ -247,7 +251,12 @@ def report(blocks: list[dict], checks: list[list], top_n: int, origin: dict[str,
 
 
 def first_fintech_block() -> tuple[dict | None, str]:
-    for path in sorted(glob.glob("own-topics-*.json"), key=os.path.getmtime):
+    """Самый ранний прогон финтеха, сделанный на этом сервере: файлы прогонов из репозитория (есть в git) не берутся."""
+    try:
+        tracked = set(subprocess.run(["git", "ls-files"], capture_output=True, text=True, timeout=30).stdout.split())
+    except (OSError, subprocess.SubprocessError):
+        tracked = set()
+    for path in sorted((p for p in glob.glob("own-topics-*.json") if p not in tracked), key=os.path.getmtime):
         try:
             for block in json.loads(Path(path).read_text(encoding="utf-8")):
                 if block.get("topic") == FINTECH and block.get("cards"):
@@ -284,10 +293,10 @@ def main() -> int:
                 print(f"topic {ascii_text(topic)}: taken from {fin_path}", flush=True)
                 continue
             print(f"topic {ascii_text(topic)}: running...", flush=True)
-            block = run_topic(topic, args.top_n)
+            block = run_topic(topic, args.top_n, f"stand-{stamp}-{len(blocks) + 1}")
             blocks.append(block)
             origin[topic] = "new"
-            print(f"  -> {block['job'].get('status')} cards={len(block['cards'])}", flush=True)
+            print(f"  -> {block['job'].get('status')} cards={len(block['cards'])} {block['job'].get('error', '')}", flush=True)
         (OUT_DIR / f"stand-run-{stamp}.json").write_text(json.dumps(blocks, ensure_ascii=False, indent=1), encoding="utf-8")
     lines = report(blocks, checks, args.top_n, origin)
     path = OUT_DIR / f"stand-report-{stamp}.txt"
