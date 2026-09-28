@@ -26,7 +26,8 @@ from insight.domain.errors import ProviderError
 from insight.domain.values import Purpose
 from ws_common.logging import get_logger
 
-FINALIZE_BATCH = 2
+# Одна карточка на вызов: v6 при пачках по 2 дал 51 отказ разбора JSON (длинный ответ обрывался).
+FINALIZE_BATCH = 1
 FINALIZE_MAX_TOKENS = 4000
 MAX_CARDS = 30
 MAX_SOURCES = 5
@@ -43,6 +44,56 @@ STANDALONE_NUMBER_RE = re.compile(r"(?<![\w.,])\d+(?:[.,]\d+)?(?![\w])")
 SENTENCE_RE = re.compile(r"(?<=[.!?…])\s+")
 _QUOTES_RE = re.compile(r"[«»\"'“”„()\[\]]")
 TERM_RE = re.compile(r"\(([^()]{2,80})\)")
+_LATIN_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*")
+# Общие слова английских заголовков не доказывают, что источник о той же технологии.
+GENERIC_WORDS = frozenset({
+    "with", "from", "that", "this", "using", "based", "towards", "toward", "into", "over", "under", "their", "which",
+    "through", "approach", "approaches", "framework", "frameworks", "method", "methods", "system", "systems", "model",
+    "models", "learning", "network", "networks", "analysis", "study", "review", "survey", "data", "deep", "neural",
+    "novel", "efficient", "robust", "real", "time", "driven", "aware", "large", "language", "artificial", "intelligence",
+    "machine", "robot", "robots", "robotic", "robotics", "human", "scale", "scalable", "multi", "design", "control",
+    "performance", "evaluation", "enabling", "enabled", "application", "applications", "case", "technology",
+    "technologies", "platform", "platforms", "solution", "solutions", "systematic", "empirical", "toward", "task",
+})
+TERM_WORD_SHARE = 0.6
+MAX_TERMS = 12
+
+
+def significant_words(text: str) -> set[str]:
+    """Значимые латинские слова: строчные, не короче 4 букв, без общих слов."""
+    words = set()
+    for token in _LATIN_RE.findall(text or ""):
+        for part in token.lower().split("-"):
+            if len(part) >= 4 and part not in GENERIC_WORDS:
+                words.add(part)
+    return words
+
+
+def candidate_terms(sources: Sequence[RubricSource]) -> list[str]:
+    """Допустимые термины для названия: имя до двоеточия в заголовке и собственные имена/аббревиатуры (ForeTac-VLA, OCS)."""
+    terms: list[str] = []
+    for source in sources:
+        title = source.title or ""
+        head = title.split(":", 1)[0].strip()
+        if ":" in title and 2 <= len(head) <= 60:
+            terms.append(head)
+        terms += [t for t in _LATIN_RE.findall(title) if len(t) >= 3 and (any(c.isupper() for c in t[1:]) or "-" in t)]
+    return list(dict.fromkeys(terms))[:MAX_TERMS]
+
+
+def source_matches(source: RubricSource, anchor: set[str]) -> bool:
+    """Источник о той же технологии: есть общее значимое слово с термином. Источник без латинских слов (русский
+    текст) лексически не сравнить — он остаётся."""
+    words = significant_words(f"{source.title} {source.snippet[:400]}")
+    return not words or bool(words & anchor)
+
+
+def term_supported(term: str, corpus: str, corpus_words: set[str]) -> bool:
+    """Термин подтверждён: дословно есть в источниках или в них есть не менее 60 % его значимых слов."""
+    if normalize_name(term) and normalize_name(term) in corpus:
+        return True
+    words = significant_words(term)
+    return bool(words) and len(words & corpus_words) / len(words) >= TERM_WORD_SHARE
 
 log = get_logger("insight.finalize")
 
@@ -101,6 +152,7 @@ def card_payload(short_id: str, card: CardInput) -> dict:
         "auto_title": card.title_auto[:200],
         "keyphrases": list(card.keyphrases[:8]),
         "assessment": card.judge_reason_ru[:300],
+        "terms": candidate_terms(card.sources[:MAX_SOURCES]),
         "sources": [
             {"id": f"d{number}", "title": source.title[:300], "site": source.domain, "type": source.source_type,
              "date": source.published, "lang": source.language_code, "text": source.snippet[:MAX_TEXT]}
@@ -151,7 +203,19 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
     if not chosen:
         return None, "не выбраны источники, описывающие технологию"
     sources = tuple(source for source in sources if source.document_id in chosen)
-    doc_ids = {key: value for key, value in doc_ids.items() if value in chosen}
+    title = " ".join(grounding.strip_doc_refs(str(row.get("title_ru", "") or "")).split())[: LIMITS["title_ru"]]
+    terms = [term for term in TERM_RE.findall(title) if normalize_name(term)]
+    corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
+    corpus_words = significant_words(" ".join(f"{source.title} {source.snippet}" for source in sources))
+    if not any(term_supported(term, corpus, corpus_words) for term in terms):
+        return None, "в названии нет оригинального термина из выбранных источников"
+    # Источники проверяет код, а не только выбор модели (v6: в 8 карточках из 28 были несвязанные источники):
+    # остаются источники с общим значимым словом с термином и латиницей названия.
+    anchor = significant_words(" ".join(terms) + " " + title)
+    relevant = tuple(s for s in sources if source_matches(s, anchor))
+    sources = relevant or sources
+    doc_ids = {key: value for key, value in doc_ids.items() if value in {s.document_id for s in sources}}
+    corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
     supported = supported_numbers(sources)
     clean: dict[str, str] = {}
     for key in TEXT_FIELDS:
@@ -159,10 +223,7 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
         clean[key] = text if key == "title_ru" else repair_numbers(text, supported)
     if unsupported(clean["title_ru"], supported):
         return None, "в названии число, которого нет в источниках"
-    corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
-    terms = [term for term in TERM_RE.findall(clean["title_ru"]) if normalize_name(term)]
-    if not any(normalize_name(term) in corpus for term in terms):
-        return None, "в названии нет оригинального термина из выбранных источников"
+
     for key in TEXT_FIELDS:
         minimum, share = (3, MIN_CYRILLIC_TITLE) if key == "title_ru" else (MIN_TEXT, MIN_CYRILLIC)
         if len(clean[key]) < minimum:
