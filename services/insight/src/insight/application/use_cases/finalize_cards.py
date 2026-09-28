@@ -43,6 +43,47 @@ STANDALONE_NUMBER_RE = re.compile(r"(?<![\w.,])\d+(?:[.,]\d+)?(?![\w])")
 SENTENCE_RE = re.compile(r"(?<=[.!?…])\s+")
 _QUOTES_RE = re.compile(r"[«»\"'“”„()\[\]]")
 TERM_RE = re.compile(r"\(([^()]{2,80})\)")
+_LATIN_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*")
+# Общие слова английских заголовков не доказывают, что источник о той же технологии.
+GENERIC_WORDS = frozenset({
+    "with", "from", "that", "this", "using", "based", "towards", "toward", "into", "over", "under", "their", "which",
+    "through", "approach", "approaches", "framework", "frameworks", "method", "methods", "system", "systems", "model",
+    "models", "learning", "network", "networks", "analysis", "study", "review", "survey", "data", "deep", "neural",
+    "novel", "efficient", "robust", "real", "time", "driven", "aware", "large", "language", "artificial", "intelligence",
+    "machine", "robot", "robots", "robotic", "robotics", "human", "scale", "scalable", "multi", "design", "control",
+    "performance", "evaluation", "enabling", "enabled", "application", "applications", "case", "technology",
+    "technologies", "platform", "platforms", "solution", "solutions", "systematic", "empirical", "task",
+})
+
+
+def significant_words(text: str) -> set[str]:
+    """Значимые латинские слова: строчные, не короче 4 букв, без общих слов."""
+    words = set()
+    for token in _LATIN_RE.findall(text or ""):
+        for part in token.lower().split("-"):
+            if len(part) >= 4 and part not in GENERIC_WORDS:
+                words.add(part)
+    return words
+
+
+def source_matches(source: RubricSource, anchor: set[str]) -> bool:
+    """Источник о той же технологии: есть общее значимое слово с термином названия. Источник без латинских слов
+    (русский текст) лексически не сравнить — он остаётся."""
+    words = significant_words(f"{source.title} {source.snippet[:400]}")
+    return not words or bool(words & anchor)
+
+
+def relevant_summaries(sources: Sequence[RubricSource], summaries: dict[str, tuple[str, str, str]], title: str,
+                       case_id: str) -> tuple[tuple[str, str, str], ...]:
+    """Правка A1 — чистый фильтр источников готовой карточки. Карточка не отклоняется: остаются источники с общим
+    значимым словом с термином и латиницей названия, источник кейса и русские тексты; если не осталось ничего или
+    в названии нет значимых слов — остаются все. v6: в 8 из 28 карточек были несвязанные источники."""
+    rows = tuple(summaries[source.document_id] for source in sources)
+    anchor = significant_words(" ".join(TERM_RE.findall(title)) + " " + title)
+    if not anchor:
+        return rows
+    kept = tuple(summaries[s.document_id] for s in sources if s.document_id == case_id or source_matches(s, anchor))
+    return kept or rows
 
 log = get_logger("insight.finalize")
 
@@ -189,12 +230,14 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
     missing = [source.document_id for source in sources if source.document_id not in summaries]
     if missing:
         return None, f"нет резюме на русском для {len(missing)} источников"
+    case_id = doc_ids.get(str(row.get("case_document_id", "")).strip(), "")
     return FinalizedCard(
         candidate_id=card.candidate_id, title_ru=clean["title_ru"], description_ru=clean["description_ru"],
         advantage_ru=clean["advantage_ru"], case_example_ru=clean["case_example_ru"],
-        case_document_id=doc_ids.get(str(row.get("case_document_id", "")).strip(), ""), why_ru=clean["why_ru"],
+        case_document_id=case_id, why_ru=clean["why_ru"],
         companies=tuple(companies[:MAX_COMPANIES]), stage_reason_ru=clean["stage_reason_ru"],
-        trend_reason_ru=clean["trend_reason_ru"], source_summaries=tuple(summaries[s.document_id] for s in sources),
+        trend_reason_ru=clean["trend_reason_ru"],
+        source_summaries=relevant_summaries(sources, summaries, clean["title_ru"], case_id),
     ), ""
 
 

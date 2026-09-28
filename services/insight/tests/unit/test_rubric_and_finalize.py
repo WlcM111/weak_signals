@@ -17,7 +17,7 @@ SOURCES = (
                  "HIGH", "2025-03-01", "en", "Researchers at EPFL demonstrated a photonic LiDAR engine with 200 m range.",
                  "nature.com"),
     RubricSource("doc-2", "Стартап Lumotive привлёк инвестиции", "rss", "INDUSTRY_MEDIA", "MEDIUM", "2026-01-10", "ru",
-                 "Компания Lumotive привлекла 45 млн долларов на пилоты метаповерхностных лидаров.", "rb.ru"),
+                 "Компания Lumotive привлекла 45 млн долларов на пилоты FMCW-лидаров.", "rb.ru"),
 )
 ITEMS = [RubricItem(f"cand-{n}", f"Кандидат {n}", ("lidar",), SOURCES, "2 источника: 1 научная, 1 СМИ") for n in range(1, 11)]
 
@@ -123,6 +123,22 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("не выбраны", check_card(self.CARD, card_row("k1", source_ids=[]))[1])
         self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Фотонный лидар на чипе"))[1])
         self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Лидар (Quantum Radar)"))[1])
+
+    def test_a1_filter_drops_unrelated_sources_but_never_the_card(self) -> None:
+        from insight.application.use_cases.finalize_cards import relevant_summaries
+
+        unrelated = RubricSource("doc-3", "Teaching Reinforcement Learning to High-School Students", "arxiv", "PREPRINT",
+                                 "HIGH", "2026-09-01", "en", "Curriculum for schools.", "arxiv.org")
+        russian = RubricSource("doc-4", "Лидары на чипе", "habr", "INDUSTRY_MEDIA", "MEDIUM", "2026-09-01", "ru",
+                               "Обзор рынка лидаров.", "habr.com")
+        sources = (SOURCES[0], unrelated, russian)
+        summaries = {s.document_id: (s.document_id, "Резюме источника на русском.", "GENERATIVE_SUMMARY") for s in sources}
+        kept = relevant_summaries(sources, summaries, "Фотонный лидар на чипе (FMCW LiDAR)", "")
+        self.assertEqual([k[0] for k in kept], ["doc-1", "doc-4"])  # школьная программа отброшена, русский текст остался
+        self.assertEqual([k[0] for k in relevant_summaries(sources, summaries, "Лидар (FMCW LiDAR)", "doc-3")],
+                         ["doc-1", "doc-3", "doc-4"])  # источник кейса остаётся всегда
+        self.assertEqual(len(relevant_summaries(sources, summaries, "Модель (LLM)", "")), 3)  # нет значимых слов — все
+        self.assertEqual(len(relevant_summaries((unrelated,), {"doc-3": summaries["doc-3"]}, "Лидар (FMCW LiDAR)", "")), 1)
 
     def test_unsupported_number_removes_sentence_not_card(self) -> None:
         card, _ = check_card(self.CARD, card_row("k1", advantage_ru="Компактность без движущихся частей. "
