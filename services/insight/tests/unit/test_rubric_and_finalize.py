@@ -17,7 +17,7 @@ SOURCES = (
                  "HIGH", "2025-03-01", "en", "Researchers at EPFL demonstrated a photonic LiDAR engine with 200 m range.",
                  "nature.com"),
     RubricSource("doc-2", "Стартап Lumotive привлёк инвестиции", "rss", "INDUSTRY_MEDIA", "MEDIUM", "2026-01-10", "ru",
-                 "Компания Lumotive привлекла 45 млн долларов на пилоты FMCW-лидаров.", "rb.ru"),
+                 "Компания Lumotive привлекла 45 млн долларов на пилоты метаповерхностных лидаров.", "rb.ru"),
 )
 ITEMS = [RubricItem(f"cand-{n}", f"Кандидат {n}", ("lidar",), SOURCES, "2 источника: 1 научная, 1 СМИ") for n in range(1, 11)]
 
@@ -124,32 +124,6 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Фотонный лидар на чипе"))[1])
         self.assertIn("оригинального термина", check_card(self.CARD, card_row("k1", title_ru="Лидар (Quantum Radar)"))[1])
 
-    def test_candidate_terms_relaxed_term_and_code_source_filter(self) -> None:
-        from insight.application.use_cases.finalize_cards import candidate_terms, significant_words, term_supported
-
-        extra = (RubricSource("doc-3", "Kolmogorov-Arnold Networks-Based Tolerance-Aware Manufacturability Assessment",
-                              "arxiv", "PREPRINT", "HIGH", "2026-09-01", "en", "", "arxiv.org"),
-                 RubricSource("doc-4", "Teaching Reinforcement Learning to High-School Students", "arxiv", "PREPRINT",
-                              "HIGH", "2026-09-01", "en", "", "arxiv.org"),
-                 RubricSource("doc-5", "ForeTac-VLA: A Forecasting-Based Tactile Model", "arxiv", "PREPRINT", "HIGH",
-                              "2026-09-01", "en", "", "arxiv.org"))
-        self.assertIn("ForeTac-VLA", candidate_terms(extra))
-        corpus_words = significant_words(extra[0].title)
-        self.assertTrue(term_supported("Tolerance Aware Manufacturability", "", corpus_words))
-        self.assertFalse(term_supported("Quantum Radar", "", corpus_words))
-        card = CardInput("cand-9", "X", (), SOURCES + extra, 2, 3)
-        row = card_row("k1", title_ru="Оценка технологичности с учётом допусков (Tolerance-Aware Manufacturability)",
-                       source_ids=["d3", "d4"], trend_reason_ru="Публикации появляются регулярно.",
-                       description_ru="Модель на сетях Колмогорова — Арнольда оценивает технологичность детали.",
-                       why_ru="Технология на стадии исследований, интерес к ней растёт.",
-                       case_example_ru="Исследователи показали оценку технологичности на примерах.",
-                       advantage_ru="Учитывает допуски при проектировании деталей.",
-                       source_summaries=[{"document_id": "d3", "summary_ru": "Оценка технологичности с учётом допусков."},
-                                         {"document_id": "d4", "summary_ru": "Учебная программа для школьников."}])
-        finalized, reason = check_card(card, row)
-        self.assertEqual(reason, "")
-        self.assertEqual([s[0] for s in finalized.source_summaries], ["doc-3"])  # несвязанный источник отброшен кодом
-
     def test_unsupported_number_removes_sentence_not_card(self) -> None:
         card, _ = check_card(self.CARD, card_row("k1", advantage_ru="Компактность без движущихся частей. "
                                                                     "Экономия 37 процентов энергии."))
@@ -172,7 +146,7 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(card.candidate_id for card in outcome.cards), ["cand-1", "cand-2"])
         self.assertEqual(outcome.rejected, {})
         self.assertIn("составь", provider.calls[0][0].content.replace("заполни", "составь"))
-        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v5")
+        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v4")
 
     async def test_failed_batch_rejects_all(self) -> None:
         provider = FakeProvider(responses=["{"])

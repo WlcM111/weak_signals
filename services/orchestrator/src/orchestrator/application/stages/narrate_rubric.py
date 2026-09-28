@@ -41,8 +41,7 @@ from ws_common import rubric_model, signal_classifier
 from ws_common.logging import get_logger
 
 DOCUMENTS_BATCH = 150
-# Три раунда замены: v6 с двумя раундами оставлял по 2–3 карточки в теме после отказов доводки.
-FINALIZE_ROUNDS = 3
+FINALIZE_ROUNDS = 2
 FINALIZE_SOURCES = 5
 LIKELY = 0.5
 CONFIDENT = 0.75
@@ -290,9 +289,7 @@ async def _final_check(
             continue
         docs = tuple(documents[d] for d in card.source_summaries if d in documents)
         items.append(RubricRequestItem(replace(candidate, title_auto=card.title_ru[:200], keyphrases=()), docs,
-                                       f"Итоговая карточка. Название: {card.title_ru}. Описание: {card.description_ru}. "
-                                       "Проверь зрелость отдельно: технология с массовым внедрением, стандартом или "
-                                       "выраженными лидерами рынка — N-MAT, даже если источник свежий."))
+                                       f"Итоговая карточка. Название: {card.title_ru}. Описание: {card.description_ru}"))
     if not items:
         return {}
     try:

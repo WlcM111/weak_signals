@@ -26,7 +26,7 @@ JUDGE_PROMPT_VERSION = "judge_v1"
 JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
 RUBRIC_PROMPT_VERSION = "judge_v5"
 RUBRIC_SCHEMA_FILE = "judge_v4_llm_output.schema.json"
-FINALIZE_PROMPT_VERSION = "finalize_v5"
+FINALIZE_PROMPT_VERSION = "finalize_v4"
 FINALIZE_SCHEMA_FILE = "finalize_v4_llm_output.schema.json"
 
 
@@ -111,7 +111,7 @@ class PromptBuilder:
             PromptDefinition(
                 prompt_version=FINALIZE_PROMPT_VERSION,
                 purpose=Purpose.INSIGHT,
-                template_sha256=self.template_sha256("finalize_v5.j2"),
+                template_sha256=self.template_sha256("finalize_v4.j2"),
                 output_schema_version=f"{FINALIZE_SCHEMA_FILE}@1",
                 description="Пакетная доводка карточек v2: все поля на русском, резюме каждого источника, компании"
             ),
@@ -193,7 +193,7 @@ class PromptBuilder:
     def build_finalize_prompt(self, query_text: str, cards: Sequence[dict]) -> PromptBundle:
         """Промпт пакетной доводки показанных карточек."""
         schema = self._schemas[FINALIZE_SCHEMA_FILE]
-        system = self._environment.get_template("finalize_v5.j2").render(
+        system = self._environment.get_template("finalize_v4.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2)
         )
         user = json.dumps({"query": query_text, "cards": list(cards)}, ensure_ascii=False)
