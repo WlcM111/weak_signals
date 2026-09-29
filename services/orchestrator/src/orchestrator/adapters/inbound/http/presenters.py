@@ -119,7 +119,7 @@ def item_to_json(item: ResultItem, query_text: str, model_version_id: str = "") 
                 "llm_model": item.llm_model,
                 "prompt_version": item.prompt_version,
                 # Версия модели analyzer из статистики задания (раньше поле было всегда пустым: «—» в интерфейсе).
-                "model_version_id": item.model_version_id or model_version_id,
+                "model_version_id": model_version_id,
             },
         }
     )
