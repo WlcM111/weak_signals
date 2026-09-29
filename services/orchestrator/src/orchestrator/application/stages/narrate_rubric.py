@@ -159,8 +159,10 @@ async def run_narrate_rubric(
         queue = allowed[config.top_n :]
     outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
     # «Уверены более чем на 75 %» — по той же уверенности, что показана в карточках (с калибровкой, если включена).
+    # Считаются только показанные карточки: счётчик стоит рядом со списком «Найденные слабые сигналы», и число
+    # должно совпадать с тем, что видно в карточках (стенд 29.09: «1 из 9» при четырёх карточках 67–71 %).
     outcome.weak_signals_confident = sum(
-        1 for c in judged if verdicts[c.candidate_id].code == "R"
+        1 for c in shown if verdicts[c.candidate_id].code == "R"
         and display_score(scored[c.candidate_id][0], "R", config.confidence_calibration) >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(

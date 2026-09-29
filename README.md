@@ -1,5 +1,7 @@
 # weak-signals
 
+> Локальный запуск на Linux, macOS и Windows — [RUN_LOCAL.md](RUN_LOCAL.md). Архитектура и методика — [OVERVIEW.md](OVERVIEW.md).
+
 Сервис автоматизированного поиска слабых сигналов в научно-технологических отраслях
 (кейс Газпромбанк.Тех). Пользователь вводит запрос в свободной форме — система собирает
 материалы из открытых источников, отделяет зрелые технологии, маркетинговый хайп и
@@ -82,7 +84,7 @@ python -m ml.cli leak-check                        # контроль утечк
 python -m ml.cli train --embedder hashing          # обучение и экспорт артефакта без загрузки моделей
 python -m ml.cli evaluate ml/data/raw/dataset_normalized.csv --embedder hashing
 
-# тесты: 600 штук (565 исходных + 35 регрессионных тестов исправлений)
+# модульные тесты всех сервисов и ML (более 800)
 python -m unittest discover -s services/collector/tests/unit -t .
 python -m unittest discover -s services/analyzer/tests/unit -t .
 python -m unittest discover -s services/orchestrator/tests/unit -t .

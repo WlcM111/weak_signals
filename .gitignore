@@ -20,3 +20,14 @@ services/ui/dist/
 artifacts/
 ml/reports/experiments/
 ml/reports/seq/
+# результаты прогонов, отчёты стенда и архивы — не часть исходного кода
+/own-topics-*.json
+/analytics-*.txt
+/relevance-*.csv
+/demo-*.txt
+/arxiv-diag-*.txt
+/*.zip
+/*.tar.gz
+nohup.out
+ml/reports/stand/
+ml/reports/rubric/v*/

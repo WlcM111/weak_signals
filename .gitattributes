@@ -1,0 +1,10 @@
+# Переводы строк LF во всех текстовых файлах: скрипты запускаются в Linux-контейнерах, и CRLF
+# после клонирования на Windows ломал бы их («/bin/sh^M: bad interpreter»).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
+*.gz binary
+*.joblib binary
+*.npz binary
+*.pdf binary

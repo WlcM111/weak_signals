@@ -129,7 +129,7 @@ export function StatsRow({ stats, items = [], activeId, onShowExcluded, onPick }
         <Stat
           label="Уверенность модели выше 75 %"
           value={formatNumber(stats.weak_signals_confident)}
-          hint={`сигналов из ${formatNumber(stats.weak_signals_total)}`}
+          hint="среди найденных слабых сигналов"
           accent
         />
         <Stat
