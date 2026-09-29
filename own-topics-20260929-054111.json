@@ -1,0 +1,1613 @@
+[
+  {
+    "topic": "умные материалы для носимой электроники",
+    "job": {
+      "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+      "query_id": "01a0eb09-9f03-7cd9-a123-4740d91d037a",
+      "query_text": "умные материалы для носимой электроники",
+      "status": "PARTIAL",
+      "attempt": 0,
+      "cancel_requested": false,
+      "created_at": "2026-09-29T02:41:11.427799+00:00",
+      "started_at": "2026-09-29T02:41:16.122980+00:00",
+      "finished_at": "2026-09-29T02:49:15.535066+00:00",
+      "progress": {
+        "stage": "PARTIAL",
+        "http_requests_total": 59,
+        "sources_processed": 6,
+        "documents_collected": 221,
+        "candidates_found": 40,
+        "narratives_done": 5,
+        "narratives_total": 9
+      }
+    },
+    "cards": [
+      {
+        "item_id": "01a0eb11-01f3-79aa-b6d6-f8807f38a62a",
+        "rank": 1,
+        "title_ru": "Гидрофобная MXene-ткань с электромагнитной защитой и терморегуляцией (superhydrophobic MXene-based fabric)",
+        "score": 0.8636,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "sc_первые",
+            "label_ru": "Признак профиля «первые»",
+            "value": 1.0,
+            "contribution": 0.5405,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_появил",
+            "label_ru": "Признак профиля «появил»",
+            "value": 1.0,
+            "contribution": 0.1896,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1582,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_управл",
+            "label_ru": "Признак профиля «управл»",
+            "value": 1.0,
+            "contribution": -0.1359,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.121,
+            "direction": "supports_weak_signal"
+          }
+        ],
+        "decision_explanation_ru": "Вероятность слабого сигнала по локальному классификатору: 73%. Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Гидрофобные MXene-ткани с электромагнитной защитой и термоконтролем конкретно предназначены для гибких датчиков в носимой электронике, подтверждаются научными публикациями, находятся на стадии прототипа.",
+        "narrative_status": "GENERATED",
+        "source_count": 1,
+        "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+        "query_text": "умные материалы для носимой электроники",
+        "title_auto": "Superhydrophobic MXene-Based Fabric",
+        "description_ru": "Технология представляет собой гидрофобную ткань на основе MXene-материалов, обладающую способностью защиты от электромагнитных помех и управления температурой. Она предназначена для гибких датчиков в носимых электронных устройствах.",
+        "advantage_ru": "Обеспечивает защиту от влаги, электромагнитных помех и эффективную терморегуляцию, что расширяет область применения в экстремальных условиях.",
+        "case_example_ru": "Исследователи разработали гидрофобную MXene-ткань с защитными свойствами для гибких датчиков, опубликованную в научной статье в октябре 2023 года.",
+        "explanation_ru": "Это слабый сигнал, поскольку технология находится на ранней стадии научных исследований, подтверждается единичными публикациями и пока не имеет широкого внедрения. На стадии исследования, так как описаны лабораторные эксперименты и характеристики материала, без информации о реальных продуктах или внедрении. Интерес стабилен, но ограничен научным сообществом; публикации сосредоточены на фундаментальных исследованиях материалов.",
+        "features": [
+          {
+            "feature_name": "sc_первые",
+            "label_ru": "Признак профиля «первые»",
+            "value": 1.0,
+            "contribution": 0.5405,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_появил",
+            "label_ru": "Признак профиля «появил»",
+            "value": 1.0,
+            "contribution": 0.1896,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1582,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_управл",
+            "label_ru": "Признак профиля «управл»",
+            "value": 1.0,
+            "contribution": -0.1359,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.121,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_сенсор",
+            "label_ru": "Признак профиля «сенсор»",
+            "value": 1.0,
+            "contribution": 0.0923,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_создан",
+            "label_ru": "Признак профиля «создан»",
+            "value": 1.0,
+            "contribution": 0.074,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_based",
+            "label_ru": "Признак профиля «based»",
+            "value": 1.0,
+            "contribution": 0.0392,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8618279695510864,
+            "contribution": 9.787697290291593,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8677442073822021,
+            "contribution": -7.624022521765603,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 14.0,
+            "contribution": -2.2035957006245197,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": -0.1659891787877903,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 4.460144413937834,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.6094379124341003,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8873654007911682,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.7128360602492902,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 0.5,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 986.6133710060533,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0eb09-d267-72f8-81d8-5672db57b2d7",
+            "title": "Superhydrophobic MXene-Based Fabric with Electromagnetic Interference Shielding and Thermal Management Ability for Flexible Sensors",
+            "url": "https://doi.org/10.1007/s42765-023-00328-x",
+            "published_at": "2023-10-10T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Научная статья описывает разработку гидрофобной MXene-ткани с электромагнитной защитой и терморегулированием для гибких датчиков.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Superhydrophobic MXene-Based Fabric with Electromagnetic Interference Shielding and Thermal Management Ability for Flexible Sensors",
+            "similarity": 0.9573656
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Max:2.0.30.01",
+          "prompt_version": "finalize_v4",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0eb09-d267-72f8-81d8-5672db57b2d7",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0eb11-01fe-764b-851f-c73e7e7d929e",
+        "rank": 2,
+        "title_ru": "Умные ткани с гетероядерным оптическим волокном для измерения артериального давления (Hetero-Core Optical Fiber)",
+        "score": 0.7683,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "sc_протот",
+            "label_ru": "Признак профиля «протот»",
+            "value": 1.0,
+            "contribution": 0.2248,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1383,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_сенсор",
+            "label_ru": "Признак профиля «сенсор»",
+            "value": 1.0,
+            "contribution": 0.1056,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_прилож",
+            "label_ru": "Признак профиля «прилож»",
+            "value": 1.0,
+            "contribution": -0.0897,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед_протот",
+            "label_ru": "Признак профиля «исслед протот»",
+            "value": 1.0,
+            "contribution": 0.0766,
+            "direction": "supports_weak_signal"
+          }
+        ],
+        "decision_explanation_ru": "Вероятность слабого сигнала по локальному классификатору: 54%. Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Кандидат представляет конкретные волокнистые сенсоры для носимой электроники, подтвержденные научными публикациями и одним источником с рыночными фактами, находится на стадии прототипирования/раннего внедрения.",
+        "narrative_status": "GENERATED",
+        "source_count": 1,
+        "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+        "query_text": "умные материалы для носимой электроники",
+        "title_auto": "fiber sensors",
+        "description_ru": "Технология умных тканей включает использование гетероядерного оптического волокна, вплетённого в шерстяные нити, для создания датчиков давления, встроенных непосредственно в одежду. Эти датчики способны обнаруживать пульсовые волны на запястье и локте, позволяя оценивать артериальное давление методом времени прохождения пульса.",
+        "advantage_ru": "Интеграция датчика в ткань обеспечивает комфорт и удобство непрерывного мониторинга здоровья без дополнительного оборудования.",
+        "case_example_ru": "Исследователи продемонстрировали измерение артериального давления двумя субъектами с помощью одежды с интегрированными датчиками, результаты сравнили с традиционным тонометром.",
+        "explanation_ru": "Это слабый сигнал, поскольку технология находится на ранней стадии разработки, подтверждена лишь научной публикацией, и пока отсутствует коммерческое применение. Прототипирование, так как описан экспериментальный образец и лабораторные испытания. Интерес растёт благодаря научным исследованиям и публикации новых работ, однако широкого распространения пока нет.",
+        "features": [
+          {
+            "feature_name": "sc_протот",
+            "label_ru": "Признак профиля «протот»",
+            "value": 1.0,
+            "contribution": 0.2248,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1383,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_сенсор",
+            "label_ru": "Признак профиля «сенсор»",
+            "value": 1.0,
+            "contribution": 0.1056,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_прилож",
+            "label_ru": "Признак профиля «прилож»",
+            "value": 1.0,
+            "contribution": -0.0897,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед_протот",
+            "label_ru": "Признак профиля «исслед протот»",
+            "value": 1.0,
+            "contribution": 0.0766,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_годов",
+            "label_ru": "Признак профиля «годов»",
+            "value": 1.0,
+            "contribution": -0.0628,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_предст",
+            "label_ru": "Признак профиля «предст»",
+            "value": 1.0,
+            "contribution": -0.0496,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_активн",
+            "label_ru": "Признак профиля «активн»",
+            "value": 1.0,
+            "contribution": -0.049,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8739877939224243,
+            "contribution": 5.460579191337477,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 32.0,
+            "contribution": -5.122504151165584,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8809031248092651,
+            "contribution": -2.6257424392876185,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 2.0,
+            "contribution": -0.9710674370966577,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.09380863039399626,
+            "contribution": 0.16375425109635336,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.018761726078799248,
+            "contribution": 0.08700078195725451,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 2.70805020110221,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.910070538520813,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.677244000016573,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 0.6666666666666666,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1014.1133710060533,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.9285714285714286,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0eb09-cc67-7ba1-8914-58bbf0eb48d9",
+            "title": "Wearable Textile Sensor Using Hetero-Core Optical Fiber for Blood Pressure Measurement",
+            "url": "https://www.semanticscholar.org/paper/1d7bda0156050d5771573265e188b2d9913b1f20",
+            "published_at": "2024-10-20T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "semantic_scholar",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Статья описывает новый подход к использованию текстильных датчиков с гетероядерным оптическим волокном для оценки артериального давления через измерение пульсовой волны на запястье и локте.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "This paper described a novel use of textile sensors incorporating single-mode hetero-core optical fiber for blood pressure estimation. The textile sensors were designed by weaving hetero-core optical fibers together with wool yarn. The sensor detecting the applied pressure can be integrated into a garment. Textiles, which are fabrics like clothing, are innovative sensors that do not cause stress to the subject. In this paper, pulse wave detection was performed using smart textiles, and pulse waveforms were acquired at the wrist and elbow.",
+            "similarity": 0.9424944
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Max:2.0.30.01",
+          "prompt_version": "finalize_v4",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0eb09-cc67-7ba1-8914-58bbf0eb48d9",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0eb11-0202-7862-98e1-88111136a43e",
+        "rank": 3,
+        "title_ru": "Термоактивные мембраны Януса для направленного транспорта водяного пара (thermoresponsive Janus membranes)",
+        "score": 0.7661,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "sc_пока",
+            "label_ru": "Признак профиля «пока»",
+            "value": 1.0,
+            "contribution": 0.1946,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1743,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1333,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_создан",
+            "label_ru": "Признак профиля «создан»",
+            "value": 1.0,
+            "contribution": 0.0815,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_незави",
+            "label_ru": "Признак профиля «незави»",
+            "value": 1.0,
+            "contribution": -0.069,
+            "direction": "supports_mature"
+          }
+        ],
+        "decision_explanation_ru": "Вероятность слабого сигнала по локальному классификатору: 53%. Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 2 (прототип или PoC), тренд 2 (растёт), балл 4 из 7; уверенность 100%. Термочувствительные мембраны Януса относятся к умным материалам, находятся на исследовательской стадии, описаны конкретные свойства и методы производства.",
+        "narrative_status": "GENERATED",
+        "source_count": 1,
+        "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+        "query_text": "умные материалы для носимой электроники",
+        "title_auto": "thermoresponsive Janus membranes",
+        "description_ru": "Это инновационный материал, созданный методом электроформования, состоящий из двух слоев: одного слоя PVDF и второго слоя смеси PVDF и PNIPAM, меняющей гидрофильность при физиологических температурах. Мембрана обладает пористой структурой с диаметром волокон около 400 нм и пористостью 50%. Она демонстрирует температурозависимый транспорт водяного пара благодаря анизотропному смачиванию.",
+        "advantage_ru": "Технология обеспечивает улучшенный комфорт одежды за счет адаптивного управления влажностью в зависимости от температуры окружающей среды.",
+        "case_example_ru": "Исследователи разработали термоактивную мембрану Януса с использованием методов электроформования, демонстрирующую направленные транспортные свойства водяного пара при изменении температуры. Исследование опубликовано в январе 2023 года на arXiv.org. (d1)",
+        "explanation_ru": "Эта технология находится на ранней исследовательской стадии, подтверждена публикацией научных исследований, показывающих потенциал улучшения комфорта одежды через интеллектуальное управление влагой. Исследование, поскольку технология пока представлена только в лабораторных условиях и научных статьях. Интерес растет вместе с исследованиями новых материалов для функциональной одежды, ориентированных на повышение комфорта и эффективности защиты.",
+        "features": [
+          {
+            "feature_name": "sc_пока",
+            "label_ru": "Признак профиля «пока»",
+            "value": 1.0,
+            "contribution": 0.1946,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1743,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1333,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_создан",
+            "label_ru": "Признак профиля «создан»",
+            "value": 1.0,
+            "contribution": 0.0815,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_незави",
+            "label_ru": "Признак профиля «незави»",
+            "value": 1.0,
+            "contribution": -0.069,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_подтве",
+            "label_ru": "Признак профиля «подтве»",
+            "value": 1.0,
+            "contribution": -0.0636,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_года",
+            "label_ru": "Признак профиля «года»",
+            "value": 1.0,
+            "contribution": -0.0563,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_трансп",
+            "label_ru": "Признак профиля «трансп»",
+            "value": 1.0,
+            "contribution": -0.0481,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 2.639057329615259,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.0986122886681096,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.824772834777832,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8459085822105408,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8288591504096985,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.7429524189077434,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 5.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1367.1133710060533,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0eb09-c2e2-7c22-8de4-1a41f4189a5a",
+            "title": "Fibrous thermoresponsive Janus membranes for directional vapor transport",
+            "url": "http://arxiv.org/abs/2301.00348",
+            "published_at": "2023-01-01T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Предлагается новый подход к созданию термочувствительных мембран Януса методом электроформования для направленного транспорта влаги, зависящего от температуры.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "Wearing comfort of apparel is highly dependent on moisture management and respective transport properties of the textiles. In today's used textiles, the water vapor transmission (WVT) depends primarily on the porosity and the wettability of the clothing layer next to the skin and is not adapting or responsive on environmental conditions. The WVT is inevitably the same from both sides of the membrane. In this study, we propose a novel approach by development of a thermoresponsive Janus membrane using electrospinning procedures.",
+            "similarity": 0.9635916
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Max:2.0.30.01",
+          "prompt_version": "finalize_v4",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0eb09-c2e2-7c22-8de4-1a41f4189a5a",
+        "predicted_stage": 2,
+        "predicted_trend": 2
+      },
+      {
+        "item_id": "01a0eb11-0206-7667-967a-0204e31310a8",
+        "rank": 4,
+        "title_ru": "Умные материалы на основе MXene для носимой электроники (MXene-Based Wearable Electronics)",
+        "score": 0.7631,
+        "confidence_band": "High",
+        "key_predictors": [
+          {
+            "feature_name": "sc_протот",
+            "label_ru": "Признак профиля «протот»",
+            "value": 1.0,
+            "contribution": 0.2042,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1644,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_устрой",
+            "label_ru": "Признак профиля «устрой»",
+            "value": 1.0,
+            "contribution": -0.134,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1257,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_произв",
+            "label_ru": "Признак профиля «произв»",
+            "value": 1.0,
+            "contribution": -0.0609,
+            "direction": "supports_mature"
+          }
+        ],
+        "decision_explanation_ru": "Вероятность слабого сигнала по локальному классификатору: 53%. Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Конкретные гибкие электронные устройства на основе MXene и гидрогелей для носимой электроники соответствуют критериям раннего сигнала: относятся к запросу, конкретные технологии, научные публикации подтверждают разработку прототипов.",
+        "narrative_status": "GENERATED",
+        "source_count": 1,
+        "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+        "query_text": "умные материалы для носимой электроники",
+        "title_auto": "Flexible electronics",
+        "description_ru": "Технология основана на использовании двумерных наноматериалов MXene, обладающих высокой электропроводностью и функциональностью поверхности, для создания гибких электронных устройств. Эти устройства применяются в мобильной медицинской диагностике, интерфейсах человек-машина, портативных энергетических системах.",
+        "advantage_ru": "Использование MXene позволяет создавать легкие, гибкие и многофункциональные электронные компоненты, улучшающие характеристики носимых устройств.",
+        "case_example_ru": "Недавно проведённый обзор показал перспективность MXene-наноматериалов для следующего поколения носимых технологий, подчеркнув их преимущества в медицинских сенсорах и управлении машинами.",
+        "explanation_ru": "Это слабый сигнал, поскольку технология находится на ранней исследовательской стадии, подтверждённой научными публикациями, демонстрируя растущий научный интерес и потенциал для будущих приложений. Исследовательская стадия, подтверждается обзором последних достижений и обсуждением дальнейших перспектив развития. Интерес растёт благодаря научным публикациям, подчёркивающим уникальные свойства MXene и перспективы их применения в носимых устройствах.",
+        "features": [
+          {
+            "feature_name": "sc_протот",
+            "label_ru": "Признак профиля «протот»",
+            "value": 1.0,
+            "contribution": 0.2042,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_электр",
+            "label_ru": "Признак профиля «электр»",
+            "value": 1.0,
+            "contribution": 0.1644,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_устрой",
+            "label_ru": "Признак профиля «устрой»",
+            "value": 1.0,
+            "contribution": -0.134,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1257,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_произв",
+            "label_ru": "Признак профиля «произв»",
+            "value": 1.0,
+            "contribution": -0.0609,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_показы",
+            "label_ru": "Признак профиля «показы»",
+            "value": 1.0,
+            "contribution": 0.0591,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_года",
+            "label_ru": "Признак профиля «года»",
+            "value": 1.0,
+            "contribution": -0.053,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_предст",
+            "label_ru": "Признак профиля «предст»",
+            "value": 1.0,
+            "contribution": -0.045,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.8528076410293579,
+            "contribution": 12.997614276994664,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8598471879959106,
+            "contribution": -10.623624497249175,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 10.0,
+            "contribution": -1.554949378282061,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.08818342151675485,
+            "contribution": 0.14398127646485262,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 4.836281906951478,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.3862943611198906,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.8804962635040283,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.184430858332795,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.08818342151675485,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1005.1133710060533,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 23.266583398449914,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 1.791759469228055,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0eb09-e5ec-7d33-af96-1b890588c3e0",
+            "title": "The Need for Smart Materials in an Expanding Smart World: MXene-Based Wearable Electronics and Their Advantageous Applications",
+            "url": "https://doi.org/10.1021/acsomega.3c06590",
+            "published_at": "2023-12-29T00:00:00+00:00",
+            "source_type": "SCIENTIFIC_PUBLICATION",
+            "source_key": "openalex",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Обзор современных достижений в области MXene-основанных гибких электронных компонентов для носимых устройств, акцентирующий внимание на уникальных характеристиках этих материалов и их потенциальных приложениях.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "As a result of the transformation of inflexible electronic structures into flexible and stretchy devices, wearable electronics now provide great advantages in a variety of fields, including mobile healthcare sensing and monitoring, human-machine interfaces, portable energy storage and harvesting, and more.",
+            "similarity": 0.9533856
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Max:2.0.30.01",
+          "prompt_version": "finalize_v4",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0eb09-e5ec-7d33-af96-1b890588c3e0",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      },
+      {
+        "item_id": "01a0eb11-0209-793b-90b6-540ead0a57ce",
+        "rank": 5,
+        "title_ru": "Адаптивные ткани с селективной проницаемостью для умной одежды (ADAPTIVE FABRICS WITH SELECTIVE PERMEABILITY)",
+        "score": 0.7452,
+        "confidence_band": "Medium",
+        "key_predictors": [
+          {
+            "feature_name": "sc_устрой",
+            "label_ru": "Признак профиля «устрой»",
+            "value": 1.0,
+            "contribution": -0.1519,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1425,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_показы",
+            "label_ru": "Признак профиля «показы»",
+            "value": 1.0,
+            "contribution": 0.067,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_активн",
+            "label_ru": "Признак профиля «активн»",
+            "value": 1.0,
+            "contribution": -0.0505,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_ткани",
+            "label_ru": "Признак профиля «ткани»",
+            "value": 1.0,
+            "contribution": 0.036,
+            "direction": "supports_weak_signal"
+          }
+        ],
+        "decision_explanation_ru": "Вероятность слабого сигнала по локальному классификатору: 49%. Рубрика: по теме ✓; конкретно ✓; ранняя стадия ✓; проверяемо ✓; стадия 3 (пилот), тренд 3 (растёт быстро), балл 6 из 7; уверенность 100%. Кандидат соответствует всем критериям: конкретные умные волокна и ткани для носимой электроники, исследования и патенты указывают на раннюю стадию разработки.",
+        "narrative_status": "GENERATED",
+        "source_count": 2,
+        "job_id": "01a0eb09-9f03-7e17-bf81-51fe381e725a",
+        "query_text": "умные материалы для носимой электроники",
+        "title_auto": "fibers and textiles",
+        "description_ru": "Технология адаптивных тканей позволяет менять проницаемость материалов под воздействием внешних стимулов (температура, влажность, электричество, магнитное поле), обеспечивая интеллектуальное управление микроклиматом одежды.",
+        "advantage_ru": "Позволяет создать комфортную и энергоэффективную одежду, реагирующую на изменения окружающей среды и состояния тела человека.",
+        "case_example_ru": "Патент ADAPTIVE FABRICS WITH SELECTIVE PERMEABILITY описывает функциональные ткани, способные реагировать на температуру и влажность, превращаясь в датчики и регуляторы комфорта одежды (документ d1).",
+        "explanation_ru": "Это слабый сигнал, так как технология находится на этапе исследований и патентования, демонстрируя ранние попытки коммерциализации, но еще не внедрена массово. Прототип/пилот, так как существуют патенты и научные публикации, но пока нет подтвержденных коммерческих продуктов. Наблюдается устойчивый интерес, выражающийся в регулярных патентных заявках и научных публикациях с 2023-2024 годов.",
+        "features": [
+          {
+            "feature_name": "sc_устрой",
+            "label_ru": "Признак профиля «устрой»",
+            "value": 1.0,
+            "contribution": -0.1519,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_исслед",
+            "label_ru": "Признак профиля «исслед»",
+            "value": 1.0,
+            "contribution": 0.1425,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_показы",
+            "label_ru": "Признак профиля «показы»",
+            "value": 1.0,
+            "contribution": 0.067,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_активн",
+            "label_ru": "Признак профиля «активн»",
+            "value": 1.0,
+            "contribution": -0.0505,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_ткани",
+            "label_ru": "Признак профиля «ткани»",
+            "value": 1.0,
+            "contribution": 0.036,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_адапти",
+            "label_ru": "Признак профиля «адапти»",
+            "value": 1.0,
+            "contribution": 0.0331,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "sc_селект",
+            "label_ru": "Признак профиля «селект»",
+            "value": 1.0,
+            "contribution": -0.0206,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "sc_интегр",
+            "label_ru": "Признак профиля «интегр»",
+            "value": 1.0,
+            "contribution": 0.0204,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "emb_sim_weak_centroid",
+            "label_ru": "Семантическая близость к эталонным слабым сигналам",
+            "value": 0.8629499673843384,
+            "contribution": -9.445065508376258,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "emb_sim_mature_centroid",
+            "label_ru": "Семантическая близость к эталонным зрелым технологиям",
+            "value": 0.863896369934082,
+            "contribution": 9.051649428100376,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "org_mentions_count",
+            "label_ru": "Число упомянутых организаций (эвристика)",
+            "value": 10.0,
+            "contribution": -1.554949378282061,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_emergence_score",
+            "label_ru": "Лексика ранней стадии (прототип, пилот, PoC, stealth, seed)",
+            "value": 0.3205128205128205,
+            "contribution": 0.9606342066497003,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "recent_year_share",
+            "label_ru": "Доля упоминаний последних двух лет среди всех упомянутых годов",
+            "value": 0.0,
+            "contribution": -0.16779478431992653,
+            "direction": "supports_mature"
+          },
+          {
+            "feature_name": "lex_maturity_score",
+            "label_ru": "Лексика зрелости (рынок, стандарт, массовое внедрение, лидеры)",
+            "value": 0.0,
+            "contribution": 0.12432015223382481,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "bigtech_mentions_count",
+            "label_ru": "Упоминания крупнейших вендоров (список bigtech.txt)",
+            "value": 0.0,
+            "contribution": 0.10829919544609344,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "stage_lex_ordinal",
+            "label_ru": "Максимальная упомянутая стадия (0 — нет, 1 — концепция … 5 — массовое внедрение)",
+            "value": 0.0,
+            "contribution": 0.07246771918631773,
+            "direction": "supports_weak_signal"
+          },
+          {
+            "feature_name": "citation_median_log",
+            "label_ru": "Медианная цитируемость научных документов (log1p)",
+            "value": 4.722953221644475,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "doc_count_log",
+            "label_ru": "Объём упоминаний (log1p числа документов)",
+            "value": 1.791759469228055,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "emb_sim_query",
+            "label_ru": "Близость к запросу пользователя",
+            "value": 0.9121127128601074,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "first_seen_years_ago",
+            "label_ru": "Возраст самого раннего упоминания, лет",
+            "value": 3.7429524189077434,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "funding_mentions_count",
+            "label_ru": "Упоминания раундов/сумм финансирования",
+            "value": 0.0,
+            "contribution": -0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "growth_ratio_12m",
+            "label_ru": "Рост упоминаний: последние 12 мес. к предыдущим 12 мес. (сглажено)",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "lex_hype_score",
+            "label_ru": "Лексика маркетингового хайпа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "recency_median_days",
+            "label_ru": "Медианный возраст документов, дней",
+            "value": 1020.1133710060533,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_code_vacancy",
+            "label_ru": "Доля репозиториев и вакансий (индикатор практического внедрения)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_marketing",
+            "label_ru": "Доля пресс-релизов и корпоративных блогов",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_news_media",
+            "label_ru": "Доля новостей и отраслевых медиа",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "share_scientific",
+            "label_ru": "Доля научных публикаций и препринтов",
+            "value": 0.4,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "source_type_diversity",
+            "label_ru": "Число различных типов источников",
+            "value": 2.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "trusted_share",
+            "label_ru": "Доля источников высокой доверенности",
+            "value": 1.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_age_years",
+            "label_ru": "Возраст статьи Wikipedia, лет",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_exists",
+            "label_ru": "Есть статья Wikipedia по названию технологии",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          },
+          {
+            "feature_name": "wiki_pageviews_30d_log",
+            "label_ru": "Посещаемость статьи Wikipedia за 30 дней (log1p)",
+            "value": 0.0,
+            "contribution": 0.0,
+            "direction": "neutral"
+          }
+        ],
+        "sources": [
+          {
+            "document_id": "01a0eb09-c2e6-72c4-a93e-3b23fc3bf9ef",
+            "title": "ADAPTIVE FABRICS WITH SELECTIVE PERMEABILITY AND THEIR USES",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240167219A1_20240523",
+            "published_at": "2024-05-23T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент описывает адаптивные ткани с изменяемой проницаемостью, предназначенные для умной одежды и сенсорных приложений.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "BACKGROUND The field of the DISCLOSURE lies in adaptive materials for implementation in textiles, wearables and smart clothing . The present disclosure relates to functional fabrics or devices, comprising fabrics or fiber -based materials with selective reversible permeability or which reversibly change permeability upon stimulation with at least one external stimulus selected from humidity, temperature, electrical, magnetic, pH, and chemicals.",
+            "similarity": 0.9537318
+          },
+          {
+            "document_id": "01a0eb09-c2ff-7b72-af3f-f0336925bd91",
+            "title": "ADAPTIVE FABRICS FOR ENERGY HARVESTING AND FILTERING",
+            "url": "https://searchplatform.rospatent.gov.ru/doc/US20240156193A1_20240516",
+            "published_at": "2024-05-16T00:00:00+00:00",
+            "source_type": "PATENT",
+            "source_key": "rospatent",
+            "language_code": "en",
+            "trust_level": "HIGH",
+            "summary_ru": "Патент раскрывает концепцию адаптивных тканей для сбора энергии и фильтрации, включающих фотоактивные материалы.",
+            "summary_kind": "GENERATIVE_SUMMARY",
+            "snippet": "As discussed above, the present disclosure provides a pressure sensor or friction sensor or touch sensor , comprising a fabric or device according to the present disclosure, and electronics. Examples for suitable electronics are pressure transducers, signal convertor, flow sensors , temperature sensor , light intensity sensor , light wavelength sensor , humidity sensor , gas sensor , resistance sensor , and/or strain sensor . As discussed above, the present disclosure provides wearable electronics or smart clothing , comprising a fabric or device according to the present disclosure.",
+            "similarity": 0.9474692
+          }
+        ],
+        "provenance": {
+          "llm_provider": "gigachat",
+          "llm_model": "GigaChat-2-Max:2.0.30.01",
+          "prompt_version": "finalize_v4",
+          "model_version_id": ""
+        },
+        "case_document_id": "01a0eb09-c2e6-72c4-a93e-3b23fc3bf9ef",
+        "predicted_stage": 3,
+        "predicted_trend": 3
+      }
+    ],
+    "stats": {
+      "http_requests_total": 59,
+      "sources_processed": 6,
+      "documents_collected": 221,
+      "candidates_found": 40,
+      "weak_signals_total": 9,
+      "weak_signals_confident": 7,
+      "narratives_generated": 5,
+      "narratives_fallback": 0,
+      "model_version_id": "wsclf-2026.09.20-2",
+      "expand_used_fallback": false
+    }
+  }
+]
