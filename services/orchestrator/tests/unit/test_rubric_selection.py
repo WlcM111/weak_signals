@@ -142,6 +142,18 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.insight.rubric_calls, [5])  # рыночная одиночная заметка вошла в пул рубрики
         self.assertEqual(outcome.weak_signals_total, 3)
 
+    async def test_fill_takes_only_uncertain_never_rejected(self) -> None:
+        for cid in (self.good_a.candidate_id, self.good_b.candidate_id, self.market.candidate_id):
+            self.verdicts[cid]["code"] = "N-GEN"
+        await self.narrate()
+        shown = {i.candidate_id for i in self.results.items["job-1"]}
+        self.assertEqual(shown, {self.maybe.candidate_id})  # только U; отвергнутые рубрикой не добираются
+
+    async def test_confident_count_matches_displayed_confidence(self) -> None:
+        outcome = await self.narrate(confidence_calibration=True)
+        shown = [i for i in self.results.items["job-1"] if i.score >= 0.75]
+        self.assertEqual(outcome.weak_signals_confident, len(shown))
+
     async def test_minimum_cards_when_nothing_passes_threshold(self) -> None:
         for fields in self.verdicts.values():
             fields["profile_ru"] = MATURE

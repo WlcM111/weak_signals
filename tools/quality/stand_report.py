@@ -271,6 +271,7 @@ def main() -> int:
     parser.add_argument("--no-checks", action="store_true")
     parser.add_argument("--top-n", type=int, default=15)
     parser.add_argument("--report-only", nargs="*", default=None)
+    parser.add_argument("--all-topics", action="store_true", help="прогнать все темы, в том числе финтех")
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -284,7 +285,7 @@ def main() -> int:
         for r in checks:
             print(f"check {r[0]}: {r[1]} {verdict(r[0], r[1])}", flush=True)
         topics = [t.strip() for t in Path("ml/reports/rubric/case_topics.txt").read_text(encoding="utf-8").splitlines() if t.strip()]
-        fin, fin_path = first_fintech_block()
+        fin, fin_path = (None, "") if args.all_topics else first_fintech_block()
         blocks = []
         for topic in topics:
             if topic == FINTECH and fin is not None:

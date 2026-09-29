@@ -32,7 +32,7 @@ class InsightSettings(BaseServiceSettings):
 
     gigachat_credentials: str = ""
     gigachat_scope: str = "GIGACHAT_API_PERS"
-    gigachat_model: str = "GigaChat-2-Pro"
+    gigachat_model: str = "GigaChat-2-Max"
     gigachat_lite_model: str = "GigaChat-2"
     gigachat_max_concurrency: int = Field(default=1, ge=1, le=10)
     gigachat_ca_bundle: str = ""

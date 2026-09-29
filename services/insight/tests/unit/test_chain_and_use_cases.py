@@ -360,5 +360,21 @@ class ProviderStatusTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual({item.value for item in purposes}, {"insight", "expand", "judge"})
 
 
+
+class ExpansionCacheRulesTest(unittest.IsolatedAsyncioTestCase):
+    async def test_cache_respects_prompt_version_and_skips_fallback(self) -> None:
+        from insight.domain.entities import QueryExpansion
+
+        from ..fakes import InMemoryExpansionRepository
+
+        repo = InMemoryExpansionRepository()
+        good = QueryExpansion(query_norm="q", ru_terms=("а",), en_terms=("a",), domain_tags=(), used_fallback=False)
+        await repo.save(good, "expand_v1")
+        self.assertIs(await repo.get("q", "expand_v1"), good)
+        self.assertIsNone(await repo.get("q", "expand_v2"))  # другая версия промпта — считать заново
+        await repo.save(QueryExpansion(query_norm="f", ru_terms=("б",), en_terms=("b",), domain_tags=(),
+                                       used_fallback=True), "expand_v1")
+        self.assertIsNone(await repo.get("f", "expand_v1"))  # резервное расширение из кеша не берётся
+
 if __name__ == "__main__":
     unittest.main()

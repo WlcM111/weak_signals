@@ -62,7 +62,7 @@ class InsightRepository(Protocol):
 class ExpansionRepository(Protocol):
     """Кеш расширений запроса (таблица `query_expansions`)."""
 
-    async def get(self, query_norm: str) -> QueryExpansion | None:
+    async def get(self, query_norm: str, prompt_version: str) -> QueryExpansion | None:
         """Сохранённое расширение по нормализованному запросу."""
 
     async def save(self, expansion: QueryExpansion, prompt_version: str) -> None:

@@ -111,7 +111,7 @@ export function StatsRow({ stats, items = [], activeId, onShowExcluded, onPick }
         <Stat
           label="Кандидатов на слабый сигнал"
           value={formatNumber(stats.candidates_found)}
-          hint={`Из них прошли правила исключения: ${formatNumber(stats.weak_signals_total)}`}
+          hint={`Из них признаны слабыми сигналами: ${formatNumber(stats.weak_signals_total)}`}
           action={
             onShowExcluded ? (
               <button type="button" className="link-button" onClick={onShowExcluded}>

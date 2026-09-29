@@ -123,8 +123,10 @@ async def run_narrate_rubric(
     # Решение о показе — рубрика (R), порядок внутри R — локальная модель. 27.09 порог модели скрыл 15 кандидатов R
     # и показал общие. Если R меньше минимума — добираются лучшие по модели кандидаты U, затем прочие (с пометкой).
     accepted = [c for c in ranked if verdicts[c.candidate_id].code == "R"]
-    rest_ranked = sorted((c for c in ranked if verdicts[c.candidate_id].code != "R"),
-                         key=lambda c: (verdicts[c.candidate_id].code != "U", -scored[c.candidate_id][0]))
+    # Добор — только из «данных недостаточно» (U): отвергнутые рубрикой (не по теме, общее, обзор, зрелое)
+    # не показываются никогда (стенд 29.09: «серия книг IEEE для подростков» в теме инфраструктуры ИИ).
+    rest_ranked = sorted((c for c in ranked if verdicts[c.candidate_id].code == "U"),
+                         key=lambda c: -scored[c.candidate_id][0])
     eligible = accepted + rest_ranked[: max(0, config.rubric_min_cards - len(accepted))]
     below = [c for c in ranked if c not in eligible]
     ranked = eligible
@@ -152,7 +154,10 @@ async def run_narrate_rubric(
         shown, text_failed = ranked[: config.top_n], []
         queue = ranked[config.top_n :]
     outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
-    outcome.weak_signals_confident = sum(1 for c in judged if scored[c.candidate_id][0] >= CONFIDENT)
+    # «Уверены более чем на 75 %» — по той же уверенности, что показана в карточках (с калибровкой, если включена).
+    outcome.weak_signals_confident = sum(
+        1 for c in judged if verdicts[c.candidate_id].code == "R"
+        and display_score(scored[c.candidate_id][0], "R", config.confidence_calibration) >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
         rest, prefiltered, unjudged, queue + below, text_failed, verdicts, scored, dropped_final, final_dropped))

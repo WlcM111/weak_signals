@@ -19,7 +19,7 @@ from insight.domain.entities import CandidateContext, EvidenceDocument
 from insight.domain.values import Purpose
 
 INSIGHT_PROMPT_VERSION = "insight_v1"
-EXPAND_PROMPT_VERSION = "expand_v2"
+EXPAND_PROMPT_VERSION = "expand_v1"
 INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"
@@ -90,7 +90,7 @@ class PromptBuilder:
             PromptDefinition(
                 prompt_version=EXPAND_PROMPT_VERSION,
                 purpose=Purpose.EXPAND,
-                template_sha256=self.template_sha256("expand_v2.j2"),
+                template_sha256=self.template_sha256("expand_v1.j2"),
                 output_schema_version=f"{EXPAND_SCHEMA_FILE}@1",
                 description="Расширение запроса в поисковые фразы ru/en",
             ),
@@ -165,7 +165,7 @@ class PromptBuilder:
     def build_expand_prompt(self, query_text: str, domain_tags: Sequence[str]) -> PromptBundle:
         """Промпт расширения запроса в поисковые термины."""
         schema = self._schemas[EXPAND_SCHEMA_FILE]
-        system = self._environment.get_template("expand_v2.j2").render(
+        system = self._environment.get_template("expand_v1.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2),
             domain_tags=list(domain_tags),
         )

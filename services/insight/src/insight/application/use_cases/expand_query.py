@@ -130,12 +130,14 @@ class ExpandQuery:
     async def execute(self, query_text: str) -> QueryExpansion:
         """Кеш → LLM → резерв; ответ всегда содержит хотя бы по одной фразе на язык."""
         query_norm = normalize(query_text)
-        cached = await self._expansions.get(query_norm)
+        cached = await self._expansions.get(query_norm, EXPAND_PROMPT_VERSION)
         if cached is not None:
             log.info("expand.result", cached=True, used_fallback=cached.used_fallback)
             return cached
         expansion = await self._generate(query_text, query_norm)
-        await self._expansions.save(expansion, EXPAND_PROMPT_VERSION)
+        # Резервное расширение не кешируется: временный сбой не закрепляется для этого запроса навсегда.
+        if not expansion.used_fallback:
+            await self._expansions.save(expansion, EXPAND_PROMPT_VERSION)
         log.info(
             "expand.result",
             cached=False,
@@ -161,7 +163,7 @@ class ExpandQuery:
             )
             payload = parse_and_validate(outcome.result.text, bundle.json_schema)
         except (ProviderError, OutputRejected) as error:
-            log.warning("expand.fallback", reason=type(error).__name__)
+            log.warning("expand.fallback", reason=type(error).__name__, detail=str(error)[:300])
             return self.fallback(query_text, query_norm)
         return self._from_payload(query_norm, payload, outcome.result, outcome.provider)
 

@@ -97,14 +97,21 @@ class InMemoryExpansionRepository:
     """Реализация `ExpansionRepository` в памяти."""
 
     items: dict[str, QueryExpansion] = field(default_factory=dict)
+    versions: dict[str, str] = field(default_factory=dict)
 
-    async def get(self, query_norm: str) -> QueryExpansion | None:
-        """Сохранённое расширение."""
-        return self.items.get(query_norm)
+    async def get(self, query_norm: str, prompt_version: str | None = None) -> QueryExpansion | None:
+        """Сохранённое удачное расширение той же версии промпта (как в Postgres)."""
+        found = self.items.get(query_norm)
+        if found is None or found.used_fallback:
+            return None
+        if prompt_version is not None and self.versions.get(query_norm, prompt_version) != prompt_version:
+            return None
+        return found
 
     async def save(self, expansion: QueryExpansion, prompt_version: str) -> None:
         """Сохраняет расширение."""
         self.items[expansion.query_norm] = expansion
+        self.versions[expansion.query_norm] = prompt_version
 
 
 @dataclass

@@ -75,6 +75,9 @@ _CONTEXT: dict[str, Any] = {}
 def configure_logging(service: str, level: str = "INFO", fmt: str = "json") -> None:
     """Настраивает вывод логов в stdout для выбранного формата."""
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=getattr(logging, level))
+    # httpx на уровне INFO пишет полный адрес запроса, а в нём бывают ключи API (OpenAlex передаёт api_key в query).
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     _CONTEXT["service"] = service
     if not STRUCTLOG_AVAILABLE:  # pragma: no cover - см. комментарий к импорту
         return

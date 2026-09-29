@@ -47,7 +47,7 @@ _SELECT_SOURCES = (
 )
 _SELECT_EXPANSION = (
     "SELECT query_norm, ru_terms, en_terms, domain_tags, used_fallback, provider, model, "
-    "prompt_version FROM query_expansions WHERE query_norm = %s"
+    "prompt_version FROM query_expansions WHERE query_norm = %s AND prompt_version = %s AND NOT used_fallback"
 )
 _UPSERT_EXPANSION = """
 INSERT INTO query_expansions
@@ -166,10 +166,10 @@ class PostgresExpansionRepository:
     def __init__(self, pool: Any) -> None:
         self._pool = pool
 
-    async def get(self, query_norm: str) -> QueryExpansion | None:
-        """Сохранённое расширение по нормализованному запросу."""
+    async def get(self, query_norm: str, prompt_version: str) -> QueryExpansion | None:
+        """Сохранённое удачное расширение этой версии промпта; расширение другой версии или резервное не берётся."""
         async with self._pool.connection() as conn, conn.cursor() as cur:
-            await cur.execute(_SELECT_EXPANSION, (query_norm,))
+            await cur.execute(_SELECT_EXPANSION, (query_norm, prompt_version))
             row = await cur.fetchone()
         if row is None:
             return None

@@ -75,7 +75,7 @@ export function RunTimeline({ job, stats }: { job: Job; stats?: ResultStats }) {
       state: stateFor(2, job),
       facts: [
         `кандидатов найдено: ${formatNumber(progress.candidates_found)}`,
-        stats ? `прошли правила: ${formatNumber(stats.weak_signals_total)}` : "",
+        stats ? `признаны слабыми сигналами: ${formatNumber(stats.weak_signals_total)}` : "",
         stats?.model_version_id ? `модель ${stats.model_version_id}` : "",
       ].filter(Boolean),
     },
