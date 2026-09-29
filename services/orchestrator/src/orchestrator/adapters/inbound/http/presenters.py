@@ -100,7 +100,7 @@ def item_summary_to_json(item: ResultItem) -> dict[str, Any]:
     }
 
 
-def item_to_json(item: ResultItem, query_text: str) -> dict[str, Any]:
+def item_to_json(item: ResultItem, query_text: str, model_version_id: str = "") -> dict[str, Any]:
     """Схема `ResultItem`: сводка плюс полный нарратив, признаки, источники и происхождение."""
     payload = item_summary_to_json(item)
     payload.update(
@@ -118,7 +118,8 @@ def item_to_json(item: ResultItem, query_text: str) -> dict[str, Any]:
                 "llm_provider": item.llm_provider,
                 "llm_model": item.llm_model,
                 "prompt_version": item.prompt_version,
-                "model_version_id": "",
+                # Версия модели analyzer из статистики задания (раньше поле было всегда пустым: «—» в интерфейсе).
+                "model_version_id": item.model_version_id or model_version_id,
             },
         }
     )

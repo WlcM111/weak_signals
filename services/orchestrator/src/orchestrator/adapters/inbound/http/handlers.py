@@ -197,7 +197,13 @@ class ApiHandlers:
             item, query_text = await self._get_result_item.execute(validate_uuid(item_id, "item_id"))
         except AppError as error:
             return self._error(error, request.correlation_id)
-        return Response(200, presenters.item_to_json(item, query_text))
+        model_version_id = ""
+        try:  # версия модели задания для блока «Происхождение»; без статистики остаётся «—»
+            view = await self._get_results.execute(item.job_id)
+            model_version_id = getattr(getattr(view, "stats", None), "model_version_id", "") or ""
+        except AppError:
+            pass
+        return Response(200, presenters.item_to_json(item, query_text, model_version_id))
 
     async def get_model(self, request: Request) -> Response:
         """`GET /api/v1/model` — сведения об активной модели."""
