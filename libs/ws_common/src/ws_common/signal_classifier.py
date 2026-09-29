@@ -27,11 +27,42 @@ STOP = frozenset({
 })
 
 
+NEGATORS = frozenset({"не", "без", "ни", "no", "not", "without", "non"})
+CLAUSE_RE = re.compile(r"[.,;:!?()\[\]«»\"—–\n]+")
+
+
+def _stems(text: str) -> list[str]:
+    """Основы слов по фразам с учётом отрицания: «нет массового внедрения» и «массового внедрения нет» дают
+    признаки «не_массов», а не «массов» (аудит 29.09: иначе отрицание терялось и обе фразы давали одно и то же)."""
+    out: list[str] = []
+    for clause in CLAUSE_RE.split((text or "").lower()):
+        words = TOKEN_RE.findall(clause)
+        stems: list[str] = []
+        negate_next = False
+        for index, word in enumerate(words):
+            if word in NEGATORS or (word == "нет" and index < len(words) - 1):
+                negate_next = True
+                continue
+            if word == "нет":  # «нет» в конце фразы отрицает всю фразу до него
+                stems = [s if s.startswith("не_") else f"не_{s}" for s in stems]
+                continue
+            if len(word) < 3:
+                continue
+            stem = word[:STEM]
+            if stem in STOP:
+                continue
+            stems.append(f"не_{stem}" if negate_next else stem)
+            negate_next = False
+        out.extend(stems)
+        out.append("|")  # граница фразы: пары основ через неё не строятся
+    return out
+
+
 def features(text: str) -> dict[str, float]:
-    """Бинарные признаки основ и пар основ, нормированные на корень из их числа."""
-    words = [stem for stem in (word[:STEM] for word in TOKEN_RE.findall((text or "").lower()) if len(word) >= 3)
-             if stem not in STOP]
-    keys = set(words) | {f"{a}_{b}" for a, b in zip(words, words[1:])}
+    """Бинарные признаки основ и пар основ внутри фразы (с отрицанием), нормированные на корень из их числа."""
+    stems = _stems(text)
+    words = [s for s in stems if s != "|"]
+    keys = set(words) | {f"{a}_{b}" for a, b in zip(stems, stems[1:]) if a != "|" and b != "|"}
     if not keys:
         return {}
     value = 1.0 / math.sqrt(len(keys))

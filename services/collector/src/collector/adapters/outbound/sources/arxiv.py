@@ -44,8 +44,10 @@ MIN_GAP_SECONDS = 3.5
 COOLDOWN_SECONDS = 30 * 60
 # Коды отказов, означающие ограничение клиента или недоступность arXiv. HTTP_5XX включает
 # сетевые ошибки: базовый адаптер переводит их в этот код.
+# Таймаут не включает паузу: медленный ответ — не отказ сервера. Стенд 29.09: один таймаут в теме финтеха
+# выключил arXiv на 30 минут, и в темах «защита ИИ» и «edge» не было ни одного запроса (q0).
 COOLDOWN_CODES = frozenset(
-    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value, AdapterErrorCode.TIMEOUT.value}
+    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value}
 )
 # 403 — блокировка клиента, 406 — отказ по частоте от Varnish arXiv.
 COOLDOWN_STATUSES = frozenset({403, 406})

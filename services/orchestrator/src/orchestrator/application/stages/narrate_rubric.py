@@ -41,7 +41,8 @@ from ws_common import rubric_model, signal_classifier
 from ws_common.logging import get_logger
 
 DOCUMENTS_BATCH = 150
-FINALIZE_ROUNDS = 2
+# Три раунда замены: отказ доводки заменяется следующим кандидатом R (стенд 29.09: 45 R → 24 карточки).
+FINALIZE_ROUNDS = 3
 FINALIZE_SOURCES = 5
 LIKELY = 0.5
 CONFIDENT = 0.75
@@ -149,10 +150,13 @@ async def run_narrate_rubric(
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
     text_failed = [c for c in tried if c.candidate_id not in finalized and c.candidate_id not in final_dropped]
     dropped_final = [c for c in tried if c.candidate_id in final_dropped]
-    fallback = not shown and bool(ranked)
-    if fallback:  # пустой выдачи при найденных кандидатах не бывает: прежний генератор карточек
-        shown, text_failed = ranked[: config.top_n], []
-        queue = ranked[config.top_n :]
+    # Резервная ветка берёт только не отклонённых финальной проверкой: решение о недопустимости технологии не
+    # отменяется тем, что описание не удалось довести (аудит 29.09: shown=3 при final_rejections=3).
+    allowed = [c for c in ranked if c.candidate_id not in final_dropped]
+    fallback = not shown and bool(allowed)
+    if fallback:  # пустой выдачи при допустимых кандидатах не бывает: прежний генератор карточек
+        shown, text_failed = allowed[: config.top_n], []
+        queue = allowed[config.top_n :]
     outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
     # «Уверены более чем на 75 %» — по той же уверенности, что показана в карточках (с калибровкой, если включена).
     outcome.weak_signals_confident = sum(
@@ -308,8 +312,10 @@ async def _final_check(
 def display_score(prob: float, code: str, calibrate: bool) -> float:
     """Отображаемая уверенность: принятый рубрикой сигнал — 0,5 + 0,5 × вероятность модели (порядок сохраняется)."""
     if not calibrate:
-        return prob
-    return round(0.5 + 0.5 * prob, 4) if code == "R" else round(0.5 * prob, 4)
+        return round(prob, 2)
+    # Две цифры: интерфейс показывает целые проценты, полоса High и счётчик «> 75 %» считают по тому же значению
+    # (раньше 0,7496 показывалось как «75 %», но было Medium и не входило в счётчик).
+    return round(0.5 + 0.5 * prob, 2) if code == "R" else round(0.5 * prob, 2)
 
 
 def model_features(model: dict | None, values: dict[str, float], candidate: CandidateView) -> tuple[FeatureRow, ...]:

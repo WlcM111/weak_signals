@@ -207,6 +207,13 @@ class RssTest(unittest.IsolatedAsyncioTestCase):
     async def test_allowed_hosts_from_feed_list(self) -> None:
         self.assertEqual(self.adapter.allowed_hosts, frozenset({"www.cnews.ru", "arstechnica.com"}))
 
+    async def test_unparseable_feed_does_not_stop_others(self) -> None:
+        # стенд 29.09: пустой ответ 202 одной ленты обрывал весь адаптер с PARSE_ERROR
+        self.http.enqueue("")
+        self.http.enqueue(load_text("rss/feed_atom.xml"))
+        documents = await collect(self.adapter, terms=SearchTerms(en=("neuromorphic edge",)))
+        self.assertEqual(len(documents), 1)
+
     async def test_feed_failure_does_not_stop_others(self) -> None:
         self.http.enqueue(status_error(500))
         self.http.enqueue(load_text("rss/feed_atom.xml"))

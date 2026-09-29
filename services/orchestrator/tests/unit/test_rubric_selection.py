@@ -209,6 +209,21 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(excluded[self.good_b.candidate_id], "RUBRIC_FINAL_N-GEN")
         self.assertTrue(all(i.score >= 0.5 for i in shown.values()))  # принятые рубрикой — не ниже 50 %
 
+    async def test_final_rejections_never_return_through_fallback(self) -> None:
+        # аудит 29.09: когда финальная проверка отклоняла все карточки, резервная ветка показывала их снова
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар":
+                return dict(code="N-GEN", stage=1, trend=1, confidence=0.9)
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        outcome = await self.narrate(final_check_enabled=True)
+        self.assertEqual(self.results.items.get("job-1", []), [])
+        self.assertEqual(outcome.items_written, 0)
+        reasons = [e.decision_reason for e in self.results.excluded["job-1"]]
+        self.assertEqual(reasons.count("RUBRIC_FINAL_N-GEN"), 3)
+
     def test_display_score_is_monotone(self) -> None:
         from orchestrator.application.stages.narrate_rubric import display_score
         self.assertEqual(display_score(0.2, "R", True), 0.6)

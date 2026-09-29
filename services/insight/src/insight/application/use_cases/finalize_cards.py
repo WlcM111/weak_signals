@@ -26,7 +26,9 @@ from insight.domain.errors import ProviderError
 from insight.domain.values import Purpose
 from ws_common.logging import get_logger
 
-FINALIZE_BATCH = 2
+# Одна карточка на вызов: длинный ответ на пачку из двух обрывался (ошибки разбора JSON), и признанные рубрикой
+# кандидаты терялись (стенд 29.09: 45 кандидатов R → 24 карточки).
+FINALIZE_BATCH = 1
 FINALIZE_MAX_TOKENS = 4000
 MAX_CARDS = 30
 MAX_SOURCES = 5

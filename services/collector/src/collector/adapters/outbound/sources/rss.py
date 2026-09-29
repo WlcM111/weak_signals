@@ -54,11 +54,13 @@ class RssAdapter(BaseSourceAdapter):
                 return
             try:
                 body = await self.fetch_text(feed_url)
+                entries = list(parse_feed(body, feed_url))
             except AdapterFailure as failure:
-                # отказ одной ленты не должен прекращать обход остальных
+                # отказ или неразборчивый ответ одной ленты не прекращает обход остальных (стенд 29.09: пустой
+                # ответ 202 одной ленты обрывал весь адаптер с PARSE_ERROR, и следующие ленты не читались)
                 self._log.warning("rss.feed_failed", feed=feed_url, code=failure.code)
                 continue
-            for entry in parse_feed(body, feed_url):
+            for entry in entries:
                 matched = _best_term(entry, phrases)
                 if matched is None:
                     continue

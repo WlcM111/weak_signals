@@ -19,6 +19,13 @@ class SignalClassifierTest(unittest.TestCase):
         self.assertFalse(any(k.isdigit() or k in ("для", "препри", "систем") for k in keys))
         self.assertIn("пилотн_испыта", keys)
 
+    def test_negation_is_kept(self) -> None:
+        # аудит 29.09: «массовое внедрение» и «нет массового внедрения» давали одинаковые признаки
+        self.assertNotEqual(set(sc.features("Массовое внедрение")), set(sc.features("Нет массового внедрения")))
+        self.assertIn("не_массов", sc.features("Нет массового внедрения"))
+        self.assertTrue({"не_массов", "не_внедре"} <= set(sc.features("Стартапы есть, массового внедрения нет")))
+        self.assertIn("старта", sc.features("Стартапы есть, массового внедрения нет"))
+
     def test_features_are_length_normalized(self) -> None:
         short, long = sc.features("Пилотные испытания"), sc.features("Пилотные испытания прототипа на заводе в 2026 году")
         self.assertAlmostEqual(sum(v * v for v in short.values()), 1.0)

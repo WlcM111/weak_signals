@@ -91,6 +91,8 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 opener = urllib.request.build_opener(NoRedirect)
 rows = []
 for name, url, method, body, auth_env in checks:
+    if name == "openalex" and os.environ.get("WS_OPENALEX_API_KEY"):
+        url += "&api_key=" + os.environ["WS_OPENALEX_API_KEY"]
     headers = {"User-Agent": ua, "Accept": "*/*"}
     if auth_env and os.environ.get(auth_env):
         headers["Authorization"] = "Bearer " + os.environ[auth_env]
@@ -100,7 +102,7 @@ for name, url, method, body, auth_env in checks:
                                  data=json.dumps(body).encode() if body is not None else None)
     start = time.time()
     try:
-        with opener.open(req, timeout=20) as r:
+        with opener.open(req, timeout=45) as r:
             code, extra = r.status, len(r.read(65536))
     except urllib.error.HTTPError as e:
         code, extra = e.code, (e.headers.get("via", "") or "")[:40]
@@ -112,8 +114,9 @@ print(json.dumps(rows))
 '''
 
 
-def resource_checks() -> list[list]:
-    """One light request per external resource, from the container that really uses it."""
+def resource_checks(include_rate_limited: bool = False) -> list[list]:
+    """One light request per external resource, from the container that really uses it. arXiv and GDELT are
+    skipped by default: they rate-limit per IP, and a check right before the run spends that budget."""
     groups = {
         "collector": [
             ["openalex", "https://api.openalex.org/works?search=edge%20ai&per-page=1", "GET", None, ""],
@@ -138,6 +141,8 @@ def resource_checks() -> list[list]:
                            capture_output=True, text=True, timeout=30).stdout.strip()
     for index, feed in enumerate(f for f in feeds.split(",") if f.strip()):
         groups["collector"].append([f"rss_{index + 1}:{feed.split('/')[2]}", feed.strip(), "GET", None, ""])
+    if not include_rate_limited:
+        groups["collector"] = [c for c in groups["collector"] if c[0] not in ("arxiv", "gdelt")]
     rows = []
     for service, checks in groups.items():
         result = subprocess.run(["docker", "compose", "exec", "-T", "-e", f"WS_CHECKS={json.dumps(checks)}", service,
@@ -272,6 +277,8 @@ def main() -> int:
     parser.add_argument("--top-n", type=int, default=15)
     parser.add_argument("--report-only", nargs="*", default=None)
     parser.add_argument("--all-topics", action="store_true", help="прогнать все темы, в том числе финтех")
+    parser.add_argument("--check-rate-limited", action="store_true",
+                        help="проверять и arXiv, и GDELT живым запросом (по умолчанию нет: запрос перед прогоном тратит их лимит)")
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -281,7 +288,7 @@ def main() -> int:
         origin = {b["topic"]: "saved" for b in blocks}
         checks = []
     else:
-        checks = [] if args.no_checks else resource_checks()
+        checks = [] if args.no_checks else resource_checks(args.check_rate_limited)
         for r in checks:
             print(f"check {r[0]}: {r[1]} {verdict(r[0], r[1])}", flush=True)
         topics = [t.strip() for t in Path("ml/reports/rubric/case_topics.txt").read_text(encoding="utf-8").splitlines() if t.strip()]

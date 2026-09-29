@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import ssl
+
+# Таймаут чтения для медленных API (arXiv, GDELT): их ответы на стенде шли 11–16 с при общем лимите 15 с.
+SLOW_SOURCE_TIMEOUT_SECONDS = 45.0
 import signal
 import sys
 from collections.abc import Mapping
@@ -83,7 +86,15 @@ async def serve(settings: CollectorSettings) -> int:
     # а повторы 429/5xx в обход шлюза нарушали бы правило arXiv «один запрос в 3 секунды».
     arxiv_http_client = HttpxClient(
         contact_email=settings.contact_email,
-        read_timeout_seconds=settings.collector_http_timeout_seconds,
+        read_timeout_seconds=max(settings.collector_http_timeout_seconds, SLOW_SOURCE_TIMEOUT_SECONDS),
+        max_bytes=settings.http_max_bytes,
+        retries=0,
+    )
+    # GDELT отвечает 11–16 с и требует не чаще одного запроса в 5 с (диагностика стенда 29.09: 429 «Please limit
+    # requests to one every 5 seconds»). Без внутренних повторов клиента: повтор 429 через 0–2 с нарушает это правило.
+    gdelt_http_client = HttpxClient(
+        contact_email=settings.contact_email,
+        read_timeout_seconds=max(settings.collector_http_timeout_seconds, SLOW_SOURCE_TIMEOUT_SECONDS),
         max_bytes=settings.http_max_bytes,
         retries=0,
     )
@@ -93,7 +104,8 @@ async def serve(settings: CollectorSettings) -> int:
         replicas=settings.collector_replicas,
         on_wait=metrics.rate_limit_wait,
     )
-    adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock, arxiv_http_client)
+    adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock, arxiv_http_client,
+                                           gdelt_http_client)
     log.info(
         "sources.configured",
         enabled=[key.value for key in adapters],
@@ -174,6 +186,7 @@ async def serve(settings: CollectorSettings) -> int:
     await ops.stop()
     await http_client.aclose()
     await arxiv_http_client.aclose()
+    await gdelt_http_client.aclose()
     released = await collections.release_expired_leases()
     log.info("service.stopped", leases_released=released)
     await pool.close()
@@ -187,6 +200,7 @@ def build_adapters(
     limiter: TokenBucketRateLimiter,
     clock: SystemClock,
     arxiv_http_client: HttpxClient | None = None,
+    gdelt_http_client: HttpxClient | None = None,
 ) -> tuple[dict[SourceKey, SourceAdapter], dict[SourceKey, AdapterErrorCode]]:
     """Собирает включённые адаптеры; недоступные источники получают код отказа вместо заглушки."""
     override = settings.source_override
@@ -200,7 +214,8 @@ def build_adapters(
             unavailable[source_key] = AdapterErrorCode.DISABLED
             continue
         try:
-            adapter = _create_adapter(source_key, settings, http_client, limiter, clock, arxiv_http_client)
+            adapter = _create_adapter(source_key, settings, http_client, limiter, clock, arxiv_http_client,
+                                      gdelt_http_client)
         except ValueError as exc:
             unavailable[source_key] = (
                 AdapterErrorCode.AUTH_MISSING if entry.requires_api_key else AdapterErrorCode.DISABLED
@@ -221,6 +236,7 @@ def _create_adapter(
     limiter: TokenBucketRateLimiter,
     clock: SystemClock,
     arxiv_http_client: HttpxClient | None = None,
+    gdelt_http_client: HttpxClient | None = None,
 ) -> SourceAdapter | None:
     """Создаёт адаптер источника; ValueError означает отсутствие обязательной настройки."""
     if source_key is SourceKey.OPENALEX:
@@ -236,7 +252,7 @@ def _create_adapter(
     if source_key is SourceKey.ZENODO:
         return ZenodoAdapter(http_client, limiter, clock)
     if source_key is SourceKey.GDELT:
-        return GdeltAdapter(http_client, limiter, clock)
+        return GdeltAdapter(gdelt_http_client or http_client, limiter, clock)
     if source_key is SourceKey.ROSPATENT:
         return RospatentAdapter(http_client, limiter, clock, settings.rospatent_token)
     return None  # patentsview и hh включаются после подтверждения условий API (§6.5 ТЗ)

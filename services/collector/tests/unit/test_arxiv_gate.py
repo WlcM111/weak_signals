@@ -64,8 +64,16 @@ class ArxivGateTest(unittest.IsolatedAsyncioTestCase):
     async def test_cooldown_after_server_error(self) -> None:
         await self.assert_cooldown_after(status_error(503), AdapterErrorCode.HTTP_5XX.value)
 
-    async def test_cooldown_after_timeout(self) -> None:
-        await self.assert_cooldown_after(HttpTimeoutError("таймаут"), AdapterErrorCode.TIMEOUT.value)
+    async def test_no_cooldown_after_timeout(self) -> None:
+        # медленный ответ — не отказ сервера: следующий запрос разрешён (стенд 29.09: пауза после таймаута
+        # выключала arXiv на 30 минут для следующих тем)
+        self.http.enqueue(HttpTimeoutError("таймаут"))
+        self.http.enqueue(EMPTY_FEED)
+        with self.assertRaises(AdapterFailure) as error:
+            await self.collect()
+        self.assertEqual(error.exception.code, AdapterErrorCode.TIMEOUT.value)
+        await self.collect()
+        self.assertEqual(len(self.http.calls), 2)
 
     async def test_cooldown_after_network_error(self) -> None:
         await self.assert_cooldown_after(HttpTransportError("разрыв"), AdapterErrorCode.HTTP_5XX.value)
