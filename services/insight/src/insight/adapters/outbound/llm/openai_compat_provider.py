@@ -33,6 +33,7 @@ class OpenAiCompatProvider:
         api_key: str = "",
         auth_scheme: str = "Bearer",
         max_concurrency: int = 1,
+        timeout_seconds: float = 300.0,
         supports_json_mode: bool = True,
         client: Any = None,
     ) -> None:
@@ -42,6 +43,7 @@ class OpenAiCompatProvider:
         self._api_key = api_key
         self._auth_scheme = auth_scheme
         self._max_concurrency = max_concurrency
+        self._timeout_seconds = timeout_seconds
         self._supports_json_mode = supports_json_mode
         self._client = client
 
@@ -65,7 +67,8 @@ class OpenAiCompatProvider:
         if self._client is None:
             import httpx  # noqa: PLC0415 - необязательная зависимость
 
-            self._client = httpx.AsyncClient(timeout=60.0)
+            # Таймаут из настроек (раньше жёстко 60 с обрывал медленные ответы), 10 с на соединение.
+            self._client = httpx.AsyncClient(timeout=httpx.Timeout(self._timeout_seconds, connect=10.0))
         return self._client
 
     def _headers(self) -> dict[str, str]:

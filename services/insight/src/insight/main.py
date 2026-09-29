@@ -64,6 +64,7 @@ def _build_provider(name: str, settings: InsightSettings) -> LLMProvider | None:
             scope=settings.gigachat_scope,
             ca_bundle_file=settings.gigachat_ca_bundle,
             max_concurrency=settings.gigachat_max_concurrency,
+            timeout_seconds=settings.llm_timeout_seconds,
         )
     if name == "yandexgpt" and settings.yandex_api_key and settings.yandex_folder_id:
         return OpenAiCompatProvider(
@@ -73,6 +74,7 @@ def _build_provider(name: str, settings: InsightSettings) -> LLMProvider | None:
             api_key=settings.yandex_api_key,
             auth_scheme="Api-Key",
             max_concurrency=settings.yandex_max_concurrency,
+            timeout_seconds=settings.llm_timeout_seconds,
         )
     if name == "local_llamacpp":
         return OpenAiCompatProvider(
@@ -80,6 +82,7 @@ def _build_provider(name: str, settings: InsightSettings) -> LLMProvider | None:
             base_url=settings.local_llm_base_url,
             model=settings.local_llm_model,
             max_concurrency=1,
+            timeout_seconds=settings.llm_timeout_seconds,
         )
     if name == "fake" and settings.env == "test":
         return FakeProvider()

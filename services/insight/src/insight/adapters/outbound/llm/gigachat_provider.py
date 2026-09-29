@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
+import os
 import time
 from collections.abc import Sequence
 from typing import Any
@@ -42,6 +44,7 @@ class GigaChatProvider:
         scope: str = "GIGACHAT_API_PERS",
         ca_bundle_file: str = "",
         max_concurrency: int = 1,
+        timeout_seconds: float = 300.0,
         client: Any = None,
     ) -> None:
         if not is_allowed_model(model):
@@ -53,6 +56,7 @@ class GigaChatProvider:
         self._scope = scope
         self._ca_bundle_file = ca_bundle_file
         self._max_concurrency = max_concurrency
+        self._timeout_seconds = timeout_seconds
         self._client = client
 
     @property
@@ -75,13 +79,20 @@ class GigaChatProvider:
         if self._client is None:
             from gigachat import GigaChat  # noqa: PLC0415 - тяжёлая зависимость рабочего контура
 
-            self._client = GigaChat(
-                credentials=self._credentials,
-                scope=self._scope,
-                model=self._model,
-                ca_bundle_file=self._ca_bundle_file or None,
-                verify_ssl_certs=True,
-            )
+            kwargs: dict[str, Any] = {
+                "credentials": self._credentials,
+                "scope": self._scope,
+                "model": self._model,
+                "ca_bundle_file": self._ca_bundle_file or None,
+                "verify_ssl_certs": True,
+            }
+            # Без явного таймаута SDK обрывает медленный ответ своим таймаутом чтения (стенд 29.09: ReadTimeout
+            # с интервалом ~30 с при нашем WS_LLM_TIMEOUT_SECONDS=300). Передаём наш таймаут в SDK.
+            if "timeout" in inspect.signature(GigaChat).parameters:
+                kwargs["timeout"] = self._timeout_seconds
+            else:  # настройки SDK читают GIGACHAT_TIMEOUT из окружения
+                os.environ["GIGACHAT_TIMEOUT"] = str(self._timeout_seconds)
+            self._client = GigaChat(**kwargs)
         return self._client
 
     async def complete(
