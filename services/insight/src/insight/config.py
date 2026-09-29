@@ -46,11 +46,12 @@ class InsightSettings(BaseServiceSettings):
     local_llm_base_url: str = "http://localhost:8090/v1"
     local_llm_model: str = "local-model"
 
-    llm_timeout_seconds: float = Field(default=60.0, ge=5.0, le=300.0)
+    # 300 с: GigaChat-2-Max отвечал на доводку дольше прежнего таймаута (ReadTimeout в 10 из 17 вызовов, стенд 29.09).
+    llm_timeout_seconds: float = Field(default=300.0, ge=5.0, le=900.0)
     llm_max_attempts: int = Field(default=2, ge=1, le=5)
     llm_temperature: float = Field(default=0.2, ge=0.0, le=1.0)
     llm_daily_token_budget: int = Field(default=0, ge=0)
-    llm_total_budget_seconds: float = Field(default=85.0, ge=10.0, le=300.0)
+    llm_total_budget_seconds: float = Field(default=600.0, ge=10.0, le=1800.0)
 
     circuit_breaker_failures: int = Field(default=3, ge=1, le=20)
     circuit_breaker_cooldown_seconds: float = Field(default=60.0, ge=5.0, le=3600.0)

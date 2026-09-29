@@ -59,12 +59,12 @@ class _ProviderRuntime:
 class ChainConfig:
     """Параметры цепочки провайдеров."""
 
-    timeout_seconds: float = 60.0
+    timeout_seconds: float = 300.0
     temperature: float = 0.2
     circuit_breaker_failures: int = 3
     circuit_breaker_cooldown_seconds: float = 60.0
     daily_token_budget: int = 0
-    total_budget_seconds: float = 85.0
+    total_budget_seconds: float = 600.0
 
 
 @dataclass(slots=True)

@@ -152,6 +152,35 @@ def card_payload(short_id: str, card: CardInput) -> dict:
     }
 
 
+_WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё0-9]+")
+# Служебные слова не доказывают, что термин взят из источника.
+_TERM_STOP = frozenset({"the", "and", "for", "with", "via", "from", "into", "based", "using", "для", "при", "как",
+                        "это", "или", "над", "под"})
+TERM_WORD_SHARE = 0.6
+
+
+def _term_tokens(text: str) -> set[str]:
+    """Основы значимых слов термина: 5 первых букв; аббревиатуры (CIM, AI) — целиком."""
+    tokens = set()
+    for word in _WORD_RE.findall(text or ""):
+        if (len(word) >= 3 or (len(word) >= 2 and word.isupper())) and word.lower() not in _TERM_STOP:
+            tokens.add(word.lower()[:5])
+    return tokens
+
+
+def term_in_sources(term: str, corpus_norm: str, corpus_raw: str) -> bool:
+    """Термин опирается на источники: дословно (как раньше) или не менее 60 % его значимых слов есть в выбранных
+    источниках с учётом словоформ — порядок, дефисы и окончания не важны (стенд 29.09: 16 из 19 отказов доводки
+    давало дословное правило, хотя термин был взят из источника в другой форме)."""
+    if normalize_name(term) and normalize_name(term) in corpus_norm:
+        return True
+    tokens = _term_tokens(term)
+    if not tokens:
+        return False
+    corpus_tokens = {word.lower()[:5] for word in _WORD_RE.findall(corpus_raw or "")}
+    return len(tokens & corpus_tokens) / len(tokens) >= TERM_WORD_SHARE
+
+
 def normalize_name(text: str) -> str:
     """Название для сравнения: Unicode NFKC, регистр, без кавычек и скобок, одиночные пробелы."""
     return " ".join(_QUOTES_RE.sub(" ", unicodedata.normalize("NFKC", text).casefold()).split())
@@ -204,7 +233,8 @@ def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]
         return None, "в названии число, которого нет в источниках"
     corpus = normalize_name(" ".join(f"{source.title} {source.snippet}" for source in sources))
     terms = [term for term in TERM_RE.findall(clean["title_ru"]) if normalize_name(term)]
-    if not any(normalize_name(term) in corpus for term in terms):
+    corpus_raw = " ".join(f"{source.title} {source.snippet}" for source in sources)
+    if not any(term_in_sources(term, corpus, corpus_raw) for term in terms):
         return None, "в названии нет оригинального термина из выбранных источников"
     for key in TEXT_FIELDS:
         minimum, share = (3, MIN_CYRILLIC_TITLE) if key == "title_ru" else (MIN_TEXT, MIN_CYRILLIC)

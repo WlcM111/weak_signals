@@ -171,5 +171,17 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("пачка отклонена", outcome.rejected["cand-1"])
 
 
+
+class TermInSourcesTest(unittest.TestCase):
+    def test_term_matches_by_meaning_not_only_verbatim(self) -> None:
+        from insight.application.use_cases.finalize_cards import normalize_name, term_in_sources
+
+        src = "Kolmogorov-Arnold Networks-Based Tolerance-Aware Manufacturability Assessment"
+        for term in ("Tolerance-Aware Manufacturability Assessment", "Tolerance Aware Manufacturability",
+                     "Manufacturability Assessment with Tolerances"):
+            self.assertTrue(term_in_sources(term, normalize_name(src), src), term)
+        for term in ("Quantum Radar", "LLM Firewall", "для"):
+            self.assertFalse(term_in_sources(term, normalize_name(src), src), term)
+
 if __name__ == "__main__":
     unittest.main()

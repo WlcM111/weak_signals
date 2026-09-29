@@ -36,13 +36,13 @@ GET_DEADLINE = 5.0
 DOCUMENTS_DEADLINE = 15.0
 CANDIDATES_DEADLINE = 15.0
 # 60 с: ответ GigaChat-2-Max на расширение медленнее Pro, а обрыв по сроку даёт откат к голым словам темы.
-EXPAND_DEADLINE = 60.0
-INSIGHT_DEADLINE = 120.0
+EXPAND_DEADLINE = 330.0  # не меньше таймаута LLM (300 с) плюс запас
+INSIGHT_DEADLINE = 660.0  # не меньше общего бюджета LLM (600 с) плюс запас
 # Один пакетный вызов LLM на до 30 кандидатов; GigaChat отвечает на такой запрос за 10–60 с.
-JUDGE_DEADLINE = 150.0
+JUDGE_DEADLINE = 660.0
 # Рубричная оценка идёт пачками по 8 кандидатов, доводка — по 5 карточек: до 5 и 3 последовательных вызовов LLM.
-RUBRIC_DEADLINE = 420.0
-FINALIZE_DEADLINE = 420.0
+RUBRIC_DEADLINE = 660.0
+FINALIZE_DEADLINE = 660.0
 log = get_logger("orchestrator.upstream")
 
 
