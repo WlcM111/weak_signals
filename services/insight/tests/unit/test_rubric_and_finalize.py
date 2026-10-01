@@ -7,7 +7,7 @@ import unittest
 
 from insight.adapters.outbound.llm.fake_provider import FakeProvider
 from insight.application.prompt_builder import FINALIZE_PROMPT_VERSION, RUBRIC_PROMPT_VERSION, PromptBuilder
-from insight.application.use_cases.finalize_cards import CardInput, FinalizeCards, check_card
+from insight.application.use_cases.finalize_cards import CardInput, FinalizeCards, check_card, title_terms
 from insight.application.use_cases.rubric_judge import RubricItem, RubricJudge, RubricSource, to_verdict
 
 from .test_chain_and_use_cases import PROMPTS, SCHEMAS, build_chain
@@ -65,6 +65,18 @@ class RubricJudgeTest(unittest.IsolatedAsyncioTestCase):
         outcome = await judge.execute("q", ITEMS[:2])
         self.assertEqual([v.candidate_id for v in outcome.verdicts], ["cand-1", "cand-2"])
         self.assertEqual(len(provider.calls), 3)
+
+    async def test_final_check_prompt_has_strict_ai_security_scope(self) -> None:
+        answer = json.dumps({"verdicts": [verdict_row("c1")]}, ensure_ascii=False)
+        judge, provider = self.judge(answer, answer)
+        await judge.execute("защита систем ИИ", ITEMS[:1], final_check=True)
+        await judge.execute("защита систем ИИ", ITEMS[:1])
+        final, first = provider.calls[0][0].content, provider.calls[1][0].content
+        self.assertIn("Финальная проверка готовой карточки", final)
+        for scope in ("психотерапия", "созданных ИИ", "промпт-инъекций", "выбери N-OFF"):
+            self.assertIn(scope, final)
+        self.assertNotIn("Финальная проверка", first)  # первая рубрика — прежний текст judge_v5
+        self.assertEqual(RUBRIC_PROMPT_VERSION, "judge_v6")
 
     async def test_all_failed_is_fallback(self) -> None:
         judge, _ = self.judge("не json", "не json", "не json")
@@ -162,7 +174,7 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(card.candidate_id for card in outcome.cards), ["cand-1", "cand-2"])
         self.assertEqual(outcome.rejected, {})
         self.assertIn("составь", provider.calls[0][0].content.replace("заполни", "составь"))
-        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v4")
+        self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v5")
 
     async def test_failed_batch_rejects_all(self) -> None:
         provider = FakeProvider(responses=["{"])
@@ -170,6 +182,57 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(outcome.used_fallback)
         self.assertIn("пачка отклонена", outcome.rejected["cand-1"])
 
+
+
+class TitleTermsTest(unittest.TestCase):
+    """Правило термина, шаг 2: допустимые термины из заголовков источников карточки."""
+
+    TITLES = (
+        "ForeTac-VLA: Tactile Foresight for Vision-Language-Action Robot Policies",
+        "Optical Circuit Switching (OCS) for AI clusters",
+        "A Review on Quantum Approximate Optimization Algorithm and its Variants",
+        "SiN-on-SOI Optical Phased Array LiDAR for Ultra-Wide Field of View and 4D Sensing",
+        "Possible consequences of the development of smart production systems “Smart Factory”",
+        "Цифровой беспроводной неинвазивный глюкометр",
+        "Применение архитектур YOLO для распознавания объектов в задачах промышленного мониторинга",
+        "Don't Train From Scratch: Persistent Gains from Pruning-Initialised Distillation for Edge Language Models",
+        "edward-playground/aidefend-mcp",
+    )
+
+    def test_terms_are_verbatim_and_pass_the_term_check(self) -> None:
+        from insight.application.use_cases.finalize_cards import TERM_RE, normalize_name, term_in_sources
+
+        for title in self.TITLES:
+            terms = title_terms(title)
+            with self.subTest(title=title):
+                self.assertTrue(terms)
+                self.assertLessEqual(len(terms), 6)
+                for term in terms:
+                    self.assertTrue(term_in_sources(term, normalize_name(title), title), term)
+                    self.assertEqual(TERM_RE.findall(f"Название технологии ({term})"), [term])
+
+    def test_names_acronyms_and_noun_groups_come_first(self) -> None:
+        self.assertEqual(title_terms(self.TITLES[0])[0], "ForeTac-VLA")
+        self.assertEqual(title_terms(self.TITLES[1])[:2], ("Optical Circuit Switching", "OCS"))
+        self.assertIn("Quantum Approximate Optimization Algorithm", title_terms(self.TITLES[2]))
+        self.assertNotIn("Review", title_terms(self.TITLES[2]))  # одно общее слово — не термин
+        self.assertIn("SiN-on-SOI Optical Phased Array LiDAR", title_terms(self.TITLES[3]))
+        self.assertIn("Smart Factory", title_terms(self.TITLES[4]))
+        self.assertEqual(title_terms(self.TITLES[5]), ("Цифровой беспроводной неинвазивный глюкометр",))
+        self.assertIn("YOLO", title_terms(self.TITLES[6]))
+        self.assertIn("Pruning-Initialised Distillation", title_terms(self.TITLES[7]))
+        self.assertEqual(title_terms(self.TITLES[8]), ("aidefend-mcp",))
+        self.assertEqual(title_terms(""), ())
+
+    def test_payload_lists_terms_and_card_with_listed_term_passes(self) -> None:
+        from insight.application.use_cases.finalize_cards import card_payload
+
+        payload = card_payload("k1", FinalizeCardsTest.CARD)
+        self.assertEqual([s["terms"] for s in payload["sources"]], [list(title_terms(s.title)) for s in SOURCES])
+        term = payload["sources"][0]["terms"][0]
+        card, reason = check_card(FinalizeCardsTest.CARD, card_row("k1", title_ru=f"Лидарный модуль на чипе ({term})"))
+        self.assertEqual(reason, "")
+        self.assertIn(term, card.title_ru)
 
 
 class TermInSourcesTest(unittest.TestCase):

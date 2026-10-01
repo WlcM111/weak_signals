@@ -144,7 +144,8 @@ message JudgeItem {
 message JudgeCandidatesRequest {
   string query_text = 1;          // 2..500
   repeated JudgeItem items = 2;   // 1..40
-  string mode = 3;                // "" — judge_v1; "rubric_v2" — рубричная оценка со стадией и трендом
+  string mode = 3;                // "" — judge_v1; "rubric_v2" — рубричная оценка со стадией и трендом;
+                                  // "rubric_final" — финальная проверка готовой карточки (ответ как у rubric_v2)
 }
 
 message JudgeVerdict {

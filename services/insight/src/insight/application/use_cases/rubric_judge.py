@@ -196,8 +196,9 @@ class RubricJudge:
         self._prompts = prompts
         self._batch = max(1, min(batch_size, 12))
 
-    async def execute(self, query_text: str, items: Sequence[RubricItem]) -> RubricOutcome:
-        """Оценивает до MAX_ITEMS кандидатов пачками; неразборчиво отвеченная пачка повторяется по одному."""
+    async def execute(self, query_text: str, items: Sequence[RubricItem], final_check: bool = False) -> RubricOutcome:
+        """Оценивает до MAX_ITEMS кандидатов пачками; неразборчиво отвеченная пачка повторяется по одному.
+        `final_check` — финальная проверка готовых карточек (строгие правила темы в промпте)."""
         items = list(items)[:MAX_ITEMS]
         if not items or self._chain.is_empty:
             return RubricOutcome((), used_fallback=True)
@@ -205,23 +206,25 @@ class RubricJudge:
         meta = {"provider": "", "model": ""}
         for start in range(0, len(items), self._batch):
             chunk = items[start : start + self._batch]
-            got = await self._judge_chunk(query_text, chunk, meta)
+            got = await self._judge_chunk(query_text, chunk, meta, final_check)
             verdicts.update(got)
             missing = [item for item in chunk if item.candidate_id not in got]
             if missing and len(chunk) > 1:
                 log.info("rubric.retry_single", start=start, missing=len(missing))
                 for item in missing:
-                    verdicts.update(await self._judge_chunk(query_text, [item], meta))
+                    verdicts.update(await self._judge_chunk(query_text, [item], meta, final_check))
         ordered = tuple(verdicts[item.candidate_id] for item in items if item.candidate_id in verdicts)
         log.info("rubric.done", requested=len(items), judged=len(ordered), provider=meta["provider"],
-                 accepted=sum(1 for verdict in ordered if verdict.code == "R"))
+                 accepted=sum(1 for verdict in ordered if verdict.code == "R"), final_check=final_check)
         return RubricOutcome(ordered, meta["provider"], meta["model"], used_fallback=not ordered)
 
-    async def _judge_chunk(self, query_text: str, chunk: list[RubricItem], meta: dict) -> dict[str, RubricVerdict]:
+    async def _judge_chunk(
+        self, query_text: str, chunk: list[RubricItem], meta: dict, final_check: bool = False
+    ) -> dict[str, RubricVerdict]:
         """Один вызов модели на пачку; каждый вердикт проверяется отдельно."""
         short_ids = {f"c{number}": item.candidate_id for number, item in enumerate(chunk, 1)}
         bundle = self._prompts.build_rubric_prompt(
-            query_text, [payload_item(short, item) for short, item in zip(short_ids, chunk, strict=True)]
+            query_text, [payload_item(short, item) for short, item in zip(short_ids, chunk, strict=True)], final_check
         )
         try:
             outcome = await self._chain.complete(

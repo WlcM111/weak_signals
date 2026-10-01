@@ -23,6 +23,10 @@ from insight.domain.errors import (
 )
 from ws_common.logging import get_logger
 
+# Режимы JudgeCandidates: рубричная оценка и финальная проверка готовых карточек (тот же ответ, строже тема).
+RUBRIC_MODE = "rubric_v2"
+FINAL_CHECK_MODE = "rubric_final"
+
 _STATUS_BY_ERROR: tuple[tuple[type[AppError], grpc.StatusCode], ...] = (
     (ValidationError, grpc.StatusCode.INVALID_ARGUMENT),
     (ResourceExhaustedError, grpc.StatusCode.RESOURCE_EXHAUSTED),
@@ -68,7 +72,7 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
         self, request: insight_pb2.JudgeCandidatesRequest, context: grpc.aio.ServicerContext
     ) -> insight_pb2.JudgeCandidatesResponse:
         """Смысловая оценка кандидатов; недоступность модели — пустой ответ с used_fallback, не ошибка."""
-        if request.mode == "rubric_v2":
+        if request.mode in (RUBRIC_MODE, FINAL_CHECK_MODE):
             return await self._judge_rubric(request)
         if self._judge_candidates is None or not request.items or not request.query_text.strip():
             return insight_pb2.JudgeCandidatesResponse(used_fallback=True)
@@ -90,7 +94,7 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
         )
 
     async def _judge_rubric(self, request: insight_pb2.JudgeCandidatesRequest) -> insight_pb2.JudgeCandidatesResponse:
-        """Рубричная оценка (режим rubric_v2): код рубрики, четыре критерия, стадия, тренд, уверенность."""
+        """Рубричная оценка (режим rubric_v2 или rubric_final): код рубрики, критерии, стадия, тренд, уверенность."""
         if self._rubric_judge is None or not request.items or not request.query_text.strip():
             return insight_pb2.JudgeCandidatesResponse(used_fallback=True)
         items = [
@@ -98,7 +102,8 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
                        tuple(_source(source) for source in item.sources), item.composition_ru)
             for item in request.items
         ]
-        outcome = await self._rubric_judge.execute(request.query_text.strip()[:500], items)
+        outcome = await self._rubric_judge.execute(request.query_text.strip()[:500], items,
+                                                   final_check=request.mode == FINAL_CHECK_MODE)
         return insight_pb2.JudgeCandidatesResponse(
             verdicts=[
                 insight_pb2.JudgeVerdict(

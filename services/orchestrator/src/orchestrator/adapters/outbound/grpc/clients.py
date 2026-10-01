@@ -40,7 +40,7 @@ EXPAND_DEADLINE = 330.0  # не меньше таймаута LLM (300 с) пл�
 INSIGHT_DEADLINE = 660.0  # не меньше общего бюджета LLM (600 с) плюс запас
 # Один пакетный вызов LLM на до 30 кандидатов; GigaChat отвечает на такой запрос за 10–60 с.
 JUDGE_DEADLINE = 660.0
-# Рубричная оценка идёт пачками по 8 кандидатов, доводка — по 5 карточек: до 5 и 3 последовательных вызовов LLM.
+# Рубрика — вызовами RPC по 20 кандидатов (5 последовательных вызовов LLM по 4), доводка — по одной карточке.
 RUBRIC_DEADLINE = 660.0
 FINALIZE_DEADLINE = 660.0
 log = get_logger("orchestrator.upstream")
@@ -128,14 +128,14 @@ class GrpcAnalyzerClient:
         self._stub = analyzer_pb2_grpc.AnalyzerServiceStub(channel)
 
     async def start_analysis(
-        self, idempotency_key: str, collection_id: str, query_text: str, top_n: int
+        self, idempotency_key: str, collection_id: str, query_text: str, top_n: int, max_candidates: int = 0
     ) -> str:
-        """Запускает анализ коллекции."""
+        """Запускает анализ коллекции; `max_candidates` 0 — значение analyzer по умолчанию."""
         request = analyzer_pb2.StartAnalysisRequest(
             idempotency_key=idempotency_key,
             collection_id=collection_id,
             query_text=query_text,
-            params=analyzer_pb2.AnalysisParams(top_n=top_n),
+            params=analyzer_pb2.AnalysisParams(top_n=top_n, max_candidates=max_candidates),
         )
         try:
             response = await self._stub.StartAnalysis(request, timeout=START_DEADLINE, metadata=_md())
@@ -253,12 +253,12 @@ class GrpcInsightClient:
         }
 
     async def judge_rubric(
-        self, query_text: str, items: Sequence[RubricRequestItem]
+        self, query_text: str, items: Sequence[RubricRequestItem], final_check: bool = False
     ) -> dict[str, JudgeVerdictView]:
-        """Рубричная оценка (режим rubric_v2); ответ с used_fallback даёт пустой словарь."""
+        """Рубричная оценка (режим rubric_v2, финальная проверка — rubric_final); used_fallback — пустой словарь."""
         request = insight_pb2.JudgeCandidatesRequest(
             query_text=query_text,
-            mode="rubric_v2",
+            mode="rubric_final" if final_check else "rubric_v2",
             items=[
                 insight_pb2.JudgeItem(
                     candidate_id=item.candidate.candidate_id,

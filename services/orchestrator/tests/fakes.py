@@ -351,9 +351,12 @@ class FakeAnalyzer:
     analysis_id: str = new_id(20)
     cancelled: list[str] = field(default_factory=list)
     model_version_id: str = "wsclf-2026.09.16-1"
+    max_candidates: list[int] = field(default_factory=list)
 
-    async def start_analysis(self, idempotency_key, collection_id, query_text, top_n):  # noqa: ANN001, ANN201
+    async def start_analysis(self, idempotency_key, collection_id, query_text, top_n,
+                             max_candidates=0):  # noqa: ANN001, ANN201
         """Запуск анализа."""
+        self.max_candidates.append(max_candidates)
         return self.analysis_id
 
     async def get_analysis(self, analysis_id: str) -> AnalysisView:
@@ -441,11 +444,15 @@ class FakeInsight:
     rubric_rule: Callable[[CandidateView], dict | None] | None = None
     finalize_rule: Callable[[CandidateView], dict | None] | None = None
     rubric_calls: list[int] = field(default_factory=list)
+    rubric_modes: list[bool] = field(default_factory=list)
     finalize_calls: list[int] = field(default_factory=list)
 
-    async def judge_rubric(self, query_text: str, items) -> dict[str, JudgeVerdictView]:  # noqa: ANN001
+    async def judge_rubric(  # noqa: ANN001
+        self, query_text: str, items, final_check: bool = False
+    ) -> dict[str, JudgeVerdictView]:
         """Рубричная оценка по правилу теста."""
         self.rubric_calls.append(len(items))
+        self.rubric_modes.append(final_check)
         if self.rubric_rule is None:
             return {}
         verdicts = {}
@@ -466,13 +473,15 @@ class FakeInsight:
             fields = self.finalize_rule(card.candidate) if self.finalize_rule else None
             if fields is None:
                 continue
+            chosen = fields.get("source_ids")  # источники, выбранные «моделью»; None — все источники карточки
             result[card.candidate.candidate_id] = FinalizedCardView(
                 candidate_id=card.candidate.candidate_id, title_ru=fields.get("title_ru", "Название"),
                 description_ru="Описание технологии.", advantage_ru="Преимущество.", case_example_ru="Кейс.",
                 case_document_id=card.documents[0].document_id if card.documents else "", why_ru="Почему сигнал.",
                 companies=tuple(fields.get("companies", ())), stage=fields.get("stage", card.stage),
                 trend=fields.get("trend", card.trend), stage_reason_ru="Стадия.", trend_reason_ru="Тренд.",
-                source_summaries={d.document_id: ("Резюме источника.", "GENERATIVE_SUMMARY") for d in card.documents},
+                source_summaries={d.document_id: ("Резюме источника.", "GENERATIVE_SUMMARY") for d in card.documents
+                                  if chosen is None or d.document_id in chosen},
                 llm_provider="gigachat", llm_model="GigaChat-2-Max")
         return result
 

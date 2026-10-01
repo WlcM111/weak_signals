@@ -47,7 +47,7 @@ class NarrateConfig:
     # Режим отбора: legacy — порог модели analyzer + смысловая оценка; rubric — рубричная оценка LLM с полным
     # контекстом источников, балл «стадия + тренд» и пакетная доводка карточек (narrate_rubric.py).
     selection_mode: str = "legacy"
-    rubric_pool: int = 40
+    rubric_pool: int = 80
     finalize_enabled: bool = True
     # rubric: при недоступной рубрике — прежняя стадия (с английскими экстрактивными карточками) или пустая выдача.
     rubric_legacy_fallback: bool = False

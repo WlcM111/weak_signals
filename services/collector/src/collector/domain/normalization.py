@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from collector.domain.classify import ClassificationConfig, classify
+from collector.domain.classify import ClassificationConfig, advertising_marker, classify
 from collector.domain.entities import DocumentDraft, RawDocument
 from collector.domain.rules import (
     MAX_TEXT_LENGTH,
@@ -36,7 +36,8 @@ def build_document_draft(
     raw_meta_keys: frozenset[str],
     fetched_at: datetime,
 ) -> DocumentDraft:
-    """Нормализует, классифицирует и хеширует документ; ValueError при непригодном URL или пустом заголовке."""
+    """Нормализует, классифицирует и хеширует документ; ValueError при непригодном URL, пустом заголовке или
+    рекламном материале."""
     if len(raw.url) > MAX_URL_LENGTH:
         raise ValueError("URL длиннее 2048 символов")
     canonical = canonical_url(raw.url)
@@ -45,6 +46,9 @@ def build_document_draft(
     if not title:
         raise ValueError("документ без заголовка")
     text = truncate(clean_whitespace(strip_html(raw.text)), MAX_TEXT_LENGTH)
+    marker = advertising_marker(config, title, text)
+    if marker:
+        raise ValueError(f"рекламный материал: маркер «{marker}»")
     language = normalize_language_code(raw.language_code) or detect_language(f"{title} {text}")
     source_type, trust_level = classify(
         config, source_key, domain, title, has_published_at=raw.published_at is not None

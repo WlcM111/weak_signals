@@ -44,6 +44,9 @@ DOCUMENTS_BATCH = 150
 # Три раунда замены: отказ доводки заменяется следующим кандидатом R (стенд 29.09: 45 R → 24 карточки).
 FINALIZE_ROUNDS = 3
 FINALIZE_SOURCES = 5
+# Рубрика — вызовами по 20 кандидатов (5 вызовов LLM по 4): пул 60–100 кандидатов одним вызовом RPC — это 15–25
+# вызовов LLM, на GigaChat-2-Max он не укладывается в срок RPC 660 с, а обрыв по сроку увёл бы задание в прежнюю ветку.
+RUBRIC_CHUNK = 20
 LIKELY = 0.5
 CONFIDENT = 0.75
 log = get_logger("orchestrator.stage.narrate_rubric")
@@ -102,9 +105,9 @@ async def run_narrate_rubric(
     prefiltered: list[tuple[CandidateView, tuple[Decision, str, str]]] = []
     judged_pool: list[CandidateView] = []
     for candidate in pool:
-        verdict = rubric.prefilter(compositions[candidate.candidate_id], check_reviews=False)
+        verdict = rubric.prefilter(compositions[candidate.candidate_id])
         (prefiltered.append((candidate, verdict)) if verdict else judged_pool.append(candidate))
-    raw = await _judge(insight, query_text, judged_pool, documents, compositions)
+    raw = await _judge(insight, query_text, judged_pool, documents, compositions, config.llm_allowed)
     if not raw:
         log.warning("stage.narrate_rubric.judge_unavailable", pool=len(judged_pool))
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
@@ -133,6 +136,7 @@ async def run_narrate_rubric(
     ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
     final_dropped: dict[str, JudgeVerdictView] = {}
+    review_dropped: dict[str, tuple[Decision, str, str]] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
     for _ in range(FINALIZE_ROUNDS):
@@ -142,17 +146,24 @@ async def run_narrate_rubric(
         batch, queue = queue[:need], queue[need:]
         tried.extend(batch)
         finalized.update(await _finalize(insight, query_text, batch, documents, verdicts, config))
+        # Правило обзоров — и по источникам готовой карточки: доводка оставляет источники, которые описывают
+        # технологию, и в выдаче v12 ими оказывались обзоры («AI-Driven Predictive Maintenance» — три обзора).
+        review_dropped.update(_review_dominated(batch, finalized, documents))
+        for candidate_id in review_dropped:
+            finalized.pop(candidate_id, None)
         if config.final_check_enabled:
             final_dropped.update(await _final_check(insight, query_text, batch, finalized, documents))
             for candidate_id in final_dropped:
                 finalized.pop(candidate_id, None)
+    rejected = final_dropped.keys() | review_dropped.keys()
     rank_of = {c.candidate_id: i for i, c in enumerate(ranked)}
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
-    text_failed = [c for c in tried if c.candidate_id not in finalized and c.candidate_id not in final_dropped]
+    text_failed = [c for c in tried if c.candidate_id not in finalized and c.candidate_id not in rejected]
     dropped_final = [c for c in tried if c.candidate_id in final_dropped]
-    # Резервная ветка берёт только не отклонённых финальной проверкой: решение о недопустимости технологии не
-    # отменяется тем, что описание не удалось довести (аудит 29.09: shown=3 при final_rejections=3).
-    allowed = [c for c in ranked if c.candidate_id not in final_dropped]
+    dropped_reviews = [(c, review_dropped[c.candidate_id]) for c in tried if c.candidate_id in review_dropped]
+    # Резервная ветка берёт только не отклонённых финальной проверкой и правилом обзоров: решение о недопустимости
+    # технологии не отменяется тем, что описание не удалось довести (аудит 29.09: shown=3 при final_rejections=3).
+    allowed = [c for c in ranked if c.candidate_id not in rejected]
     fallback = not shown and bool(allowed)
     if fallback:  # пустой выдачи при допустимых кандидатах не бывает: прежний генератор карточек
         shown, text_failed = allowed[: config.top_n], []
@@ -166,7 +177,8 @@ async def run_narrate_rubric(
         and display_score(scored[c.candidate_id][0], "R", config.confidence_calibration) >= CONFIDENT)
     outcome.judge_rejected = len(prefiltered)
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
-        rest, prefiltered, unjudged, queue + below, text_failed, verdicts, scored, dropped_final, final_dropped))
+        rest, prefiltered + dropped_reviews, unjudged, queue + below, text_failed, verdicts, scored, dropped_final,
+        final_dropped))
     for position, candidate in enumerate(shown, 1):
         await check()
         item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
@@ -180,7 +192,8 @@ async def run_narrate_rubric(
             outcome.narratives_fallback += 1
     log.info("stage.narrate_rubric", pool=len(pool), prefiltered=len(prefiltered), judged=len(judged),
              likely=outcome.weak_signals_total, tried=len(tried), finalized=len(finalized),
-             shown=outcome.items_written, fallback=fallback, model=bool(model), classifier=bool(classifier))
+             review_dropped=len(review_dropped), shown=outcome.items_written, fallback=fallback, model=bool(model),
+             classifier=bool(classifier))
     return outcome
 
 
@@ -208,17 +221,25 @@ async def _load_all(
 
 async def _judge(
     insight: InsightClient, query_text: str, pool: list[CandidateView], documents: dict[str, DocumentView],
-    compositions: dict[str, rubric.Composition],
+    compositions: dict[str, rubric.Composition], llm_allowed: Callable[[], bool] | None = None,
 ) -> dict[str, JudgeVerdictView]:
-    """Рубричная оценка пула; недоступность — пустой словарь."""
-    if not pool:
-        return {}
-    items = [RubricRequestItem(c, _docs(c, documents), rubric.composition_ru(compositions[c.candidate_id])) for c in pool]
-    try:
-        return await insight.judge_rubric(query_text, items)
-    except (UpstreamUnavailable, StageFailed) as error:
-        log.warning("stage.narrate_rubric.judge_failed", error=str(error)[:200])
-        return {}
+    """Рубричная оценка пула частями по RUBRIC_CHUNK; недоступность — пустой словарь.
+
+    Отказ части не срывает остальные: её кандидаты остаются без вердикта. Перед каждой следующей частью
+    проверяется срок задания: если он не позволяет ещё один вызов LLM, оставшиеся кандидаты не оцениваются.
+    """
+    verdicts: dict[str, JudgeVerdictView] = {}
+    for start in range(0, len(pool), RUBRIC_CHUNK):
+        if start and llm_allowed is not None and not llm_allowed():
+            log.warning("stage.narrate_rubric.judge_deadline", judged=len(verdicts), left=len(pool) - start)
+            break
+        items = [RubricRequestItem(c, _docs(c, documents), rubric.composition_ru(compositions[c.candidate_id]))
+                 for c in pool[start : start + RUBRIC_CHUNK]]
+        try:
+            verdicts.update(await insight.judge_rubric(query_text, items))
+        except (UpstreamUnavailable, StageFailed) as error:
+            log.warning("stage.narrate_rubric.judge_failed", start=start, size=len(items), error=str(error)[:200])
+    return verdicts
 
 
 async def _finalize(
@@ -304,11 +325,27 @@ async def _final_check(
     if not items:
         return {}
     try:
-        verdicts = await insight.judge_rubric(query_text, items)
+        verdicts = await insight.judge_rubric(query_text, items, final_check=True)
     except (UpstreamUnavailable, StageFailed) as error:
         log.warning("stage.narrate_rubric.final_check_failed", error=str(error)[:200])
         return {}
     return {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP}
+
+
+def _review_dominated(
+    batch: list[CandidateView], finalized: dict[str, FinalizedCardView], documents: dict[str, DocumentView],
+) -> dict[str, tuple[Decision, str, str]]:
+    """Готовые карточки пачки, у которых обзоры — не меньше половины показанных источников: не показываются."""
+    dropped: dict[str, tuple[Decision, str, str]] = {}
+    for candidate in batch:
+        card = finalized.get(candidate.candidate_id)
+        if card is None:
+            continue
+        shown = [documents[doc_id] for doc_id in card.source_summaries if doc_id in documents]
+        verdict = rubric.reviews_dominate(rubric.composition_of(shown), "источников карточки")
+        if verdict is not None:
+            dropped[candidate.candidate_id] = verdict
+    return dropped
 
 
 def display_score(prob: float, code: str, calibrate: bool) -> float:

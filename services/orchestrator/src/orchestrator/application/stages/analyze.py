@@ -21,6 +21,8 @@ class AnalyzeConfig:
 
     timeout_seconds: int = 300
     poll_seconds: float = 3.0
+    # Сколько кандидатов запросить у analyzer (5..100); 0 — значение analyzer по умолчанию (40).
+    max_candidates: int = 0
 
 
 async def run_analyze(
@@ -42,6 +44,7 @@ async def run_analyze(
             collection_id=collection_id,
             query_text=query_text,
             top_n=top_n,
+            max_candidates=config.max_candidates,
         )
     except UpstreamUnavailable as error:
         raise StageFailed(

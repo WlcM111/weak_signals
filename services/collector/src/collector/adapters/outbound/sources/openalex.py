@@ -22,6 +22,9 @@ MAX_PAGES = 10
 # arXiv (Cornell University) как источник в OpenAlex: 3,2 млн работ; найдено запросом
 # /sources?search=arxiv 23.09.2026. Препринты arXiv берутся через OpenAlex, не нагружая API arXiv.
 ARXIV_SOURCE_ID = "S4306400194"
+# Нижняя граница года публикаций OpenAlex (v14: 2024 вместо 2023 — меньше зрелых работ, выше новизна выдачи).
+# Общая граница коллекции остаётся для других источников; если она строже, OpenAlex берёт её.
+MIN_PUBLICATION_YEAR = 2024
 
 
 class OpenAlexAdapter(BaseSourceAdapter):
@@ -47,7 +50,7 @@ class OpenAlexAdapter(BaseSourceAdapter):
         Теперь каждая английская фраза даёт два запроса — препринты arXiv и вся база, — а русские
         фразы идут после английских; каждый запрос получает свою долю лимита.
         """
-        queries = _query_plan(terms, limits.published_since_year)
+        queries = _query_plan(terms, max(limits.published_since_year, MIN_PUBLICATION_YEAR))
         if not queries:
             return
         quota = -(-limits.max_documents_per_source // len(queries))

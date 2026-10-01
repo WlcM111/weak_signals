@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field
 
 from collector.domain.values import SourceKey, SourceType, TrustLevel
@@ -31,6 +32,8 @@ class ClassificationConfig:
     # Источники, чей тип документа не пересматривается доменными правилами: патентная платформа
     # Роспатента живёт на домене .gov.ru, но её документы — патенты, а не документы госоргана.
     authoritative_sources: frozenset[SourceKey] = frozenset()
+    # Маркеры рекламных материалов (в форме fold_marker_text): такой документ в коллекцию не попадает.
+    advertising_markers: tuple[str, ...] = ()
 
     def trust_for(self, source_type: SourceType) -> TrustLevel:
         """Уровень доверенности по типу источника (умолчание LOW для типов вне справочника)."""
@@ -94,3 +97,20 @@ def _is_press_release(config: ClassificationConfig, origin_domain: str, title: s
         return True
     lowered = title.lower()
     return any(marker in lowered for marker in config.press_release_title_markers)
+
+
+def fold_marker_text(text: str) -> str:
+    """Текст для поиска маркеров: NFKC, без учёта регистра, «ё» = «е», одиночные пробелы."""
+    return " ".join(unicodedata.normalize("NFKC", text).casefold().replace("ё", "е").split())
+
+
+def advertising_marker(config: ClassificationConfig, title: str, text: str) -> str:
+    """Маркер рекламного материала в заголовке или тексте документа; пустая строка — маркера нет.
+
+    ТЗ: маркетинг не может быть основанием для сигнала, поэтому спонсорские и партнёрские публикации
+    отсекаются до записи в коллекцию, а не только понижаются в доверенности.
+    """
+    if not config.advertising_markers:
+        return ""
+    haystack = fold_marker_text(f"{title} {text}")
+    return next((marker for marker in config.advertising_markers if marker in haystack), "")

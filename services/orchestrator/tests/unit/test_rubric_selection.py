@@ -12,7 +12,8 @@ from orchestrator.application.stages import rubric
 from orchestrator.application.stages.narrate import NarrateConfig, run_narrate
 from orchestrator.domain.values import Decision, TrustLevel
 
-from ..fakes import NOW, FakeAnalyzer, FakeCollector, FakeInsight, InMemoryResultRepository, make_candidate, new_id
+from ..fakes import (NOW, FakeAnalyzer, FakeClock, FakeCollector, FakeInsight, InMemoryResultRepository,
+                     make_candidate, new_id)
 
 
 def doc(index: int, kind: str = "SCIENTIFIC_PUBLICATION", title: str = "Chip-scale photonic LiDAR",
@@ -137,9 +138,10 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(items[0].features[0].feature_name.startswith("sc_"))
         self.assertIn("локальному классификатору", items[0].decision_explanation_ru)
         excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
-        self.assertEqual(excluded[self.overview.candidate_id], "RUBRIC_BELOW_TOP_N_N-OVR")
+        # v14: единственный источник кандидата — обзор, правило обзоров отсекает его до рубрики
+        self.assertEqual(excluded[self.overview.candidate_id], "RUBRIC_REVIEWS")
         self.assertEqual(excluded[self.github.candidate_id], "RUBRIC_NO_INDEPENDENT_SOURCE")
-        self.assertEqual(self.insight.rubric_calls, [5])  # рыночная одиночная заметка вошла в пул рубрики
+        self.assertEqual(self.insight.rubric_calls, [4])  # рыночная одиночная заметка вошла в пул рубрики
         self.assertEqual(outcome.weak_signals_total, 3)
 
     async def test_fill_takes_only_uncertain_never_rejected(self) -> None:
@@ -188,7 +190,7 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         far = cand(8, [self.docs[2]], Decision.OFF_TOPIC, "LOW_QUERY_RELEVANCE", score=0.3)
         self.analyzer.candidates.extend([untrusted, far])
         await self.narrate()
-        self.assertEqual(self.insight.rubric_calls, [7])  # 5 прежних + NO_TRUSTED_SOURCE + LOW_QUERY_RELEVANCE
+        self.assertEqual(self.insight.rubric_calls, [6])  # 4 прежних + NO_TRUSTED_SOURCE + LOW_QUERY_RELEVANCE
 
     async def test_final_check_replaces_generic_card_and_calibrates_confidence(self) -> None:
         judged_once = set()
@@ -208,6 +210,8 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
         self.assertEqual(excluded[self.good_b.candidate_id], "RUBRIC_FINAL_N-GEN")
         self.assertTrue(all(i.score >= 0.5 for i in shown.values()))  # принятые рубрикой — не ниже 50 %
+        self.assertFalse(self.insight.rubric_modes[0])  # первая рубрика — обычный режим
+        self.assertTrue(all(self.insight.rubric_modes[1:]) and len(self.insight.rubric_modes) > 1)  # финальная
 
     async def test_final_rejections_never_return_through_fallback(self) -> None:
         # аудит 29.09: когда финальная проверка отклоняла все карточки, резервная ветка показывала их снова
@@ -224,6 +228,51 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         reasons = [e.decision_reason for e in self.results.excluded["job-1"]]
         self.assertEqual(reasons.count("RUBRIC_FINAL_N-GEN"), 3)
 
+    async def test_card_built_mostly_on_reviews_is_not_shown(self) -> None:
+        # v12: карточке «AI-Driven Predictive Maintenance» доводка оставила из её источников три обзора
+        review = doc(9, title="A review of predictive maintenance")
+        self.collector.documents[review.document_id] = review
+        mixed = cand(7, [self.docs[1], review, self.docs[2]], rank=5)  # 1 обзор из 3: предфильтр пропускает
+        self.analyzer.candidates.append(mixed)
+        self.verdicts[mixed.candidate_id] = dict(code="R", stage=2, trend=2, confidence=1.0,
+                                                 technology_ru="Обслуживание", profile_ru=EARLY, on_topic=True,
+                                                 concrete=True, early_stage=True, verifiable=True)
+        base = self.insight.finalize_rule
+        chosen = {"title_ru": "Предиктивное обслуживание", "source_ids": [review.document_id]}
+        self.insight.finalize_rule = lambda c: chosen if c.candidate_id == mixed.candidate_id else base(c)
+        await self.narrate()
+        self.assertNotIn(mixed.candidate_id, {i.candidate_id for i in self.results.items["job-1"]})
+        excluded = {e.candidate_id: e for e in self.results.excluded["job-1"]}
+        self.assertEqual(excluded[mixed.candidate_id].decision_reason, "RUBRIC_REVIEWS")
+        self.assertIn("источников карточки (1 из 1)", excluded[mixed.candidate_id].decision_explanation_ru)
+
+    def add_plain_candidates(self, count: int) -> None:
+        for n in range(count):
+            document = doc(100 + n)
+            self.collector.documents[document.document_id] = document
+            extra = cand(100 + n, [document], rank=10 + n)
+            self.analyzer.candidates.append(extra)
+            self.verdicts[extra.candidate_id] = dict(code="N-GEN", stage=1, trend=1, confidence=0.9)
+
+    async def test_large_pool_is_judged_in_chunks(self) -> None:
+        self.add_plain_candidates(40)
+        await self.narrate(rubric_pool=80)
+        # 46 кандидатов в пуле: обзор и GitHub отсекает предфильтр, 44 оцениваются вызовами по 20
+        self.assertEqual(self.insight.rubric_calls, [20, 20, 4])
+
+    async def test_rubric_stops_between_chunks_when_deadline_is_near(self) -> None:
+        self.add_plain_candidates(40)
+        calls: list[int] = []
+
+        def allowed() -> bool:
+            calls.append(1)
+            return len(calls) == 1  # хватает времени только на начало стадии и первую часть рубрики
+
+        await self.narrate(rubric_pool=80, llm_allowed=allowed)
+        self.assertEqual(self.insight.rubric_calls, [20])
+        reasons = [e.decision_reason for e in self.results.excluded["job-1"]]
+        self.assertEqual(reasons.count("RUBRIC_UNJUDGED"), 24)
+
     def test_display_score_is_monotone(self) -> None:
         from orchestrator.application.stages.narrate_rubric import display_score
         self.assertEqual(display_score(0.2, "R", True), 0.6)
@@ -234,6 +283,20 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         await self.narrate(signal_model_path="", rubric_min_probability=0.0)
         items = self.results.items["job-1"]
         self.assertTrue(items and items[0].features[0].feature_name.startswith("lm_"))
+
+
+class AnalyzePoolTest(unittest.IsolatedAsyncioTestCase):
+    async def test_analyzer_gets_pool_size_as_max_candidates(self) -> None:
+        from orchestrator.application.stages.analyze import AnalyzeConfig, run_analyze
+
+        analyzer = FakeAnalyzer(statuses=["COMPLETED"])
+
+        async def check() -> None:
+            return None
+
+        await run_analyze(analyzer, "job-1", new_id(1), "q", 15, AnalyzeConfig(max_candidates=80), FakeClock(), check)
+        self.assertEqual(analyzer.max_candidates, [80])
+        self.assertEqual(NarrateConfig().rubric_pool, 80)
 
 
 if __name__ == "__main__":

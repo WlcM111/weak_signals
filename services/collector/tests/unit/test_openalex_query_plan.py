@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 import unittest
 
-from collector.adapters.outbound.sources.openalex import ARXIV_SOURCE_ID, OpenAlexAdapter
+from collector.adapters.outbound.sources.openalex import ARXIV_SOURCE_ID, MIN_PUBLICATION_YEAR, OpenAlexAdapter
 from collector.domain.values import CollectionLimits, CollectionMode, SearchTerms
 
 from ..fakes import FakeClock, FakeHttpClient, FakeRateLimiter
@@ -18,8 +18,8 @@ from .test_sources import load_json
 
 LIMITS = CollectionLimits.defaults(CollectionMode.SEARCH)
 TERMS = SearchTerms(ru=("нейроморфные чипы",), en=("neuromorphic chips", "spiking processors"))
-ARXIV = f"primary_location.source.id:{ARXIV_SOURCE_ID},publication_year:>{LIMITS.published_since_year - 1}"
-ALL = f"publication_year:>{LIMITS.published_since_year - 1}"
+ARXIV = f"primary_location.source.id:{ARXIV_SOURCE_ID},publication_year:>{MIN_PUBLICATION_YEAR - 1}"
+ALL = f"publication_year:>{MIN_PUBLICATION_YEAR - 1}"
 
 
 def full_page(start: int, size: int) -> dict:
@@ -78,6 +78,21 @@ class QueryPlanTest(unittest.IsolatedAsyncioTestCase):
             by_query[document.matched_term] = by_query.get(document.matched_term, 0) + 1
         self.assertLessEqual(max(by_query.values()), 2 * share, "английская фраза — не больше двух долей")
         self.assertIn("нейроморфные чипы", by_query)
+
+    async def test_publication_year_floor_2024_and_stricter_limit_wins(self) -> None:
+        self.assertEqual(MIN_PUBLICATION_YEAR, 2024)
+        self.assertLess(LIMITS.published_since_year, MIN_PUBLICATION_YEAR)  # общая граница коллекции — 2023
+        for _ in range(5):
+            self.http.enqueue(load_json("openalex/works_empty.json"))
+        await self.collect()
+        self.assertTrue(all(call[1]["params"]["filter"].endswith("publication_year:>2023") for call in self.http.calls))
+        self.http.calls.clear()
+        for _ in range(5):
+            self.http.enqueue(load_json("openalex/works_empty.json"))
+        stricter = CollectionLimits(LIMITS.max_documents_per_source, LIMITS.max_total_documents,
+                                    LIMITS.time_budget_seconds, 2025)
+        [document async for document in self.adapter.search(TERMS, stricter, 10_000.0)]
+        self.assertTrue(all(call[1]["params"]["filter"].endswith("publication_year:>2024") for call in self.http.calls))
 
 
 if __name__ == "__main__":

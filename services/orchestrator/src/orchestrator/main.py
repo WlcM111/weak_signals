@@ -149,6 +149,8 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
             analyze=AnalyzeConfig(
                 timeout_seconds=settings.analyze_timeout_seconds,
                 poll_seconds=settings.stage_poll_seconds,
+                # режим rubric: analyzer отдаёт столько кандидатов, сколько оценивает рубрика
+                max_candidates=settings.rubric_pool if settings.selection_mode == "rubric" else 0,
             ),
             narrate=NarrateConfig(
                 evidence_text_max_chars=settings.evidence_text_max_chars,

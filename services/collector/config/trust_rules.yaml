@@ -44,3 +44,8 @@ government_suffixes: ['.gov', '.gov.ru', '.int', '.gov.uk']
 # Пресс-релизы и рекламные публикации.
 press_release_domains: [prnewswire.com, businesswire.com, globenewswire.com, newswire.ca, interfax.ru/pressreleases]
 press_release_title_markers: ['press release', 'пресс-релиз', 'пресс релиз']
+
+# Рекламные и спонсорские материалы: документ с маркером в заголовке или тексте не попадает в коллекцию.
+# ТЗ: маркетинг не может быть основанием для сигнала; в v9 три из четырёх карточек темы инфраструктуры ИИ были
+# спонсорскими статьями DataCenterDynamics. Сравнение без учёта регистра, «ё» и «е» не различаются.
+advertising_markers: ['sponsored:', 'партнёрский материал', 'на правах рекламы']

@@ -6,8 +6,11 @@ import unittest
 from pathlib import Path
 
 from collector.adapters.outbound.rules_loader import load_classification_config
-from collector.domain.classify import classify, domain_matches
+from collector.domain.classify import advertising_marker, classify, domain_matches
+from collector.domain.normalization import build_document_draft
 from collector.domain.values import SourceKey, SourceType, TrustLevel
+
+from ..fakes import BASE_TIME, raw_document
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
 
@@ -103,6 +106,50 @@ class ClassifyTest(unittest.TestCase):
         self.assertTrue(domain_matches("feeds.example.com", "example.com"))
         self.assertTrue(domain_matches("example.com", "www.example.com"))
         self.assertFalse(domain_matches("notexample.com", "example.com"))
+
+
+class AdvertisingTest(unittest.TestCase):
+    """Рекламные материалы не попадают в коллекцию (ТЗ: маркетинг не может быть основанием для сигнала)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.config = load_classification_config(
+            CONFIG_DIR / "trust_rules.yaml", CONFIG_DIR / "rss_domains.yaml"
+        )
+
+    def test_markers_loaded_from_rules_file(self) -> None:
+        self.assertEqual(self.config.advertising_markers,
+                         ("sponsored:", "партнерский материал", "на правах рекламы"))
+
+    def test_markers_found_in_title_and_text_regardless_of_case_and_yo(self) -> None:
+        cases = (
+            ("Sponsored: How liquid cooling reshapes AI data centers", ""),
+            ("Как ЦОД переходят на жидкостное охлаждение", "ПАРТНЁРСКИЙ   МАТЕРИАЛ. Компания рассказывает о решении."),
+            ("Облачные GPU для обучения моделей", "Сервис уже доступен клиентам. На правах рекламы"),
+        )
+        for title, text in cases:
+            with self.subTest(title=title):
+                self.assertTrue(advertising_marker(self.config, title, text))
+
+    def test_ordinary_documents_pass(self) -> None:
+        for title, text in (
+            ("Neuromorphic chip startup raises seed round", "The work was part of a sponsored research program."),
+            ("Реклама в соцсетях: исследование охвата", "Анализ рекламных кампаний."),
+        ):
+            with self.subTest(title=title):
+                self.assertEqual(advertising_marker(self.config, title, text), "")
+
+    def test_normalization_rejects_sponsored_document(self) -> None:
+        def draft(title: str):  # noqa: ANN202 - помощник теста
+            return build_document_draft(
+                raw_document("https://www.datacenterdynamics.com/en/news/a/", title=title),
+                source_key=SourceKey.RSS, config=self.config, raw_meta_keys=frozenset(), fetched_at=BASE_TIME,
+            )
+
+        with self.assertRaises(ValueError) as ctx:
+            draft("Sponsored: Powering the AI factory")
+        self.assertIn("рекламный материал", str(ctx.exception))
+        self.assertEqual(draft("Startup pilots immersion cooling").source_type, SourceType.INDUSTRY_MEDIA)
 
 
 if __name__ == "__main__":

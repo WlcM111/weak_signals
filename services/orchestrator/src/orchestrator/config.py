@@ -57,7 +57,8 @@ class OrchestratorSettings(BaseServiceSettings):
     # Режим отбора выдачи: legacy — прежний (порог модели analyzer + смысловая оценка); rubric — рубричная оценка
     # LLM с полным контекстом источников, балл «стадия + тренд», пакетная доводка карточек. Откат — legacy.
     selection_mode: str = Field(default="legacy", pattern="^(legacy|rubric)$")
-    rubric_pool: int = Field(default=40, ge=5, le=40)
+    # Пул рубричной оценки; в режиме rubric столько же кандидатов запрашивается у analyzer (v14: 40 → 80, до 100).
+    rubric_pool: int = Field(default=80, ge=5, le=100)
     finalize_enabled: bool = True
     rubric_legacy_fallback: bool = False
     rubric_fill_uncertain: bool = True

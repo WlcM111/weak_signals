@@ -69,8 +69,8 @@ class OpenAlexTest(unittest.IsolatedAsyncioTestCase):
         await collect(self.adapter)
         params = self.http.calls[0][1]["params"]
         self.assertEqual(params["api_key"], "secret-key")
-        self.assertEqual(params["filter"], "primary_location.source.id:S4306400194,publication_year:>2022")
-        self.assertEqual(self.http.calls[1][1]["params"]["filter"], "publication_year:>2022")
+        self.assertEqual(params["filter"], "primary_location.source.id:S4306400194,publication_year:>2023")
+        self.assertEqual(self.http.calls[1][1]["params"]["filter"], "publication_year:>2023")
         self.assertEqual(self.limiter.acquired[0].value, "openalex")
 
     async def test_empty_response(self) -> None:

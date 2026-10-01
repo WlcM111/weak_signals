@@ -5,7 +5,8 @@
   содержание, поэтому решение принимает рубричная оценка LLM с полным контекстом источников;
 - карточки только из GitHub релевантны в 5 случаях из 40, только из препринтов — в 0 из 8; ТЗ: соцсети, блоги,
   пресс-релизы и т. п. не могут быть единственным основанием — отсюда требование независимого доверенного источника;
-- правило «больше половины источников — обзоры» убирает 31 негатив и 2 позитива;
+- правило «обзоры — не меньше половины источников» (доля ≥ 0,5) убирает 31 негатив и 2 позитива, точность
+  0,248 → 0,279 (строгое «больше половины» — 10 и 0, точность 0,259);
 - балл = стадия + тренд — как у организаторов: score_calc = stage + trend во всех 100 строках их датасета;
 - калибровка (оценка 26.09 на 100 строках организаторов): LLM занижает стадию (1,70 против 2,45) и тренд
   (1,43 против 2,32); сдвиг на единицу снижает MAE стадии 0,95 → 0,77 и поднимает точность тренда 0,25 → 0,60;
@@ -31,6 +32,8 @@ NON_INDEPENDENT_TYPES = frozenset(
     {"CODE_REPOSITORY", "PRESS_RELEASE", "CORPORATE_BLOG", "SOCIAL_MEDIA", "OTHER", "VACANCY", "ENCYCLOPEDIA"}
 )
 MARKET_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT"})
+# Доля обзоров, с которой карточка не показывается: «не меньше половины» — в этом виде правило проверено на B v2.
+REVIEW_SHARE_LIMIT = 0.5
 REVIEW_RE = re.compile(
     r"\b(review|survey|overview|roadmap|state[- ]of[- ]the[- ]art|perspective|tutorial|progress|advances|trends|"
     r"prospects|challenges|обзор|перспектив|тенденци)\w*",
@@ -137,9 +140,14 @@ def prefilter(composition: Composition, check_reviews: bool = True) -> tuple[Dec
         return (Decision.HYPE_OR_NOISE, "RUBRIC_NO_INDEPENDENT_SOURCE",
                 f"Нет независимого доверенного источника (только {kinds}): по ТЗ такие источники не могут быть "
                 "единственным основанием для включения в выдачу.")
-    if check_reviews and composition.review_share >= 0.5:
+    return reviews_dominate(composition) if check_reviews else None
+
+
+def reviews_dominate(composition: Composition, whose: str = "источников") -> tuple[Decision, str, str] | None:
+    """Обзоры — не меньше половины источников: аналитика направления, а не конкретная технология; не показывать."""
+    if composition.total and composition.review_share >= REVIEW_SHARE_LIMIT:
         return (Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_REVIEWS",
-                f"Больше половины источников — обзоры ({composition.reviews} из {composition.total}): "
+                f"Обзоры — не меньше половины {whose} ({composition.reviews} из {composition.total}): "
                 "это аналитика направления, а не конкретная технология.")
     return None
 

@@ -123,8 +123,8 @@ class AnalyzerClient(Protocol):
     """Клиент `analyzer.AnalyzerService`."""
 
     async def start_analysis(self, idempotency_key: str, collection_id: str, query_text: str,
-                             top_n: int) -> str:
-        """Запускает анализ и возвращает `analysis_id`."""
+                             top_n: int, max_candidates: int = 0) -> str:
+        """Запускает анализ и возвращает `analysis_id`; `max_candidates` 0 — значение analyzer по умолчанию."""
 
     async def get_analysis(self, analysis_id: str) -> AnalysisView:
         """Состояние анализа."""
@@ -159,9 +159,10 @@ class InsightClient(Protocol):
         """Смысловая оценка кандидатов; пустой словарь — оценка недоступна."""
 
     async def judge_rubric(
-        self, query_text: str, items: Sequence[RubricRequestItem]
+        self, query_text: str, items: Sequence[RubricRequestItem], final_check: bool = False
     ) -> dict[str, JudgeVerdictView]:
-        """Рубричная оценка кандидатов с полным контекстом источников (режим отбора rubric)."""
+        """Рубричная оценка кандидатов с полным контекстом источников (режим отбора rubric); `final_check` —
+        финальная проверка готовых карточек со строгими правилами темы."""
 
     async def finalize_cards(
         self, query_text: str, cards: Sequence[FinalizeRequestCard]

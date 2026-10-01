@@ -138,18 +138,97 @@ class FinalizeOutcome:
 
 
 def card_payload(short_id: str, card: CardInput) -> dict:
-    """Карточка в JSON-вход модели; документы — под короткими номерами d1…dN."""
+    """Карточка в JSON-вход модели; документы — под короткими номерами d1…dN, у каждого — допустимые термины."""
     return {
         "id": short_id,
         "auto_title": card.title_auto[:200],
         "keyphrases": list(card.keyphrases[:8]),
         "assessment": card.judge_reason_ru[:300],
         "sources": [
-            {"id": f"d{number}", "title": source.title[:300], "site": source.domain, "type": source.source_type,
-             "date": source.published, "lang": source.language_code, "text": source.snippet[:MAX_TEXT]}
+            {"id": f"d{number}", "title": source.title[:300], "terms": list(title_terms(source.title)),
+             "site": source.domain, "type": source.source_type, "date": source.published,
+             "lang": source.language_code, "text": source.snippet[:MAX_TEXT]}
             for number, source in enumerate(card.sources[:MAX_SOURCES], 1)
         ],
     }
+
+
+# Правило термина, шаг 2 (v14): модель получает допустимые термины из заголовков источников карточки. После v11–v12
+# отказ «в названии нет оригинального термина» оставался главной потерей доводки — 10 отказов за прогон. Каждый
+# термин — дословный фрагмент заголовка и проходит term_in_sources, если его источник выбран в source_ids.
+MAX_TERMS_PER_SOURCE = 6
+MAX_TERM_WORDS = 8
+MAX_TERM_CHARS = 80
+_TITLE_PARTS_RE = re.compile(r"[:;|?!()\[\]{}«»\"“”„]|\s[-–—]\s|,\s|\.\s")
+_REPO_TITLE_RE = re.compile(r"^[\w.-]+/([\w.-]+)$")
+_EDGE = " .,;:!?-–—'’`*"
+_BRACKETS = "()[]{}«»\"“”„"
+_CYRILLIC_WORD_RE = re.compile(r"[А-Яа-яЁё]{4,}")
+# Служебные слова: на них заголовок делится на именные группы.
+_TERM_BREAKS = frozenset({
+    "a", "an", "the", "of", "for", "with", "without", "via", "in", "on", "at", "to", "by", "from", "into", "onto",
+    "towards", "toward", "using", "based", "and", "or", "as", "through", "over", "under", "within", "across",
+    "between", "beyond", "versus", "vs", "its", "their", "our", "your", "is", "are", "be", "can", "how", "what",
+    "why", "when", "where", "which", "that", "this", "these", "those", "do", "does", "not", "no", "than", "new",
+    "novel", "more", "less", "&", "в", "во", "на", "и", "с", "со", "по", "из", "к", "ко", "о", "об", "от", "при",
+    "для", "как", "что", "это", "или", "их", "не", "где", "почему", "над", "под", "до", "между", "без", "через",
+    "у", "а", "но", "за", "про", "после", "перед", "его", "ее", "её", "я", "мы", "вы", "ты", "он", "она", "они",
+})
+
+
+def _named(word: str) -> bool:
+    """Именной токен: аббревиатура, заглавная внутри слова или цифра рядом с буквой (VLA, LiDAR, U-Net, 6G)."""
+    letters = [char for char in word if char.isalpha()]
+    if not letters:
+        return False
+    if any(char.isdigit() for char in word) or any(char.isupper() for char in word[1:]):
+        return True
+    return len(letters) >= 2 and all(char.isupper() for char in letters)
+
+
+def _add_term(found: list[str], candidate: str) -> None:
+    """Добавляет фрагмент, если он годится в термин: 1–8 слов, 2–80 символов, одно слово — только именной токен,
+    в группе есть именной токен или значимое слово; повторы (без учёта регистра) не добавляются."""
+    term = candidate.strip(_EDGE)
+    words = term.split()
+    if not words or len(words) > MAX_TERM_WORDS or not 2 <= len(term) <= MAX_TERM_CHARS:
+        return
+    if len(words) == 1 and not _named(term):
+        return
+    if not any(_named(word) or significant_words(word) or _CYRILLIC_WORD_RE.search(word) for word in words):
+        return
+    if normalize_name(term) not in {normalize_name(known) for known in found}:
+        found.append(term)
+
+
+def title_terms(title: str) -> tuple[str, ...]:
+    """Допустимые термины из заголовка источника — дословные фрагменты без скобок: именные группы между служебными
+    словами и знаками препинания (начало заголовка, имя до двоеточия, содержимое скобок идут первыми) и отдельные
+    именные токены; у репозитория «владелец/имя» — имя репозитория."""
+    text = " ".join((title or "").split())
+    repo = _REPO_TITLE_RE.match(text)
+    if repo:
+        name = repo.group(1).strip(_EDGE)
+        return (name,) if 2 <= len(name) <= MAX_TERM_CHARS else ()
+    groups: list[str] = []
+    for part in _TITLE_PARTS_RE.split(text):
+        chunk: list[str] = []
+        for word in [*part.split(), "and"]:  # "and" закрывает последнюю группу фрагмента
+            if word.casefold().strip(_EDGE) in _TERM_BREAKS:
+                _add_term(groups, " ".join(chunk))
+                chunk = []
+            else:
+                chunk.append(word)
+    named: list[str] = []
+    for word in text.split():
+        token = word.strip(_EDGE + _BRACKETS)
+        if _named(token) and not any(char in _BRACKETS for char in token):
+            _add_term(named, token)
+    found: list[str] = []
+    for term in groups[:4] + named + groups[4:]:
+        if normalize_name(term) not in {normalize_name(known) for known in found}:
+            found.append(term)
+    return tuple(found[:MAX_TERMS_PER_SOURCE])
 
 
 _WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё0-9]+")

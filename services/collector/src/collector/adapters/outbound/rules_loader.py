@@ -10,7 +10,7 @@ from typing import Any
 
 import yaml
 
-from collector.domain.classify import ClassificationConfig
+from collector.domain.classify import ClassificationConfig, fold_marker_text
 from collector.domain.values import SourceKey, SourceType, TrustLevel
 
 
@@ -40,6 +40,7 @@ def build_classification_config(
     domain_categories = {
         str(domain): SourceType(category) for domain, category in (rss_domains.get("domains") or {}).items()
     }
+    advertising = (fold_marker_text(str(marker)) for marker in trust_rules.get("advertising_markers") or ())
     return ClassificationConfig(
         source_defaults=source_defaults,
         type_trust=type_trust,
@@ -52,6 +53,7 @@ def build_classification_config(
             str(marker).lower() for marker in trust_rules.get("press_release_title_markers") or ()
         ),
         domain_categories=domain_categories,
+        advertising_markers=tuple(marker for marker in advertising if marker),
     )
 
 
