@@ -25,7 +25,7 @@ import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import LeaveOneGroupOut, StratifiedKFold
 
 from ws_common.signal_classifier import features
 
@@ -48,9 +48,97 @@ def fit(rows: list[dict]) -> tuple[DictVectorizer, LogisticRegression]:
     return vectorizer, model
 
 
+def wilson(k: int, n: int, z: float = 1.96) -> list[float] | None:
+    """95 % интервал Уилсона для доли k/n; None при нулевом знаменателе (метрика не определена)."""
+    if n <= 0:
+        return None
+    phat = k / n
+    denom = 1 + z * z / n
+    centre = (phat + z * z / (2 * n)) / denom
+    half = z * ((phat * (1 - phat) / n + z * z / (4 * n * n)) ** 0.5) / denom
+    return [round(max(0.0, centre - half), 4), round(min(1.0, centre + half), 4)]
+
+
 def scores(y: list[int], p: list[int]) -> dict:
-    return {"n": len(y), "accuracy": round(accuracy_score(y, p), 4), "precision": round(precision_score(y, p, zero_division=0), 4),
-            "recall": round(recall_score(y, p, zero_division=0), 4), "f1": round(f1_score(y, p, zero_division=0), 4)}
+    """Метрики с матрицей ошибок и 95 % интервалами (аудит A1/D2: точечные оценки без CI вводили в заблуждение)."""
+    tp = sum(1 for a, b in zip(y, p) if a == 1 and b == 1)
+    fp = sum(1 for a, b in zip(y, p) if a == 0 and b == 1)
+    fn = sum(1 for a, b in zip(y, p) if a == 1 and b == 0)
+    tn = sum(1 for a, b in zip(y, p) if a == 0 and b == 0)
+    positives = tp + fn
+    return {"n": len(y), "accuracy": round(accuracy_score(y, p), 4) if y else None,
+            "precision": round(precision_score(y, p, zero_division=0), 4) if y else None,
+            "recall": round(recall_score(y, p, zero_division=0), 4) if positives else None,
+            "f1": round(f1_score(y, p, zero_division=0), 4) if y else None,
+            "confusion": {"tp": tp, "fp": fp, "fn": fn, "tn": tn}, "positives": positives,
+            "majority_accuracy": round(max(positives, len(y) - positives) / len(y), 4) if y else None,
+            "ci95": {"accuracy": wilson(tp + tn, len(y)), "precision": wilson(tp, tp + fp), "recall": wilson(tp, positives)}}
+
+
+def text_length(row: dict) -> int:
+    return len(text_of(row))
+
+
+def length_auc(rows: list[dict]) -> float | None:
+    """AUC одной длины текста (Манн — Уитни): насколько классы различимы без содержания. None без обоих классов."""
+    pos = [text_length(r) for r in rows if int(r["label"]) == 1]
+    neg = [text_length(r) for r in rows if int(r["label"]) == 0]
+    if not pos or not neg:
+        return None
+    wins = sum((a > b) + 0.5 * (a == b) for a in pos for b in neg)
+    return round(wins / (len(pos) * len(neg)), 4)
+
+
+def origin_confound(rows: list[dict]) -> dict:
+    """Совпадает ли класс с происхождением или разметчиком (аудит A1): если каждое значение поля встречается только
+    с одним классом при обоих классах в данных — метрики на этих данных измеряют источник, а не сигнал."""
+    result = {}
+    labels = {int(r["label"]) for r in rows}
+    for field in ("origin", "annotators"):
+        by_value: dict[str, set[int]] = {}
+        for r in rows:
+            if r.get(field) is None:
+                continue
+            by_value.setdefault(json.dumps(r[field], ensure_ascii=False, sort_keys=True), set()).add(int(r["label"]))
+        result[field] = {"values": len(by_value),
+                         "class_equals_field": bool(by_value) and labels == {0, 1}
+                         and all(len(v) == 1 for v in by_value.values()) and len(by_value) >= 2}
+    return result
+
+
+def length_baseline_cv(rows: list[dict], seed: int = SEED) -> dict:
+    """Baseline «только длина текста» с теми же 5 фолдами, что и модель (аудит A1)."""
+    labels = [int(r["label"]) for r in rows]
+    y_all, p_all = [], []
+    for train, test in StratifiedKFold(n_splits=5, shuffle=True, random_state=seed).split(rows, labels):
+        X = np.array([[text_length(rows[i])] for i in train], dtype=float)
+        model = LogisticRegression(max_iter=1000, class_weight="balanced").fit(X, [labels[i] for i in train])
+        y_all += [labels[i] for i in test]
+        p_all += model.predict(np.array([[text_length(rows[i])] for i in test], dtype=float)).tolist()
+    return scores(y_all, p_all)
+
+
+def cross_by_group(rows: list[dict], extra: list[dict], field: str = "domain_tag") -> dict:
+    """Перенос на новую тему (аудит A2): каждый фолд — один домен целиком, обучение на остальных доменах и `extra`."""
+    groups = [str(r.get(field) or "?") for r in rows]
+    labels = [int(r["label"]) for r in rows]
+    y_all, p_all, per_group = [], [], {}
+    if len(set(groups)) < 2:
+        return {"error": f"меньше двух групп по полю {field}"}
+    for train, test in LeaveOneGroupOut().split(rows, labels, groups):
+        train_rows = extra + [rows[i] for i in train]
+        if len({int(r["label"]) for r in train_rows}) < 2:
+            continue
+        vec, model = fit(train_rows)
+        y = [labels[i] for i in test]
+        p = predict(vec, model, [rows[i] for i in test])
+        per_group[groups[test[0]]] = scores(y, p)
+        y_all += y
+        p_all += p
+    result = scores(y_all, p_all)
+    result["per_group"] = per_group
+    result["group_field"] = field
+    return result
 
 
 def predict(vectorizer: DictVectorizer, model: LogisticRegression, rows: list[dict]) -> list[int]:
@@ -87,6 +175,13 @@ def main(argv: list[str]) -> int:
         "own_cv": cross(own, []),
         "own_to_organizers": scores([int(r["label"]) for r in org], predict(vec_own, model_own, org)),
         "organizers_cv": cross(org, own),
+        "organizers_by_domain": cross_by_group(org, own),
+        "evaluation_integrity": {
+            "organizers_cv_split": "rows (StratifiedKFold): темы и авторы общие для обучения и проверки",
+            "organizers_confound": origin_confound(org), "own_confound": origin_confound(own),
+            "length_auc": {"organizers": length_auc(org), "own": length_auc(own)},
+            "length_only_baseline_cv": {"organizers": length_baseline_cv(org), "own": length_baseline_cv(own)},
+        },
     }
     vec, model = fit(own + org)
     names = vec.get_feature_names_out()
@@ -101,8 +196,8 @@ def main(argv: list[str]) -> int:
     for path, payload in ((args.out, exported), (args.report, report)):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(json.dumps({k: report[k] for k in ("own_rows", "organizer_rows", "own_cv", "own_to_organizers", "organizers_cv")},
-                     ensure_ascii=False, indent=1))
+    print(json.dumps({k: report[k] for k in ("own_rows", "organizer_rows", "own_cv", "own_to_organizers", "organizers_cv",
+                                             "organizers_by_domain", "evaluation_integrity")}, ensure_ascii=False, indent=1))
     print("признаки слабого сигнала:", [k for k, _ in report["top_weak_signal_features"][:10]])
     print("признаки зрелости:", [k for k, _ in report["top_mature_features"][:10]])
     return 0
