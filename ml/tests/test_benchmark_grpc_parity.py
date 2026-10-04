@@ -84,7 +84,7 @@ class GrpcParityTest(unittest.TestCase):
 
         def run(insight) -> MemoryResultRepository:  # noqa: ANN001
             results = MemoryResultRepository()
-            asyncio.run(run_narrate(analyzer=LoopbackAnalyzer(context["candidates"], context["labels"]),
+            asyncio.run(run_narrate(analyzer=LoopbackAnalyzer(context["candidates"]),
                                     collector=LoopbackCollector(context["rows"]), insight=insight, results=results,
                                     job_id=base.JOB_ID, query_text=base.TOPIC, analysis_id=base.ANALYSIS_ID, config=config,
                                     check=check))

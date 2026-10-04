@@ -23,6 +23,8 @@
   - `python -m ml.benchmark` с командами verify, replay, funnel, synonyms-template, match, match-score, compare;
   - `tools/quality/human_eval.py score --k` — precision@K.
 - `tools/check_sql_conformance.py` читает все миграции сервиса, а не только `0001`.
+- Повтор режима А идёт от кандидатов живого analyzer. Выгрузка сохраняет `candidate_rows/features/documents.jsonl`,
+  прочитанные так же, как их читает analyzer для orchestrator. Пересчёт анализа сверяется отдельно.
 
 ## 2026-09-29 — v14: точность и объём выдачи
 - orchestrator: включено правило «обзоры — не меньше половины источников → не показывать» — в предфильтре по

@@ -35,6 +35,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", required=True)
     p.add_argument("--set", dest="overrides", action="append", default=[])
     p.add_argument("--repeat", type=int, default=2)
+    p.add_argument("--recompute-analysis", action="store_true",
+                   help="рубрика и доводка от пересчитанного анализа, а не от кандидатов живого задания")
     p = sub.add_parser("funnel")
     p.add_argument("snapshots", nargs="+")
     p.add_argument("--out", required=True)
@@ -70,17 +72,21 @@ def main(argv: list[str] | None = None) -> int:
         overrides = replay.parse_overrides(args.overrides)
         summary, failed = [], 0
         for snapshot in snapshots:
-            results = [replay.replay(snapshot, overrides) for _ in range(max(1, args.repeat))]
+            results = [replay.replay(snapshot, overrides, recompute=args.recompute_analysis) for _ in range(max(1, args.repeat))]
             first = results[0]
             stable = all(r.digest == first.digest and r.status == first.status for r in results)
             _dump(Path(args.out) / f"replay-{snapshot.name}.json", first.as_dict() | {"repeats": len(results), "repeat_stable": stable})
             summary.append({"snapshot": snapshot.name, "topic": snapshot.topic, "status": first.status,
                             "repeat_stable": stable, "cards_live": len(first.live_items), "cards_replay": len(first.items),
                             "misses": {k: first.misses.get(k) for k in ("llm", "embeddings", "encyclopedia")},
-                            "differences": len(first.differences), "issues": first.issues})
+                            "differences": len(first.differences), "issues": first.issues,
+                            "analysis_mode": first.analysis_mode,
+                            "analysis_reproducible": first.analysis_check.get("reproducible"),
+                            "analysis_differences": first.analysis_check.get("differences", [])[:10]})
             failed += (first.status != replay.IDENTICAL and not overrides) or not stable
             print(f"{snapshot.name}: {first.status}, повторов {len(results)}, совпадают между собой: {stable}, "
-                  f"карточек живое/повтор {len(first.live_items)}/{len(first.items)}, без записи {first.misses}")
+                  f"карточек живое/повтор {len(first.live_items)}/{len(first.items)}, без записи {first.misses}, "
+                  f"кандидаты: {first.analysis_mode}, пересчёт анализа совпал: {first.analysis_check.get('reproducible')}")
         _dump(Path(args.out) / "replay_summary.json", {"overrides": overrides, "runs": summary})
         return 1 if failed else 0
     if args.command == "funnel":

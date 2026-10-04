@@ -56,7 +56,9 @@ from ml.benchmark.memory import (  # noqa: E402
     Misses,
     ReplayClock,
     SnapshotCollectorReader,
+    candidate_rows,
     feature_labels,
+    recorded_candidates,
 )
 from ml.benchmark.snapshot import load_snapshot, write_manifest  # noqa: E402
 from orchestrator.application.stages.narrate import NarrateConfig, run_narrate  # noqa: E402
@@ -92,7 +94,8 @@ class TopicEmbedder:
                 if word in text.lower():
                     vector[axis] += 1.0
             seed = int(hashlib.sha256((prefix + text).encode()).hexdigest()[:8], 16)
-            vector += np.random.default_rng(seed).normal(0, 0.05, self.dims).astype(np.float32)
+            # шум 0,15: документы одной темы различимы (не почти-дубли), но собираются в один кластер
+            vector += np.random.default_rng(seed).normal(0, 0.15, self.dims).astype(np.float32)
             rows.append(vector / np.linalg.norm(vector))
         return np.vstack(rows).astype(np.float32)
 
@@ -188,11 +191,12 @@ def analyze(root: Path) -> dict:
                 lexicons=lexicons, clock=FrozenSyncClock(AS_OF),
                 config=RunAnalysisConfig(min_doc_query_sim=0.25, min_cluster_size=2, query_relevance_mode="max")).execute(analysis, "live")
     candidates.assign_ids([], "live")
-    return {"candidates": candidates, "rows": rows,
-            "labels": feature_labels(registry, str(ROOT / "schemas" / "feature_registry_v1.json"))}
+    labels = feature_labels(registry, str(ROOT / "schemas" / "feature_registry_v1.json"))
+    return {"candidates": recorded_candidates(*candidate_rows(candidates.ordered(), ANALYSIS_ID), labels), "rows": rows,
+            "labels": labels}
 
 
-def live_run(root: Path, *, fail_capture: bool = False, record: bool = True) -> dict:
+def live_run(root: Path, *, fail_capture: bool = False, record: bool = True, swap_evidence: bool = False) -> dict:
     """Прогон с записью; пишет снимок в `root` в формате tools/benchmark/freeze.py."""
     registry = load_feature_registry(ROOT / "schemas" / "feature_registry_v1.json")
     lexicons = load_lexicons(ROOT / "services/analyzer/config/lexicons", ROOT / "services/analyzer/config/stage_rules.yaml")
@@ -231,11 +235,26 @@ def live_run(root: Path, *, fail_capture: bool = False, record: bool = True) -> 
     async def check() -> None:
         return None
 
-    asyncio.run(run_narrate(analyzer=LoopbackAnalyzer(candidates, feature_labels(registry, str(ROOT / "schemas" / "feature_registry_v1.json"))),
+    # Живой orchestrator получает кандидатов из базы analyzer: те же строки снимок сохраняет в candidate_*.jsonl.
+    # swap_evidence имитирует ничью по близости, которую PostgreSQL разрешил не так, как пересчёт анализа.
+    labels = feature_labels(registry, str(ROOT / "schemas" / "feature_registry_v1.json"))
+    db_rows, db_features, db_documents = candidate_rows(candidates.ordered(), ANALYSIS_ID)
+    if swap_evidence:
+        target = next(row["candidate_id"] for row in db_rows if sum(d["candidate_id"] == row["candidate_id"] for d in db_documents) >= 2)
+        positions = [i for i, d in enumerate(db_documents) if d["candidate_id"] == target][:2]
+        first, second = positions
+        db_documents[first], db_documents[second] = db_documents[second], db_documents[first]
+        tie = db_documents[first]["similarity"]
+        db_documents[second] = db_documents[second] | {"similarity": tie}
+    live_candidates = recorded_candidates(db_rows, db_features, db_documents, labels)
+    asyncio.run(run_narrate(analyzer=LoopbackAnalyzer(live_candidates),
                             collector=LoopbackCollector(rows), insight=insight, results=results, job_id=JOB_ID, query_text=TOPIC,
                             analysis_id=ANALYSIS_ID, config=narrate_config, check=check))
     if not record:
         return {"status": status.value, "items": sorted(results.items, key=lambda i: i.rank)}
+    for name, payload in (("candidate_rows.jsonl", db_rows), ("candidate_features.jsonl", db_features),
+                          ("candidate_documents.jsonl", db_documents)):
+        (root / name).write_text("".join(json.dumps(item, ensure_ascii=False) + "\n" for item in payload), encoding="utf-8")
     (root / "documents.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     (root / "capture.json").write_text(json.dumps({
         "as_of": capture.as_of.isoformat(), "model_version_id": capture.model_version_id,
@@ -345,6 +364,30 @@ class ReplayTest(unittest.TestCase):
         result = replay_module.replay(load_snapshot(copy))
         self.assertEqual(result.status, replay_module.INCOMPLETE)
         self.assertTrue(any("vectors.npz" in issue for issue in result.issues))
+
+    def test_replay_uses_recorded_candidates_and_checks_recomputation(self) -> None:
+        result = replay_module.replay(self.snapshot)
+        self.assertEqual(result.analysis_mode, "recorded")
+        self.assertTrue(result.analysis_check["reproducible"], result.analysis_check)
+        self.assertEqual(replay_module.replay(self.snapshot, recompute=True).status, replay_module.IDENTICAL)
+
+    def test_database_tie_order_is_taken_from_live_candidates(self) -> None:
+        # Случай edge (04.10.2026): два источника кандидата с равной близостью база отдала в другом порядке, чем
+        # их строит пересчёт анализа. Повтор от кандидатов живого задания совпадает; от пересчёта — нет.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "swap"
+            root.mkdir()
+            live_run(root, swap_evidence=True)
+            snapshot = load_snapshot(root)
+            exact = replay_module.replay(snapshot)
+            again = replay_module.replay(snapshot, recompute=True)
+        self.assertEqual(exact.status, replay_module.IDENTICAL, exact.differences or exact.misses)
+        self.assertFalse(exact.analysis_check["reproducible"])
+        self.assertEqual(exact.analysis_check["ties"], 1)
+        self.assertTrue(any("порядок источников (равная близость)" in d for d in exact.analysis_check["differences"]))
+        self.assertEqual(again.analysis_mode, "recomputed")
+        self.assertEqual(again.status, replay_module.INCOMPLETE)
+        self.assertGreater(again.misses["llm"], 0)
 
     def test_bad_override_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

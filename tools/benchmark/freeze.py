@@ -25,6 +25,16 @@ SCHEMA = "ws-benchmark-snapshot/1"
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 SECRET_RE = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|CREDENTIALS|AUTH)", re.IGNORECASE)
 TRACE_STAGES = ("job", "expand", "collect", "analyze", "narrate")
+# Кандидаты читаются так же, как их читает analyzer для orchestrator (PostgresCandidateRepository.list_candidates):
+# страницы по CANDIDATES_PAGE_SIZE = 50 в порядке (grp, ord, cluster_index), документы — одним запросом на страницу
+# с ORDER BY similarity DESC. Порядок документов с равной близостью задаёт PostgreSQL, и повтор берёт именно его.
+PAGE_SIZE = 50
+CANDIDATES_ORDERED = (
+    "SELECT row_to_json(o) FROM (SELECT c.*, "
+    "(CASE WHEN decision = 'WEAK_SIGNAL' THEN 0 ELSE 1 END) AS grp, "
+    "(CASE WHEN decision = 'WEAK_SIGNAL' THEN rank::double precision ELSE -score END) AS ord "
+    "FROM analyzer.candidates c WHERE c.analysis_id = '{analysis_id}') o ORDER BY o.grp, o.ord, o.cluster_index"
+)
 
 
 def psql_json(query: str):  # noqa: ANN201
@@ -35,6 +45,24 @@ def psql_json(query: str):  # noqa: ANN201
         raise RuntimeError(f"psql: {result.stderr.strip()[:300]}")
     text = result.stdout.strip()
     return json.loads(text) if text else None
+
+
+def psql_rows(query: str) -> list:
+    """Строки результата по одной на строку вывода (порядок строк — порядок запроса)."""
+    return [json.loads(line) for line in psql_text(query).splitlines() if line.strip()]
+
+
+def candidate_pages(analysis_id: str) -> tuple[list, list, list]:
+    """Кандидаты, их признаки и документы в том порядке, в каком их получил живой orchestrator."""
+    rows = psql_rows(CANDIDATES_ORDERED.format(analysis_id=analysis_id))
+    features, documents = [], []
+    for start in range(0, len(rows), PAGE_SIZE):
+        ids = ",".join(f"'{row['candidate_id']}'" for row in rows[start : start + PAGE_SIZE])
+        array = f"ARRAY[{ids}]::uuid[]"
+        features += psql_rows(f"SELECT row_to_json(t) FROM analyzer.candidate_features t WHERE t.candidate_id = ANY({array})")
+        documents += psql_rows("SELECT row_to_json(t) FROM analyzer.candidate_documents t "
+                               f"WHERE t.candidate_id = ANY({array}) ORDER BY t.similarity DESC")
+    return rows, features, documents
 
 
 def psql_text(query: str) -> str:
@@ -176,6 +204,12 @@ def freeze_job(job_id: str, out: Path) -> tuple[Path, list[str]]:
             f"WHERE cd.candidate_id = ca.candidate_id) AS document_ids FROM analyzer.candidates ca WHERE ca.analysis_id = '{analysis_id}') c")
         dump(root / "analysis.json", {"analysis_id": analysis_id, "collection_id": collection_id, "analysis": analysis,
                                       "candidates": candidates})
+        rows, features, documents = candidate_pages(analysis_id)
+        dump_lines(root / "candidate_rows.jsonl", rows)
+        dump_lines(root / "candidate_features.jsonl", features)
+        dump_lines(root / "candidate_documents.jsonl", documents)
+        if len(rows) != len(candidates or []):
+            issues.append(f"кандидатов в постраничной выгрузке {len(rows)}, в анализе {len(candidates or [])}")
         capture = psql_json(
             "SELECT json_build_object('as_of', as_of, 'model_version_id', model_version_id, 'embedding_model', embedding_model, "
             "'query_text', query_text, 'params', params, 'config', config, 'funnel', funnel, 'encyclopedia', encyclopedia, "

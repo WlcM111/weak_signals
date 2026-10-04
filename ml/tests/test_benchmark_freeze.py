@@ -41,9 +41,12 @@ REQUIRED = {
     "collector.raw_responses": {"collection_id", "run_id", "seq", "source_key", "method", "url", "request_body", "outcome",
                                 "error_message", "body_gzip", "body_sha256", "body_bytes", "started_at", "duration_ms"},
     "analyzer.analyses": {"analysis_id"},
-    "analyzer.candidates": {"candidate_id", "analysis_id", "cluster_index", "title_auto", "keyphrases", "decision",
-                            "decision_reason", "score"},
-    "analyzer.candidate_documents": {"candidate_id", "document_id", "similarity"},
+    "analyzer.candidates": {"candidate_id", "analysis_id", "cluster_index", "rank", "title_auto", "keyphrases", "score",
+                            "decision", "decision_reason", "decision_explanation_ru", "document_count", "query_relevance",
+                            "predicted_stage", "predicted_trend"},
+    "analyzer.candidate_documents": {"candidate_id", "document_id", "similarity", "is_evidence", "snippet", "source_type",
+                                     "trust_level", "published_year"},
+    "analyzer.candidate_features": {"candidate_id", "feature_name", "value", "contribution"},
     "analyzer.analysis_captures": {"analysis_id", "as_of", "model_version_id", "embedding_model", "query_text", "params",
                                    "config", "funnel", "encyclopedia", "vectors", "vectors_sha256"},
     "analyzer.model_versions": {"model_version_id", "artifact_path"},
@@ -78,6 +81,21 @@ class FreezeSchemaTest(unittest.TestCase):
             self.assertEqual(columns - schema[table], set(), table)
         used = set(re.findall(r"\b((?:orchestrator|collector|analyzer|insight)\.[a-z_]+)\b", FREEZE.read_text(encoding="utf-8")))
         self.assertEqual(used - set(REQUIRED), set(), "freeze.py обращается к таблицам вне проверенного списка")
+
+    def test_candidates_are_read_like_the_analyzer_repository(self) -> None:
+        repository = (ROOT / "services/analyzer/src/analyzer/adapters/outbound/postgres/candidate_repository.py").read_text(encoding="utf-8")
+        freeze = FREEZE.read_text(encoding="utf-8")
+        for expression in ("(CASE WHEN decision = 'WEAK_SIGNAL' THEN 0 ELSE 1 END) AS grp",
+                           "(CASE WHEN decision = 'WEAK_SIGNAL' THEN rank::double precision ELSE -score END) AS ord"):
+            self.assertIn(expression, repository)
+            self.assertIn(expression, freeze)
+        self.assertIn("ORDER BY grp, ord, cluster_index", repository)
+        self.assertIn("ORDER BY o.grp, o.ord, o.cluster_index", freeze)
+        self.assertIn("ORDER BY similarity DESC", repository)
+        self.assertIn("ORDER BY t.similarity DESC", freeze)
+        page = (ROOT / "services/orchestrator/src/orchestrator/application/stages/narrate.py").read_text(encoding="utf-8")
+        self.assertIn("CANDIDATES_PAGE_SIZE = 50", page)
+        self.assertIn("PAGE_SIZE = 50", freeze)
 
     def test_job_text_comes_from_queries(self) -> None:
         text = FREEZE.read_text(encoding="utf-8")
@@ -138,6 +156,18 @@ class FreezeEndToEndTest(unittest.TestCase):
                         return answer
                 raise AssertionError(f"неожиданный запрос выгрузки: {query[:120]}")
 
+            lines = {name: [json.loads(line) for line in (live / name).read_text(encoding="utf-8").splitlines() if line]
+                     for name in ("candidate_rows.jsonl", "candidate_features.jsonl", "candidate_documents.jsonl")}
+
+            def psql_rows(query: str) -> list:
+                if "FROM analyzer.candidates c WHERE c.analysis_id" in query:
+                    return lines["candidate_rows.jsonl"]
+                if "FROM analyzer.candidate_features t" in query:
+                    return lines["candidate_features.jsonl"]
+                if "FROM analyzer.candidate_documents t" in query:
+                    return lines["candidate_documents.jsonl"]
+                raise AssertionError(f"неожиданный запрос выгрузки: {query[:120]}")
+
             def psql_text(query: str) -> str:
                 if "encode(vectors" in query:
                     return base64.encodebytes(blob).decode()
@@ -155,7 +185,7 @@ class FreezeEndToEndTest(unittest.TestCase):
                 shutil.copytree(sources[source], target)
                 return ""
 
-            freeze.psql_json, freeze.psql_text, freeze.compose_cp = psql_json, psql_text, compose_cp
+            freeze.psql_json, freeze.psql_text, freeze.compose_cp, freeze.psql_rows = psql_json, psql_text, compose_cp, psql_rows
             freeze.compose_env = lambda service, name: "/models"
             freeze.subprocess = types.SimpleNamespace(run=lambda *a, **k: types.SimpleNamespace(stdout="", stderr="", returncode=0),
                                                       SubprocessError=Exception)
@@ -166,6 +196,7 @@ class FreezeEndToEndTest(unittest.TestCase):
             self.assertEqual(snapshot.verify(), [])
             result = replay(snapshot)
             self.assertEqual(result.status, IDENTICAL, result.differences or result.issues or result.misses)
+            self.assertEqual(result.analysis_mode, "recorded")
             self.assertEqual(funnel.funnel(snapshot)["collection"]["sources"]["openalex"]["outcome"], funnel.OK)
             self.assertIsNone(expert_match.match([snapshot], [], {})["runs"][0]["domain"])
 

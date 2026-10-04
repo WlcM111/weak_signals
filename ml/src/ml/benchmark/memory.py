@@ -251,15 +251,20 @@ def feature_labels(registry: Any, registry_path: str) -> dict[str, str]:
 
 
 class LoopbackAnalyzer:
-    """Порт AnalyzerClient orchestrator поверх кандидатов повтора (через те же преобразования, что gRPC)."""
+    """Порт AnalyzerClient orchestrator поверх кандидатов повтора (через те же преобразования, что gRPC).
 
-    def __init__(self, repository: MemoryCandidateRepository, labels: dict[str, str]) -> None:
-        self._repository = repository
-        self._labels = labels
+    Источник — пересчитанный анализ (`MemoryCandidateRepository`, подписи признаков подставляются как при чтении из
+    базы) или готовый список кандидатов, прочитанных из снимка тем же кодом, что и в живом analyzer.
+    """
+
+    def __init__(self, source: Any, labels: dict[str, str] | None = None) -> None:
+        self._source = source
+        self._labels = labels or {}
 
     async def list_candidates(self, analysis_id: str, *, include_excluded: bool, page_size: int, page_token: str):  # noqa: ANN201
         views = []
-        for candidate in self._repository.ordered():
+        ordered = self._source.ordered() if hasattr(self._source, "ordered") else list(self._source)
+        for candidate in ordered:
             if not include_excluded and candidate.decision.value != "WEAK_SIGNAL":
                 continue
             features = tuple(dataclasses.replace(f, label_ru=self._labels.get(f.feature_name, f.label_ru))
@@ -267,6 +272,47 @@ class LoopbackAnalyzer:
             proto = wire(to_proto_candidate(dataclasses.replace(candidate, features=features), analysis_id))
             views.append(orchestrator_mappers.to_candidate_view(proto))
         return views, ""
+
+
+def candidate_rows(ordered: Sequence[Any], analysis_id: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Строки базы для кандидатов пересчитанного анализа — как их записал бы и прочитал репозиторий analyzer.
+
+    Близость хранится как real (float32), документы читаются с ORDER BY similarity DESC; при равной близости
+    сохраняется порядок analyzer (в живой базе его задаёт PostgreSQL — поэтому точный повтор берёт строки из снимка).
+    """
+    rows, features, documents = [], [], []
+    for candidate in ordered:
+        rows.append({"candidate_id": candidate.candidate_id, "analysis_id": analysis_id,
+                     "cluster_index": candidate.cluster_index, "rank": candidate.rank, "title_auto": candidate.title_auto,
+                     "keyphrases": list(candidate.keyphrases), "score": float(candidate.score),
+                     "decision": candidate.decision.value, "decision_reason": candidate.decision_reason.value,
+                     "decision_explanation_ru": candidate.decision_explanation_ru,
+                     "document_count": candidate.document_count, "query_relevance": float(candidate.query_relevance),
+                     "predicted_stage": candidate.predicted_stage, "predicted_trend": candidate.predicted_trend})
+        features += [{"candidate_id": candidate.candidate_id, "feature_name": f.feature_name, "value": float(f.value),
+                      "contribution": float(f.contribution)} for f in candidate.features]
+        docs = [{"candidate_id": candidate.candidate_id, "document_id": d.document_id,
+                 "similarity": float(np.float32(d.similarity)), "is_evidence": bool(d.is_evidence), "snippet": d.snippet,
+                 "source_type": d.source_type.value, "trust_level": d.trust_level.value,
+                 "published_year": d.published_year} for d in candidate.documents]
+        documents += sorted(docs, key=lambda item: -item["similarity"])
+    return rows, features, documents
+
+
+def recorded_candidates(rows: Sequence[dict[str, Any]], features: Sequence[dict[str, Any]],
+                        documents: Sequence[dict[str, Any]], labels: dict[str, str]) -> list[Any]:
+    """Кандидаты живого анализа из строк базы — тем же кодом, каким их собирает репозиторий analyzer."""
+    from analyzer.adapters.outbound.postgres.candidate_repository import PostgresCandidateRepository  # noqa: PLC0415
+
+    by_features: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_documents: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for item in features:
+        by_features[str(item["candidate_id"])].append(item)
+    for item in documents:
+        by_documents[str(item["candidate_id"])].append(item)
+    builder = PostgresCandidateRepository(None, labels)
+    return [builder._build_candidate(row, by_features[str(row["candidate_id"])], by_documents[str(row["candidate_id"])])  # noqa: SLF001
+            for row in rows]
 
 
 class LoopbackCollector:

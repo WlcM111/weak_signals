@@ -28,6 +28,8 @@ from ml.benchmark.memory import (
     MemoryInsightRepository,
     MemoryResultRepository,
     Misses,
+    candidate_rows,
+    recorded_candidates,
     ReplayClock,
     ReplayEmbedder,
     ReplayProvider,
@@ -57,6 +59,8 @@ class ReplayResult:
     candidates: dict[str, str] = field(default_factory=dict)
     overrides: dict[str, Any] = field(default_factory=dict)
     digest: str = ""
+    analysis_mode: str = ""  # recorded — кандидаты живого анализа из снимка; recomputed — пересчитанный анализ
+    analysis_check: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
@@ -90,8 +94,14 @@ def _paths() -> dict[str, Path]:
     }
 
 
-def replay(snapshot: Snapshot, overrides: dict[str, Any] | None = None) -> ReplayResult:
-    """Повторяет задание снимка; возвращает выдачу повтора и сравнение с живой выдачей."""
+def replay(snapshot: Snapshot, overrides: dict[str, Any] | None = None, *, recompute: bool = False) -> ReplayResult:
+    """Повторяет задание снимка; возвращает выдачу повтора и сравнение с живой выдачей.
+
+    Рубрика, доводка и выдача по умолчанию повторяются от кандидатов, которые живой analyzer записал в базу и отдал
+    orchestrator: так результат не зависит от последних разрядов вычислений на другой машине. Анализ при этом
+    пересчитывается и сверяется с живым (`analysis_check`). От пересчитанного анализа повтор идёт при переопределении
+    параметров analyzer (`analyzer.*`, `params.*`), при `recompute=True` или если снимок выгружен без кандидатов.
+    """
     overrides = dict(overrides or {})
     result = ReplayResult(snapshot=snapshot.name, status=INCOMPLETE, overrides=overrides)
     result.issues += snapshot.verify()
@@ -106,7 +116,24 @@ def replay(snapshot: Snapshot, overrides: dict[str, Any] | None = None) -> Repla
         result.issues.append(f"повтор анализа завершился статусом {analysis_status}")
         result.misses = _misses_dict(misses)
         return result
-    asyncio.run(_replay_narrate(snapshot, overrides, candidates_repo, misses, result))
+    labels = getattr(candidates_repo, "labels", {})
+    analysis_id = str(snapshot.json("analysis.json")["analysis_id"])
+    recomputed = recorded_candidates(*candidate_rows(candidates_repo.ordered(), analysis_id), labels)
+    live = recorded_candidates(snapshot.jsonl("candidate_rows.jsonl"), snapshot.jsonl("candidate_features.jsonl"),
+                               snapshot.jsonl("candidate_documents.jsonl"), labels) if snapshot.has("candidate_rows.jsonl") else []
+    if live:
+        result.analysis_check = compare_analysis(live, recomputed)
+    analyzer_overrides = any(key.split(".", 1)[0] in ("analyzer", "params") for key in overrides)
+    if live and not recompute and not analyzer_overrides:
+        result.analysis_mode = "recorded"
+        source: Any = live
+    else:
+        result.analysis_mode = "recomputed"
+        source = recomputed
+        if not live:
+            result.issues.append("в снимке нет кандидатов analyzer из базы (выгружен до исправления): повтор идёт от "
+                                 "пересчитанного анализа; выгрузите снимок заново для точного повтора")
+    asyncio.run(_replay_narrate(snapshot, overrides, source, None, misses, result))
     result.misses = _misses_dict(misses)
     result.live_items = live_items(snapshot)
     result.digest = hashlib.sha256(json.dumps(result.items, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
@@ -133,6 +160,36 @@ def compare(live: list[dict[str, Any]], replayed: list[dict[str, Any]]) -> list[
             if left.get(key) != right.get(key):
                 differences.append(f"ранг {left.get('rank')}: {key}: живое {left.get(key)!r}, повтор {right.get(key)!r}")
     return differences
+
+
+def compare_analysis(live: list[Any], recomputed: list[Any]) -> dict[str, Any]:
+    """Сверка пересчитанного анализа с живым: те же ли кандидаты, названия, ключевые фразы и порядок источников.
+
+    Порядок источников с равной близостью в живом задании задаёт PostgreSQL, поэтому такое расхождение отмечается
+    отдельно: оно не означает ошибки анализа, но меняет запросы к модели.
+    """
+    by_id = {c.candidate_id: c for c in recomputed}
+    differences, ties = [], 0
+    for candidate in live:
+        other = by_id.get(candidate.candidate_id)
+        if other is None:
+            differences.append(f"{candidate.candidate_id}: кластер пересчитан иначе")
+            continue
+        for name in ("title_auto", "keyphrases", "decision", "decision_reason"):
+            if getattr(candidate, name) != getattr(other, name):
+                differences.append(f"{candidate.candidate_id}: {name}")
+        if abs(float(candidate.score) - float(other.score)) > 1e-9:
+            differences.append(f"{candidate.candidate_id}: score")
+        order_live = [d.document_id for d in candidate.documents]
+        order_new = [d.document_id for d in other.documents]
+        if order_live != order_new:
+            similarity = {d.document_id: d.similarity for d in candidate.documents}
+            tied = sorted(set(order_live) ^ set(order_new)) == [] and all(
+                similarity[a] == similarity[b] for a, b in zip(order_live, order_new, strict=True) if a != b)
+            ties += tied
+            differences.append(f"{candidate.candidate_id}: порядок источников" + (" (равная близость)" if tied else ""))
+    return {"candidates_live": len(live), "candidates_recomputed": len(recomputed), "reproducible": not differences,
+            "differences": differences[:50], "ties": ties}
 
 
 def _misses_dict(misses: Misses) -> dict[str, Any]:
@@ -188,7 +245,7 @@ def _replay_analysis(snapshot: Snapshot, overrides: dict[str, Any], misses: Miss
     return candidates, status_name
 
 
-async def _replay_narrate(snapshot: Snapshot, overrides: dict[str, Any], candidates: MemoryCandidateRepository,
+async def _replay_narrate(snapshot: Snapshot, overrides: dict[str, Any], candidates: Any, labels: dict[str, str] | None,
                           misses: Misses, result: ReplayResult) -> None:
     from insight.application.prompt_builder import PromptBuilder  # noqa: PLC0415
     from insight.application.provider_chain import ChainConfig, ProviderChain  # noqa: PLC0415
@@ -232,7 +289,7 @@ async def _replay_narrate(snapshot: Snapshot, overrides: dict[str, Any], candida
     async def check() -> None:
         return None
 
-    await run_narrate(analyzer=LoopbackAnalyzer(candidates, getattr(candidates, "labels", {})),
+    await run_narrate(analyzer=LoopbackAnalyzer(candidates, labels),
                       collector=LoopbackCollector(snapshot.jsonl("documents.jsonl")), insight=insight if order else None,
                       results=results, job_id=snapshot.job_id, query_text=str(job.get("query_text") or snapshot.topic),
                       analysis_id=str(snapshot.json("analysis.json")["analysis_id"]), config=config, check=check)
