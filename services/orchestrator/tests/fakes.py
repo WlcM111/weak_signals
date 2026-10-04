@@ -259,6 +259,13 @@ class InMemoryResultRepository:
         )
 
 
+    async def save_trace(self, job_id: str, stage: str, payload: dict) -> None:
+        """Трасса стадии задания (этап 2): последняя запись по стадии."""
+        if not hasattr(self, "traces"):
+            self.traces = {}
+        self.traces.setdefault(job_id, {})[stage] = payload
+
+
 class InMemoryIdempotencyRepository:
     """Реализация `IdempotencyRepository` в памяти."""
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from urllib.parse import urlsplit
 
 import grpc
 from weaksignals.analyzer.v1 import analyzer_pb2, analyzer_pb2_grpc
@@ -27,7 +26,6 @@ from orchestrator.application.dto import (
     ScoreTextView,
 )
 from orchestrator.domain.errors import UpstreamUnavailable
-from orchestrator.domain.values import NarrativeStatus, SummaryKind
 from ws_common.ids import current_correlation_id
 from ws_common.logging import get_logger
 
@@ -229,102 +227,34 @@ class GrpcInsightClient:
         self, query_text: str, candidates: Sequence[CandidateView]
     ) -> dict[str, JudgeVerdictView]:
         """Смысловая оценка кандидатов; ответ с used_fallback даёт пустой словарь."""
-        request = insight_pb2.JudgeCandidatesRequest(
-            query_text=query_text,
-            items=[
-                insight_pb2.JudgeItem(
-                    candidate_id=candidate.candidate_id,
-                    title=candidate.title_auto,
-                    keyphrases=list(candidate.keyphrases[:8]),
-                    evidence=[item.snippet[:300] for item in candidate.evidence[:3]],
-                )
-                for candidate in candidates
-            ],
-        )
+        request = mappers.judge_request(query_text, candidates)
         try:
             response = await self._stub.JudgeCandidates(request, timeout=JUDGE_DEADLINE, metadata=_md())
         except grpc.aio.AioRpcError as error:
             raise _fail("JudgeCandidates", error) from error
-        return {
-            verdict.candidate_id: JudgeVerdictView(
-                verdict.candidate_id, verdict.verdict, verdict.relevance, verdict.reason_ru
-            )
-            for verdict in response.verdicts
-        }
+        return mappers.judge_verdicts(response)
 
     async def judge_rubric(
         self, query_text: str, items: Sequence[RubricRequestItem], final_check: bool = False
     ) -> dict[str, JudgeVerdictView]:
         """Рубричная оценка (режим rubric_v2, финальная проверка — rubric_final); used_fallback — пустой словарь."""
-        request = insight_pb2.JudgeCandidatesRequest(
-            query_text=query_text,
-            mode="rubric_final" if final_check else "rubric_v2",
-            items=[
-                insight_pb2.JudgeItem(
-                    candidate_id=item.candidate.candidate_id,
-                    title=item.candidate.title_auto,
-                    keyphrases=list(item.candidate.keyphrases[:8]),
-                    sources=[_judge_source(document, 400) for document in item.documents[:6]],
-                    composition_ru=item.composition_ru[:600],
-                )
-                for item in items
-            ],
-        )
+        request = mappers.rubric_request(query_text, items, final_check)
         try:
             response = await self._stub.JudgeCandidates(request, timeout=RUBRIC_DEADLINE, metadata=_md())
         except grpc.aio.AioRpcError as error:
             raise _fail("JudgeCandidates", error) from error
-        return {
-            v.candidate_id: JudgeVerdictView(
-                v.candidate_id, v.verdict, v.relevance, v.reason_ru, code=v.code, on_topic=v.on_topic,
-                concrete=v.concrete, early_stage=v.early_stage, verifiable=v.verifiable, stage=v.stage,
-                trend=v.trend, confidence=round(float(v.confidence), 4),
-                technology_ru=v.technology_ru, profile_ru=v.profile_ru,
-            )
-            for v in response.verdicts
-            if v.code and 1 <= v.stage <= 4 and 1 <= v.trend <= 3
-        }
+        return mappers.rubric_verdicts(response)
 
     async def finalize_cards(
         self, query_text: str, cards: Sequence[FinalizeRequestCard]
     ) -> dict[str, FinalizedCardView]:
         """Пакетная доводка карточек; в ответе только карточки, прошедшие проверку по источникам."""
-        request = insight_pb2.FinalizeCardsRequest(
-            query_text=query_text,
-            cards=[
-                insight_pb2.FinalizeCard(
-                    candidate_id=card.candidate.candidate_id,
-                    title_auto=card.candidate.title_auto,
-                    keyphrases=list(card.candidate.keyphrases[:8]),
-                    sources=[_judge_source(document, 1500) for document in card.documents[:5]],
-                    stage=card.stage,
-                    trend=card.trend,
-                    judge_reason_ru=card.judge_reason_ru[:300],
-                )
-                for card in cards
-            ],
-        )
+        request = mappers.finalize_request(query_text, cards)
         try:
             response = await self._stub.FinalizeCards(request, timeout=FINALIZE_DEADLINE, metadata=_md())
         except grpc.aio.AioRpcError as error:
             raise _fail("FinalizeCards", error) from error
-        return {
-            card.candidate_id: FinalizedCardView(
-                candidate_id=card.candidate_id, title_ru=card.title_ru, description_ru=card.description_ru,
-                advantage_ru=card.advantage_ru, case_example_ru=card.case_example_ru,
-                case_document_id=card.case_document_id, why_ru=card.why_ru, companies=tuple(card.companies),
-                stage=card.stage, trend=card.trend, stage_reason_ru=card.stage_reason_ru,
-                trend_reason_ru=card.trend_reason_ru,
-                source_summaries={
-                    summary.document_id: (summary.summary_ru, insight_pb2.SummaryKind.Name(summary.kind).removeprefix("SUMMARY_KIND_"))
-                    for summary in card.source_summaries
-                },
-                llm_provider=response.provider, llm_model=response.model,
-                prompt_version=response.prompt_version or "finalize_v1",
-            )
-            for card in response.cards
-            if card.title_ru
-        }
+        return mappers.finalized_cards(response)
 
     async def generate_insight(
         self,
@@ -335,86 +265,9 @@ class GrpcInsightClient:
         prompt_version: str,
     ) -> NarrativeView:
         """Генерация нарратива кандидата на переданных доказательствах."""
-        request = insight_pb2.GenerateInsightRequest(
-            idempotency_key=idempotency_key,
-            candidate=insight_pb2.CandidateContext(
-                candidate_id=candidate.candidate_id,
-                title=candidate.title_auto,
-                keyphrases=list(candidate.keyphrases),
-                score=candidate.score,
-                decision=analyzer_pb2.Decision.Value(f"DECISION_{candidate.decision.name}"),
-                top_features=[
-                    analyzer_pb2.FeatureContribution(
-                        feature_name=feature.feature_name,
-                        value=feature.value,
-                        contribution=feature.contribution,
-                        label_ru=feature.label_ru,
-                        direction=feature.direction.value,
-                    )
-                    for feature in candidate.features[:8]
-                ],
-                query_text=query_text,
-            ),
-            evidence=[
-                insight_pb2.EvidenceDocument(
-                    document_id=document.document_id,
-                    title=document.title,
-                    url=document.url,
-                    text=document.text,
-                    language_code=document.language_code,
-                    source_type=common_pb2.SourceType.Value(f"SOURCE_TYPE_{document.source_type}"),
-                    trust_level=common_pb2.TrustLevel.Value(f"TRUST_LEVEL_{document.trust_level.value}"),
-                )
-                for document in evidence
-            ],
-            allow_fallback=True,
-        )
+        request = mappers.generate_request(idempotency_key, candidate, query_text, evidence)
         try:
             response = await self._stub.GenerateInsight(request, timeout=INSIGHT_DEADLINE, metadata=_md())
         except grpc.aio.AioRpcError as error:
             raise _fail("GenerateInsight", error) from error
-        narrative = response.narrative
-        provenance = response.provenance
-        status = (
-            NarrativeStatus.GENERATED
-            if insight_pb2.InsightStatus.Name(response.status) == "INSIGHT_STATUS_GENERATED"
-            else NarrativeStatus.FALLBACK_EXTRACTIVE
-        )
-        return NarrativeView(
-            title_ru=narrative.title_ru,
-            description_ru=narrative.description_ru,
-            advantage_ru=narrative.advantage_ru,
-            case_example_ru=narrative.case_example_ru,
-            explanation_ru=narrative.explanation_ru,
-            status=status.value,
-            llm_provider=provenance.provider,
-            llm_model=provenance.model,
-            prompt_version=provenance.prompt_version or prompt_version,
-            case_document_id=narrative.case_document_id,
-            source_summaries={
-                summary.document_id: (
-                    summary.summary_ru,
-                    SummaryKind[
-                        insight_pb2.SummaryKind.Name(summary.kind).removeprefix("SUMMARY_KIND_")
-                    ].value,
-                )
-                for summary in response.source_summaries
-            },
-        )
-
-
-def _judge_source(document: DocumentView, snippet_chars: int):  # noqa: ANN202 - insight_pb2.JudgeSource
-    """Документ → источник для рубричной оценки и доводки (полный контекст, фрагмент ограничен)."""
-    published = document.published_at.date().isoformat() if document.published_at else ""
-    host = urlsplit(document.url or "").hostname or ""
-    return insight_pb2.JudgeSource(
-        document_id=document.document_id,
-        title=(document.title or "")[:300],
-        source_key=document.source_key,
-        source_type=document.source_type,
-        trust_level=str(getattr(document.trust_level, "value", document.trust_level)),
-        published=published,
-        language_code=document.language_code,
-        snippet=" ".join((document.text or "").split())[:snippet_chars],
-        domain=host.removeprefix("www."),
-    )
+        return mappers.narrative_view(response, prompt_version)

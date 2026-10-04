@@ -10,10 +10,10 @@ import grpc
 from weaksignals.collector.v1 import collector_pb2, collector_pb2_grpc
 from weaksignals.common.v1 import common_pb2
 
+from analyzer.adapters.outbound.collector_mappers import to_document_ref as _to_document_ref
 from analyzer.application.dto import CollectionInfo, EncyclopediaHit
 from analyzer.domain.entities import DocumentRef
 from analyzer.domain.errors import CollectorUnavailable
-from analyzer.domain.values import SourceType, TrustLevel
 from ws_common.ids import current_correlation_id
 from ws_common.logging import get_logger
 
@@ -129,28 +129,6 @@ class CollectorGrpcClient:
         except grpc.RpcError as error:
             raise _unavailable("StartCollection", error) from error
         return response.collection_id
-
-
-def _to_document_ref(document: common_pb2.Document, relevance_rank: int) -> DocumentRef:
-    """`common.v1.Document` → документ в памяти анализа."""
-    return DocumentRef(
-        document_id=document.document_id,
-        title=document.title,
-        text=document.text,
-        language_code=document.language_code,
-        source_type=SourceType[
-            common_pb2.SourceType.Name(document.source_type).removeprefix("SOURCE_TYPE_")
-        ],
-        trust_level=TrustLevel[
-            common_pb2.TrustLevel.Name(document.trust_level).removeprefix("TRUST_LEVEL_")
-        ],
-        origin_domain=document.origin_domain,
-        url=document.url,
-        published_at=document.published_at.ToDatetime(tzinfo=UTC) if document.HasField("published_at") else None,
-        citation_count=document.citation_count if document.HasField("citation_count") else None,
-        engagement_count=document.engagement_count if document.HasField("engagement_count") else None,
-        relevance_rank=relevance_rank,
-    )
 
 
 def _is_retryable(error: grpc.RpcError) -> bool:

@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import time
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -20,6 +22,7 @@ from collector.application.ports import (
     RateLimiter,
 )
 from collector.application.request_accounting import current_request_accounting
+from collector.application.trace_recording import current_collection_trace
 from collector.domain.errors import AdapterFailure
 from collector.domain.values import AdapterErrorCode, SearchTerms, SourceKey
 from ws_common.clock import Clock
@@ -90,6 +93,42 @@ class BaseSourceAdapter:
         as_json: bool,
         json_body: Mapping[str, Any] | None = None,
     ) -> Any:
+        """Запрос с записью в трассу сбора (аудит A3): разобранный ответ или код отказа, без заголовков и секретов.
+
+        Время запроса включает ожидание лимитера источника. Внутренние повторы HTTP-клиента не пишутся отдельно:
+        запись отражает итог логического запроса, который увидел адаптер.
+        """
+        trace = current_collection_trace()
+        if trace is None:
+            return await self._fetch_inner(url, params=params, headers=headers, as_json=as_json, json_body=json_body)
+        started_at = self._clock.now()
+        began = time.perf_counter()
+        common = {"source_key": self.key.value, "method": "POST" if json_body is not None else "GET", "url": url,
+                  "params": params, "json_body": json_body, "started_at": started_at}
+        try:
+            payload = await self._fetch_inner(url, params=params, headers=headers, as_json=as_json, json_body=json_body)
+        except AdapterFailure as failure:
+            trace.add_response(**common, outcome=failure.code, error_message=failure.message, payload=None,
+                               as_json=as_json, duration_ms=_elapsed_ms(began))
+            raise
+        except BaseException as error:  # отмена по бюджету и непредвиденные сбои тоже видны в трассе
+            outcome = "CANCELLED" if isinstance(error, asyncio.CancelledError) else "ERROR"
+            trace.add_response(**common, outcome=outcome, error_message=f"{type(error).__name__}: {error}",
+                               payload=None, as_json=as_json, duration_ms=_elapsed_ms(began))
+            raise
+        trace.add_response(**common, outcome="OK", error_message=None, payload=payload,
+                           as_json=as_json or json_body is not None, duration_ms=_elapsed_ms(began))
+        return payload
+
+    async def _fetch_inner(
+        self,
+        url: str,
+        *,
+        params: Mapping[str, str | int] | None,
+        headers: Mapping[str, str] | None,
+        as_json: bool,
+        json_body: Mapping[str, Any] | None = None,
+    ) -> Any:
         """Общий путь запроса: лимитер → HTTP → перевод ошибок в `AdapterFailure`."""
         await self._limiter.acquire(self.key)
         self._http_requests += 1
@@ -150,6 +189,11 @@ class BaseSourceAdapter:
             accounting.reset_rate_limit(self.key)
         else:
             self._consecutive_rate_limits = 0
+
+
+def _elapsed_ms(began: float) -> int:
+    """Миллисекунды от отметки `time.perf_counter()`."""
+    return int((time.perf_counter() - began) * 1000)
 
 
 def english_first(terms: SearchTerms) -> tuple[tuple[str, str], ...]:

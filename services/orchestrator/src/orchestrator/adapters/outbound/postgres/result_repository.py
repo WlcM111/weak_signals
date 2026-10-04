@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from psycopg.types.json import Json
+from ws_common.jsonsafe import json_safe
+
 from orchestrator.adapters.outbound.postgres.mappers import (
     ITEM_COLUMNS,
     STATS_COLUMNS,
@@ -279,3 +282,15 @@ class PostgresResultRepository:
             narratives_done=int(items_row["total"]) if items_row else 0,
             narratives_total=stats.weak_signals_total,
         )
+
+    async def save_trace(self, job_id: str, stage: str, payload: dict[str, object]) -> None:
+        """Трасса стадии задания: одна строка на стадию, повтор стадии перезаписывает её."""
+        async with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            await cur.execute(_UPSERT_TRACE, (job_id, stage, Json(json_safe(payload))))
+
+
+_UPSERT_TRACE = """
+INSERT INTO job_traces (job_id, stage, payload)
+VALUES (%s, %s, %s)
+ON CONFLICT (job_id, stage) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+"""

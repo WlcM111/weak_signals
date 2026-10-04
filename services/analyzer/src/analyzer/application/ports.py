@@ -19,6 +19,7 @@ from analyzer.application.dto import (
     LeaseState,
     ModelBundle,
 )
+from analyzer.application.capture import AnalysisCapture
 from analyzer.domain.feature_registry import FeatureRegistry
 from analyzer.domain.entities import Analysis, Candidate, DocumentRef, ModelVersion
 from analyzer.domain.values import AnalysisStats, Decision, OperationStatus
@@ -60,6 +61,13 @@ class AnalysisRepository(Protocol):
 
     def release_expired_leases(self) -> int:
         """Возвращает анализы с истёкшей арендой в PENDING."""
+
+
+class CaptureRepository(Protocol):
+    """Запись входов анализа для режима А (таблица `analysis_captures`)."""
+
+    def save(self, analysis_id: str, capture: AnalysisCapture) -> None:
+        """Сохраняет запись (повтор анализа перезаписывает её)."""
 
 
 class CandidateRepository(Protocol):

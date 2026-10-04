@@ -12,8 +12,11 @@
 
 from __future__ import annotations
 
+import dataclasses
+import hashlib
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from pathlib import Path
 
 from orchestrator.application.dto import (
     CandidateView,
@@ -90,6 +93,8 @@ async def run_narrate_rubric(
     legacy = replace(config, selection_mode="legacy")
     llm_ok = insight is not None and (config.llm_allowed is None or config.llm_allowed())
     if not llm_ok:
+        await _save_trace(results, job_id, {"path": "legacy", "config": config_dict(config),
+                                            "reason": "insight_disabled" if insight is None else "deadline"})
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
@@ -110,6 +115,11 @@ async def run_narrate_rubric(
     raw = await _judge(insight, query_text, judged_pool, documents, compositions, config.llm_allowed)
     if not raw:
         log.warning("stage.narrate_rubric.judge_unavailable", pool=len(judged_pool))
+        await _save_trace(results, job_id, {
+            "path": "legacy", "reason": "rubric_unavailable", "config": config_dict(config),
+            "candidates": {"weak": [c.candidate_id for c in weak], "excluded": [c.candidate_id for c in excluded]},
+            "pool": [c.candidate_id for c in pool], "rest": [_reason_row(c) for c in rest],
+            "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered]})
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
@@ -139,22 +149,33 @@ async def run_narrate_rubric(
     review_dropped: dict[str, tuple[Decision, str, str]] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
+    rounds: list[dict[str, object]] = []
+    deadline_cut = False
     for _ in range(FINALIZE_ROUNDS):
         need = config.top_n - len(finalized)
-        if need <= 0 or not queue or (config.llm_allowed is not None and not config.llm_allowed()):
+        if need <= 0 or not queue:
+            break
+        if config.llm_allowed is not None and not config.llm_allowed():
+            deadline_cut = True  # повтор режима А с этим заданием не сравним: доводку остановил срок
             break
         batch, queue = queue[:need], queue[need:]
         tried.extend(batch)
-        finalized.update(await _finalize(insight, query_text, batch, documents, verdicts, config))
+        produced = await _finalize(insight, query_text, batch, documents, verdicts, config)
+        finalized.update(produced)
         # Правило обзоров — и по источникам готовой карточки: доводка оставляет источники, которые описывают
         # технологию, и в выдаче v12 ими оказывались обзоры («AI-Driven Predictive Maintenance» — три обзора).
-        review_dropped.update(_review_dominated(batch, finalized, documents))
+        reviews = _review_dominated(batch, finalized, documents)
+        review_dropped.update(reviews)
         for candidate_id in review_dropped:
             finalized.pop(candidate_id, None)
+        checked: dict[str, JudgeVerdictView] = {}
         if config.final_check_enabled:
-            final_dropped.update(await _final_check(insight, query_text, batch, finalized, documents))
+            checked = await _final_check(insight, query_text, batch, finalized, documents)
+            final_dropped.update(checked)
             for candidate_id in final_dropped:
                 finalized.pop(candidate_id, None)
+        rounds.append({"batch": [c.candidate_id for c in batch], "finalized": sorted(produced),
+                       "review_dropped": sorted(reviews), "final_dropped": sorted(checked)})
     rejected = final_dropped.keys() | review_dropped.keys()
     rank_of = {c.candidate_id: i for i, c in enumerate(ranked)}
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
@@ -179,6 +200,36 @@ async def run_narrate_rubric(
     outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
         rest, prefiltered + dropped_reviews, unjudged, queue + below, text_failed, verdicts, scored, dropped_final,
         final_dropped))
+    await _save_trace(results, job_id, {
+        "path": "rubric",
+        "config": config_dict(config),
+        "models": {"classifier": "profile" if config.profile_model_path and classifier is not None
+                   else "signal" if classifier is not None else "rubric_model" if model is not None else "rubric_order",
+                   "sha256": {name: file_digest(path) for name, path in (
+                       ("signal_model_path", config.signal_model_path), ("profile_model_path", config.profile_model_path),
+                       ("rubric_model_path", config.rubric_model_path)) if path}},
+        "candidates": {"weak": [c.candidate_id for c in weak], "excluded": [c.candidate_id for c in excluded]},
+        "pool": [c.candidate_id for c in pool],
+        "rest": [_reason_row(c) for c in rest],
+        "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered],
+        "judged": {cid: verdict_dict(v) for cid, v in verdicts.items()},
+        "raw_stage_trend": {cid: [v.stage, v.trend] for cid, v in raw.items()},
+        "unjudged": [c.candidate_id for c in unjudged],
+        "probabilities": {cid: value[0] for cid, value in scored.items()},
+        "accepted": [c.candidate_id for c in accepted],
+        "uncertain_fill": [c.candidate_id for c in ranked if verdicts[c.candidate_id].code != "R"],
+        "below": [c.candidate_id for c in below],
+        "rounds": rounds,
+        "deadline_cut": deadline_cut,
+        "not_tried": [c.candidate_id for c in queue],
+        "text_failed": [c.candidate_id for c in text_failed],
+        "review_dropped": {cid: [decision.value, reason] for cid, (decision, reason, _) in review_dropped.items()},
+        "final_dropped": {cid: {"code": v.code, "reason_ru": v.reason_ru} for cid, v in final_dropped.items()},
+        "fallback": fallback,
+        "shown": [[position, c.candidate_id, display_score(scored[c.candidate_id][0], verdicts[c.candidate_id].code,
+                                                           config.confidence_calibration),
+                   verdicts[c.candidate_id].code, c.candidate_id in finalized] for position, c in enumerate(shown, 1)],
+    })
     for position, candidate in enumerate(shown, 1):
         await check()
         item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
@@ -195,6 +246,37 @@ async def run_narrate_rubric(
              review_dropped=len(review_dropped), shown=outcome.items_written, fallback=fallback, model=bool(model),
              classifier=bool(classifier))
     return outcome
+
+
+def config_dict(config: NarrateConfig) -> dict[str, object]:
+    """Настройки стадии для трассы: все поля, кроме функции проверки срока."""
+    return {f.name: getattr(config, f.name) for f in dataclasses.fields(config) if f.name != "llm_allowed"}
+
+
+def verdict_dict(verdict: JudgeVerdictView) -> dict[str, object]:
+    """Вердикт рубрики для трассы (стадия и тренд — после калибровки)."""
+    return {"code": verdict.code, "stage": verdict.stage, "trend": verdict.trend, "confidence": verdict.confidence,
+            "on_topic": verdict.on_topic, "concrete": verdict.concrete, "early_stage": verdict.early_stage,
+            "verifiable": verdict.verifiable, "technology_ru": verdict.technology_ru, "profile_ru": verdict.profile_ru,
+            "reason_ru": verdict.reason_ru}
+
+
+def file_digest(path: str) -> str:
+    """SHA-256 файла модели (пусто, если файла нет): версия модели в трассе задания."""
+    file = Path(path)
+    return hashlib.sha256(file.read_bytes()).hexdigest() if file.is_file() else ""
+
+
+def _reason_row(candidate: CandidateView) -> list[object]:
+    return [candidate.candidate_id, candidate.decision.value, candidate.decision_reason]
+
+
+async def _save_trace(results: ResultRepository, job_id: str, payload: dict[str, object]) -> None:
+    """Трасса стадии; сбой записи не обрывает выдачу, но виден в журнале (выгрузка отметит её отсутствие)."""
+    try:
+        await results.save_trace(job_id, "narrate", payload)
+    except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
+        log.error("stage.narrate_rubric.trace_failed", job_id=job_id, error=str(error)[:300])
 
 
 def _docs(candidate: CandidateView, documents: dict[str, DocumentView]) -> tuple[DocumentView, ...]:

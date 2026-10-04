@@ -13,6 +13,7 @@ from insight.application.dto import (
     PromptDefinition,
     ProviderState,
 )
+from insight.application.llm_recording import LLMRecording
 from insight.domain.entities import Insight, QueryExpansion
 
 
@@ -77,6 +78,13 @@ class LLMCallLog(Protocol):
 
     async def tokens_used_today(self, now: datetime) -> int:
         """Сумма токенов за текущие сутки (для суточного бюджета)."""
+
+
+class LLMRecorder(Protocol):
+    """Запись промптов и ответов LLM (таблица `llm_recordings`, режим А аудита; решение владельца 03.10.2026)."""
+
+    async def record(self, entry: LLMRecording) -> None:
+        """Сохраняет вызов провайдера целиком: сообщения, итог и текст ответа."""
 
 
 class PromptRegistry(Protocol):

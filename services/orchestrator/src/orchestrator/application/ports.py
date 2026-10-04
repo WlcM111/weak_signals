@@ -90,6 +90,9 @@ class ResultRepository(Protocol):
     async def progress(self, job_id: str) -> JobProgress | None:
         """Прогресс задания по записанным данным."""
 
+    async def save_trace(self, job_id: str, stage: str, payload: dict[str, object]) -> None:
+        """Трасса стадии задания (аудит A3): что вошло, что выбыло и почему; повтор стадии перезаписывает её."""
+
 
 class IdempotencyRepository(Protocol):
     """Ключи идемпотентности HTTP (таблица `idempotency_keys`)."""

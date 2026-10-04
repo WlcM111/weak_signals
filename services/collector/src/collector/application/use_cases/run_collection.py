@@ -15,9 +15,11 @@ from typing import Any
 
 from collector.application.dto import AdapterDelta, BatchItem
 from collector.application.request_accounting import RequestAccounting, begin_request_accounting
+from collector.application.trace_recording import CollectionTrace, DocumentEvent, begin_collection_trace
 from collector.application.ports import (
     AdapterRunRepository,
     CollectionRepository,
+    CollectionTraceRepository,
     DocumentRepository,
     MetricsSink,
     NullMetrics,
@@ -69,6 +71,7 @@ class RunCollection:
         config: RunCollectionConfig,
         unavailable_sources: Mapping[SourceKey, AdapterErrorCode] | None = None,
         metrics: MetricsSink | None = None,
+        traces: CollectionTraceRepository | None = None,
     ) -> None:
         self._collections = collections
         self._documents = documents
@@ -79,6 +82,8 @@ class RunCollection:
         self._config = config
         self._unavailable = dict(unavailable_sources or {})
         self._metrics: MetricsSink = metrics or NullMetrics()
+        # Трасса сбора (аудит A3, режим А): None — выключена (WS_COLLECTOR_TRACE_ENABLED=false).
+        self._traces = traces
         self._log = get_logger("collector.run_collection")
 
     async def execute(self, collection: Collection, owner: str) -> OperationStatus:
@@ -95,6 +100,8 @@ class RunCollection:
         )
         # Учёт запросов этого сбора: адаптеры общие на процесс, их собственные счётчики накопительные.
         state.accounting = begin_request_accounting()
+        # Трасса открывается в том же контексте: задачи адаптеров наследуют её вместе с учётом запросов.
+        state.trace = begin_collection_trace() if self._traces is not None else None
         self._log.info(
             "collection.started",
             collection_id=collection.collection_id,
@@ -273,6 +280,8 @@ class RunCollection:
         run.documents_found += 1
         state.found_delta[source_key] = state.found_delta.get(source_key, 0) + 1
         if state.per_source_accepted.get(source_key, 0) >= state.collection.limits.max_documents_per_source:
+            _note(state, source_key, raw, DocumentEvent.SOURCE_CAP,
+                  detail=f"лимит {state.collection.limits.max_documents_per_source} документов на источник")
             return
         adapter = self._adapters[source_key]
         try:
@@ -285,14 +294,20 @@ class RunCollection:
             )
         except (ValueError, InvariantViolation) as exc:
             self._log.debug("document.rejected", source=source_key.value, reason=str(exc))
+            _note(state, source_key, raw, DocumentEvent.REJECTED, detail=str(exc))
             return
-        if state.dedup.register_if_new(draft.url_hash, draft.content_hash, draft.doi) is not None:
+        duplicate_of = state.dedup.register_if_new(draft.url_hash, draft.content_hash, draft.doi)
+        if duplicate_of is not None:
             self._log.debug("dedup.hit", source=source_key.value, url_hash=draft.url_hash[:12])
+            _note(state, source_key, raw, DocumentEvent.DEDUP, url_hash=draft.url_hash, doi=draft.doi,
+                  detail=f"дубль: {duplicate_of}")
             return
         state.rank += 1
         state.per_source_accepted[source_key] = state.per_source_accepted.get(source_key, 0) + 1
         state.pending_new.add(draft.url_hash)
         batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
+        _note(state, source_key, raw, DocumentEvent.ACCEPTED, url_hash=draft.url_hash, doi=draft.doi,
+              detail=f"relevance_rank={state.rank}")
 
     async def _flush(
         self, state: _RunState, active: Mapping[SourceKey, SourceAdapter], batch: list[BatchItem]
@@ -319,6 +334,7 @@ class RunCollection:
         state.pending_new.clear()
         state.documents_total = outcome.documents_total
         batch.clear()
+        await self._save_trace(state)
 
     async def _finalize_runs(self, state: _RunState) -> None:
         """Проставляет терминальные статусы запусков адаптеров и сохраняет их."""
@@ -348,6 +364,7 @@ class RunCollection:
 
     async def _finish(self, state: _RunState, owner: str, duration: float) -> OperationStatus:
         """Вычисляет итоговый статус коллекции и фиксирует его."""
+        await self._save_trace(state)
         status, error_code, error_message = compute_final_status(
             list(state.runs.values()),
             state.documents_total,
@@ -372,8 +389,28 @@ class RunCollection:
             http_requests_total=sum(run.http_requests for run in state.runs.values()),
             duration_ms=round(duration * 1000, 2),
             error_code=error_code,
+            trace_save_failures=state.trace.save_failures if state.trace is not None else 0,
         )
         return status
+
+    async def _save_trace(self, state: _RunState) -> None:
+        """Сохраняет накопленную трассу; сбой записи не обрывает сбор, но виден в журнале и счётчике."""
+        if self._traces is None or state.trace is None:
+            return
+        responses, events = state.trace.drain()
+        if not responses and not events:
+            return
+        try:
+            await self._traces.append(state.collection.collection_id, state.trace.run_id, responses, events)
+        except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
+            state.trace.save_failures += 1
+            self._log.error(
+                "collection.trace_failed",
+                collection_id=state.collection.collection_id,
+                responses=len(responses),
+                events=len(events),
+                error=str(error)[:300],
+            )
 
 
 _UNAVAILABLE_MESSAGES = {
@@ -401,6 +438,24 @@ class _RunState:
     pending_new: set[str] = field(default_factory=set)
     cancelled_producers: set[SourceKey] = field(default_factory=set)
     accounting: RequestAccounting = field(default_factory=RequestAccounting)
+    trace: CollectionTrace | None = None
 
     def __post_init__(self) -> None:
         self.rank = self.documents_total  # продолжение нумерации при повторном запуске
+
+
+def _note(
+    state: _RunState,
+    source_key: SourceKey,
+    raw: RawDocument,
+    event: DocumentEvent,
+    *,
+    url_hash: str | None = None,
+    doi: str | None = None,
+    detail: str | None = None,
+) -> None:
+    """Событие документа в трассе сбора (если трассировка включена)."""
+    if state.trace is None:
+        return
+    state.trace.add_event(source_key=source_key.value, matched_term=raw.matched_term, event=event, url=raw.url,
+                          title=raw.title, url_hash=url_hash, doi=doi or raw.doi, detail=detail)

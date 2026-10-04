@@ -14,6 +14,8 @@ REPO_ROOT = SERVICE_ROOT.parents[1]
 
 class AnalyzerSettings(BaseServiceSettings):
     """Параметры analyzer; неверное значение приводит к отказу запуска."""
+    # Запись входов анализа для режима А (аудит A3): векторы, ответы Wikipedia, дата признаков, воронка.
+    analyzer_capture_enabled: bool = True
 
     service_name: str = "analyzer"
     grpc_port: int = Field(default=50052, ge=1024, le=65535)

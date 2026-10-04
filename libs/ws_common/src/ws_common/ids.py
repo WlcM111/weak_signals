@@ -26,6 +26,15 @@ def current_correlation_id() -> str:
     return _CORRELATION_ID.get() or new_correlation_id()
 
 
+def correlation_id_or_empty() -> str:
+    """Идентификатор корреляции текущей операции без генерации нового: пустая строка, если он не задан.
+
+    Нужен для записей, которые связывают данные сервиса с заданием (запись вызовов LLM в режиме А): случайный
+    идентификатор вместо пустого дал бы запись, не связанную ни с одним заданием.
+    """
+    return _CORRELATION_ID.get()
+
+
 def uuid7(timestamp_ms: int | None = None, random_bytes: bytes | None = None) -> uuid.UUID:
     """UUID версии 7 (RFC 9562): 48 бит времени в миллисекундах + 74 бита случайных данных."""
     ms = int(time.time() * 1000) if timestamp_ms is None else timestamp_ms

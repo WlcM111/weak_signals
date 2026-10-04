@@ -14,7 +14,8 @@ from insight.application.dto import (
     LLMResult,
     ProviderState,
 )
-from insight.application.ports import LLMCallLog, LLMProvider, MetricsSink, NullMetrics
+from insight.application.llm_recording import LLMRecording, replay_key, schema_digest
+from insight.application.ports import LLMCallLog, LLMProvider, LLMRecorder, MetricsSink, NullMetrics
 from insight.domain.errors import (
     BudgetExhausted,
     ProviderBlocked,
@@ -24,6 +25,7 @@ from insight.domain.errors import (
 )
 from insight.domain.values import CallStatus, Purpose
 from ws_common.clock import Clock
+from ws_common.ids import correlation_id_or_empty
 from ws_common.logging import get_logger
 
 MAX_RATE_LIMIT_RETRIES = 2
@@ -86,7 +88,11 @@ class ProviderChain:
         clock: Clock,
         config: ChainConfig,
         metrics: MetricsSink | None = None,
+        recorder: LLMRecorder | None = None,
     ) -> None:
+        # Запись промптов и ответов для режима А (аудит A3); None — выключена (WS_LLM_RECORD_ENABLED=false).
+        self._recorder = recorder
+        self.recording_failures = 0
         self._runtimes = [
             _ProviderRuntime(provider=provider, semaphore=asyncio.Semaphore(provider.max_concurrency))
             for provider in providers
@@ -216,6 +222,8 @@ class ProviderChain:
                 )
             except ProviderError as error:
                 latency = int((time.perf_counter() - started) * 1000)
+                await self._store_recording(runtime, messages, json_schema, max_tokens, purpose, prompt_version,
+                                            request_sha256, latency, CallStatus(error.call_status), error=error)
                 await self._record(
                     runtime,
                     purpose,
@@ -234,6 +242,8 @@ class ProviderChain:
             finally:
                 runtime.in_flight -= 1
         latency = result.latency_ms or int((time.perf_counter() - started) * 1000)
+        await self._store_recording(runtime, messages, json_schema, max_tokens, purpose, prompt_version,
+                                    request_sha256, latency, CallStatus.OK, result=result)
         await self._record(
             runtime,
             purpose,
@@ -290,6 +300,53 @@ class ProviderChain:
             completion_tokens=result.completion_tokens if result else None,
             latency_ms=latency_ms,
         )
+
+    async def _store_recording(
+        self,
+        runtime: _ProviderRuntime,
+        messages: Sequence[LLMMessage],
+        json_schema: dict | None,
+        max_tokens: int,
+        purpose: Purpose,
+        prompt_version: str,
+        request_sha256: str,
+        latency_ms: int,
+        status: CallStatus,
+        *,
+        result: LLMResult | None = None,
+        error: ProviderError | None = None,
+    ) -> None:
+        """Пишет вызов целиком; сбой записи не срывает ответ модели, но считается и пишется в журнал."""
+        if self._recorder is None:
+            return
+        try:
+            await self._recorder.record(
+                LLMRecording(
+                    correlation_id=correlation_id_or_empty(),
+                    purpose=purpose.value,
+                    prompt_version=prompt_version,
+                    request_sha256=request_sha256,
+                    replay_key=replay_key(messages, json_schema, max_tokens, self._config.temperature),
+                    provider=runtime.provider.name,
+                    model=result.model if result else runtime.provider.model,
+                    status=status.value,
+                    messages=tuple((message.role, message.content) for message in messages),
+                    json_schema_sha256=schema_digest(json_schema),
+                    max_tokens=max_tokens,
+                    temperature=self._config.temperature,
+                    response_text=result.text if result else None,
+                    prompt_tokens=result.prompt_tokens if result else None,
+                    completion_tokens=result.completion_tokens if result else None,
+                    latency_ms=latency_ms,
+                    error_code=error.error_code if error else None,
+                    error_message=error.message[:500] if error else None,
+                    retry_after_seconds=getattr(error, "retry_after_seconds", None) if error else None,
+                )
+            )
+        except Exception as failure:  # noqa: BLE001 - ответ модели важнее записи; потеря видна в журнале
+            self.recording_failures += 1
+            log.error("llm.recording_failed", purpose=purpose.value, provider=runtime.provider.name,
+                      failures=self.recording_failures, error=str(failure)[:300])
 
     def _mark_failure(self, runtime: _ProviderRuntime, error: ProviderError) -> None:
         """Считает подряд идущие отказы и размыкает цепь при превышении порога."""

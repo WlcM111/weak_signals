@@ -24,6 +24,7 @@ from analyzer.adapters.outbound.postgres.analysis_repository import PostgresAnal
 from analyzer.adapters.outbound.postgres.candidate_repository import PostgresCandidateRepository
 from analyzer.adapters.outbound.postgres.embedding_cache import PostgresEmbeddingCache
 from analyzer.adapters.outbound.postgres.model_version_repository import PostgresModelVersionRepository
+from analyzer.adapters.outbound.postgres.capture_repository import PostgresCaptureRepository
 from analyzer.application.active_model import ActiveModelHolder
 from analyzer.application.use_cases.activate_model import ActivateModelFromStore
 from analyzer.application.use_cases.cancel_analysis import CancelAnalysis
@@ -145,6 +146,7 @@ def serve(settings: AnalyzerSettings) -> int:
             ml_score_ablation=settings.ml_score_ablation,
         ),
         metrics=metrics,
+        captures=PostgresCaptureRepository(pool) if settings.analyzer_capture_enabled else None,
     )
 
     server = grpc.server(

@@ -17,6 +17,7 @@ from collector.application.dto import (
     EncyclopediaHit,
     LeaseState,
 )
+from collector.application.trace_recording import EventRecord, ResponseRecord
 from collector.domain.entities import AdapterRun, Collection, Document, RawDocument
 from collector.domain.values import CollectionLimits, OperationStatus, SearchTerms, SourceKey
 
@@ -190,6 +191,19 @@ class AdapterRunRepository(Protocol):
 
     async def list_runs(self, collection_id: str) -> list[AdapterRun]:
         """Все запуски адаптеров коллекции."""
+
+
+class CollectionTraceRepository(Protocol):
+    """Трасса сбора (таблицы `raw_responses`, `document_events`): сырые ответы источников и события документов."""
+
+    async def append(
+        self,
+        collection_id: str,
+        run_id: str,
+        responses: Sequence[ResponseRecord],
+        events: Sequence[EventRecord],
+    ) -> None:
+        """Дописывает партию записей трассы одной транзакцией."""
 
 
 class EncyclopediaCacheRepository(Protocol):

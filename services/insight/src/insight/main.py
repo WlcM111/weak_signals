@@ -17,6 +17,7 @@ from insight.adapters.outbound.postgres.repositories import (
     PostgresExpansionRepository,
     PostgresInsightRepository,
     PostgresLLMCallLog,
+    PostgresLLMRecorder,
     PostgresPromptRegistry,
 )
 from insight.application.ports import LLMProvider
@@ -124,6 +125,7 @@ async def serve(settings: InsightSettings) -> int:
             total_budget_seconds=settings.llm_total_budget_seconds,
         ),
         metrics,
+        recorder=PostgresLLMRecorder(pool) if settings.llm_record_enabled else None,
     )
     servicer = InsightServicer(
         judge_candidates=JudgeCandidates(chain, prompts),

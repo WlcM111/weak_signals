@@ -9,7 +9,7 @@ from typing import Any
 import grpc
 import structlog
 
-from ws_common.ids import new_correlation_id
+from ws_common.ids import new_correlation_id, set_correlation_id
 from ws_common.metrics import GRPC_LATENCY, GRPC_REQUESTS
 
 CORRELATION_ID_KEY = "x-correlation-id"
@@ -58,6 +58,7 @@ class ObservabilityInterceptor(grpc.aio.ServerInterceptor):
 
         def observe(inner: Callable[..., Any], streaming: bool) -> Callable[..., Any]:
             async def unary(request: Any, context: grpc.aio.ServicerContext) -> Any:
+                set_correlation_id(correlation_id)  # исходящие вызовы и записи сервиса видят задание
                 structlog.contextvars.bind_contextvars(correlation_id=correlation_id, rpc=rpc)
                 started = time.perf_counter()
                 try:
@@ -75,6 +76,7 @@ class ObservabilityInterceptor(grpc.aio.ServerInterceptor):
                     structlog.contextvars.unbind_contextvars("correlation_id", "rpc")
 
             async def stream(request: Any, context: grpc.aio.ServicerContext) -> Any:
+                set_correlation_id(correlation_id)  # исходящие вызовы и записи сервиса видят задание
                 structlog.contextvars.bind_contextvars(correlation_id=correlation_id, rpc=rpc)
                 started = time.perf_counter()
                 try:
@@ -138,6 +140,7 @@ class SyncObservabilityInterceptor(grpc.ServerInterceptor):
         inner = handler.unary_unary
 
         def wrapper(request: Any, context: grpc.ServicerContext) -> Any:
+            set_correlation_id(correlation_id)  # исходящие вызовы и записи сервиса видят задание
             structlog.contextvars.bind_contextvars(correlation_id=correlation_id, rpc=rpc)
             started = time.perf_counter()
             code = grpc.StatusCode.OK

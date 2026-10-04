@@ -1,5 +1,29 @@
 # Изменения контрактов
 
+## 2026-10-04 — v15: этап 2 — трассировка и режим А (аудит A3, A4, B2-a)
+- gRPC-контракты (proto) и HTTP API не менялись.
+- Новые таблицы. Миграции применяют сервисы при старте:
+  - collector — `raw_responses`, `document_events` (0008);
+  - analyzer — `analysis_captures` (0002);
+  - orchestrator — `job_traces` (0003);
+  - insight — `llm_recordings` (0003).
+- insight: полные тексты промптов и ответов LLM сохраняются в `llm_recordings`. Это решение владельца проекта от
+  03.10.2026 вместо правила §14.5 ТЗ. Журнал `llm_calls` не менялся.
+- ws_common: входящий correlation id gRPC записывается в контекст сервиса. Поэтому исходящие вызовы и записи LLM несут
+  `job_id` задания.
+- orchestrator, insight: построение запросов к insight и разбор ответов вынесены в чистые функции
+  (`orchestrator.adapters.outbound.grpc.mappers`, `insight.adapters.inbound.rpc`). Их вызывают gRPC-клиент и сервер;
+  поведение не изменилось. На эти же функции опирается повтор режима А.
+- analyzer: функция `common.v1.Document` → `DocumentRef` вынесена в `collector_mappers.py`.
+- Новые переменные, все по умолчанию `true`: `WS_COLLECTOR_TRACE_ENABLED`, `WS_ANALYZER_CAPTURE_ENABLED`,
+  `WS_LLM_RECORD_ENABLED`.
+- Образ trainer: добавлены код collector, orchestrator и insight, `tools/benchmark` и Jinja2 — для повтора режима А и его тестов.
+- Инструменты:
+  - `tools/benchmark/freeze.py`;
+  - `python -m ml.benchmark` с командами verify, replay, funnel, synonyms-template, match, match-score, compare;
+  - `tools/quality/human_eval.py score --k` — precision@K.
+- `tools/check_sql_conformance.py` читает все миграции сервиса, а не только `0001`.
+
 ## 2026-09-29 — v14: точность и объём выдачи
 - orchestrator: включено правило «обзоры — не меньше половины источников → не показывать» — в предфильтре по
   источникам кандидата и по источникам готовой карточки (датасет B, 234 карточки: −31 негатив, −2 позитива,

@@ -15,6 +15,8 @@ SERVICE_ROOT = Path(__file__).resolve().parents[2]
 
 class CollectorSettings(BaseServiceSettings):
     """Параметры collector; неверное значение приводит к отказу запуска."""
+    # Трасса сбора для режима А (аудит A3): сырые ответы источников и события документов.
+    collector_trace_enabled: bool = True
 
     service_name: str = "collector"
     grpc_port: int = Field(default=50051, ge=1024, le=65535)

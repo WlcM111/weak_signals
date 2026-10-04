@@ -8,6 +8,8 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
+import json
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -136,9 +138,17 @@ class RunJob:
         # фонового продления задание теряло аренду посреди стадии нарратива и уходило на повтор.
         keepalive = asyncio.create_task(control.keepalive())
         try:
+            await self._trace(job.job_id, "job", {
+                "query_text": job.query_text, "requested_top_n": job.requested_top_n, "attempt": job.attempt,
+                "worker_id": worker_id, "created_at": job.created_at.isoformat() if job.created_at else None,
+                "deadline_enabled": self._config.deadline_enabled, "deadline_seconds": self._config.deadline_seconds,
+                "deadline_reserve_seconds": self._config.deadline_reserve_seconds,
+                "insight_call_seconds": self._config.insight_call_seconds,
+                "collect": plain(self._config.collect), "analyze": plain(self._config.analyze)})
             expansion = await self._timed(
                 "expand", durations, _bounded_expand(self._insight, job.query_text, self._glossary, EXPAND_TIMEOUT_SECONDS)
             )
+            await self._trace(job.job_id, "expand", plain(expansion))
             await control.check()
 
             await self._jobs.transition(job, JobStatus.COLLECTING, worker_id)
@@ -173,6 +183,7 @@ class RunJob:
                     remember_collection,
                 ),
             )
+            await self._trace(job.job_id, "collect", plain(collection))
             await control.check()
 
             await self._jobs.transition(job, JobStatus.ANALYZING, worker_id)
@@ -207,6 +218,7 @@ class RunJob:
                     remember_analysis,
                 ),
             )
+            await self._trace(job.job_id, "analyze", plain(analysis) | {"query_text": analysis_query(job.query_text, expansion)})
             await control.check()
 
             await self._jobs.transition(job, JobStatus.NARRATING, worker_id)
@@ -276,6 +288,13 @@ class RunJob:
             detail=completion.error_message,
         )
         return completion.status
+
+    async def _trace(self, job_id: str, stage: str, payload: dict[str, object]) -> None:
+        """Трасса стадии задания (аудит A3); сбой записи не обрывает задание, но виден в журнале."""
+        try:
+            await self._results.save_trace(job_id, stage, payload)
+        except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
+            self._log.error("job.trace_failed", job_id=job_id, stage=stage, error=str(error)[:300])
 
     async def _timed(self, stage: str, durations: dict[str, int], awaitable):  # noqa: ANN001, ANN202
         """Выполняет стадию с замером длительности."""
@@ -406,6 +425,12 @@ class _JobControl:
             self._job.cancel_requested = True
             raise CancelRequested
 
+
+
+def plain(value: object) -> dict[str, object]:
+    """Датакласс → словарь, пригодный для JSON (даты и перечисления — строками)."""
+    payload = dataclasses.asdict(value) if dataclasses.is_dataclass(value) and not isinstance(value, type) else dict(value)  # type: ignore[arg-type]
+    return json.loads(json.dumps(payload, ensure_ascii=False, default=str))
 
 
 ANALYSIS_QUERY_SEPARATOR = " | "

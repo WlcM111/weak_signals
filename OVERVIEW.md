@@ -123,6 +123,8 @@ flowchart LR
 - Полнота сбора зависит от внешних API: при превышении их лимитов часть документов в задании не собирается.
 - Без доступа к языковой модели карточки собираются резервным генератором и помечаются в выдаче.
 - Система предлагает гипотезы для эксперта и не заменяет экспертную оценку.
+- Для повторяемой оценки промпты и ответы языковой модели сохраняются целиком (`insight.llm_recordings`) — осознанное отступление от §14.5 ТЗ (решение владельца 03.10.2026); выключается `WS_LLM_RECORD_ENABLED=false`.
+- Трасса сбора, запись входов анализа и записи LLM хранятся в PostgreSQL без автоматической очистки.
 
 ## Карта документации
 
@@ -133,4 +135,5 @@ flowchart LR
 | Машинное обучение | [решения](docs/ml/DECISIONS.md) · [карточка модели](docs/ml/MODEL_CARD_v2.md) · [отчёт оценки](docs/ml/evaluation_report.md) · [тесты](docs/ml/TEST_REPORT.md) · [протокол разметки](docs/ml/labeling_protocol.md) |
 | Переработка ML: исследование и результаты | [аудит](docs/ml_rework/AUDIT.md) · [исследование](docs/ml_rework/RESEARCH.md) · [гипотезы](docs/ml_rework/HYPOTHESES.md) · [протокол](docs/ml_rework/PROTOCOL.md) · [результаты](docs/ml_rework/RESULTS.md) · [матрица требований ТЗ](docs/ml_rework/REQUIREMENTS_MATRIX.md) · [ход работ](docs/ml_rework/PROGRESS.md) · [журнал](docs/ml_rework/CHANGELOG.md) · [реестр файлов](docs/ml_rework/FILE_REGISTRY.md) · [миграция и откат](docs/ml_rework/MIGRATION_ROLLBACK.md) |
 | Качество выдачи | [базовые прогоны](docs/quality/baseline_runs_table.md) · [данные прогонов](docs/quality/baseline_runs.csv) |
+| Повторяемая оценка (этап 2) | [режим А](docs/benchmark/MODE_A.md) · [протокол сопоставления](docs/benchmark/MATCHING_PROTOCOL.md) · [этапы доработки](docs/STAGES.md) · [отчёт этапа 2](docs/stages/STAGE2_REPORT.md) |
 | Настройки | [словарь конфигурации](docs/config_dictionary.md) · [`.env.example`](.env.example) |

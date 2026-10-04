@@ -25,6 +25,7 @@ from collector.adapters.outbound.postgres.collection_repository import PostgresC
 from collector.adapters.outbound.postgres.document_repository import PostgresDocumentRepository
 from collector.adapters.outbound.postgres.encyclopedia_cache import PostgresEncyclopediaCache
 from collector.adapters.outbound.postgres.source_catalog import CatalogEntry, PostgresSourceCatalog
+from collector.adapters.outbound.postgres.trace_repository import PostgresCollectionTraceRepository
 from collector.adapters.outbound.rate_limiter import TokenBucketRateLimiter
 from collector.adapters.outbound.rules_loader import load_classification_config
 from collector.adapters.outbound.sources.arxiv import ArxivAdapter
@@ -139,6 +140,7 @@ async def serve(settings: CollectorSettings) -> int:
         ),
         unavailable_sources=unavailable,
         metrics=metrics,
+        traces=PostgresCollectionTraceRepository(pool) if settings.collector_trace_enabled else None,
     )
 
     server = grpc.aio.server(

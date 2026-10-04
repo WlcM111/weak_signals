@@ -31,3 +31,5 @@ ml/reports/seq/
 nohup.out
 ml/reports/stand/
 ml/reports/rubric/v*/
+# снимки и отчёты режима А (этап 2): выгрузка со стенда, не исходный код
+ml/reports/benchmark/

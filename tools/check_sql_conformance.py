@@ -81,8 +81,8 @@ _SQL_KEYWORDS = frozenset(
 
 
 def load_schema(service: ServiceSchema) -> dict[str, set[str]]:
-    """Таблицы схемы сервиса и их столбцы из нормативной миграции."""
-    text = service.migration.read_text(encoding="utf-8")
+    """Таблицы схемы сервиса и их столбцы из всех миграций сервиса по порядку (0001, 0002, …)."""
+    text = "\n".join(path.read_text(encoding="utf-8") for path in sorted(service.migration.parent.glob("*.sql")))
     pattern = re.compile(
         _CREATE_TABLE_TEMPLATE.format(schema=service.package), re.DOTALL | re.IGNORECASE
     )
@@ -93,6 +93,9 @@ def load_schema(service: ServiceSchema) -> dict[str, set[str]]:
             for column in _COLUMN_RE.findall(body)
             if column.upper() not in {"PRIMARY", "UNIQUE", "CHECK", "CONSTRAINT", "FOREIGN"}
         }
+    alter = re.compile(rf"ALTER TABLE {service.package}\.(\w+)\s+ADD COLUMN(?: IF NOT EXISTS)? (\w+)", re.IGNORECASE)
+    for table, column in alter.findall(text):
+        schema.setdefault(table, set()).add(column)
     return schema
 
 

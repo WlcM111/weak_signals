@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import hashlib
+import threading
 import time
 from collections import Counter
 from collections.abc import Iterator, Sequence
@@ -18,10 +19,12 @@ from datetime import datetime
 import numpy as np
 
 from analyzer.application.active_model import ActiveModelHolder
+from analyzer.application.capture import AnalysisCapture, CapturingEmbedder, config_snapshot
 from analyzer.application.dto import CachedEmbedding, EncyclopediaHit, ModelBundle
 from analyzer.application.ports import (
     AnalysisRepository,
     CandidateRepository,
+    CaptureRepository,
     CollectorReader,
     Embedder,
     EmbeddingCache,
@@ -162,6 +165,7 @@ class RunAnalysis:
         clock: SyncClock,
         config: RunAnalysisConfig,
         metrics: MetricsSink | None = None,
+        captures: CaptureRepository | None = None,
     ) -> None:
         self._analyses = analyses
         self._candidates = candidates
@@ -174,6 +178,11 @@ class RunAnalysis:
         self._config = config
         self._metrics: MetricsSink = metrics or NullMetrics()
         self._log = get_logger("analyzer.run_analysis")
+        # Запись входов для режима А (аудит A3): None — выключена (WS_ANALYZER_CAPTURE_ENABLED=false). Анализы идут
+        # в потоках воркеров, поэтому текущая запись хранится в thread-local, а не в атрибуте сценария.
+        self._captures = captures
+        self._local = threading.local()
+        self._text_encoder = CapturingEmbedder(embedder, self._local)
 
     def execute(self, analysis, owner: str) -> OperationStatus:  # noqa: ANN001 - сущность Analysis
         """Проводит анализ до терминального статуса и возвращает его."""
@@ -233,9 +242,12 @@ class RunAnalysis:
         self, analysis, owner: str, bundle: ModelBundle, control: _LeaseControl, started: float
     ) -> AnalysisStats:  # noqa: ANN001 - сущность Analysis
         """Последовательность шагов конвейера; между шагами проверяются аренда и отмена."""
+        capture = self._begin_capture(analysis)
         with self._step("stream_documents"):
             documents = self._load_documents(analysis.collection_id)
         documents_input = len(documents)
+        self._funnel(documents_input=[document.document_id for document in documents],
+                     truncated=documents_input >= self._config.max_documents)
         if not documents:
             raise _NoDocuments("коллекция не вернула документов")
         control.check()
@@ -246,6 +258,8 @@ class RunAnalysis:
 
         with self._step("near_dup"):
             kept, dropped = near_dup_filter(documents, vectors, self._config.near_dup_threshold)
+            self._funnel(near_dup_dropped=[documents[index].document_id for index in dropped],
+                         near_dup_threshold=self._config.near_dup_threshold)
             documents = [documents[index] for index in kept]
             vectors = vectors[kept]
         documents_after_dedup = len(documents)
@@ -264,6 +278,13 @@ class RunAnalysis:
                 if float(value) >= self._config.min_doc_query_sim
             ]
             relevant_set = set(relevant)
+            self._funnel(
+                relevance={documents[index].document_id: round(float(value), 6) for index, value in enumerate(relevances)},
+                relevance_dropped=[documents[index].document_id for index in range(len(documents))
+                                   if index not in relevant_set],
+                min_doc_query_sim=self._config.min_doc_query_sim,
+                query_relevance_mode=self._config.query_relevance_mode,
+            )
             dropped_types = Counter(documents[index].source_type.value for index in range(len(documents))
                                     if index not in relevant_set)
             documents = [documents[index] for index in relevant]
@@ -284,6 +305,12 @@ class RunAnalysis:
                 clusters, documents, self._config.min_cluster_size,
                 MARKET_SINGLE_TYPES if self._config.keep_market_singletons else frozenset(),
             )
+            self._funnel(
+                clusters_total=clusters_total,
+                cluster_distance_threshold=self._config.cluster_distance_threshold,
+                small_cluster_documents=[documents[index].document_id for index in misc],
+                clusters_scored=[[documents[index].document_id for index in cluster] for cluster in scored_clusters],
+            )
             self._log.info("analysis.funnel", step="clustering",
                            kept=_types([documents[i] for cluster in scored_clusters for i in cluster]),
                            misc=_types([documents[i] for i in misc]))
@@ -294,6 +321,10 @@ class RunAnalysis:
                 trust_weights(documents) if self._config.trust_weighted_selection else None,
                 [any(documents[i].source_type in MARKET_SINGLE_TYPES for i in cluster) for cluster in scored_clusters],
                 self._config.market_reserved_candidates,
+            )
+            self._funnel(
+                clusters_selected=[[documents[index].document_id for index in cluster] for cluster in scored_clusters],
+                max_candidates=analysis.params.max_candidates,
             )
         self._log.info(
             "analysis.step",
@@ -314,6 +345,8 @@ class RunAnalysis:
         with self._step("features"):
             signals = self._encyclopedia_signals(views, control)
             now = self._clock.now()
+            if capture is not None:
+                capture.as_of = now  # дата признаков свежести: повтор считает их на ту же дату
             for view in views:
                 view.values = self._feature_values(view, signals.get(view.cluster_index), bundle, now)
             if bundle.feature_schema == "v2":
@@ -339,6 +372,7 @@ class RunAnalysis:
             )
         if not saved:
             raise LeaseLost(f"аренда анализа {analysis.analysis_id} потеряна при записи результата")
+        self._finish_capture(analysis, capture)
         return stats
 
     def _load_documents(self, collection_id: str) -> list[DocumentRef]:
@@ -393,7 +427,13 @@ class RunAnalysis:
             self._embedding_cache.put_many(fresh, model, self._embedder.dims)
             self._metrics.embeddings_computed(len(fresh))
         self._log.info("analysis.step", step="embeddings", computed=len(fresh), cache_hits=hits)
-        return np.vstack([vector for vector in vectors if vector is not None])
+        matrix = np.vstack([vector for vector in vectors if vector is not None])
+        capture = getattr(self._local, "capture", None)
+        if capture is not None:  # векторы, которые реально видел конвейер: из кеша и свежие
+            capture.document_ids = [document.document_id for document in documents]
+            capture.document_keys = [document.content_key() for document in documents]
+            capture.document_vectors = np.array(matrix, dtype=np.float32, copy=True)
+        return matrix
 
     def _embed_query(self, query_text: str) -> tuple[np.ndarray, np.ndarray]:
         """Двуязычный вектор запроса: среднее нормированных векторов запроса и его расширений.
@@ -405,7 +445,7 @@ class RunAnalysis:
         """
         texts = [phrase.strip() for phrase in query_text.split(" | ") if phrase.strip()] or [query_text]
         try:
-            encoded = np.asarray(self._embedder.encode(texts, QUERY_PREFIX), dtype=np.float32)
+            encoded = np.asarray(_text_encoder(self).encode(texts, QUERY_PREFIX), dtype=np.float32)
         except Exception as error:  # noqa: BLE001 - без вектора запроса конвейер невозможен
             raise _EmbeddingFailed(f"не удалось вычислить эмбеддинг запроса: {error}") from error
         norms = np.linalg.norm(encoded, axis=1, keepdims=True)
@@ -435,7 +475,7 @@ class RunAnalysis:
         selected: list[str] = []
         if phrases:
             phrase_vectors = np.asarray(
-                self._embedder.encode(list(phrases), QUERY_PREFIX), dtype=np.float32
+                _text_encoder(self).encode(list(phrases), QUERY_PREFIX), dtype=np.float32
             )
             selected = select_by_mmr(
                 phrases, phrase_vectors, cluster_centroid, self._config.keyphrases_top_k
@@ -482,7 +522,9 @@ class RunAnalysis:
                 control.check()
                 try:
                     hits = self._collector.check_encyclopedia([title for _, title in batch], language)
+                    _record_hits(self, language, [title for _, title in batch], hits, None)
                 except CollectorUnavailable as error:
+                    _record_hits(self, language, [title for _, title in batch], None, str(error))
                     # отсутствие индикатора зрелости не должно ронять анализ целиком; один сбой
                     # пачки не отменяет остальные, два подряд — прекращают проверку
                     failures += 1
@@ -548,7 +590,7 @@ class RunAnalysis:
         size = self._config.embedding_batch_size
         try:
             for start in range(0, len(texts), size):
-                parts.append(np.asarray(self._embedder.encode(list(texts[start : start + size]), prefix), dtype=np.float64))
+                parts.append(np.asarray(_text_encoder(self).encode(list(texts[start : start + size]), prefix), dtype=np.float64))
         except Exception as error:  # noqa: BLE001 - без векторов признаки v2 невозможны
             raise _EmbeddingFailed(f"не удалось вычислить эмбеддинги признаков v2: {error}") from error
         return np.vstack(parts)
@@ -746,6 +788,43 @@ class RunAnalysis:
         )
         return status
 
+    def _begin_capture(self, analysis) -> AnalysisCapture | None:  # noqa: ANN001 - сущность Analysis
+        """Открывает запись входов анализа в текущем потоке (если запись включена)."""
+        if self._captures is None:
+            self._local.capture = None
+            return None
+        params = analysis.params
+        capture = AnalysisCapture(
+            query_text=analysis.query_text,
+            params={"top_n": params.top_n, "max_candidates": params.max_candidates,
+                    "weak_signal_threshold": params.weak_signal_threshold,
+                    "min_evidence_documents": params.min_evidence_documents},
+            model_version_id=analysis.model_version_id,
+            embedding_model=self._embedder.model_name,
+            config=config_snapshot(self._config),
+        )
+        self._local.capture = capture
+        return capture
+
+    def _funnel(self, **values) -> None:  # noqa: ANN003 - произвольные поля воронки
+        """Дополняет воронку документов текущей записи."""
+        capture = getattr(self._local, "capture", None)
+        if capture is not None:
+            capture.funnel.update(values)
+
+    def _finish_capture(self, analysis, capture: AnalysisCapture | None) -> None:  # noqa: ANN001
+        """Сохраняет запись; сбой записи не отменяет готовый анализ, но виден в журнале."""
+        self._local.capture = None
+        if capture is None or self._captures is None:
+            return
+        try:
+            self._captures.save(analysis.analysis_id, capture)
+        except Exception as error:  # noqa: BLE001 - кандидаты уже записаны, отказ записи входов — отдельное событие
+            self._log.error("analysis.capture_failed", analysis_id=analysis.analysis_id, error=str(error)[:300])
+            return
+        self._log.info("analysis.captured", analysis_id=analysis.analysis_id, documents=len(capture.document_ids),
+                       text_calls=len(capture.text_calls), encyclopedia_calls=len(capture.encyclopedia))
+
     @contextmanager
     def _step(self, name: str) -> Iterator[None]:
         """Замер длительности шага конвейера."""
@@ -813,3 +892,16 @@ def _better_signal(
     if candidate.exists and (not current.exists or candidate.pageviews_30d > current.pageviews_30d):
         return candidate
     return current
+
+
+def _record_hits(owner: object, language: str, titles: list[str], hits, error: str | None) -> None:  # noqa: ANN001
+    """Ответ энциклопедии (или отказ пачки) в запись анализа текущего потока, если запись открыта."""
+    local = getattr(owner, "_local", None)
+    capture = getattr(local, "capture", None) if local is not None else None
+    if capture is not None:
+        capture.record_encyclopedia(language, titles, hits, error)
+
+
+def _text_encoder(owner: object):  # noqa: ANN202 - Embedder
+    """Эмбеддер коротких текстов с записью для режима А; у объектов без записи (заглушки тестов) — исходный."""
+    return getattr(owner, "_text_encoder", None) or owner._embedder  # type: ignore[attr-defined]

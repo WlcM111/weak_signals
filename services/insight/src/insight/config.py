@@ -19,6 +19,8 @@ ALLOWED_PROVIDERS = ("gigachat", "yandexgpt", "local_llamacpp", "fake", "none")
 
 class InsightSettings(BaseServiceSettings):
     """Параметры сервиса insight."""
+    # Запись промптов и ответов LLM для режима А (аудит A3; решение владельца 03.10.2026).
+    llm_record_enabled: bool = True
 
     service_name: str = "insight"
     env: str = "prod"

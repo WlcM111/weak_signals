@@ -239,6 +239,7 @@ async def run_narrate(
                 for item, verdict in rejected
             ],
         )
+    shown_ids: list[list[object]] = []
     for position, candidate in enumerate(weak[: config.top_n], 1):
         await check()
         documents = await _load_documents(collector, candidate, outcome)
@@ -275,11 +276,21 @@ async def run_narrate(
             predicted_trend=candidate.predicted_trend,
         )
         await results.add_item(item)
+        shown_ids.append([item.rank, item.candidate_id, item.narrative_status.value])
         outcome.items_written += 1
         if item.narrative_status is NarrativeStatus.GENERATED:
             outcome.narratives_generated += 1
         else:
             outcome.narratives_fallback += 1
+    try:
+        await results.save_trace(job_id, "narrate_legacy", {
+            "weak": [c.candidate_id for c in weak], "excluded": [[c.candidate_id, c.decision.value, c.decision_reason]
+                                                                 for c in excluded],
+            "judge": {cid: {"verdict": v.verdict, "relevance": v.relevance} for cid, v in verdicts.items()},
+            "judge_rejected": outcome.judge_rejected, "deadline_fallbacks": outcome.deadline_fallbacks,
+            "shown": shown_ids})
+    except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
+        log.error("stage.narrate.trace_failed", job_id=job_id, error=str(error)[:300])
     log.info(
         "stage.narrate",
         items=outcome.items_written,

@@ -78,6 +78,7 @@
 | WS_ENCYCLOPEDIA_CACHE_DAYS | 1–90 | 7 | | TTL кеша Wikipedia |
 | WS_DOCUMENT_RETENTION_DAYS | 7–3650 | 90 | | удаление «осиротевших» документов |
 | WS_SOURCE_ENABLED_OVERRIDE | `openalex=true,hh=false,…` | пусто | | переопределение флагов `source_catalog.enabled` без миграции |
+| WS_COLLECTOR_TRACE_ENABLED | bool | true | | трасса сбора для режима А: сырые ответы источников без ключей и события документов (`raw_responses`, `document_events`) |
 
 ## analyzer
 
@@ -101,6 +102,7 @@
 | WS_ENRICHMENT_TIMEOUT_SECONDS | 10–300 | 60 | | ScoreText with_enrichment |
 | HF_HOME | путь | /hf-cache | | кеш моделей HF |
 | HF_HUB_OFFLINE | 0/1 | из WS_HF_HUB_OFFLINE | | 1 после прогрева — без сети к HF |
+| WS_ANALYZER_CAPTURE_ENABLED | bool | true | | запись входов анализа для режима А: векторы, ответы Wikipedia, дата признаков, воронка (`analysis_captures`) |
 
 ## insight
 
@@ -131,6 +133,7 @@
 | WS_INSIGHT_MAX_QUEUE | 1–1000 | 100 | | RESOURCE_EXHAUSTED |
 | WS_GROUNDING_MIN_FEATURES | 0–8 | 2 | | признаков в объяснении |
 | WS_GROUNDING_MIN_CYRILLIC_SHARE | 0–1 | 0.6 | | проверка языка |
+| WS_LLM_RECORD_ENABLED | bool | true | | полные тексты промптов и ответов LLM для режима А (`llm_recordings`); решение владельца 03.10.2026 вместо §14.5 ТЗ |
 
 ## ui
 

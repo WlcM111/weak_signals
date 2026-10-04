@@ -6,6 +6,9 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
+from psycopg.types.json import Json
+
+from insight.application.llm_recording import LLMRecording
 from insight.application.dto import CallRecord, PromptDefinition
 from insight.domain.entities import (
     GroundingCheck,
@@ -315,3 +318,34 @@ def _replace_identity(insight: Insight, insight_id: str, created_at: datetime) -
         from_cache=False,
         created_at=created_at,
     )
+
+
+_INSERT_RECORDING = """
+INSERT INTO llm_recordings (
+  correlation_id, purpose, prompt_version, request_sha256, replay_key, provider, model, status, error_code,
+  error_message, retry_after_seconds, messages, json_schema_sha256, max_tokens, temperature, response_text,
+  prompt_tokens, completion_tokens, latency_ms
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+"""
+
+
+class PostgresLLMRecorder:
+    """Реализация порта `LLMRecorder`: полный текст промпта и ответа (режим А, решение владельца 03.10.2026)."""
+
+    def __init__(self, pool: Any) -> None:
+        self._pool = pool
+
+    async def record(self, entry: LLMRecording) -> None:
+        """Пишет вызов провайдера."""
+        async with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            await cur.execute(
+                _INSERT_RECORDING,
+                (
+                    entry.correlation_id, entry.purpose, entry.prompt_version, entry.request_sha256,
+                    entry.replay_key, entry.provider, entry.model, entry.status, entry.error_code,
+                    entry.error_message, entry.retry_after_seconds,
+                    Json([{"role": role, "content": content} for role, content in entry.messages]),
+                    entry.json_schema_sha256, entry.max_tokens, entry.temperature, entry.response_text,
+                    entry.prompt_tokens, entry.completion_tokens, entry.latency_ms,
+                ),
+            )

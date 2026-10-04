@@ -26,7 +26,7 @@ uv sync --no-dev --package ml --no-install-workspace $([ -f uv.lock ] && echo --
 FROM deps AS build-contracts
 COPY proto proto
 COPY libs libs
-RUN uv pip install --python /app/.venv grpcio-tools==1.66.2 \
+RUN uv pip install --python /app/.venv grpcio-tools==1.66.2 "Jinja2==3.1.6" \
  && /app/.venv/bin/python -m grpc_tools.protoc -I proto \
       --python_out=libs/ws_contracts/src --pyi_out=libs/ws_contracts/src \
       --grpc_python_out=libs/ws_contracts/src proto/weaksignals/*/v1/*.proto \
@@ -39,11 +39,16 @@ COPY --from=build-contracts /app/libs /app/libs
 COPY schemas /app/schemas
 COPY tools/minischema.py /app/tools/minischema.py
 COPY services/analyzer /app/services/analyzer
+# Повтор режима А (этап 2): сценарии collector, orchestrator и insight в процессе trainer, без их зависимостей сети.
+COPY services/collector /app/services/collector
+COPY services/orchestrator /app/services/orchestrator
+COPY services/insight /app/services/insight
+COPY tools/benchmark /app/tools/benchmark
 COPY ml /app/ml
 RUN mkdir -p /hf-cache /models /data /mlruns /app/ml/reports /app/docs/ml \
  && chown -R app:app /hf-cache /models /data /mlruns /app/ml/reports /app/docs
 ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONPATH="/app/ml/src:/app/services/analyzer/src:/app/libs/ws_common/src:/app/libs/ws_contracts/src" \
+    PYTHONPATH="/app/ml/src:/app/services/analyzer/src:/app/services/collector/src:/app/services/orchestrator/src:/app/services/insight/src:/app/libs/ws_common/src:/app/libs/ws_contracts/src" \
     HF_HOME="/hf-cache" \
     WS_DATA_DIR="/data" \
     WS_MODEL_STORE_DIR="/models" \
