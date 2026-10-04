@@ -128,13 +128,13 @@ for i in {1..60}; do curl -sf http://127.0.0.1:8080/readyz >/dev/null && break; 
 docker compose exec -T postgres psql -U postgres -d weaksignals -At -c "SELECT s, max(version) FROM (SELECT 'collector' s, version FROM collector.schema_migrations UNION ALL SELECT 'analyzer', version FROM analyzer.schema_migrations UNION ALL SELECT 'orchestrator', version FROM orchestrator.schema_migrations UNION ALL SELECT 'insight', version FROM insight.schema_migrations) m GROUP BY s ORDER BY s"
 docker compose --profile ml run --rm --entrypoint python trainer -m unittest discover -s ml/tests -t ml 2>&1 | tail -3
 python3 tools/quality/stand_report.py --no-checks --all-topics
-RUN="$(ls -t ml/reports/stand/stand-run-*.json | head -1)" && echo "$RUN"
-python3 tools/benchmark/freeze.py --run-file "$RUN" --out ml/reports/benchmark
-SNAP="$(ls -td ml/reports/benchmark/*/ | head -1)" && echo "$SNAP"
-docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark verify "/app/$SNAP"
-docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark replay "/app/$SNAP" --out "/app/${SNAP}replay"
-docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark funnel "/app/$SNAP" --out "/app/${SNAP}funnel"
-docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark match "/app/$SNAP" --dataset /data/labels/dataset_ds-2026.09.19-v2.jsonl --out "/app/${SNAP}match"
+RUN=(ml/reports/stand/stand-run-*.json(N.om[1])); echo "RUN=$RUN"
+python3 tools/benchmark/freeze.py --run-file "${RUN:?нет файла stand-run: сначала прогоните темы}" --out ml/reports/benchmark
+SNAP=(ml/reports/benchmark/*(N/om[1])); echo "SNAP=$SNAP"
+docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark verify "/app/${SNAP:?нет снимков: см. вывод freeze выше}"
+docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark replay "/app/${SNAP:?нет снимков}" --out "/app/$SNAP/replay"
+docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark funnel "/app/${SNAP:?нет снимков}" --out "/app/$SNAP/funnel"
+docker compose --profile ml run --rm --entrypoint python trainer -m ml.benchmark match "/app/${SNAP:?нет снимков}" --dataset /data/labels/dataset_ds-2026.09.19-v2.jsonl --out "/app/$SNAP/match"
 git add -A && git commit -q -m "local: stage2 tracing and mode A" && git tag -f stage2-local && echo "ЭТАП 2 ЗАФИКСИРОВАН"
 ```
 

@@ -39,6 +39,7 @@ from ml.benchmark.snapshot import Snapshot, live_items, normalize_item, parse_ti
 REPO_ROOT = Path(__file__).resolve().parents[4]
 IDENTICAL, DIFFERENT, INCOMPLETE, NOT_COMPARABLE = "IDENTICAL", "DIFFERENT", "INCOMPLETE", "NOT_COMPARABLE"
 OVERRIDE_GROUPS = ("analyzer", "params", "narrate")
+SCORE_TOLERANCE = 0.00011  # единица четвёртого знака: orchestrator.result_items.score — numeric(5,4)
 
 
 @dataclass
@@ -127,6 +128,8 @@ def compare(live: list[dict[str, Any]], replayed: list[dict[str, Any]]) -> list[
         differences.append(f"карточек: живое {len(live)}, повтор {len(replayed)}")
     for left, right in zip(live, replayed, strict=False):
         for key in ("rank", "candidate_id", "title_ru", "score", "narrative_status", "sources"):
+            if key == "score" and abs(float(left.get(key) or 0) - float(right.get(key) or 0)) <= SCORE_TOLERANCE:
+                continue  # в базе уверенность хранится как numeric(5,4): округление базы — не различие выдачи
             if left.get(key) != right.get(key):
                 differences.append(f"ранг {left.get('rank')}: {key}: живое {left.get(key)!r}, повтор {right.get(key)!r}")
     return differences

@@ -208,6 +208,18 @@ class FindSnapshotsTest(unittest.TestCase):
         self.assertEqual([s.name for s in found], ["topic-1"])
 
 
+class CliTest(unittest.TestCase):
+    def test_no_snapshots_is_an_error_not_success(self) -> None:
+        from ml.benchmark import cli  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as tmp:
+            commands = (["verify", tmp], ["replay", tmp, "--out", f"{tmp}/r"], ["funnel", tmp, "--out", f"{tmp}/f"],
+                        ["match", tmp, "--dataset", f"{tmp}/none.jsonl", "--out", f"{tmp}/m"])
+            for command in commands:
+                self.assertEqual(cli.main(command), 2, command[0])
+            self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), [])
+
+
 class FreezeToolTest(unittest.TestCase):
     def test_env_secrets_are_masked_and_manifest_is_compatible(self) -> None:
         freeze = _freeze_module()

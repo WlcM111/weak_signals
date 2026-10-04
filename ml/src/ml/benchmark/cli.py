@@ -53,10 +53,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("b")
     p.add_argument("--metric", required=True, help="recall.<этап> для match_report.json или precision_at_<K> для human_eval")
     args = parser.parse_args(argv)
+    snapshots = find_snapshots(args.snapshots) if hasattr(args, "snapshots") else []
+    if hasattr(args, "snapshots") and not snapshots:
+        # Пустой ввод — ошибка, а не успех: иначе проверка «проходит» без единого снимка.
+        print(f"снимки не найдены: {' '.join(args.snapshots)} — выгрузите их tools/benchmark/freeze.py", file=sys.stderr)
+        return 2
 
     if args.command == "verify":
         failed = 0
-        for snapshot in find_snapshots(args.snapshots):
+        for snapshot in snapshots:
             problems = snapshot.verify()
             failed += bool(problems)
             print(f"{snapshot.name}: {'OK' if not problems else '; '.join(problems)}")
@@ -64,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "replay":
         overrides = replay.parse_overrides(args.overrides)
         summary, failed = [], 0
-        for snapshot in find_snapshots(args.snapshots):
+        for snapshot in snapshots:
             results = [replay.replay(snapshot, overrides) for _ in range(max(1, args.repeat))]
             first = results[0]
             stable = all(r.digest == first.digest and r.status == first.status for r in results)
@@ -79,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         _dump(Path(args.out) / "replay_summary.json", {"overrides": overrides, "runs": summary})
         return 1 if failed else 0
     if args.command == "funnel":
-        reports = [funnel.funnel(snapshot) for snapshot in find_snapshots(args.snapshots)]
+        reports = [funnel.funnel(snapshot) for snapshot in snapshots]
         _dump(Path(args.out) / "funnel.json", reports)
         (Path(args.out) / "funnel.md").write_text(funnel.render_markdown(reports), encoding="utf-8")
         print(funnel.render_markdown(reports))
@@ -93,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "match":
         synonyms, digest = expert_match.load_synonyms(args.synonyms)
-        result = expert_match.match(find_snapshots(args.snapshots), rows or [], synonyms)
+        result = expert_match.match(snapshots, rows or [], synonyms)
         result |= {"dataset": Path(args.dataset).name, "synonyms_sha256": digest}
         out = Path(args.out)
         _dump(out / "matches.json", result)

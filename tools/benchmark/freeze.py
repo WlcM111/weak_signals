@@ -119,7 +119,10 @@ def freeze_job(job_id: str, out: Path) -> tuple[Path, list[str]]:
     if not UUID_RE.match(job_id):
         raise ValueError(f"не UUID: {job_id}")
     issues: list[str] = []
-    job = psql_json(f"SELECT row_to_json(j) FROM orchestrator.jobs j WHERE job_id = '{job_id}'")
+    # Текст запроса и требуемое число карточек хранятся в orchestrator.queries, а не в jobs.
+    job = psql_json("SELECT row_to_json(x) FROM (SELECT j.*, q.query_text, q.normalized_text, q.requested_top_n "
+                    "FROM orchestrator.jobs j JOIN orchestrator.queries q USING (query_id) "
+                    f"WHERE j.job_id = '{job_id}') x")
     if not job:
         raise ValueError(f"задание {job_id} не найдено")
     root = out / f"{slug(job['query_text'])}-{job_id[:8]}"
@@ -242,9 +245,9 @@ def main(argv: list[str]) -> int:
     for job_id in ids:
         try:
             root, issues = freeze_job(job_id, out)
-        except (RuntimeError, ValueError, subprocess.SubprocessError) as error:
+        except Exception as error:  # noqa: BLE001 - сбой одного задания не должен останавливать выгрузку остальных
             failed += 1
-            print(f"{job_id}: ОШИБКА {error}")
+            print(f"{job_id}: ОШИБКА {type(error).__name__}: {error}")
             continue
         print(f"{job_id}: {root} — " + ("полный" if not issues else "проблемы: " + "; ".join(issues)))
     print(f"снимки: {out}")
