@@ -44,6 +44,7 @@ COPY services/collector /app/services/collector
 COPY services/orchestrator /app/services/orchestrator
 COPY services/insight /app/services/insight
 COPY tools/benchmark /app/tools/benchmark
+COPY tools/quality /app/tools/quality
 COPY ml /app/ml
 RUN mkdir -p /hf-cache /models /data /mlruns /app/ml/reports /app/docs/ml \
  && chown -R app:app /hf-cache /models /data /mlruns /app/ml/reports /app/docs

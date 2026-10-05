@@ -1,0 +1,100 @@
+{"row_id":"pos-0001","synonyms":["Quantum-inspired LLM compression","Квантово-инспирированное сжатие языковых моделей"]}
+{"row_id":"pos-0002","synonyms":["AI agent identity management","Управление доступом ИИ-агентов"]}
+{"row_id":"pos-0003","synonyms":["Continuous AI red teaming","Непрерывный red teaming ИИ-моделей"]}
+{"row_id":"pos-0004","synonyms":["MCP server security scanning","MCP tool poisoning defenses"]}
+{"row_id":"pos-0005","synonyms":["Surrogate-driven generative CAD design","Генеративное проектирование с физическими суррогатами"]}
+{"row_id":"pos-0006","synonyms":["Autonomous procurement agents","Агентная автоматизация снабжения"]}
+{"row_id":"pos-0007","synonyms":["Predictive agent-based data center cooling","Упреждающее агентное управление охлаждением ЦОД"]}
+{"row_id":"pos-0008","synonyms":["Brain-inspired AI accelerators","Нейроморфные ускорители искусственного интеллекта"]}
+{"row_id":"pos-0009","synonyms":["Optical circuit switching for AI","Оптическая коммутация каналов ИИ-кластеров"]}
+{"row_id":"pos-0010","synonyms":["Multi-tier KV cache offloading","Многоуровневое хранение KV-кэша"]}
+{"row_id":"pos-0011","synonyms":["Robot skill marketplaces","Магазины навыков для роботов"]}
+{"row_id":"pos-0012","synonyms":["Low-cost quadruped inspection robots","Бюджетные четвероногие роботы-инспекторы"]}
+{"row_id":"pos-0013","synonyms":["Embodied AI safety certification","Сертификация безопасности воплощённого ИИ"]}
+{"row_id":"pos-0014","synonyms":["Robot teleoperation data services","Сбор телеоперационных данных для роботов"]}
+{"row_id":"pos-0015","synonyms":["Two-stage liveness with NFC anchoring","Защита онбординга через NFC и liveness"]}
+{"row_id":"pos-0016","synonyms":["Ultra-low-power neural microcontrollers","Battery-powered IoT inference SoCs"]}
+{"row_id":"pos-0017","synonyms":["Hybrid event-frame automotive vision","Гибридное событийное зрение для ADAS"]}
+{"row_id":"pos-0018","synonyms":["Onboard satellite AI inference","Орбитальный периферийный инференс"]}
+{"row_id":"pos-0019","synonyms":["Federated learning for sovereign deployments","Приватные платформы федеративного обучения"]}
+{"row_id":"pos-0020","synonyms":["Edge-based LLM security gateways","Сетевые шлюзы защиты LLM"]}
+{"row_id":"pos-0021","synonyms":["Self-healing prompt injection defenses","Самовосстанавливающаяся защита от prompt injection"]}
+{"row_id":"pos-0022","synonyms":["AI governance as code","Automated AI regulatory compliance"]}
+{"row_id":"pos-0023","synonyms":["Differentially private synthetic training data","Дифференциально-приватные синтетические обучающие данные"]}
+{"row_id":"pos-0024","synonyms":["Remotely attested confidential inference","TEE inference with signed receipts"]}
+{"row_id":"pos-0025","synonyms":["Statistical watermarking for LLM text","Статистические водяные знаки генерируемого текста"]}
+{"row_id":"pos-0026","synonyms":["Factory-trained robotics foundation models","Базовые модели роботов на заводских данных"]}
+{"row_id":"pos-0027","synonyms":["Prompt-driven visual quality inspection","Контроль качества по текстовым промптам"]}
+{"row_id":"pos-0028","synonyms":["AI-driven multisensor ore characterization","Мультимодальная ИИ-оценка руд"]}
+{"row_id":"pos-0029","synonyms":["Approval-gated industrial control agents","Агенты OT с подтверждением оператора"]}
+{"row_id":"pos-0030","synonyms":["Vision-guided adaptive robotic welding","Адаптивная сварка с нейросетевым зрением"]}
+{"row_id":"pos-0031","synonyms":["AI-driven multi-market battery dispatch","ИИ-диспетчеризация накопителей на энергорынках"]}
+{"row_id":"pos-0032","synonyms":["Wafer-scale processors with 3D-stacked memory","Wafer-scale вычисления с трёхмерной памятью"]}
+{"row_id":"pos-0033","synonyms":["AI inference optimization compilers","Компиляторы автоматической оптимизации инференса"]}
+{"row_id":"pos-0034","synonyms":["Dedicated SMR-powered AI data centers","Модульные реакторы для питания ИИ-ЦОД"]}
+{"row_id":"pos-0035","synonyms":["Air-gapped sovereign AI clouds","Изолированные суверенные облака ИИ"]}
+{"row_id":"pos-0036","synonyms":["Standalone dexterous robotic hands","Многосуставные роботизированные кисти"]}
+{"row_id":"pos-0037","synonyms":["Commercial robot swarm coordination","Промышленные роботизированные рои"]}
+{"row_id":"pos-0038","synonyms":["Onboard VLA inference accelerators","Бортовые ускорители визуально-языковых моделей действий"]}
+{"row_id":"pos-0039","synonyms":["Debt collection voice agents","Голосовые ИИ-агенты взыскания задолженности"]}
+{"row_id":"pos-0040","synonyms":["Agent-native core banking platforms","Банковские ядра со встроенными ИИ-агентами"]}
+{"row_id":"pos-0041","synonyms":["On-chain unsecured credit scoring","On-chain undercollateralized credit ratings"]}
+{"row_id":"pos-0042","synonyms":["Non-USD stablecoin foreign exchange","Ончейн-обмен стейблкоинов локальных валют"]}
+{"row_id":"pos-0043","synonyms":["Federated interbank AML detection","Федеративное обучение межбанковского антифрода"]}
+{"row_id":"pos-0044","synonyms":["Analog in-memory edge inference","Аналоговые edge-ускорители с вычислениями в памяти"]}
+{"row_id":"pos-0045","synonyms":["EDA-integrated neuromorphic processor IP","Нейроморфные IP-блоки для edge-проектирования"]}
+{"row_id":"pos-0046","synonyms":["Edge AI fleet orchestration","Оркестрация инференса на парках устройств"]}
+{"row_id":"pos-0047","synonyms":["SWaP-constrained photonic inference processors","Малогабаритные фотонные ускорители инференса"]}
+{"row_id":"pos-0048","synonyms":["Targeted machine unlearning","Выборочное разучивание моделей"]}
+{"row_id":"pos-0049","synonyms":["Interpretability-guided AI safeguards","Механистическая интерпретируемость для защиты моделей"]}
+{"row_id":"pos-0050","synonyms":["Cryptographic agent request authentication","Проверка подписанного трафика ИИ-агентов"]}
+{"row_id":"pos-0051","synonyms":["AI model signing and provenance","Model signing with AI-SBOM"]}
+{"row_id":"pos-0052","synonyms":["Chain-of-thought deception monitoring","Мониторинг рассуждений для выявления обмана"]}
+{"row_id":"pos-0053","synonyms":["Industrial time-series foundation models","Базовые модели заводских временных рядов"]}
+{"row_id":"pos-0054","synonyms":["Edge acoustic-vibration condition monitoring","Локальная акустико-вибрационная диагностика оборудования"]}
+{"row_id":"pos-0055","synonyms":["AI semiconductor process control","ИИ-управление процессами полупроводникового производства"]}
+{"row_id":"pos-0056","synonyms":["Edge-cloud collaborative inference orchestration","Оркестрация распределённого инференса устройство-облако"]}
+{"row_id":"pos-0057","synonyms":["CXL-pooled memory for inference","LPDDR-based capacity-oriented inference"]}
+{"row_id":"pos-0058","synonyms":["Decentralized AI inference networks","Децентрализованные сети ИИ-инференса"]}
+{"row_id":"pos-0059","synonyms":["Space-based AI data centers","Орбитальная инфраструктура ИИ-инференса"]}
+{"row_id":"pos-0060","synonyms":["Photonic neural inference processors","Оптические ускорители нейросетевого инференса"]}
+{"row_id":"pos-0061","synonyms":["Low-cost persistent underwater robot networks","Постоянные сети автономных подводных роботов"]}
+{"row_id":"pos-0062","synonyms":["Telemetry-based robot insurance","Uptime-guaranteed robotics service contracts"]}
+{"row_id":"pos-0063","synonyms":["Tactile-conditioned vision-language-action models","Тактильно-обусловленные VLA-модели роботов"]}
+{"row_id":"pos-0064","synonyms":["Robot learning from egocentric human video","Перенос навыков из человеческого эговидео"]}
+{"row_id":"pos-0065","synonyms":["Purpose-bound digital money","Программируемые деньги целевого назначения"]}
+{"row_id":"pos-0066","synonyms":["Browser-native KYC compliance agents","Браузерные агенты банковского комплаенса"]}
+{"row_id":"pos-0067","synonyms":["HTTP 402 machine micropayments","Машинные микроплатежи за API-вызовы"]}
+{"row_id":"pos-0068","synonyms":["Reusable zero-knowledge KYC credentials","Переиспользуемые KYC-удостоверения с нулевым разглашением"]}
+{"row_id":"pos-0069","synonyms":["AI agent payment authorization protocols","Протоколы делегирования платежей ИИ-агентам"]}
+{"row_id":"pos-0070","synonyms":["AI agent liability insurance","Страхование ответственности автономных ИИ-агентов"]}
+{"row_id":"pos-0071","synonyms":["Tokenized money market fund collateral","Токенизированные паи денежных фондов как обеспечение"]}
+{"row_id":"pos-0072","synonyms":["On-device NPU agentic workflows","Локальные многошаговые ИИ-агенты на NPU"]}
+{"row_id":"pos-0073","synonyms":["On-device multi-LoRA personalization","Дообучение смартфонных моделей через multi-LoRA"]}
+{"row_id":"pos-0074","synonyms":["On-device small language model runtimes","Локальные среды исполнения малых языковых моделей"]}
+{"row_id":"pos-0075","synonyms":["Hybrid device-cloud inference routing","Маршрутизация инференса между устройством и облаком"]}
+{"row_id":"pos-0076","synonyms":["Certified agent memory poisoning defenses","Сертифицированная защита RAG от отравления"]}
+{"row_id":"pos-0077","synonyms":["Behavioral backdoor scanning for open-weight LLMs","Сканирование поведенческих бэкдоров в весах LLM"]}
+{"row_id":"pos-0078","synonyms":["Formally verified LLM-generated PLC code","Генерация Structured Text с проверкой компилятором"]}
+{"row_id":"pos-0079","synonyms":["Text-to-DEXPI engineering diagram generation","Агентная генерация P&ID из текста"]}
+{"row_id":"pos-0080","synonyms":["Neuromorphic always-on industrial condition monitoring","Событийные чипы мониторинга промышленного оборудования"]}
+{"row_id":"pos-0081","synonyms":["Online reinforcement learning for industrial controllers","Самообучающиеся промышленные контуры управления"]}
+{"row_id":"pos-0082","synonyms":["Cross-factory federated learning","Межзаводское обучение без передачи данных"]}
+{"row_id":"pos-0083","synonyms":["3D-stacked memory computing accelerators","Вычисления в трёхмерной стековой памяти"]}
+{"row_id":"pos-0084","synonyms":["Analog compute-in-memory accelerators","Аналоговые вычислители внутри памяти"]}
+{"row_id":"pos-0085","synonyms":["In-silicon microfluidic chip cooling","Внутрикристальное охлаждение через микроканалы"]}
+{"row_id":"pos-0086","synonyms":["Agentic AI inference accelerators","Аппаратные ускорители инференса ИИ-агентов"]}
+{"row_id":"pos-0087","synonyms":["Superconducting AI compute accelerators","Криогенные вычислители для ИИ-ЦОД"]}
+{"row_id":"pos-0088","synonyms":["Zero-shot sim-to-real robot learning","Zero-shot перенос роботизированных политик из симуляции"]}
+{"row_id":"pos-0089","synonyms":["Soft robotic cells","Material-embedded robotic intelligence"]}
+{"row_id":"pos-0090","synonyms":["Clinical microrobotic systems","Медицинские микророботизированные системы"]}
+{"row_id":"pos-0091","synonyms":["Know-your-agent identity verification","Верификация финансовых полномочий ИИ-агентов"]}
+{"row_id":"pos-0092","synonyms":["Adversarial benchmarks for LLM trading agents","Стресс-тестирование торговых LLM-агентов"]}
+{"row_id":"pos-0093","synonyms":["Public-chain tokenized bank deposits","Банковские депозитные токены публичных блокчейнов"]}
+{"row_id":"pos-0094","synonyms":["Remotely attested microcontroller inference","Конфиденциальный инференс в TEE микроконтроллеров"]}
+{"row_id":"pos-0095","synonyms":["In-pixel neural inference","Инференс внутри пиксельной матрицы"]}
+{"row_id":"pos-0096","synonyms":["Flash-offloaded speculative decoding on smartphones","Спекулятивное декодирование с весами во флеше"]}
+{"row_id":"pos-0097","synonyms":["Living muscle biohybrid actuators","Биогибридные мышечные приводы"]}
+{"row_id":"pos-0098","synonyms":["Self-healing electronic skin","Самовосстанавливающаяся сенсорная кожа роботов"]}
+{"row_id":"pos-0099","synonyms":["Electrohydraulic soft artificial muscles","HASEL artificial muscle actuators"]}
+{"row_id":"pos-0100","synonyms":["Post-quantum financial infrastructure migration","Переход финансовой инфраструктуры на постквантовую криптографию"]}

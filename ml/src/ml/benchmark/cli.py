@@ -7,6 +7,10 @@
   python -m ml.benchmark match   СНИМКИ… --dataset ДАТАСЕТ [--synonyms ФАЙЛ.yaml] --out КАТАЛОГ
   python -m ml.benchmark match-score --dir КАТАЛОГ
   python -m ml.benchmark compare A.json B.json --metric recall.shown
+  python -m ml.benchmark synonyms-merge --dataset ДАТАСЕТ --answers A.jsonl B.jsonl --names A B --out ФАЙЛ.yaml
+  python -m ml.benchmark cards-sheets --cards cards.csv --labels A.csv B.csv --out КАТАЛОГ
+  python -m ml.benchmark pairs-export СНИМКИ… --match КАТАЛОГ --out pairs.csv
+  python -m ml.benchmark pairs-import --match КАТАЛОГ --answers A.csv B.csv
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ import json
 import sys
 from pathlib import Path
 
-from ml.benchmark import expert_match, funnel, replay, stats
+from ml.benchmark import expert_match, funnel, labeling, replay, stats
 from ml.benchmark.snapshot import find_snapshots
 
 
@@ -54,6 +58,22 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("a")
     p.add_argument("b")
     p.add_argument("--metric", required=True, help="recall.<этап> для match_report.json или precision_at_<K> для human_eval")
+    p = sub.add_parser("synonyms-merge")
+    p.add_argument("--dataset", required=True)
+    p.add_argument("--answers", nargs=2, required=True)
+    p.add_argument("--names", nargs=2, required=True)
+    p.add_argument("--out", required=True)
+    p = sub.add_parser("cards-sheets")
+    p.add_argument("--cards", required=True)
+    p.add_argument("--labels", nargs=2, required=True)
+    p.add_argument("--out", required=True)
+    p = sub.add_parser("pairs-export")
+    p.add_argument("snapshots", nargs="+")
+    p.add_argument("--match", required=True)
+    p.add_argument("--out", required=True)
+    p = sub.add_parser("pairs-import")
+    p.add_argument("--match", required=True)
+    p.add_argument("--answers", nargs=2, required=True)
     args = parser.parse_args(argv)
     snapshots = find_snapshots(args.snapshots) if hasattr(args, "snapshots") else []
     if hasattr(args, "snapshots") and not snapshots:
@@ -114,6 +134,30 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "match-score":
         print(json.dumps(expert_match.score(Path(args.dir)), ensure_ascii=False, indent=1))
+        return 0
+    if args.command == "synonyms-merge":
+        experts = [row for row in rows or [] if int(row.get("label", 0)) == 1]
+        answers = [labeling.read_synonyms(Path(path)) for path in args.answers]
+        merged, dropped = labeling.merge_synonyms(answers, experts)
+        provenance = [f"{name}: {Path(path).name}, SHA-256 {labeling.sha256_file(Path(path))}"
+                      for name, path in zip(args.names, args.answers, strict=True)]
+        provenance.append(f"Объединение: порядок {args.names[0]}, затем {args.names[1]}; отброшено {dropped}")
+        Path(args.out).write_text(labeling.synonyms_yaml(merged, provenance), encoding="utf-8")
+        total = sum(len(terms) for terms in merged.values())
+        print(f"синонимов: {total} для {sum(1 for t in merged.values() if t)} сигналов из {len(merged)}; отброшено {dropped}; "
+              f"файл {args.out}, SHA-256 {labeling.sha256_file(Path(args.out))}")
+        return 0
+    if args.command == "cards-sheets":
+        summary = labeling.cards_sheets(Path(args.cards), [Path(p) for p in args.labels], Path(args.out))
+        print(f"карточек: {summary['cards']}; листы: {[s['sheet'] for s in summary['sheets']]} в {args.out}")
+        return 0
+    if args.command == "pairs-export":
+        count = labeling.pairs_export(Path(args.match), snapshots, Path(args.out))
+        print(f"спорных пар: {count}; файл для проверяющих моделей: {args.out}")
+        return 0
+    if args.command == "pairs-import":
+        summary = labeling.pairs_import(Path(args.match), [Path(p) for p in args.answers])
+        print(f"решения внесены: {[s['sheet'] for s in summary['sheets']]} в {args.match}")
         return 0
     if args.command == "compare":
         def per_topic(path: str) -> dict[str, float]:

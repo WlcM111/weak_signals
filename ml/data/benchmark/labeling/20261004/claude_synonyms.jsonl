@@ -1,0 +1,100 @@
+{"row_id": "pos-0001", "synonyms": ["quantum-inspired LLM compression", "tensor network model compression", "сжатие LLM тензорными сетями"]}
+{"row_id": "pos-0002", "synonyms": ["AI agent identity management", "agentic identity and access management", "IAM for AI agents", "управление доступом ИИ-агентов"]}
+{"row_id": "pos-0003", "synonyms": ["automated AI red teaming", "automated LLM red teaming", "AI red teaming as a service", "автоматизированный редтиминг языковых моделей"]}
+{"row_id": "pos-0004", "synonyms": ["MCP server security scanning", "Model Context Protocol security", "MCP tool poisoning detection", "аудит безопасности MCP-серверов"]}
+{"row_id": "pos-0005", "synonyms": ["generative design for manufacturability", "AI CAD copilots", "AI surrogate models for engineering simulation", "ИИ-ассистенты для САПР"]}
+{"row_id": "pos-0006", "synonyms": ["autonomous procurement agents", "agentic AI for procurement", "supply chain AI agents", "ИИ-агенты для закупок"]}
+{"row_id": "pos-0007", "synonyms": ["predictive data center cooling control", "workload-aware liquid cooling control", "agentic data center cooling control", "предиктивное управление охлаждением ЦОД"]}
+{"row_id": "pos-0008", "synonyms": ["neuromorphic AI chips", "neuromorphic computing hardware", "brain-inspired processors", "нейроморфные процессоры"]}
+{"row_id": "pos-0009", "synonyms": ["optical circuit switching", "optical circuit switches for AI clusters", "all-optical data center switching", "оптические коммутаторы для ИИ-кластеров"]}
+{"row_id": "pos-0010", "synonyms": ["KV cache tiering", "KV cache offloading", "tiered KV cache storage", "многоуровневое хранение KV-кэша"]}
+{"row_id": "pos-0011", "synonyms": ["robot skill marketplaces", "robot app stores", "маркетплейсы навыков для роботов"]}
+{"row_id": "pos-0012", "synonyms": ["quadruped inspection robots", "low-cost quadruped robots", "legged robots for industrial inspection", "четвероногие роботы для инспекции"]}
+{"row_id": "pos-0013", "synonyms": ["humanoid robot safety certification", "safety standards for humanoid robots", "physical AI safety certification", "сертификация безопасности гуманоидных роботов"]}
+{"row_id": "pos-0014", "synonyms": ["robot teleoperation data collection", "teleoperation datasets for robot learning", "robotics training data services", "сбор телеоперационных данных для роботов"]}
+{"row_id": "pos-0015", "synonyms": ["biometric injection attack detection", "deepfake-resistant identity verification", "liveness detection for remote onboarding", "обнаружение инъекционных атак на биометрию"]}
+{"row_id": "pos-0016", "synonyms": ["microcontrollers with integrated NPU", "ultra-low-power neural processing units", "TinyML hardware accelerators", "микроконтроллеры со встроенным нейроускорителем"]}
+{"row_id": "pos-0017", "synonyms": ["event cameras for ADAS", "hybrid event-frame vision sensors", "automotive neuromorphic vision sensors", "событийные камеры в автомобилях"]}
+{"row_id": "pos-0018", "synonyms": ["on-orbit edge computing", "satellite onboard AI inference", "space edge computing", "ИИ-инференс на борту спутников"]}
+{"row_id": "pos-0019", "synonyms": ["federated learning platforms", "privacy-preserving federated learning", "federated learning for private deployments", "платформы федеративного обучения"]}
+{"row_id": "pos-0020", "synonyms": ["LLM firewalls", "AI firewalls", "AI security gateways", "межсетевые экраны для языковых моделей"]}
+{"row_id": "pos-0021", "synonyms": ["self-healing prompt injection defense", "adaptive prompt injection defenses", "prompt injection protection for AI agents", "самовосстанавливающаяся защита от промпт-инъекций"]}
+{"row_id": "pos-0022", "synonyms": ["AI governance platforms", "EU AI Act compliance automation", "AI compliance as code", "автоматизация комплаенса ИИ-систем"]}
+{"row_id": "pos-0023", "synonyms": ["differentially private synthetic data", "privacy-preserving synthetic data generation", "synthetic data with differential privacy", "синтетические данные с дифференциальной приватностью"]}
+{"row_id": "pos-0024", "synonyms": ["confidential AI inference", "TEE-based LLM inference", "verifiable confidential inference", "конфиденциальные вычисления для инференса LLM"]}
+{"row_id": "pos-0025", "synonyms": ["LLM text watermarking", "statistical watermarks for generated text", "AI-generated text watermarking", "водяные знаки для сгенерированного текста"]}
+{"row_id": "pos-0026", "synonyms": ["industrial robotics foundation models", "robotics foundation models for manufacturing", "foundation models trained on factory data", "базовые модели для промышленных роботов"]}
+{"row_id": "pos-0027", "synonyms": ["vision-language models for visual inspection", "zero-shot industrial anomaly detection", "prompt-based defect detection", "контроль качества по текстовому промпту"]}
+{"row_id": "pos-0028", "synonyms": ["sensor fusion for mineral exploration", "multi-sensor ore characterization", "machine learning ore grade estimation", "мультисенсорный анализ руды с машинным обучением"]}
+{"row_id": "pos-0029", "synonyms": ["agentic AI for operational technology", "industrial AI agents for SCADA", "human-in-the-loop industrial agents", "ИИ-агенты в АСУ ТП"]}
+{"row_id": "pos-0030", "synonyms": ["adaptive robotic welding", "vision-guided autonomous welding", "deep learning weld seam tracking", "роботизированная сварка с машинным зрением"]}
+{"row_id": "pos-0031", "synonyms": ["BESS trading optimization", "multi-market battery storage optimization", "reinforcement learning for virtual power plants", "ИИ-управление виртуальными электростанциями"]}
+{"row_id": "pos-0032", "synonyms": ["3D wafer-scale integration", "wafer-scale processors with stacked memory", "wafer-scale 3D memory stacking", "трёхмерная интеграция памяти на пластине"]}
+{"row_id": "pos-0033", "synonyms": ["deep learning compilers", "ML compilers for inference optimization", "automated inference optimization", "компиляторы нейронных сетей"]}
+{"row_id": "pos-0034", "synonyms": ["small modular reactors for data centers", "nuclear-powered AI data centers", "SMR power for data centers", "атомное энергоснабжение ЦОД"]}
+{"row_id": "pos-0035", "synonyms": ["air-gapped sovereign cloud", "disconnected sovereign AI cloud", "air-gapped LLM deployment", "изолированные суверенные облака для ИИ"]}
+{"row_id": "pos-0036", "synonyms": ["dexterous robotic hands", "multi-fingered robot hands", "high-DoF dexterous hands", "антропоморфные роботизированные кисти"]}
+{"row_id": "pos-0037", "synonyms": ["swarm robotics", "commercial robot swarms", "swarm robots for warehouse sorting", "рои автономных роботов"]}
+{"row_id": "pos-0038", "synonyms": ["edge AI chips for robotics", "onboard VLA inference hardware", "VLA inference accelerators", "чипы для бортового инференса роботов"]}
+{"row_id": "pos-0039", "synonyms": ["voice AI for debt collection", "AI debt collection agents", "conversational AI loan servicing", "голосовые боты для взыскания долгов"]}
+{"row_id": "pos-0040", "synonyms": ["AI-native core banking platforms", "agentic core banking systems", "банковские ядра с ИИ-агентами"]}
+{"row_id": "pos-0041", "synonyms": ["on-chain credit scoring", "on-chain credit ratings", "DeFi credit risk ratings", "кредитный скоринг в DeFi"]}
+{"row_id": "pos-0042", "synonyms": ["local currency stablecoins", "non-USD stablecoins", "on-chain foreign exchange", "стейблкоины в национальных валютах"]}
+{"row_id": "pos-0043", "synonyms": ["federated learning for anti-money laundering", "federated fraud detection across banks", "privacy-preserving collaborative AML", "межбанковское федеративное обучение"]}
+{"row_id": "pos-0044", "synonyms": ["analog in-memory computing chips", "analog compute-in-memory edge accelerators", "analog edge AI processors", "аналоговые чипы с вычислениями в памяти"]}
+{"row_id": "pos-0045", "synonyms": ["neuromorphic processor IP cores", "neuromorphic RISC-V processors", "neuromorphic edge AI processors", "нейроморфные IP-ядра для SoC"]}
+{"row_id": "pos-0046", "synonyms": ["edge AI fleet orchestration", "edge MLOps platforms", "edge AI device fleet management", "оркестрация ИИ-моделей на edge-устройствах"]}
+{"row_id": "pos-0047", "synonyms": ["photonic AI inference processors", "optical neural network accelerators", "photonic processors for edge AI", "фотонные ускорители инференса"]}
+{"row_id": "pos-0048", "synonyms": ["LLM unlearning", "machine unlearning methods", "knowledge unlearning in language models", "машинное разобучение"]}
+{"row_id": "pos-0049", "synonyms": ["probe-based jailbreak detection", "activation probes for safety monitoring", "mechanistic interpretability for model safeguards", "интерпретируемость для обнаружения джейлбрейков"]}
+{"row_id": "pos-0050", "synonyms": ["cryptographic bot authentication", "HTTP message signatures for agents", "signed AI agent requests", "криптографическая аутентификация ИИ-агентов"]}
+{"row_id": "pos-0051", "synonyms": ["ML model signing", "AI bill of materials", "AI model supply chain provenance", "подпись и провенанс ML-моделей"]}
+{"row_id": "pos-0052", "synonyms": ["chain-of-thought monitorability", "CoT monitoring for deception detection", "reasoning trace monitoring", "мониторинг цепочки рассуждений моделей"]}
+{"row_id": "pos-0053", "synonyms": ["industrial time series foundation models", "time series foundation models for manufacturing", "factory data pretraining corpora", "базовые модели для заводской телеметрии"]}
+{"row_id": "pos-0054", "synonyms": ["acoustic machine condition monitoring", "anomalous sound detection for machines", "edge acoustic predictive maintenance", "акустический мониторинг состояния оборудования"]}
+{"row_id": "pos-0055", "synonyms": ["AI semiconductor process control", "machine learning for fab process control", "AI plasma process monitoring", "ИИ-управление полупроводниковым техпроцессом"]}
+{"row_id": "pos-0056", "synonyms": ["edge-cloud inference orchestration", "device-to-cloud inference offloading", "telecom AI grid", "оркестрация инференса между устройством и облаком"]}
+{"row_id": "pos-0057", "synonyms": ["CXL memory pooling for inference", "CXL memory expansion for LLM inference", "LPDDR-based inference accelerators", "расширение памяти CXL для инференса"]}
+{"row_id": "pos-0058", "synonyms": ["decentralized inference networks", "decentralized AI compute networks", "peer-to-peer LLM inference", "децентрализованные вычислительные сети для ИИ"]}
+{"row_id": "pos-0059", "synonyms": ["orbital data centers", "space-based data centers", "in-orbit AI compute", "космические центры обработки данных"]}
+{"row_id": "pos-0060", "synonyms": ["photonic AI accelerators", "optical computing for AI inference", "photonic neural network processors", "оптические вычисления для нейросетей"]}
+{"row_id": "pos-0061", "synonyms": ["low-cost autonomous underwater vehicles", "mass-produced underwater drones", "persistent ocean monitoring AUV fleets", "недорогие автономные подводные дроны"]}
+{"row_id": "pos-0062", "synonyms": ["robot insurance underwriting", "telemetry-based robot insurance", "humanoid robot insurance policies", "страхование роботов по телеметрии"]}
+{"row_id": "pos-0063", "synonyms": ["tactile vision-language-action models", "vision-tactile-language-action models", "tactile-conditioned manipulation policies", "тактильные VLA-модели"]}
+{"row_id": "pos-0064", "synonyms": ["egocentric human video for robot learning", "human-to-robot skill transfer", "egocentric video datasets for robotics", "обучение роботов по эгоцентрическому видео"]}
+{"row_id": "pos-0065", "synonyms": ["purpose-bound digital money", "purpose-bound programmable money", "programmable digital vouchers", "целевые цифровые деньги"]}
+{"row_id": "pos-0066", "synonyms": ["AI agents for KYC and AML", "autonomous AML investigation agents", "browser-based compliance AI agents", "ИИ-агенты для комплаенса"]}
+{"row_id": "pos-0067", "synonyms": ["HTTP 402 payments", "machine-to-machine micropayments", "pay-per-call API micropayments", "микроплатежи за вызовы API"]}
+{"row_id": "pos-0068", "synonyms": ["zero-knowledge KYC", "reusable KYC credentials", "zero-knowledge verifiable credentials", "KYC с нулевым разглашением"]}
+{"row_id": "pos-0069", "synonyms": ["agentic payment protocols", "AI agent payment authorization", "agentic commerce protocols", "протоколы агентных платежей"]}
+{"row_id": "pos-0070", "synonyms": ["AI agent liability insurance", "AI liability insurance policies", "agentic AI insurance coverage", "страхование рисков ИИ-агентов"]}
+{"row_id": "pos-0071", "synonyms": ["tokenized money market funds", "tokenized MMF shares as collateral", "tokenized collateral mobility", "токенизированные фонды денежного рынка"]}
+{"row_id": "pos-0072", "synonyms": ["on-device AI agents", "NPU-accelerated local agents", "local agentic workflows on AI PCs", "локальные ИИ-агенты на NPU"]}
+{"row_id": "pos-0073", "synonyms": ["on-device LLM fine-tuning", "on-device LoRA personalization", "mobile multi-LoRA adaptation", "дообучение моделей на устройстве"]}
+{"row_id": "pos-0074", "synonyms": ["on-device SLM runtimes", "local LLM inference runtimes", "small language models on device", "локальный запуск малых языковых моделей"]}
+{"row_id": "pos-0075", "synonyms": ["device-cloud LLM routing", "hybrid edge-cloud inference", "on-device and cloud model routing", "маршрутизация запросов между устройством и облаком"]}
+{"row_id": "pos-0076", "synonyms": ["agent memory poisoning defenses", "certified defenses against RAG poisoning", "RAG knowledge base poisoning detection", "защита RAG от отравления данных"]}
+{"row_id": "pos-0077", "synonyms": ["LLM backdoor detection", "backdoor scanners for open-weight models", "trojan detection in language models", "обнаружение бэкдоров в языковых моделях"]}
+{"row_id": "pos-0078", "synonyms": ["LLM-based PLC code generation", "IEC 61131-3 Structured Text generation", "verified LLM PLC programming", "генерация программ ПЛК языковыми моделями"]}
+{"row_id": "pos-0079", "synonyms": ["automated P&ID generation", "LLM-based process flow diagram generation", "text-to-P&ID agents", "автоматическая генерация P&ID-схем"]}
+{"row_id": "pos-0080", "synonyms": ["neuromorphic chips for condition monitoring", "always-on neuromorphic sensor processors", "spiking neural processors for industrial sensing", "нейроморфные чипы для мониторинга оборудования"]}
+{"row_id": "pos-0081", "synonyms": ["reinforcement learning on PLCs", "online reinforcement learning for process control", "self-learning industrial control loops", "обучение с подкреплением на ПЛК"]}
+{"row_id": "pos-0082", "synonyms": ["cross-factory federated learning", "industrial federated learning", "federated learning in manufacturing", "межзаводское федеративное обучение"]}
+{"row_id": "pos-0083", "synonyms": ["3D stacked in-memory computing", "3D stacked DRAM for AI", "HBM alternatives for AI inference", "вычисления в 3D-стековой памяти"]}
+{"row_id": "pos-0084", "synonyms": ["analog compute-in-memory accelerators", "analog AI inference chips", "mixed-signal in-memory computing", "аналоговые ускорители нейросетей"]}
+{"row_id": "pos-0085", "synonyms": ["in-chip microfluidic cooling", "embedded silicon microchannel cooling", "microfluidic cooling for AI chips", "микроканальное охлаждение внутри кристалла"]}
+{"row_id": "pos-0086", "synonyms": ["agentic AI inference chips", "purpose-built silicon for agentic AI", "long-context LLM inference accelerators", "чипы для агентного ИИ"]}
+{"row_id": "pos-0087", "synonyms": ["superconducting digital computing", "superconducting AI processors", "cryogenic computing for data centers", "сверхпроводниковая цифровая электроника"]}
+{"row_id": "pos-0088", "synonyms": ["zero-shot sim-to-real transfer", "simulation-only robot policy training", "sim2real without real-world fine-tuning", "sim-to-real перенос без дообучения"]}
+{"row_id": "pos-0089", "synonyms": ["material-embedded physical intelligence", "physical intelligence in soft robots", "morphological computation in soft robots"]}
+{"row_id": "pos-0090", "synonyms": ["medical microrobots", "clinically ready microrobots", "microrobots for targeted drug delivery", "микророботы для клинического применения"]}
+{"row_id": "pos-0091", "synonyms": ["Know Your Agent frameworks", "verifiable AI agent identity", "delegated authority for AI agents", "идентификация ИИ-агентов в финансах"]}
+{"row_id": "pos-0092", "synonyms": ["LLM trading agent benchmarks", "stress testing LLM trading agents", "adversarial market benchmarks for LLM agents", "бенчмарки торговых LLM-агентов"]}
+{"row_id": "pos-0093", "synonyms": ["tokenized deposits", "bank deposit tokens", "tokenized commercial bank money", "токенизированные банковские депозиты"]}
+{"row_id": "pos-0094", "synonyms": ["confidential computing on microcontrollers", "TEE-protected TinyML inference", "remote attestation on microcontrollers", "доверенное исполнение на микроконтроллерах"]}
+{"row_id": "pos-0095", "synonyms": ["in-sensor computing", "in-pixel neural network inference", "processing-in-pixel image sensors", "внутрисенсорные вычисления"]}
+{"row_id": "pos-0096", "synonyms": ["speculative decoding with flash offloading", "flash-offloaded LLM inference on smartphones", "on-device speculative decoding", "спекулятивное декодирование на смартфоне"]}
+{"row_id": "pos-0097", "synonyms": ["biohybrid muscle actuators", "living muscle tissue actuators", "muscle-powered biohybrid robots", "биогибридные роботы с мышечной тканью"]}
+{"row_id": "pos-0098", "synonyms": ["self-healing electronic skin", "self-healing soft robotic materials", "damage-sensing self-healing e-skin", "самозалечивающаяся электронная кожа"]}
+{"row_id": "pos-0099", "synonyms": ["HASEL actuators", "electrohydraulic artificial muscles", "soft electrohydraulic actuators", "электрогидравлические актуаторы"]}
+{"row_id": "pos-0100", "synonyms": ["post-quantum cryptography migration", "quantum-safe financial infrastructure", "PQC migration in banking", "квантово-безопасная криптография для банков"]}
