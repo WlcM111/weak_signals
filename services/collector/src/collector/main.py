@@ -48,6 +48,7 @@ from collector.application.use_cases.start_collection import StartCollection
 from collector.application.use_cases.stream_documents import StreamDocuments
 from collector.config import CollectorSettings
 from collector.domain.values import AdapterErrorCode, SourceKey
+from collector.domain.source_policy import SourcePolicy
 from ws_common.clock import SystemClock
 from ws_common.config import load_settings
 from ws_common.db import build_pool
@@ -98,6 +99,8 @@ async def serve(settings: CollectorSettings) -> int:
         read_timeout_seconds=max(settings.collector_http_timeout_seconds, SLOW_SOURCE_TIMEOUT_SECONDS),
         max_bytes=settings.http_max_bytes,
         retries=0,
+        # Стенд 04.10.2026: соединение с GDELT не устанавливалось за 5 с (общий таймаут соединения) в каждой теме.
+        connect_timeout_seconds=settings.gdelt_connect_timeout_seconds,
     )
     limiter = TokenBucketRateLimiter(
         rates={entry.source_key: entry.rate_limit_rps for entry in catalog.values()},
@@ -227,6 +230,8 @@ def build_adapters(
         if adapter is None:
             unavailable[source_key] = AdapterErrorCode.DISABLED
             continue
+        # Бюджет запросов и паузы источника (аудит B2-b): значения по умолчанию и WS_COLLECTOR_SOURCE_POLICY.
+        adapter.policy = settings.source_policies.get(source_key, SourcePolicy())  # type: ignore[attr-defined]
         adapters[source_key] = adapter
     return adapters, unavailable
 
@@ -250,11 +255,12 @@ def _create_adapter(
     if source_key is SourceKey.GITHUB:
         return GithubAdapter(http_client, limiter, clock, settings.github_token)
     if source_key is SourceKey.SEMANTIC_SCHOLAR:
-        return SemanticScholarAdapter(http_client, limiter, clock, settings.semantic_scholar_api_key)
+        return SemanticScholarAdapter(http_client, limiter, clock, settings.semantic_scholar_api_key,
+                                      settings.semantic_scholar_window_months)
     if source_key is SourceKey.ZENODO:
         return ZenodoAdapter(http_client, limiter, clock)
     if source_key is SourceKey.GDELT:
-        return GdeltAdapter(gdelt_http_client or http_client, limiter, clock)
+        return GdeltAdapter(gdelt_http_client or http_client, limiter, clock, settings.gdelt_history_months)
     if source_key is SourceKey.ROSPATENT:
         return RospatentAdapter(http_client, limiter, clock, settings.rospatent_token)
     return None  # patentsview и hh включаются после подтверждения условий API (§6.5 ТЗ)

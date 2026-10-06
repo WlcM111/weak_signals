@@ -41,7 +41,9 @@ class LeaseLost(AppError):
 class AdapterFailure(Exception):
     """Отказ адаптера источника с кодом из единого списка (§10.7). Наружу не выходит: пишется в adapter_runs."""
 
-    def __init__(self, code: str, message: str) -> None:
+    def __init__(self, code: str, message: str, retryable: bool = False) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
+        # Можно ли повторить запрос по политике источника (B2-b): одиночный 429 — да, серия 429 и прочие отказы — нет.
+        self.retryable = retryable

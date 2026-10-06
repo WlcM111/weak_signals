@@ -79,6 +79,10 @@
 | WS_DOCUMENT_RETENTION_DAYS | 7–3650 | 90 | | удаление «осиротевших» документов |
 | WS_SOURCE_ENABLED_OVERRIDE | `openalex=true,hh=false,…` | пусто | | переопределение флагов `source_catalog.enabled` без миграции |
 | WS_COLLECTOR_TRACE_ENABLED | bool | true | | трасса сбора для режима А: сырые ответы источников без ключей и события документов (`raw_responses`, `document_events`) |
+| WS_GDELT_HISTORY_MONTHS | 3–120 | 24 | | глубина истории новостей GDELT: окна по 90 дней, не раньше `published_since_year` |
+| WS_GDELT_CONNECT_TIMEOUT_SECONDS | 3–60 | 20 | | таймаут соединения с GDELT (остальные источники — 5 с) |
+| WS_SEMANTIC_SCHOLAR_WINDOW_MONTHS | 3–120 | 24 | | окно публикаций bulk-поиска Semantic Scholar |
+| WS_COLLECTOR_SOURCE_POLICY | `источник:requests=N,retries=N,pause=С;…` | пусто | | бюджет запросов на сбор, повторы после 429 и пауза по источникам поверх значений по умолчанию (Semantic Scholar 6/2/10, GDELT 8) |
 
 ## analyzer
 

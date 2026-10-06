@@ -23,6 +23,7 @@ from collector.application.ports import (
 )
 from collector.application.request_accounting import current_request_accounting
 from collector.application.trace_recording import current_collection_trace
+from collector.domain.source_policy import SourcePolicy
 from collector.domain.errors import AdapterFailure
 from collector.domain.values import AdapterErrorCode, SearchTerms, SourceKey
 from ws_common.clock import Clock
@@ -84,7 +85,42 @@ class BaseSourceAdapter:
         """POST-запрос с JSON-телом (параметры поиска в теле) с соблюдением лимита источника."""
         return await self._fetch(url, params=None, headers=headers, as_json=True, json_body=json_body)
 
+    # Бюджет запросов и паузы источника (аудит B2-b); main.py назначает политику из настроек.
+    policy: SourcePolicy = SourcePolicy()
+
+    def requests_made(self) -> int:
+        """Логических запросов источника в текущем сборе (учёт сбора), иначе — за жизнь адаптера."""
+        accounting = current_request_accounting()
+        return accounting.requests_of(self.key) if accounting is not None else self._http_requests
+
     async def _fetch(
+        self,
+        url: str,
+        *,
+        params: Mapping[str, str | int] | None,
+        headers: Mapping[str, str] | None,
+        as_json: bool,
+        json_body: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Запрос по политике источника (B2-b): бюджет запросов сбора и повтор после 429 с паузой.
+
+        Каждая попытка — отдельный логический запрос: она расходует бюджет и пишется в трассу сбора.
+        """
+        attempt = 0
+        while True:
+            if self.policy.max_requests and self.requests_made() >= self.policy.max_requests:
+                raise AdapterFailure(AdapterErrorCode.BUDGET_EXHAUSTED.value,
+                                     f"бюджет запросов источника на сбор исчерпан: {self.policy.max_requests}")
+            try:
+                return await self._fetch_traced(url, params=params, headers=headers, as_json=as_json, json_body=json_body)
+            except AdapterFailure as failure:
+                repeat = (failure.code == AdapterErrorCode.RATE_LIMITED.value and failure.retryable
+                          and attempt < self.policy.rate_limit_retries)
+                if not repeat:
+                    raise
+                attempt += 1
+
+    async def _fetch_traced(
         self,
         url: str,
         *,
@@ -164,13 +200,14 @@ class BaseSourceAdapter:
         """429 → штраф лимитеру и счётчик подряд; прочие коды → HTTP_4XX/HTTP_5XX."""
         if exc.status == 429:
             streak = self._bump_rate_limit()
-            await self._limiter.penalize(self.key, exc.retry_after)
+            pause = exc.retry_after if exc.retry_after is not None else (self.policy.rate_limit_pause or None)
+            await self._limiter.penalize(self.key, pause)
             if streak >= MAX_CONSECUTIVE_RATE_LIMITS:
                 raise AdapterFailure(
                     AdapterErrorCode.RATE_LIMITED.value,
                     f"источник ограничил частоту запросов: {MAX_CONSECUTIVE_RATE_LIMITS} ответа 429 подряд",
                 )
-            raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value, "источник ответил 429")
+            raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value, "источник ответил 429", retryable=True)
         code = AdapterErrorCode.HTTP_4XX if exc.status < 500 else AdapterErrorCode.HTTP_5XX
         raise AdapterFailure(code.value, f"источник ответил кодом {exc.status}")
 

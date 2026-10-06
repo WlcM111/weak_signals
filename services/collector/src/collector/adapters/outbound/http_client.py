@@ -42,6 +42,7 @@ class HttpxClient:
         read_timeout_seconds: float,
         max_bytes: int,
         retries: int,
+        connect_timeout_seconds: float = CONNECT_TIMEOUT_SECONDS,
         max_connections_per_host: int = 4,
     ) -> None:
         self._max_bytes = max_bytes
@@ -49,7 +50,7 @@ class HttpxClient:
         self.attempts_total = 0  # HTTP-попытки, включая внутренние повторы (логические вызовы считает адаптер)
         self._log = get_logger("collector.http")
         self._client = httpx.AsyncClient(
-            timeout=httpx.Timeout(read_timeout_seconds, connect=CONNECT_TIMEOUT_SECONDS),
+            timeout=httpx.Timeout(read_timeout_seconds, connect=connect_timeout_seconds),
             limits=httpx.Limits(
                 max_connections=max_connections_per_host * 4, max_keepalive_connections=max_connections_per_host
             ),

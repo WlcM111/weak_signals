@@ -1,5 +1,21 @@
 # Изменения контрактов
 
+## 2026-10-05 — v16: этап 3 — источники, бюджет и паузы, Semantic Scholar Bulk, доводка
+- gRPC-контракты, HTTP API и миграции не менялись.
+- **collector, GDELT:**
+  - окна истории по 90 дней через `STARTDATETIME`/`ENDDATETIME` вместо `timespan=3months`;
+  - пауза только после 429 или текста вместо JSON, 120 с вместо 600, ожидается, если кончается до срока сбора;
+  - таймаут соединения 20 с, один повтор окна;
+  - отказы отдельных окон видны в статусе запуска.
+- **collector, Semantic Scholar:** `/paper/search/bulk`, `sort=publicationDate:desc`, окно 24 месяца, продолжение по `token`.
+- **collector, B2-b:** политика источника — бюджет запросов на сбор, повторы после 429, пауза без `Retry-After`.
+  Новый параметр `AdapterFailure.retryable`, у `HttpxClient` — `connect_timeout_seconds`.
+- **insight, доводка:** один повтор отклонённой карточки с причиной отказа (ключ `исправление` в данных карточки).
+  Системный промпт `finalize_v5` не менялся.
+- **ml:** эксперимент B1 (`--b1-report`), экспортируемая модель не менялась.
+- **Новые переменные:** `WS_GDELT_HISTORY_MONTHS`, `WS_GDELT_CONNECT_TIMEOUT_SECONDS`,
+  `WS_SEMANTIC_SCHOLAR_WINDOW_MONTHS`, `WS_COLLECTOR_SOURCE_POLICY`.
+
 ## 2026-10-04 — v15: этап 2 — трассировка и режим А (аудит A3, A4, B2-a)
 - gRPC-контракты (proto) и HTTP API не менялись.
 - Новые таблицы. Миграции применяют сервисы при старте:

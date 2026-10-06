@@ -7,6 +7,7 @@ from pathlib import Path
 from pydantic import Field, field_validator
 
 from collector.config_parsing import parse_feed_list, parse_source_override
+from collector.domain.source_policy import SourcePolicy, parse_source_policies
 from collector.domain.values import SourceKey
 from ws_common.config import BaseServiceSettings
 
@@ -38,6 +39,12 @@ class CollectorSettings(BaseServiceSettings):
     collector_http_timeout_seconds: float = Field(default=15.0, ge=3.0, le=60.0)
     collector_http_max_bytes: int = Field(default=5, ge=1, le=50)
     collector_http_retries: int = Field(default=3, ge=0, le=5)
+    # Этап 3: история новостей GDELT окнами по 90 дней, таймаут соединения медленного источника, окно bulk-поиска
+    # Semantic Scholar и политика бюджета/пауз по источникам (B2-b).
+    gdelt_history_months: int = Field(default=24, ge=3, le=120)
+    gdelt_connect_timeout_seconds: float = Field(default=20.0, ge=3.0, le=60.0)
+    semantic_scholar_window_months: int = Field(default=24, ge=3, le=120)
+    collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)
     source_enabled_override: str = ""
@@ -54,6 +61,18 @@ class CollectorSettings(BaseServiceSettings):
         if value.strip():
             parse_feed_list(value)
         return value
+
+    @field_validator("collector_source_policy")
+    @classmethod
+    def _check_policy(cls, value: str) -> str:
+        """Проверяет политику бюджета и пауз источников при старте."""
+        parse_source_policies(value)
+        return value
+
+    @property
+    def source_policies(self) -> dict[SourceKey, SourcePolicy]:
+        """Бюджет запросов и паузы по источникам: значения по умолчанию и переопределения из настроек."""
+        return parse_source_policies(self.collector_source_policy)
 
     @field_validator("source_enabled_override")
     @classmethod

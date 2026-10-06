@@ -29,6 +29,10 @@ from ws_common.logging import get_logger
 # Одна карточка на вызов: длинный ответ на пачку из двух обрывался (ошибки разбора JSON), и признанные рубрикой
 # кандидаты терялись (стенд 29.09: 45 кандидатов R → 24 карточки).
 FINALIZE_BATCH = 1
+# Аудит B5 (этап 3): отклонённая проверкой карточка получает один повтор с причиной отказа. Прогон 04.10.2026:
+# 10 отказов доводки — 6 «в названии нет оригинального термина», 4 «поле пустое»; повтора не было (пачка из
+# одной карточки не повторялась), ошибка JSON тоже отклоняла карточку без повтора.
+REPAIR_KEY = "исправление"
 FINALIZE_MAX_TOKENS = 4000
 MAX_CARDS = 30
 MAX_SOURCES = 5
@@ -289,6 +293,11 @@ def repair_numbers(text: str, supported: set[float]) -> str:
     return " ".join(part for part in SENTENCE_RE.split(text) if part and not unsupported(part, supported)).strip()
 
 
+def repairable(reason: str) -> bool:
+    """Отказ, который модель может исправить повтором: проверка ответа, а не недоступность провайдера."""
+    return reason != "модель недоступна" and not reason.startswith("пачка отклонена: Provider")
+
+
 def check_card(card: CardInput, row: object) -> tuple[FinalizedCard | None, str]:
     """Проверяет ответ модели по одной карточке; возвращает карточку или причину отказа."""
     if not isinstance(row, dict):
@@ -373,15 +382,25 @@ class FinalizeCards:
             if len(chunk) > 1:
                 for card in [card for card in chunk if card.candidate_id in outcome.rejected]:
                     await self._chunk(query_text, [card], outcome)
+        for card in cards:
+            reason = outcome.rejected.get(card.candidate_id)
+            if reason is not None and repairable(reason):
+                log.info("finalize.retry", candidate_id=card.candidate_id, reason=reason)
+                await self._chunk(query_text, [card], outcome, feedback=reason)
         log.info("finalize.done", requested=len(cards), accepted=len(outcome.cards), rejected=len(outcome.rejected),
                  reasons=sorted(set(outcome.rejected.values()))[:10], provider=outcome.provider)
         return outcome
 
-    async def _chunk(self, query_text: str, chunk: list[CardInput], outcome: FinalizeOutcome) -> None:
+    async def _chunk(
+        self, query_text: str, chunk: list[CardInput], outcome: FinalizeOutcome, feedback: str | None = None
+    ) -> None:
         short_ids = {f"k{number}": card for number, card in enumerate(chunk, 1)}
-        bundle = self._prompts.build_finalize_prompt(
-            query_text, [card_payload(short, card) for short, card in short_ids.items()]
-        )
+        payloads = [card_payload(short, card) for short, card in short_ids.items()]
+        if feedback:
+            for payload in payloads:
+                payload[REPAIR_KEY] = (f"Прошлый ответ по этой карточке отклонён проверкой: «{feedback}». "
+                                       "Верни карточку заново по тем же правилам, устранив эту причину.")
+        bundle = self._prompts.build_finalize_prompt(query_text, payloads)
         try:
             response = await self._chain.complete(
                 bundle.messages, json_schema=bundle.json_schema, max_tokens=FINALIZE_MAX_TOKENS,

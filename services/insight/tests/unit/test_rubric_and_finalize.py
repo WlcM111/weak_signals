@@ -177,10 +177,42 @@ class FinalizeCardsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(FINALIZE_PROMPT_VERSION, "finalize_v5")
 
     async def test_failed_batch_rejects_all(self) -> None:
-        provider = FakeProvider(responses=["{"])
+        # Этап 3 (B5): ошибка JSON повторяется один раз; повторная ошибка оставляет карточку отклонённой.
+        provider = FakeProvider(responses=["{", "{"])
         outcome = await FinalizeCards(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS)).execute("q", [self.CARD])
         self.assertTrue(outcome.used_fallback)
         self.assertIn("пачка отклонена", outcome.rejected["cand-1"])
+        self.assertEqual(len(provider.calls), 2)
+
+    async def test_rejected_card_is_retried_once_with_the_reason(self) -> None:
+        bad = json.dumps({"cards": [card_row("k1", title_ru="Фотонный лидар на чипе")]}, ensure_ascii=False)
+        good = json.dumps({"cards": [card_row("k1")]}, ensure_ascii=False)
+        provider = FakeProvider(responses=[bad, good])
+        outcome = await FinalizeCards(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS)).execute("q", [self.CARD])
+        self.assertEqual([card.candidate_id for card in outcome.cards], ["cand-1"])
+        self.assertEqual(outcome.rejected, {})
+        retry = json.loads(provider.calls[1][1].content)["cards"][0]
+        self.assertIn("оригинального термина", retry["исправление"])
+        self.assertNotIn("исправление", json.loads(provider.calls[0][1].content)["cards"][0])
+
+    async def test_second_rejection_is_final(self) -> None:
+        bad = json.dumps({"cards": [card_row("k1", title_ru="Фотонный лидар на чипе")]}, ensure_ascii=False)
+        provider = FakeProvider(responses=[bad, bad, bad])
+        outcome = await FinalizeCards(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS)).execute("q", [self.CARD])
+        self.assertIn("оригинального термина", outcome.rejected["cand-1"])
+        self.assertEqual(len(provider.calls), 2)
+
+    async def test_provider_failure_is_not_retried(self) -> None:
+        from insight.domain.errors import ProviderTimeout  # noqa: PLC0415
+        from insight.application.use_cases.finalize_cards import repairable  # noqa: PLC0415
+
+        self.assertFalse(repairable("пачка отклонена: ProviderError"))
+        self.assertFalse(repairable("модель недоступна"))
+        self.assertTrue(repairable("пачка отклонена: OutputRejected"))
+        provider = FakeProvider(errors=[ProviderTimeout("медленно", "fake")])
+        outcome = await FinalizeCards(build_chain([provider]), PromptBuilder(PROMPTS, SCHEMAS)).execute("q", [self.CARD])
+        self.assertIn("пачка отклонена: Provider", outcome.rejected["cand-1"])
+        self.assertEqual(len(provider.calls), 1)
 
 
 

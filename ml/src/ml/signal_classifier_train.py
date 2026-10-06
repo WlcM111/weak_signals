@@ -28,6 +28,7 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.model_selection import LeaveOneGroupOut, StratifiedKFold
 
 from ws_common.signal_classifier import features
+from ws_common.signal_classifier import features as base_features
 
 SEED = 20260927
 C = 4.0
@@ -161,12 +162,57 @@ def cross(rows: list[dict], extra: list[dict], seed: int = SEED) -> dict:
     return result
 
 
+def binary_features(text: str) -> dict[str, float]:
+    """B1 (этап 3): те же основы и пары основ, но значение 1,0 без деления на √n — вес признака не зависит от длины."""
+    return {key: 1.0 for key in base_features(text)}
+
+
+def score_length_spearman(vectorizer: DictVectorizer, model: LogisticRegression, rows: list[dict]) -> float | None:
+    """Ранговая корреляция оценки модели с длиной текста: насколько решение модели следует за длиной."""
+    from scipy.stats import spearmanr  # noqa: PLC0415
+
+    if len(rows) < 3:
+        return None
+    decision = model.decision_function(vectorizer.transform([features(text_of(r)) for r in rows]))
+    value = spearmanr(decision, [text_length(r) for r in rows]).statistic
+    return None if value != value else round(float(value), 4)  # NaN — не определена
+
+
+def b1_length_free(own: list[dict], organizers: list[dict]) -> dict:
+    """Эксперимент B1: нормировка 1/√n против бинарных признаков на тех же разбиениях; модель не экспортируется.
+
+    Правило приёмки из плана: вариант без зависимости от длины принимается, только если превзойдёт baseline
+    «только длина» на тесте без конфаунда. Такого теста пока нет (A1-b, этап 4), поэтому итог — замер, не замена.
+    """
+    module = sys.modules[__name__]
+    original = module.features
+    labels = [int(r["label"]) for r in organizers]
+    result: dict = {}
+    try:
+        for name, featurize in (("sqrt_current", base_features), ("binary_length_free", binary_features)):
+            module.features = featurize
+            vectorizer, model = fit(own)
+            result[name] = {
+                "organizers_cv": cross(organizers, own),
+                "organizers_by_domain": {k: v for k, v in cross_by_group(organizers, own).items() if k != "per_group"},
+                "own_to_organizers": scores(labels, predict(vectorizer, model, organizers)),
+                "score_length_spearman_organizers": score_length_spearman(vectorizer, model, organizers),
+            }
+    finally:
+        module.features = original
+    result["length_only_baseline_organizers"] = length_baseline_cv(organizers)
+    result["decision"] = ("не принимается: правило плана требует превзойти baseline «только длина» на тесте без "
+                          "конфаунда, а такого теста нет до этапа 4 (A1-b); экспортируемая модель не меняется")
+    return result
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="локальный классификатор слабого сигнала")
     parser.add_argument("--own", required=True)
     parser.add_argument("--organizers", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--report", required=True)
+    parser.add_argument("--b1-report", default="", help="этап 3, B1: отчёт эксперимента без зависимости от длины")
     args = parser.parse_args(argv)
     own, org = load(args.own), load(args.organizers)
     vec_own, model_own = fit(own)
@@ -198,6 +244,12 @@ def main(argv: list[str]) -> int:
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(json.dumps({k: report[k] for k in ("own_rows", "organizer_rows", "own_cv", "own_to_organizers", "organizers_cv",
                                              "organizers_by_domain", "evaluation_integrity")}, ensure_ascii=False, indent=1))
+    if args.b1_report:
+        b1 = b1_length_free(own, org)
+        Path(args.b1_report).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.b1_report).write_text(json.dumps(b1, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print("B1:", json.dumps({k: {m: v.get(m) for m in ("organizers_cv", "own_to_organizers", "score_length_spearman_organizers")}
+                                 for k, v in b1.items() if isinstance(v, dict) and "organizers_cv" in v}, ensure_ascii=False))
     print("признаки слабого сигнала:", [k for k, _ in report["top_weak_signal_features"][:10]])
     print("признаки зрелости:", [k for k, _ in report["top_mature_features"][:10]])
     return 0

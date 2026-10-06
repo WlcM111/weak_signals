@@ -2,45 +2,55 @@
 
 Деловые сигналы — страхование роботов, маркетплейсы навыков, роботы как услуга — появляются в новостях
 о пилотах и сделках раньше, чем в научных статьях. Адаптер ищет английские фразы темы вместе с деловыми
-маркерами в режиме `artlist` за последние три месяца (окно DOC API). Документ — заголовок новости:
-текст статей API не отдаёт. Тип источника INDUSTRY_MEDIA, доверенность MEDIUM — новость подсказывает
-сигнал, но не подтверждает его в одиночку.
+маркерами в режиме `artlist`. Документ — заголовок новости: текст статей API не отдаёт. Тип источника
+INDUSTRY_MEDIA, доверенность MEDIUM — новость подсказывает сигнал, но не подтверждает его в одиночку.
 
-Лимиты частоты в документации DOC API не опубликованы, поэтому запросы идут через общий шлюз процесса:
-один одновременно, не чаще раза в 5,5 с, пауза после отказа. GDELT при перегрузке может ответить текстом
-вместо JSON — такой ответ тоже включает паузу.
+История (этап 3). DOC API ищет с 1 января 2017 года, но в режиме artlist отдаёт статьи только из последних трёх
+месяцев окна поиска (блог GDELT «DOC 2.0 Updates: 1.5 Year Searching»). Поэтому вместо `timespan=3months` адаптер
+идёт окнами по 90 дней через STARTDATETIME/ENDDATETIME — от новых к старым, на глубину `history_months`.
+Квота документов источника делится между запросами поровну, чтобы старые окна не вытеснялись лимитом.
+
+Частота. GDELT требует не чаще одного запроса в 5 с (ответ 429 «Please limit requests to one every 5 seconds»),
+поэтому запросы идут через общий шлюз процесса: один одновременно, не чаще раза в 5,5 с. Пауза — только после
+признаков перегрузки (429 или текст вместо JSON) и короткая; если она кончается до срока сбора, адаптер ждёт.
+Таймаут соединения (стенд 04.10.2026: «таймаут запроса» через 5 с в каждой теме) — повтор того же окна после
+интервала шлюза, без паузы для следующих сборов: прежняя 10-минутная пауза после таймаута отключала GDELT
+у следующих тем, и он не опрашивался вовсе.
 """
 
 from __future__ import annotations
 
 import asyncio
+import math
 import re
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from collector.adapters.outbound.sources.base import BaseSourceAdapter, english_first, within_since_year
+from collector.application.ports import HttpClient, RateLimiter
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
 from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTerms, SourceKey
+from ws_common.clock import Clock
 from ws_common.logging import get_logger
 
 API_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
-MAX_RECORDS = 75
-TIMESPAN = "3months"
+MAX_RECORDS = 250  # предел DOC API для artlist
+MIN_RECORDS = 10
+WINDOW_DAYS = 90  # artlist отдаёт статьи из последних 3 месяцев окна поиска
+DEFAULT_HISTORY_MONTHS = 24
+DAYS_PER_MONTH = 30.44
 MAX_TERMS = 2
 MIN_GAP_SECONDS = 5.5
-COOLDOWN_SECONDS = 10 * 60
+COOLDOWN_SECONDS = 120
+TIMEOUT_RETRIES = 1
+# Не ждать паузу шлюза, если после неё на запрос остаётся меньше этого запаса до срока сбора.
+DEADLINE_MARGIN_SECONDS = 15.0
 # Маркеры деловых событий: без них по фразе темы приходят обзоры и мнения, а не пилоты и сделки.
 BUSINESS_MARKERS = ("pilot", "funding", "startup", "contract", "launch", "partnership", "deployment")
-COOLDOWN_CODES = frozenset(
-    {
-        AdapterErrorCode.RATE_LIMITED.value,
-        AdapterErrorCode.HTTP_5XX.value,
-        AdapterErrorCode.TIMEOUT.value,
-        AdapterErrorCode.PARSE_ERROR.value,
-    }
-)
+# Пауза для следующих запросов — только при признаках перегрузки GDELT: 429 или текст вместо JSON.
+COOLDOWN_CODES = frozenset({AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.PARSE_ERROR.value})
 _LANGUAGES = {
     "english": "en", "russian": "ru", "german": "de", "french": "fr", "spanish": "es",
     "chinese": "zh", "japanese": "ja", "italian": "it", "portuguese": "pt",
@@ -78,48 +88,101 @@ def reset_gdelt_gate() -> None:
 
 
 class GdeltAdapter(BaseSourceAdapter):
-    """Поиск деловых новостей GDELT по фразам запроса."""
+    """Поиск деловых новостей GDELT по фразам запроса, окнами истории."""
 
     key = SourceKey.GDELT
     raw_meta_keys = frozenset({"domain", "source_country"})
     allowed_hosts = frozenset({"api.gdeltproject.org"})
 
+    def __init__(
+        self, http: HttpClient, limiter: RateLimiter, clock: Clock, history_months: int = DEFAULT_HISTORY_MONTHS
+    ) -> None:
+        super().__init__(http, limiter, clock)
+        self._history_months = history_months
+
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float
     ) -> AsyncIterator[RawDocument]:
-        """Новости по английским фразам темы с деловыми маркерами; фильтр по году публикации."""
+        """Новости по английским фразам темы: каждая фраза — по окнам от новых к старым, квота делится поровну."""
+        phrases = [term for term, _language in english_first(terms)[:MAX_TERMS]]
+        windows = history_windows(self._clock.now(), self._history_months, limits.published_since_year)
+        planned = len(phrases) * len(windows)
+        if self.policy.max_requests:
+            planned = min(planned, self.policy.max_requests)
+        records = records_per_request(limits.max_documents_per_source, planned)
         produced = 0
-        for term, _language in english_first(terms)[:MAX_TERMS]:
-            if produced >= limits.max_documents_per_source or self.deadline_reached(deadline):
-                return
-            articles = await self._fetch_articles(
-                {
-                    "query": business_query(term),
-                    "mode": "artlist",
-                    "format": "json",
-                    "maxrecords": MAX_RECORDS,
-                    "timespan": TIMESPAN,
-                }
-            )
-            for article in articles:
-                document = _to_raw_document(article, term)
-                if document is None or not within_since_year(document.published_at, limits.published_since_year):
-                    continue
-                produced += 1
-                yield document
-                if produced >= limits.max_documents_per_source:
-                    return
+        failures: list[AdapterFailure] = []
+        attempted = 0
+        for term in phrases:
+            for start, end in windows:
+                if produced >= limits.max_documents_per_source or self.deadline_reached(deadline):
+                    break
+                if self.policy.max_requests and self.requests_made() >= self.policy.max_requests:
+                    break  # бюджет запросов на сбор израсходован (вместе с повторами) — плановая остановка, не отказ
+                attempted += 1
+                try:
+                    articles = await self._fetch_articles(
+                        {
+                            "query": business_query(term),
+                            "mode": "artlist",
+                            "format": "json",
+                            "maxrecords": records,
+                            "startdatetime": gdelt_datetime(start),
+                            "enddatetime": gdelt_datetime(end),
+                        },
+                        deadline,
+                    )
+                except AdapterFailure as failure:
+                    if failure.code == AdapterErrorCode.BUDGET_EXHAUSTED.value:
+                        attempted -= 1
+                        break  # бюджет кончился на повторе окна — плановая остановка, не отказ
+                    failures.append(failure)
+                    if failure.code in COOLDOWN_CODES:
+                        break  # перегрузка, пауза которой не кончится до срока сбора, — дальше не спрашиваем
+                    continue  # таймаут или 4xx/5xx одного окна не отменяет остальные окна
+                for article in articles:
+                    document = _to_raw_document(article, term)
+                    if document is None or not within_since_year(document.published_at, limits.published_since_year):
+                        continue
+                    produced += 1
+                    yield document
+                    if produced >= limits.max_documents_per_source:
+                        return
+            if failures and failures[-1].code in COOLDOWN_CODES:
+                break
+            if self.policy.max_requests and self.requests_made() >= self.policy.max_requests:
+                break
+        if failures:
+            # Отказы видны в статусе запуска: без документов — отказ, с документами — частичный результат.
+            first = failures[0]
+            raise AdapterFailure(first.code, f"GDELT: не удалось {len(failures)} из {attempted} запросов; первый: {first.message}")
 
-    async def _fetch_articles(self, params: dict[str, str | int]) -> list[dict[str, Any]]:
-        """Один запрос к GDELT через общий шлюз; разбор внутри шлюза, чтобы негодный ответ включал паузу."""
+    async def _fetch_articles(self, params: dict[str, str | int], deadline: float) -> list[dict[str, Any]]:
+        """Один запрос окна через общий шлюз; таймаут соединения или чтения — один повтор после интервала шлюза."""
+        for attempt in range(TIMEOUT_RETRIES + 1):
+            try:
+                return await self._gated_request(params, deadline)
+            except AdapterFailure as failure:
+                if failure.code != AdapterErrorCode.TIMEOUT.value or attempt >= TIMEOUT_RETRIES:
+                    raise
+                if self._clock.monotonic() + MIN_GAP_SECONDS + DEADLINE_MARGIN_SECONDS > deadline:
+                    raise
+                log.info("gdelt.timeout_retry", attempt=attempt + 1)
+        raise AssertionError("unreachable")
+
+    async def _gated_request(self, params: dict[str, str | int], deadline: float) -> list[dict[str, Any]]:
+        """Запрос через шлюз: интервал между запросами, ожидание паузы перегрузки, если она кончается до срока сбора."""
         async with _GATE.lock:
             now = self._clock.monotonic()
             if now < _GATE.blocked_until:
-                raise AdapterFailure(
-                    _GATE.blocked_code,
-                    f"GDELT не опрашивается после отказа ({_GATE.blocked_reason}), "
-                    f"пауза ещё {int(_GATE.blocked_until - now)} с",
-                )
+                if _GATE.blocked_until + DEADLINE_MARGIN_SECONDS > deadline:
+                    raise AdapterFailure(
+                        _GATE.blocked_code,
+                        f"GDELT не опрашивается: пауза после перегрузки ({_GATE.blocked_reason}) "
+                        f"ещё {int(_GATE.blocked_until - now)} с — дольше, чем осталось до срока сбора",
+                    )
+                await self._clock.sleep(_GATE.blocked_until - now)
+                now = self._clock.monotonic()
             if _GATE.last_request_at is not None:
                 wait = _GATE.last_request_at + MIN_GAP_SECONDS - now
                 if wait > 0:
@@ -135,6 +198,32 @@ class GdeltAdapter(BaseSourceAdapter):
                 raise
             finally:
                 _GATE.last_request_at = self._clock.monotonic()
+
+
+def history_windows(now: datetime, months: int, since_year: int) -> list[tuple[datetime, datetime]]:
+    """Окна поиска по 90 дней от `now` назад: не глубже `months` месяцев и не раньше 1 января `since_year`."""
+    start_limit = now - timedelta(days=round(months * DAYS_PER_MONTH))
+    if since_year:
+        start_limit = max(start_limit, datetime(since_year, 1, 1, tzinfo=UTC))
+    windows: list[tuple[datetime, datetime]] = []
+    end = now
+    while end > start_limit:
+        start = max(start_limit, end - timedelta(days=WINDOW_DAYS))
+        windows.append((start, end))
+        end = start
+    return windows
+
+
+def records_per_request(quota: int, planned: int) -> int:
+    """Квота документов источника поровну на запросы, в пределах 10…250 (предел DOC API)."""
+    if planned <= 0:
+        return MIN_RECORDS
+    return max(MIN_RECORDS, min(MAX_RECORDS, math.ceil(quota / planned)))
+
+
+def gdelt_datetime(value: datetime) -> str:
+    """Время в формате STARTDATETIME/ENDDATETIME DOC API: YYYYMMDDHHMMSS (UTC)."""
+    return value.astimezone(UTC).strftime("%Y%m%d%H%M%S")
 
 
 def business_query(term: str) -> str:
