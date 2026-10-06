@@ -37,6 +37,8 @@ class SourcePolicy:
 DEFAULT_POLICIES: dict[SourceKey, SourcePolicy] = {
     SourceKey.SEMANTIC_SCHOLAR: SourcePolicy(max_requests=6, rate_limit_retries=2, rate_limit_pause=10.0),
     SourceKey.GDELT: SourcePolicy(max_requests=8),
+    # Hacker News: две фразы × девять окон за 24 месяца; ответ ~0,6 с, лимит 10 000 запросов в час с IP.
+    SourceKey.HACKERNEWS: SourcePolicy(max_requests=18, rate_limit_retries=1, rate_limit_pause=10.0),
 }
 
 _FIELDS = {"requests": "max_requests", "retries": "rate_limit_retries", "pause": "rate_limit_pause"}

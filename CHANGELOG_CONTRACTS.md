@@ -1,5 +1,15 @@
 # Изменения контрактов
 
+## 2026-10-06 — v17: этап 3.1 — Hacker News вместо GDELT, Semantic Scholar по всем словам
+- proto `common.v1.SourceKey`: новое значение `SOURCE_KEY_HACKERNEWS = 12`. Сгенерированный `common_pb2.py`
+  обновлён тем же дескриптором, что даёт `protoc`; при сборке образов код генерируется заново из proto.
+- collector:
+  - миграция `0009_hackernews.sql` — источник `hackernews` в каталоге, «Hacker News (Search by Algolia)», 1 запрос/с;
+  - адаптер `HackerNewsAdapter`: `GET hn.algolia.com/api/v1/search`, `tags=story`, окна дат `created_at_i`;
+  - правило `by_domain` в `trust_rules.yaml`: тип документа агрегатора — по домену ссылки, иначе умолчание источника;
+  - Semantic Scholar bulk: запрос — все слова фразы без кавычек.
+- Новая переменная `WS_HACKERNEWS_HISTORY_MONTHS`; политика по умолчанию Hacker News — 18 запросов, 1 повтор, пауза 10 с.
+
 ## 2026-10-05 — v16: этап 3 — источники, бюджет и паузы, Semantic Scholar Bulk, доводка
 - gRPC-контракты, HTTP API и миграции не менялись.
 - **collector, GDELT:**

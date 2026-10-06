@@ -33,8 +33,23 @@ class RealRulesTest(unittest.TestCase):
     def test_scientific_publications_stay_high(self) -> None:
         self.assertIs(trust(REAL, SourceKey.OPENALEX, "doi.org"), TrustLevel.HIGH)
 
-    def test_only_zenodo_has_a_ceiling(self) -> None:
-        self.assertEqual(REAL.source_trust_ceiling, {SourceKey.ZENODO: TrustLevel.MEDIUM})
+    def test_ceilings_only_for_zenodo_and_hackernews(self) -> None:
+        # Этап 3.1: Hacker News — агрегатор ссылок, потолок MEDIUM, как у Zenodo.
+        self.assertEqual(REAL.source_trust_ceiling, {SourceKey.ZENODO: TrustLevel.MEDIUM,
+                                                     SourceKey.HACKERNEWS: TrustLevel.MEDIUM})
+
+    def test_hackernews_is_typed_by_linked_domain(self) -> None:
+        self.assertEqual(REAL.domain_typed_sources, frozenset({SourceKey.HACKERNEWS}))
+        news = classify(REAL, SourceKey.HACKERNEWS, "techcrunch.com", "Startup raises seed", has_published_at=True)
+        media = classify(REAL, SourceKey.HACKERNEWS, "siliconangle.com", "New edge chip", has_published_at=True)
+        other = classify(REAL, SourceKey.HACKERNEWS, "unknown-blog.example", "Show HN: my tool", has_published_at=True)
+        self.assertEqual(news[0], SourceType.NEWS)
+        self.assertEqual(media[0], SourceType.INDUSTRY_MEDIA)
+        self.assertEqual(other[0], SourceType.INDUSTRY_MEDIA)  # нет правила домена — умолчание источника
+        self.assertTrue(all(level in (TrustLevel.MEDIUM, TrustLevel.LOW) for _, level in (news, media, other)))
+        # прочие адаптеры с умолчанием по-прежнему не смотрят на домен
+        self.assertEqual(classify(REAL, SourceKey.GITHUB, "techcrunch.com", "x", has_published_at=True)[0],
+                         SourceType.CODE_REPOSITORY)
 
     def test_undated_ceiling_still_applies(self) -> None:
         self.assertIs(trust(REAL, SourceKey.ARXIV, "arxiv.org", dated=False), TrustLevel.MEDIUM)

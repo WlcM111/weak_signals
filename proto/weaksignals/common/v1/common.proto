@@ -46,6 +46,7 @@ enum SourceKey {
   SOURCE_KEY_ZENODO = 9;
   SOURCE_KEY_GDELT = 10;
   SOURCE_KEY_ROSPATENT = 11;
+  SOURCE_KEY_HACKERNEWS = 12;  // Hacker News Search (Algolia), этап 3.1
 }
 
 // Документ открытого источника. Владелец данных — collector.

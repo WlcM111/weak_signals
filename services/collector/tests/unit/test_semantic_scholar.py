@@ -59,14 +59,14 @@ class SemanticScholarTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(documents), len([p for p in valid if p.get("url") or p.get("paperId")]))
         self.assertTrue(all(d.matched_term == "neuromorphic chips" for d in documents))
 
-    async def test_bulk_request_sorted_by_date_in_window_with_exact_phrase(self) -> None:
+    async def test_bulk_request_sorted_by_date_in_window_with_all_words(self) -> None:
         self.http.enqueue(page(papers(3)))
         await self.collect(self.adapter())
         url, call = self.http.calls[0]
         self.assertEqual(url, API_URL)
         self.assertTrue(url.endswith("/paper/search/bulk"))
         params = call["params"]
-        self.assertEqual(params["query"], '"neuromorphic chips"')
+        self.assertEqual(params["query"], "neuromorphic chips")  # этап 3.1: все слова, без кавычек
         self.assertEqual(params["sort"], "publicationDate:desc")
         self.assertEqual(params["publicationDateOrYear"], f"{window_start(NOW, 24, 2023).isoformat()}:")
         self.assertNotIn("offset", params)
@@ -87,7 +87,7 @@ class SemanticScholarTest(unittest.IsolatedAsyncioTestCase):
             self.http.enqueue(page(papers(80, prefix)))
         documents = await self.collect(self.adapter(), terms)
         self.assertEqual(len(documents), LIMITS.max_documents_per_source)
-        self.assertEqual([c[1]["params"]["query"] for c in self.http.calls], ['"edge ai"', '"tiny ml"', '"npu inference"'])
+        self.assertEqual([c[1]["params"]["query"] for c in self.http.calls], ["edge ai", "tiny ml", "npu inference"])
         self.assertEqual(sum(1 for d in documents if d.matched_term == "edge ai"), 50)
 
     async def test_rate_limit_pause_then_retry_keeps_results(self) -> None:
@@ -139,7 +139,7 @@ class SemanticScholarTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(raised.exception.code, AdapterErrorCode.PARSE_ERROR.value)
 
     def test_bulk_query_and_window(self) -> None:
-        self.assertEqual(bulk_query('AI-based "robot" (control)'), '"AI based robot control"')
+        self.assertEqual(bulk_query('AI-based "robot" (control)'), "AI based robot control")
         self.assertEqual(bulk_query("robotics"), "robotics")
         self.assertEqual(bulk_query(' - + '), "")
         self.assertEqual(window_start(NOW, 24, 2023), date(2024, 10, 3))  # 24 × 30,44 ≈ 731 день

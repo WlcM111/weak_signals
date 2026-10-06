@@ -21,13 +21,18 @@ INDUSTRY_MEDIA, доверенность MEDIUM — новость подска�
 from __future__ import annotations
 
 import asyncio
-import math
 import re
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
-from collector.adapters.outbound.sources.base import BaseSourceAdapter, english_first, within_since_year
+from collector.adapters.outbound.sources.base import (
+    BaseSourceAdapter,
+    english_first,
+    history_windows,
+    records_per_request,
+    within_since_year,
+)
 from collector.application.ports import HttpClient, RateLimiter
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
@@ -38,9 +43,7 @@ from ws_common.logging import get_logger
 API_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 MAX_RECORDS = 250  # предел DOC API для artlist
 MIN_RECORDS = 10
-WINDOW_DAYS = 90  # artlist отдаёт статьи из последних 3 месяцев окна поиска
 DEFAULT_HISTORY_MONTHS = 24
-DAYS_PER_MONTH = 30.44
 MAX_TERMS = 2
 MIN_GAP_SECONDS = 5.5
 COOLDOWN_SECONDS = 120
@@ -109,7 +112,7 @@ class GdeltAdapter(BaseSourceAdapter):
         planned = len(phrases) * len(windows)
         if self.policy.max_requests:
             planned = min(planned, self.policy.max_requests)
-        records = records_per_request(limits.max_documents_per_source, planned)
+        records = records_per_request(limits.max_documents_per_source, planned, MIN_RECORDS, MAX_RECORDS)
         produced = 0
         failures: list[AdapterFailure] = []
         attempted = 0
@@ -198,27 +201,6 @@ class GdeltAdapter(BaseSourceAdapter):
                 raise
             finally:
                 _GATE.last_request_at = self._clock.monotonic()
-
-
-def history_windows(now: datetime, months: int, since_year: int) -> list[tuple[datetime, datetime]]:
-    """Окна поиска по 90 дней от `now` назад: не глубже `months` месяцев и не раньше 1 января `since_year`."""
-    start_limit = now - timedelta(days=round(months * DAYS_PER_MONTH))
-    if since_year:
-        start_limit = max(start_limit, datetime(since_year, 1, 1, tzinfo=UTC))
-    windows: list[tuple[datetime, datetime]] = []
-    end = now
-    while end > start_limit:
-        start = max(start_limit, end - timedelta(days=WINDOW_DAYS))
-        windows.append((start, end))
-        end = start
-    return windows
-
-
-def records_per_request(quota: int, planned: int) -> int:
-    """Квота документов источника поровну на запросы, в пределах 10…250 (предел DOC API)."""
-    if planned <= 0:
-        return MIN_RECORDS
-    return max(MIN_RECORDS, min(MAX_RECORDS, math.ceil(quota / planned)))
 
 
 def gdelt_datetime(value: datetime) -> str:

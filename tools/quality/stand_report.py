@@ -126,6 +126,7 @@ def resource_checks(include_rate_limited: bool = False) -> list[list]:
             ["zenodo", "https://zenodo.org/api/records?q=edge%20inference&size=1", "GET", None, ""],
             ["doi_resolver", "https://doi.org/10.1038/nature14539", "GET", None, ""],
             ["gdelt", "https://api.gdeltproject.org/api/v2/doc/doc?query=%22edge%20computing%22&mode=artlist&maxrecords=1&format=json", "GET", None, ""],
+            ["hackernews", "https://hn.algolia.com/api/v1/search?query=edge%20computing&tags=story&hitsPerPage=1", "GET", None, ""],
             ["wikimedia", "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Edge_computing/daily/20260901/20260907", "GET", None, ""],
             ["rospatent", "https://searchplatform.rospatent.gov.ru/patsearch/v0.2/search", "POST", {"qn": "нейросеть", "limit": 1}, "WS_ROSPATENT_TOKEN"],
         ],

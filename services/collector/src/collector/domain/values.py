@@ -26,6 +26,7 @@ class SourceKey(StrEnum):
     ZENODO = "zenodo"
     GDELT = "gdelt"
     ROSPATENT = "rospatent"
+    HACKERNEWS = "hackernews"
 
 
 class SourceType(StrEnum):

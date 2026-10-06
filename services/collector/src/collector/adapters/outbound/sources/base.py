@@ -7,9 +7,10 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import time
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from typing import Any
 
@@ -264,3 +265,30 @@ def parse_datetime(value: str | None) -> datetime | None:
 def within_since_year(published_at: datetime | None, since_year: int) -> bool:
     """Фильтр по году публикации; документы без даты пропускаются (дату проверит доверенность)."""
     return published_at is None or published_at.year >= since_year
+
+
+# Окна истории для новостных источников (GDELT, Hacker News): поиск по 90-дневным окнам от новых к старым,
+# квота документов источника делится поровну на запросы, чтобы старые окна не вытеснялись лимитом.
+HISTORY_WINDOW_DAYS = 90
+DAYS_PER_MONTH = 30.44
+
+
+def history_windows(now: datetime, months: int, since_year: int) -> list[tuple[datetime, datetime]]:
+    """Окна поиска по 90 дней от `now` назад: не глубже `months` месяцев и не раньше 1 января `since_year`."""
+    start_limit = now - timedelta(days=round(months * DAYS_PER_MONTH))
+    if since_year:
+        start_limit = max(start_limit, datetime(since_year, 1, 1, tzinfo=UTC))
+    windows: list[tuple[datetime, datetime]] = []
+    end = now
+    while end > start_limit:
+        start = max(start_limit, end - timedelta(days=HISTORY_WINDOW_DAYS))
+        windows.append((start, end))
+        end = start
+    return windows
+
+
+def records_per_request(quota: int, planned: int, minimum: int = 10, maximum: int = 250) -> int:
+    """Квота документов источника поровну на запросы, в пределах `minimum`…`maximum` записей за запрос."""
+    if planned <= 0:
+        return minimum
+    return max(minimum, min(maximum, math.ceil(quota / planned)))

@@ -19,6 +19,9 @@ source_defaults:
   # Патенты Роспатента: платформа на домене .gov.ru, но документы — патенты (authoritative: тип адаптера
   # не пересматривается правилом государственных доменов).
   rospatent:    { type: PATENT,                 trust: HIGH, authoritative: true }
+  # Hacker News — ссылка на чужую статью: тип по домену ссылки (как у RSS, by_domain), иначе INDUSTRY_MEDIA;
+  # агрегатор подсказывает сигнал, но не подтверждает его в одиночку — потолок MEDIUM.
+  hackernews:   { type: INDUSTRY_MEDIA,         trust: MEDIUM, trust_ceiling: MEDIUM, by_domain: true }
 
 # Доверенность по типу источника (применяется после определения типа).
 type_trust:

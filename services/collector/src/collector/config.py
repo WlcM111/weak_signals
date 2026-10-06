@@ -44,6 +44,8 @@ class CollectorSettings(BaseServiceSettings):
     gdelt_history_months: int = Field(default=24, ge=3, le=120)
     gdelt_connect_timeout_seconds: float = Field(default=20.0, ge=3.0, le=60.0)
     semantic_scholar_window_months: int = Field(default=24, ge=3, le=120)
+    # Этап 3.1: история публикаций Hacker News — окна по 90 дней на эту глубину.
+    hackernews_history_months: int = Field(default=24, ge=3, le=120)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

@@ -29,6 +29,8 @@ class ClassificationConfig:
     # модерации (Zenodo) не должен получать доверенность препринта arXiv. Задаётся явно и только там,
     # где нужен, чтобы не понижать документы, переклассифицированные доменными правилами.
     source_trust_ceiling: dict[SourceKey, TrustLevel] = field(default_factory=dict)
+    # Источники-агрегаторы (Hacker News): тип — по домену ссылки, без совпадения — умолчание источника.
+    domain_typed_sources: frozenset[SourceKey] = frozenset()
     # Источники, чей тип документа не пересматривается доменными правилами: патентная платформа
     # Роспатента живёт на домене .gov.ru, но её документы — патенты, а не документы госоргана.
     authoritative_sources: frozenset[SourceKey] = frozenset()
@@ -83,6 +85,11 @@ def _resolve_source_type(
     if _is_press_release(config, origin_domain, title):
         return SourceType.PRESS_RELEASE
     default_type = config.source_defaults.get(source_key)
+    if source_key in config.domain_typed_sources:
+        for pattern, category in config.domain_categories.items():
+            if domain_matches(origin_domain, pattern):
+                return category
+        return default_type[0] if default_type is not None else SourceType.OTHER
     if source_key is not SourceKey.RSS and default_type is not None:
         return default_type[0]
     for pattern, category in config.domain_categories.items():
