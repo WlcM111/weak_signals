@@ -165,7 +165,8 @@ class TwoPhaseCollectionTest(unittest.IsolatedAsyncioTestCase):
         )
         await use_case.execute(collection, "collector:test")
         self.assertEqual(self.collections.mined[collection.collection_id], ("kv cache offloading",))
-        self.assertEqual(openalex.targeted_calls, [["optical circuit switching", "kv cache offloading"]])
+        # этап 4.3: сначала технологии из корпусов (здесь их нет), затем извлечённые, затем от модели
+        self.assertEqual(openalex.targeted_calls[0], ["kv cache offloading", "optical circuit switching"])
         stored = {doc.url for doc in self.documents.documents.values()}
         self.assertIn("https://example.org/optical-circuit-switching/1", stored)
         self.assertIn("https://example.org/kv-cache-offloading/0", stored)

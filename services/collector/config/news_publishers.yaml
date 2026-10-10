@@ -1,0 +1,36 @@
+# Издания архива новостей (этап 4.3). Источник адресов — Wayback Machine CDX API (web.archive.org/cdx/search/cdx).
+# mode:
+#   url_month     — в адресе статьи есть год и месяц: префикс с {yyyy}/{mm} перечисляет статьи месяца;
+#   capture_month — даты в адресе нет (или только год): префикс раздела, месяц — по дате сохранения в архиве.
+# tech_filter — ленты пресс-релизов и крупные агентства публикуют тысячи материалов в месяц: остаются только адреса
+#   с техническими словами (общий словарь, не связанный с темами кейса).
+# Состав: технологические и стартап-издания, у которых проверка сети 06–10.10.2026 подтвердила доступность
+# (RSS или копии в Wayback), включая издания RSS-лент проекта.
+publishers:
+  - {host: techcrunch.com, mode: url_month, prefixes: ["techcrunch.com/{yyyy}/{mm}/"]}
+  - {host: siliconangle.com, mode: url_month, prefixes: ["siliconangle.com/{yyyy}/{mm}/"]}
+  - {host: theaiinsider.tech, mode: url_month, prefixes: ["theaiinsider.tech/{yyyy}/{mm}/"]}
+  - {host: roboticsandautomationnews.com, mode: url_month, prefixes: ["roboticsandautomationnews.com/{yyyy}/{mm}/"]}
+  - {host: techstartups.com, mode: url_month, prefixes: ["techstartups.com/{yyyy}/{mm}/"]}
+  - {host: eu-startups.com, mode: url_month, prefixes: ["eu-startups.com/{yyyy}/{mm}/"]}
+  - {host: technologyreview.com, mode: url_month, prefixes: ["technologyreview.com/{yyyy}/{mm}/"]}
+  - {host: helpnetsecurity.com, mode: url_month, prefixes: ["helpnetsecurity.com/{yyyy}/{mm}/"]}
+  - {host: nextplatform.com, mode: url_month, prefixes: ["nextplatform.com/{yyyy}/{mm}/", "nextplatform.com/connect/{yyyy}/{mm}/"]}
+  - {host: globenewswire.com, mode: url_month, prefixes: ["globenewswire.com/news-release/{yyyy}/{mm}/"], tech_filter: true}
+  - {host: geekwire.com, mode: capture_month, prefixes: ["geekwire.com/{yyyy}/"]}
+  - {host: datacenterdynamics.com, mode: capture_month, prefixes: ["datacenterdynamics.com/en/news/"]}
+  - {host: therobotreport.com, mode: capture_month, prefixes: ["therobotreport.com/"]}
+  - {host: eetimes.com, mode: capture_month, prefixes: ["eetimes.com/"]}
+  - {host: pandaily.com, mode: capture_month, prefixes: ["pandaily.com/"]}
+  - {host: pulse2.com, mode: capture_month, prefixes: ["pulse2.com/"]}
+  - {host: securityweek.com, mode: capture_month, prefixes: ["securityweek.com/"]}
+  - {host: techfundingnews.com, mode: capture_month, prefixes: ["techfundingnews.com/"]}
+  - {host: theregister.com, mode: capture_month, prefixes: ["theregister.com/"]}
+  - {host: theblock.co, mode: capture_month, prefixes: ["theblock.co/post/"]}
+  - {host: techradar.com, mode: capture_month, prefixes: ["techradar.com/pro/"]}
+  - {host: tomshardware.com, mode: capture_month, prefixes: ["tomshardware.com/tech-industry/"]}
+  - {host: interestingengineering.com, mode: capture_month, prefixes: ["interestingengineering.com/"]}
+  - {host: spectrum.ieee.org, mode: capture_month, prefixes: ["spectrum.ieee.org/"]}
+  - {host: prnewswire.com, mode: capture_month, prefixes: ["prnewswire.com/news-releases/"], tech_filter: true}
+  - {host: businesswire.com, mode: capture_month, prefixes: ["businesswire.com/news/home/"], tech_filter: true}
+  - {host: reuters.com, mode: capture_month, prefixes: ["reuters.com/technology/", "reuters.com/business/"], tech_filter: true}

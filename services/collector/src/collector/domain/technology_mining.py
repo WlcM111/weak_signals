@@ -22,6 +22,14 @@ from collections import Counter, defaultdict
 from collections.abc import Iterable, Sequence
 from datetime import UTC, date, datetime, timedelta
 
+from collector.domain.technology_filters import (
+    FRAGMENT_HEADS,
+    FRAGMENT_LEADS,
+    GENERIC_PHRASES,
+    is_mature,
+    is_verbish,
+)
+
 _TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9+\-]*[A-Za-z0-9+]|[A-Za-z]")
 _CYRILLIC_RE = re.compile(r"[А-Яа-яЁё]")
 _SEGMENT_RE = re.compile(r"\s[-–—|]\s|[:;,.!?()\[\]{}\"“”«»/]|[–—]")
@@ -95,7 +103,11 @@ def _acceptable(gram: list[str]) -> bool:
 
 
 def candidate_phrases(title: str) -> set[str]:
-    """Словосочетания из 2–4 слов англоязычного заголовка (нижний регистр), не через знаки препинания."""
+    """Словосочетания из 2–4 слов англоязычного заголовка (нижний регистр), не через знаки препинания.
+
+    Этап 4.3: не обрывок общего термина (следующее слово не «learning», «networks»…), не на глаголе,
+    не общая тема домена и не зрелая область.
+    """
     if _CYRILLIC_RE.search(title or ""):
         return set()
     found: set[str] = set()
@@ -103,8 +115,16 @@ def candidate_phrases(title: str) -> set[str]:
         for size in (2, 3, 4):
             for start in range(len(words) - size + 1):
                 gram = words[start : start + size]
-                if _acceptable(gram):
-                    found.add(" ".join(gram))
+                if not _acceptable(gram) or is_verbish(gram):
+                    continue
+                following = words[start + size] if start + size < len(words) else ""
+                previous = words[start - 1] if start > 0 else ""
+                if following in FRAGMENT_HEADS or (gram[0] in ("intelligence", "learning") and previous in FRAGMENT_LEADS):
+                    continue
+                phrase = " ".join(gram)
+                if phrase in GENERIC_PHRASES or is_mature(phrase):
+                    continue
+                found.add(phrase)
     return found
 
 

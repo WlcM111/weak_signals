@@ -129,11 +129,24 @@ MARKETING_PREFIXES = ("ai-powered", "ai-driven", "ai-based", "ai-enabled", "inte
                       "next-generation", "next generation", "innovative", "cognitive")
 
 
+_KEY_SPLIT = (" for ", " in ", " on ", " with ", " using ", " via ", " based ", " of ")
+
+
+def mature_key(term: str) -> str:
+    """Ключевая часть названия до уточнения (этап 4.3): «federated learning for factories» → «federated learning»."""
+    key = " ".join(term.lower().split())
+    for marker in _KEY_SPLIT:
+        if marker in f" {key} ":
+            key = f" {key} ".split(marker, 1)[0].strip()
+    return key
+
+
 def is_specific_technology(term: str) -> bool:
-    """Название конкретной технологии: не кончается словом-категорией, не зрелая тема, без рекламного определения."""
+    """Название конкретной технологии: не кончается словом-категорией, не зрелая тема и не её вариант с
+    уточнением («federated learning for …»), без рекламного определения."""
     key = term.lower()
     words = key.split()
-    if not words or words[-1] in CATEGORY_TAILS or key in MATURE_TECHNOLOGIES:
+    if not words or words[-1] in CATEGORY_TAILS or key in MATURE_TECHNOLOGIES or mature_key(key) in MATURE_TECHNOLOGIES:
         return False
     return not key.startswith(MARKETING_PREFIXES)
 

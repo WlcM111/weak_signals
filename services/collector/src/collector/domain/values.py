@@ -27,6 +27,9 @@ class SourceKey(StrEnum):
     GDELT = "gdelt"
     ROSPATENT = "rospatent"
     HACKERNEWS = "hackernews"
+    NEWS_ARCHIVE = "news_archive"
+    CROSSREF = "crossref"
+    HUGGINGFACE = "huggingface"
 
 
 class SourceType(StrEnum):

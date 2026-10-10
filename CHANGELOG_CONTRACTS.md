@@ -1,5 +1,19 @@
 # Изменения контрактов
 
+## 2026-10-10 — v20: этап 4.3 — архив новостей, корпус arXiv, оценка возникновения
+- proto `common.v1.SourceKey`: `SOURCE_KEY_NEWS_ARCHIVE = 13`, `SOURCE_KEY_CROSSREF = 14`,
+  `SOURCE_KEY_HUGGINGFACE = 15`.
+- collector:
+  - миграция `0012_news_archive.sql` — источники в каталоге, таблицы `news_archive` и `news_archive_harvest`,
+    колонка `collections.technologies_emerging`;
+  - миграция `0013_research_corpus.sql` — `corpus_papers`, `corpus_harvest`;
+  - адаптеры `NewsArchiveAdapter` (локальный, без внешних запросов), `CrossrefAdapter`, `HuggingFaceAdapter`;
+  - RSS пишет в архив все записи лент; команда `python -m collector.tools.archive wayback|rss|arxiv|status`;
+  - отбор технологий: корпуса → извлечённые → модель (не больше 10), второй круг из документов прицельного прохода;
+  - HTTP-клиент источников действительно делает одну попытку: в 4.2 эта правка не применилась.
+- insight: фильтр вариантов зрелых тем по ключевой части названия.
+- ml: match-v1 учитывает короткие названия (OCS, PBM…) отдельным словом в верхнем регистре, правило `acronym`.
+
 ## 2026-10-10 — v19.1: этап 4.2.1 — список технологий проверяется отдельно
 - insight, схема `expand_v2_llm_output.schema.json`: технологий до 80.
   - Проверка ответа целиком к списку не строга: его проверяет и чистит `ExpandQuery`.

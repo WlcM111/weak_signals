@@ -36,10 +36,12 @@ class RealRulesTest(unittest.TestCase):
     def test_ceilings_only_for_zenodo_and_hackernews(self) -> None:
         # Этап 3.1: Hacker News — агрегатор ссылок, потолок MEDIUM, как у Zenodo.
         self.assertEqual(REAL.source_trust_ceiling, {SourceKey.ZENODO: TrustLevel.MEDIUM,
-                                                     SourceKey.HACKERNEWS: TrustLevel.MEDIUM})
+                                                     SourceKey.HACKERNEWS: TrustLevel.MEDIUM,
+                                                     SourceKey.NEWS_ARCHIVE: TrustLevel.MEDIUM,   # этап 4.3
+                                                     SourceKey.HUGGINGFACE: TrustLevel.MEDIUM})
 
     def test_hackernews_is_typed_by_linked_domain(self) -> None:
-        self.assertEqual(REAL.domain_typed_sources, frozenset({SourceKey.HACKERNEWS}))
+        self.assertEqual(REAL.domain_typed_sources, frozenset({SourceKey.HACKERNEWS, SourceKey.NEWS_ARCHIVE}))
         news = classify(REAL, SourceKey.HACKERNEWS, "techcrunch.com", "Startup raises seed", has_published_at=True)
         media = classify(REAL, SourceKey.HACKERNEWS, "siliconangle.com", "New edge chip", has_published_at=True)
         other = classify(REAL, SourceKey.HACKERNEWS, "unknown-blog.example", "Show HN: my tool", has_published_at=True)

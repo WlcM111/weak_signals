@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+from datetime import date, timedelta
 from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
@@ -21,8 +22,10 @@ from collector.application.ports import (
     AdapterRunRepository,
     CollectionRepository,
     CollectionTraceRepository,
+    CorpusStore,
     DocumentRepository,
     MetricsSink,
+    NewsArchiveStore,
     NullMetrics,
     SourceAdapter,
 )
@@ -31,7 +34,10 @@ from collector.domain.dedup import DedupIndex
 from collector.domain.entities import AdapterRun, Collection, RawDocument, compute_final_status
 from collector.domain.errors import AdapterFailure, InvariantViolation, LeaseLost
 from collector.domain.normalization import build_document_draft
+from collector.domain.emergence import emerging_terms
+from collector.domain.technology_filters import is_mature
 from collector.domain.technology_mining import mine_technologies, targeted_since
+from collector.domain.text_tokens import phrase_words
 from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
@@ -74,6 +80,16 @@ class RunCollectionConfig:
     mined_technologies: int = 15
     max_technologies: int = 40
     targeted_window_months: int = 24
+    # Этап 4.3: технологии прицельного прохода — сначала по оценке возникновения из корпусов (arXiv и архив
+    # новостей), затем извлечённые из широкого прохода, затем от модели (вспомогательно, не больше `llm_technologies`).
+    # Второй круг: названия из документов прицельного прохода ищутся ещё раз (`targeted_rounds = 2`), ему
+    # оставлена доля `snowball_time_share` времени прицельного прохода.
+    emerging_technologies: int = 25
+    llm_technologies: int = 10
+    snowball_technologies: int = 15
+    targeted_rounds: int = 2
+    snowball_time_share: float = 0.25
+    corpus_since_year: int = 2021
 
 
 class RunCollection:
@@ -91,7 +107,11 @@ class RunCollection:
         unavailable_sources: Mapping[SourceKey, AdapterErrorCode] | None = None,
         metrics: MetricsSink | None = None,
         traces: CollectionTraceRepository | None = None,
+        archive: NewsArchiveStore | None = None,
+        corpus: CorpusStore | None = None,
     ) -> None:
+        self._archive = archive
+        self._corpus = corpus
         self._collections = collections
         self._documents = documents
         self._adapter_runs = adapter_runs
@@ -181,7 +201,9 @@ class RunCollection:
         if not technologies or not sources or self._clock.monotonic() >= final_deadline:
             return
         state.phase = PHASE_TARGETED
-        state.deadline = final_deadline
+        snowball = self._config.targeted_rounds >= 2 and self._config.snowball_technologies > 0
+        remaining = final_deadline - self._clock.monotonic()
+        state.deadline = final_deadline - (remaining * self._config.snowball_time_share if snowball else 0.0)
         state.total_cap = limits.max_total_documents
         state.stop_reason = None
         since = targeted_since(self._clock.now(), self._config.targeted_window_months, limits.published_since_year)
@@ -191,23 +213,85 @@ class RunCollection:
             state, sources, owner,
             lambda _key, adapter: adapter.search_targeted(technologies, self._config.targeted_per_term, since, state.deadline),
         )
+        if not snowball or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
+            return
+        terms = state.collection.terms
+        extra = [item for item in mine_technologies(state.targeted_titles,
+                                                    exclude=(*terms.en, *terms.ru, *technologies),
+                                                    limit=self._config.snowball_technologies)
+                 if not is_mature(item)]
+        if not extra or self._clock.monotonic() >= final_deadline:
+            return
+        state.deadline = final_deadline
+        state.stop_reason = None
+        self._log.info("collection.snowball", collection_id=state.collection.collection_id, technologies=extra)
+        try:
+            await self._collections.save_mined_technologies(state.collection.collection_id, (*state.mined, *extra))
+        except Exception as exc:  # noqa: BLE001
+            self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
+        await self._collect(
+            state, sources, owner,
+            lambda _key, adapter: adapter.search_targeted(extra, self._config.targeted_per_term, since, state.deadline),
+        )
 
     async def _technologies(self, state: _RunState) -> tuple[str, ...]:
-        """Технологии прицельного прохода: сначала от модели, затем извлечённые из заголовков широкого прохода."""
+        """Технологии прицельного прохода (этап 4.3): по оценке возникновения из корпусов, извлечённые из
+        широкого прохода, затем от модели — вспомогательно, не больше `llm_technologies`."""
         terms = state.collection.terms
-        mined = mine_technologies(state.titles, exclude=(*terms.en, *terms.ru, *terms.technologies),
+        emerging = await self._emerging(state)
+        mined = mine_technologies(state.titles, exclude=(*terms.en, *terms.ru, *terms.technologies, *emerging),
                                   limit=self._config.mined_technologies)
+        state.mined = tuple(mined)
         try:
             await self._collections.save_mined_technologies(state.collection.collection_id, mined)
-        except Exception as exc:  # noqa: BLE001 — список извлечённых технологий не должен срывать сбор
+            await self._collections.save_emerging_technologies(state.collection.collection_id, emerging)
+        except Exception as exc:  # noqa: BLE001 — список технологий не должен срывать сбор
             self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
         merged: dict[str, str] = {}
-        for item in (*terms.technologies, *mined):
-            merged.setdefault(" ".join(item.lower().split()), item)
+        for item in (*emerging, *mined, *terms.technologies[: self._config.llm_technologies]):
+            if not is_mature(item):
+                merged.setdefault(" ".join(item.lower().split()), item)
         technologies = tuple(merged.values())[: self._config.max_technologies]
         self._log.info("collection.technologies", collection_id=state.collection.collection_id,
-                       from_model=len(terms.technologies), mined=mined, total=len(technologies))
+                       emerging=emerging, mined=mined, from_model=len(terms.technologies), total=len(technologies))
         return technologies
+
+    async def _emerging(self, state: _RunState) -> list[str]:
+        """Оценка возникновения по корпусу arXiv и архиву новостей: работы и статьи со всеми словами фраз темы."""
+        if self._config.emerging_technologies <= 0 or (self._corpus is None and self._archive is None):
+            return []
+        terms = state.collection.terms
+        phrases = [words for words in (phrase_words(t) for t in (*terms.en, *terms.ru)) if words][:8]
+        today = self._clock.now().date()
+        exclude = (*terms.en, *terms.ru)
+        lists: list[list[str]] = []
+        try:
+            if self._corpus is not None:
+                rows: dict[str, date | None] = {}
+                for words in phrases:
+                    for title, day in await self._corpus.titles_for(words, date(self._config.corpus_since_year, 1, 1), 4000):
+                        rows.setdefault(title, day)
+                lists.append([item.term for item in emerging_terms(
+                    rows.items(), recent_from=today - timedelta(days=730),
+                    base_from=date(self._config.corpus_since_year, 1, 1), base_to=today - timedelta(days=731),
+                    exclude=exclude, limit=self._config.emerging_technologies, min_recent=3)])
+            if self._archive is not None:
+                news: dict[str, date | None] = {}
+                for words in phrases:
+                    for title, day in await self._archive.titles_for(words, today - timedelta(days=550), 4000):
+                        news.setdefault(title, day)
+                lists.append([item.term for item in emerging_terms(
+                    news.items(), recent_from=today - timedelta(days=183), base_from=today - timedelta(days=550),
+                    base_to=today - timedelta(days=184), exclude=exclude, limit=self._config.emerging_technologies,
+                    min_recent=2)])
+        except Exception as exc:  # noqa: BLE001 — корпус необязателен: без него остаются извлечённые и модель
+            self._log.warning("collection.emerging_failed", collection_id=state.collection.collection_id, error=str(exc))
+        result: dict[str, str] = {}
+        for index in range(max((len(items) for items in lists), default=0)):
+            for items in lists:  # поочерёдно из корпуса работ и из архива новостей
+                if index < len(items):
+                    result.setdefault(items[index].lower(), items[index])
+        return list(result.values())[: self._config.emerging_technologies]
 
     async def _prepare_runs(self, state: _RunState) -> dict[SourceKey, SourceAdapter]:
         """Отмечает недоступные адаптеры и переводит остальные в RUNNING."""
@@ -398,6 +482,8 @@ class RunCollection:
         state.per_source_accepted[source_key] = state.per_source_accepted.get(source_key, 0) + 1
         if state.phase == PHASE_BROAD:
             state.titles.append((draft.title, source_key.value))
+        else:
+            state.targeted_titles.append((draft.title, source_key.value))
         state.pending_new.add(draft.url_hash)
         batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
         _note(state, source_key, raw, DocumentEvent.ACCEPTED, url_hash=draft.url_hash, doi=draft.doi,
@@ -538,6 +624,8 @@ class _RunState:
     two_phase: bool = False
     total_cap: int = 0
     titles: list[tuple[str, str]] = field(default_factory=list)
+    targeted_titles: list[tuple[str, str]] = field(default_factory=list)
+    mined: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         self.rank = self.documents_total  # продолжение нумерации при повторном запуске

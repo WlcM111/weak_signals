@@ -58,6 +58,35 @@ def url_keys(url: str | None, doi: str | None = None) -> set[str]:
     return keys
 
 
+_ACRONYM_RE = re.compile(r"^[0-9A-Za-zА-Яа-яЁё]{2,4}$")
+
+
+def expert_acronyms(row: dict[str, Any], synonyms: dict[str, list[str]]) -> list[str]:
+    """Короткие названия сигнала (OCS, PBM, SMR, MMF, KYA, НПЗ): только как отдельное слово в верхнем регистре.
+
+    Этап 4.3: порог MIN_TERM_CHARS отбрасывал их, и совпадения по 6 сигналам не засчитывались. Это исправление
+    измерения, а не поиска; совпадение по аббревиатуре идёт на проверку парами, как и по синониму.
+    """
+    title = str(row.get("title") or "")
+    parts = [p.strip() for inner in re.findall(r"\(([^)]+)\)", title) for p in inner.split(",")]
+    parts += [str(s).strip() for s in synonyms.get(str(row["row_id"]), [])]
+    found = []
+    for part in parts:
+        if _ACRONYM_RE.match(part) and sum(ch.isalpha() for ch in part) >= 2:
+            acronym = part.upper().replace("Ё", "Е")
+            if acronym not in found:
+                found.append(acronym)
+    return found
+
+
+def acronym_hit(raw: str, acronyms: list[str]) -> str | None:
+    """Первая аббревиатура, которая стоит в тексте отдельным словом в верхнем регистре."""
+    for acronym in acronyms:
+        if re.search(rf"(?<![\w]){re.escape(acronym)}(?![\w])", raw or ""):
+            return acronym
+    return None
+
+
 def expert_terms(row: dict[str, Any], synonyms: dict[str, list[str]]) -> list[tuple[str, str]]:
     """Термины сигнала: название, термины в скобках, синонимы из файла; короче MIN_TERM_CHARS не берутся."""
     title = str(row.get("title") or "")
@@ -88,13 +117,14 @@ def _objects(snapshot: Snapshot) -> dict[str, list[dict[str, Any]]]:
     def doc_object(doc_id: str) -> dict[str, Any]:
         row = docs[doc_id]
         return {"kind": "document", "id": doc_id, "title": row.get("title") or "",
+                "raw": f"{row.get('title', '')} {row.get('body_text', '')}",
                 "text": normalize(f"{row.get('title', '')} {row.get('body_text', '')}"),
                 "keys": url_keys(row.get("url"), row.get("doi"))}
 
     stages: dict[str, list[dict[str, Any]]] = {}
     events = snapshot.jsonl("document_events.jsonl")
     found = [{"kind": "event", "id": f"event:{e['run_id']}:{e['seq']}", "title": e.get("title") or "",
-              "text": normalize(e.get("title") or ""), "keys": url_keys(e.get("url"), e.get("doi"))} for e in events]
+              "raw": e.get("title") or "", "text": normalize(e.get("title") or ""), "keys": url_keys(e.get("url"), e.get("doi"))} for e in events]
     stages["found"] = found + [doc_object(d) for d in docs]
     stages["collected"] = [doc_object(d) for d in docs]
     capture = snapshot.json("capture.json") if snapshot.has("capture.json") else {}
@@ -117,7 +147,7 @@ def _objects(snapshot: Snapshot) -> dict[str, list[dict[str, Any]]]:
         text = " ".join([str(row.get("title_auto") or ""), " ".join(row.get("keyphrases") or []),
                          str(verdict.get("technology_ru") or ""), str(verdict.get("profile_ru") or "")])
         return {"kind": "candidate", "id": str(row["candidate_id"]), "title": row.get("title_auto") or "",
-                "text": normalize(text), "keys": keys}
+                "raw": text, "text": normalize(text), "keys": keys}
 
     candidates = {str(row["candidate_id"]): candidate_object(row) for row in analysis.get("candidates") or []}
     if trace:
@@ -139,6 +169,7 @@ def _objects(snapshot: Snapshot) -> dict[str, list[dict[str, Any]]]:
             if doc_id in docs:
                 keys |= url_keys(docs[doc_id].get("url"), docs[doc_id].get("doi"))
         shown.append({"kind": "card", "id": str(item["candidate_id"]), "title": item.get("title_ru") or "",
+                      "raw": f"{item.get('title_ru', '')} {item.get('description_ru', '')}",
                       "text": normalize(f"{item.get('title_ru', '')} {item.get('description_ru', '')}"), "keys": keys})
     stages["shown"] = shown
     return stages
@@ -159,6 +190,7 @@ def match(snapshots: list[Snapshot], dataset_rows: list[dict[str, Any]], synonym
         for expert in (e for e in experts if e.get("domain_tag") == domain):
             keys = set().union(*(url_keys(u) for u in expert.get("source_urls") or [])) if expert.get("source_urls") else set()
             terms = expert_terms(expert, synonyms)
+            acronyms = expert_acronyms(expert, synonyms)
             found: dict[str, list[dict[str, str]]] = {}
             for stage in STAGES:
                 if stage not in stages:
@@ -175,6 +207,11 @@ def match(snapshots: list[Snapshot], dataset_rows: list[dict[str, Any]], synonym
                             hits.append({"object_kind": obj["kind"], "object_id": obj["id"],
                                          "object_title": obj["title"][:300], "rule": rule, "term": term})
                             break
+                    else:
+                        acronym = acronym_hit(obj.get("raw", ""), acronyms)
+                        if acronym:
+                            hits.append({"object_kind": obj["kind"], "object_id": obj["id"],
+                                         "object_title": obj["title"][:300], "rule": "acronym", "term": acronym})
                 found[stage] = hits
             rows.append({"row_id": expert["row_id"], "title": expert.get("title"), "description": expert.get("description"),
                          "stages": found, "available_stages": [s for s in STAGES if s in stages]})

@@ -91,6 +91,17 @@
 | WS_COLLECTOR_MINED_TECHNOLOGIES | 0–40 | 15 | | сколько технологий извлекать из заголовков широкого прохода |
 | WS_COLLECTOR_TARGETED_WINDOW_MONTHS | 3–120 | 24 | | окно дат прицельного поиска |
 | WS_SINGLETON_CANDIDATES | 0–20 | 0 | | одиночные документы, ближайшие к запросу, остаются кандидатами (не больше четверти пула) |
+| WS_ARCHIVE_WAYBACK_FROM | ГГГГ-ММ | 2025-01 | | первый месяц первичной загрузки архива новостей из Wayback Machine |
+| WS_ARCHIVE_WAYBACK_PAUSE_SECONDS | 1–60 | 3 | | пауза между запросами к Wayback CDX API |
+| WS_ARCHIVE_REFRESH_MONTHS | 0–12 | 2 | | сколько последних месяцев перечислять заново при ежемесячном запуске |
+| WS_NEWS_ARCHIVE_WINDOW_MONTHS | 3–120 | 24 | | окно дат поиска по архиву новостей |
+| WS_CORPUS_ARXIV_SETS | список | cs,eess,q-fin | | наборы arXiv для корпуса (OAI-PMH) |
+| WS_CORPUS_SINCE_YEAR | 2015–2030 | 2021 | | работы корпуса не старше этого года (база оценки возникновения — до последних 24 месяцев) |
+| WS_CORPUS_OAI_PAUSE_SECONDS | 1–60 | 3 | | пауза между страницами OAI-PMH |
+| WS_COLLECTOR_EMERGING_TECHNOLOGIES | 0–40 | 25 | | технологий из корпусов по оценке возникновения |
+| WS_COLLECTOR_LLM_TECHNOLOGIES | 0–40 | 10 | | технологий от модели — вспомогательно, после корпусов и извлечённых |
+| WS_COLLECTOR_SNOWBALL_TECHNOLOGIES | 0–40 | 15 | | названий второго круга из документов прицельного прохода |
+| WS_COLLECTOR_TARGETED_ROUNDS | 1–2 | 2 | | 2 — второй круг прицельного поиска включён |
 | WS_COLLECTOR_SOURCE_POLICY | `источник:requests=N,retries=N,pause=С,transient=N;…` | пусто | | бюджет запросов на сбор, повторы после 429, пауза и повторы после сетевого сбоя/5xx по источникам поверх значений по умолчанию: Semantic Scholar 50/2/10, Hacker News 60/1/10, GDELT 8 запросов; `transient` по умолчанию 1, у arXiv, Zenodo и GDELT 0 (у них свой шлюз) |
 
 ## analyzer

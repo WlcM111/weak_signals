@@ -13,7 +13,8 @@ from urllib.parse import urlsplit
 
 from collector.adapters.outbound.sources.base import BaseSourceAdapter, parse_datetime, within_since_year
 from collector.adapters.outbound.sources.xml_utils import parse_xml, text_of
-from collector.application.ports import HttpClient, RateLimiter
+from collector.adapters.outbound.news_archive.rss_archive import archive_entries
+from collector.application.ports import HttpClient, NewsArchiveStore, RateLimiter
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
 from collector.domain.rules import term_coverage
@@ -38,9 +39,11 @@ class RssAdapter(BaseSourceAdapter):
     raw_meta_keys = frozenset({"feed", "categories"})
 
     def __init__(
-        self, http: HttpClient, limiter: RateLimiter, clock: Clock, feeds: Sequence[str]
+        self, http: HttpClient, limiter: RateLimiter, clock: Clock, feeds: Sequence[str],
+        archive: NewsArchiveStore | None = None,
     ) -> None:
         super().__init__(http, limiter, clock)
+        self._archive = archive  # этап 4.3: все записи лент — в архив новостей
         if not feeds:
             raise ValueError("RssAdapter требует непустой список лент WS_COLLECTOR_RSS_FEEDS")
         self._feeds = tuple(feeds)
@@ -48,6 +51,15 @@ class RssAdapter(BaseSourceAdapter):
             host for host in ((urlsplit(feed).hostname or "").lower() for feed in self._feeds) if host
         )
         self._log = get_logger("collector.source.rss")
+
+    async def _archive_all(self, entries: list[FeedEntry]) -> None:
+        """Все записи ленты — в архив новостей; сбой архива не мешает сбору."""
+        if self._archive is None or not entries:
+            return
+        try:
+            await self._archive.save_entries(archive_entries(entries, self._clock.now()))
+        except Exception as exc:  # noqa: BLE001
+            self._log.warning("rss.archive_failed", error=str(exc)[:200])
 
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float
@@ -68,10 +80,11 @@ class RssAdapter(BaseSourceAdapter):
             try:
                 body = await self.fetch_text(feed_url, headers=FEED_ACCEPT)
                 entries = list(parse_feed(body, feed_url))
+                await self._archive_all(entries)
             except AdapterFailure as failure:
                 # отказ или неразборчивый ответ одной ленты не прекращает обход остальных (стенд 29.09: пустой
                 # ответ 202 одной ленты обрывал весь адаптер с PARSE_ERROR, и следующие ленты не читались)
-                self._log.warning("rss.feed_failed", feed=feed_url, code=failure.code)
+                self._log.warning("rss.feed_failed", feed=feed_url, code=failure.code, detail=failure.message[:200])
                 failures.append((feed_url, failure))
                 continue
             for entry in entries:

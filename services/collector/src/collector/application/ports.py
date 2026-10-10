@@ -18,6 +18,7 @@ from collector.application.dto import (
     LeaseState,
 )
 from collector.application.trace_recording import EventRecord, ResponseRecord
+from collector.domain.archive import ArchiveEntry, CorpusHarvestState, CorpusPaper
 from collector.domain.entities import AdapterRun, Collection, Document, RawDocument
 from collector.domain.values import CollectionLimits, OperationStatus, SearchTerms, SourceKey
 
@@ -138,6 +139,9 @@ class CollectionRepository(Protocol):
 
     async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
         """Сохраняет технологии, извлечённые из документов широкого прохода (этап 4)."""
+
+    async def save_emerging_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
+        """Сохраняет технологии из корпусов по оценке возникновения (этап 4.3)."""
 
     async def create_if_absent(self, draft: CollectionDraft) -> tuple[Collection, bool]:
         """Создаёт коллекцию и запуски адаптеров одной транзакцией.
@@ -261,3 +265,44 @@ class NullMetrics:
 
     def collection_finished(self, mode: str, status: OperationStatus, duration_seconds: float) -> None:
         """Ничего не делает."""
+
+
+class NewsArchiveStore(Protocol):
+    """Локальный архив новостей (этап 4.3): статьи изданий из Wayback Machine и записи RSS."""
+
+    async def save_entries(self, entries: Sequence[ArchiveEntry]) -> int:
+        """Сохраняет записи (повтор адреса обновляет: заголовок RSS важнее слов адреса); возвращает число записей."""
+
+    async def search(self, words: Sequence[str], since: date, limit: int) -> list[ArchiveEntry]:
+        """Записи со всеми словами `words`, опубликованные не раньше `since`, новые первыми."""
+
+    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
+        """Заголовки и даты записей со всеми словами `words` — корпус для оценки возникновения."""
+
+    async def harvested_periods(self, publisher: str) -> dict[str, str]:
+        """Месяцы издания, уже перечисленные в Wayback: «ГГГГ-ММ» → статус."""
+
+    async def mark_harvest(self, publisher: str, period: str, status: str, rows: int, detail: str) -> None:
+        """Отмечает перечисление месяца издания."""
+
+    async def stats(self) -> list[dict[str, object]]:
+        """Сводка архива по изданиям и происхождению записей."""
+
+
+class CorpusStore(Protocol):
+    """Локальный корпус метаданных arXiv (этап 4.3)."""
+
+    async def save_papers(self, papers: Sequence[CorpusPaper]) -> int:
+        """Сохраняет работы (повтор идентификатора обновляет запись); возвращает число работ."""
+
+    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
+        """Заголовки и даты работ со всеми словами `words`, созданных не раньше `since`, новые первыми."""
+
+    async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
+        """Состояние выгрузки набора."""
+
+    async def save_harvest_state(self, state: CorpusHarvestState, detail: str = "") -> None:
+        """Сохраняет состояние выгрузки набора."""
+
+    async def stats(self) -> list[dict[str, object]]:
+        """Сводка корпуса по годам."""

@@ -46,6 +46,9 @@ class SourceKey(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SOURCE_KEY_GDELT: _ClassVar[SourceKey]
     SOURCE_KEY_ROSPATENT: _ClassVar[SourceKey]
     SOURCE_KEY_HACKERNEWS: _ClassVar[SourceKey]
+    SOURCE_KEY_NEWS_ARCHIVE: _ClassVar[SourceKey]
+    SOURCE_KEY_CROSSREF: _ClassVar[SourceKey]
+    SOURCE_KEY_HUGGINGFACE: _ClassVar[SourceKey]
 
 class OperationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -88,6 +91,9 @@ SOURCE_KEY_ZENODO: SourceKey
 SOURCE_KEY_GDELT: SourceKey
 SOURCE_KEY_ROSPATENT: SourceKey
 SOURCE_KEY_HACKERNEWS: SourceKey
+SOURCE_KEY_NEWS_ARCHIVE: SourceKey
+SOURCE_KEY_CROSSREF: SourceKey
+SOURCE_KEY_HUGGINGFACE: SourceKey
 OPERATION_STATUS_UNSPECIFIED: OperationStatus
 OPERATION_STATUS_PENDING: OperationStatus
 OPERATION_STATUS_RUNNING: OperationStatus

@@ -93,6 +93,11 @@ class PostgresCollectionRepository:
     def __init__(self, pool: AsyncConnectionPool[AsyncConnection[Any]]) -> None:
         self._pool = pool
 
+    async def save_emerging_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
+        """Технологии из корпусов по оценке возникновения (этап 4.3)."""
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.execute(_SAVE_EMERGING, (list(technologies), collection_id))
+
     async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
         """Технологии, извлечённые из документов широкого прохода (этап 4)."""
         async with self._pool.connection() as conn, conn.cursor() as cur:
@@ -204,3 +209,4 @@ class PostgresCollectionRepository:
         return tuple(SourceKey(row["source_key"]) for row in rows)
 
 _SAVE_MINED = "UPDATE collections SET technologies_mined = %s WHERE collection_id = %s"
+_SAVE_EMERGING = "UPDATE collections SET technologies_emerging = %s WHERE collection_id = %s"

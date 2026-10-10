@@ -54,6 +54,19 @@ class CollectorSettings(BaseServiceSettings):
     collector_broad_max_documents_per_source: int = Field(default=60, ge=10, le=500)
     collector_mined_technologies: int = Field(default=15, ge=0, le=40)
     collector_targeted_window_months: int = Field(default=24, ge=3, le=120)
+    # Этап 4.3: локальные архивы, корпус arXiv и отбор технологий.
+    news_publishers_path: Path = SERVICE_ROOT / "config" / "news_publishers.yaml"
+    archive_wayback_pause_seconds: float = Field(default=3.0, ge=1.0, le=60.0)
+    archive_wayback_from: str = Field(default="2025-01", pattern=r"^20[0-9]{2}-[0-9]{2}$")
+    archive_refresh_months: int = Field(default=2, ge=0, le=12)
+    news_archive_window_months: int = Field(default=24, ge=3, le=120)
+    corpus_arxiv_sets: str = "cs,eess,q-fin"
+    corpus_since_year: int = Field(default=2021, ge=2015, le=2030)
+    corpus_oai_pause_seconds: float = Field(default=3.0, ge=1.0, le=60.0)
+    collector_emerging_technologies: int = Field(default=25, ge=0, le=40)
+    collector_llm_technologies: int = Field(default=10, ge=0, le=40)
+    collector_snowball_technologies: int = Field(default=15, ge=0, le=40)
+    collector_targeted_rounds: int = Field(default=2, ge=1, le=2)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

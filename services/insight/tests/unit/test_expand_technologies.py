@@ -24,7 +24,8 @@ class ExpandTechnologiesTest(unittest.TestCase):
         items = ["Sodium-ion battery cathodes", "sodium-ion  battery cathodes", "Machine Learning", "x",
                  "Solid-state transformers.", "a b c d e f g", "edge AI", "anomaly detection algorithms",
                  "Federated Learning", "AI-powered supply chain resilience", "Intelligent workload orchestration",
-                 "Adaptive power management"]
+                 "Adaptive power management", "federated learning for distributed factories",
+                 "Anomaly detection on IoT data streams"]
         self.assertEqual(clean_technologies(items, forbidden=("edge AI",)),
                          ("Sodium-ion battery cathodes", "Solid-state transformers"))
         self.assertEqual(len(clean_technologies([f"tech {i} cells" for i in range(60)])), MAX_TECHNOLOGIES)

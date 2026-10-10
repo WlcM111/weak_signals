@@ -35,10 +35,14 @@ from collector.adapters.outbound.sources.rss import RssAdapter
 from collector.adapters.outbound.sources.semantic_scholar import SemanticScholarAdapter
 from collector.adapters.outbound.sources.gdelt import GdeltAdapter
 from collector.adapters.outbound.sources.hackernews import HackerNewsAdapter
+from collector.adapters.outbound.sources.crossref import CrossrefAdapter
+from collector.adapters.outbound.sources.huggingface import HuggingFaceAdapter
+from collector.adapters.outbound.sources.news_archive import NewsArchiveAdapter
+from collector.adapters.outbound.postgres.archive_repository import PostgresCorpus, PostgresNewsArchive
 from collector.adapters.outbound.sources.rospatent import RospatentAdapter
 from collector.adapters.outbound.sources.zenodo import ZenodoAdapter
 from collector.adapters.outbound.sources.wikipedia import WikipediaProbe
-from collector.application.ports import SourceAdapter
+from collector.application.ports import NewsArchiveStore, SourceAdapter
 from collector.application.use_cases.cancel_collection import CancelCollection
 from collector.application.use_cases.check_encyclopedia import CheckEncyclopedia
 from collector.application.use_cases.get_collection import GetCollection
@@ -78,12 +82,16 @@ async def serve(settings: CollectorSettings) -> int:
     log.info("migrations.applied", versions=applied)
 
     catalog = await PostgresSourceCatalog(pool).load()
+    archive = PostgresNewsArchive(pool)  # этап 4.3: локальный архив новостей
+    corpus = PostgresCorpus(pool)  # этап 4.3: корпус arXiv для оценки возникновения
     classification = load_classification_config(settings.trust_rules_path, settings.rss_domains_path)
     http_client = HttpxClient(
         contact_email=settings.contact_email,
         read_timeout_seconds=settings.collector_http_timeout_seconds,
         max_bytes=settings.http_max_bytes,
-        retries=settings.collector_http_retries,
+        # Этап 4.2/4.3: клиент делает одну попытку — повторы делает адаптер через лимитер (политика источника).
+        # В патче 4.2 эта строка не применилась, и запросы повторялись дважды: клиентом и адаптером.
+        retries=0,
     )
     # arXiv — без внутренних повторов клиента: шлюз частоты и 30-минутная пауза адаптера закрывают все отказы,
     # а повторы 429/5xx в обход шлюза нарушали бы правило arXiv «один запрос в 3 секунды».
@@ -114,7 +122,7 @@ async def serve(settings: CollectorSettings) -> int:
         on_wait=metrics.rate_limit_wait,
     )
     adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock, arxiv_http_client,
-                                           gdelt_http_client)
+                                           gdelt_http_client, archive)
     log.info(
         "sources.configured",
         enabled=[key.value for key in adapters],
@@ -152,10 +160,17 @@ async def serve(settings: CollectorSettings) -> int:
             broad_max_documents_per_source=settings.collector_broad_max_documents_per_source,
             mined_technologies=settings.collector_mined_technologies,
             targeted_window_months=settings.collector_targeted_window_months,
+            emerging_technologies=settings.collector_emerging_technologies,
+            llm_technologies=settings.collector_llm_technologies,
+            snowball_technologies=settings.collector_snowball_technologies,
+            targeted_rounds=settings.collector_targeted_rounds,
+            corpus_since_year=settings.corpus_since_year,
         ),
         unavailable_sources=unavailable,
         metrics=metrics,
         traces=PostgresCollectionTraceRepository(pool) if settings.collector_trace_enabled else None,
+        archive=archive,
+        corpus=corpus,
     )
 
     server = grpc.aio.server(
@@ -218,6 +233,7 @@ def build_adapters(
     clock: SystemClock,
     arxiv_http_client: HttpxClient | None = None,
     gdelt_http_client: HttpxClient | None = None,
+    archive: NewsArchiveStore | None = None,
 ) -> tuple[dict[SourceKey, SourceAdapter], dict[SourceKey, AdapterErrorCode]]:
     """Собирает включённые адаптеры; недоступные источники получают код отказа вместо заглушки."""
     override = settings.source_override
@@ -232,7 +248,7 @@ def build_adapters(
             continue
         try:
             adapter = _create_adapter(source_key, settings, http_client, limiter, clock, arxiv_http_client,
-                                      gdelt_http_client)
+                                      gdelt_http_client, archive)
         except ValueError as exc:
             unavailable[source_key] = (
                 AdapterErrorCode.AUTH_MISSING if entry.requires_api_key else AdapterErrorCode.DISABLED
@@ -256,6 +272,7 @@ def _create_adapter(
     clock: SystemClock,
     arxiv_http_client: HttpxClient | None = None,
     gdelt_http_client: HttpxClient | None = None,
+    archive: NewsArchiveStore | None = None,
 ) -> SourceAdapter | None:
     """Создаёт адаптер источника; ValueError означает отсутствие обязательной настройки."""
     if source_key is SourceKey.OPENALEX:
@@ -263,7 +280,7 @@ def _create_adapter(
     if source_key is SourceKey.ARXIV:
         return ArxivAdapter(arxiv_http_client or http_client, limiter, clock)
     if source_key is SourceKey.RSS:
-        return RssAdapter(http_client, limiter, clock, settings.rss_feeds)
+        return RssAdapter(http_client, limiter, clock, settings.rss_feeds, archive)
     if source_key is SourceKey.GITHUB:
         return GithubAdapter(http_client, limiter, clock, settings.github_token)
     if source_key is SourceKey.SEMANTIC_SCHOLAR:
@@ -275,6 +292,14 @@ def _create_adapter(
         return GdeltAdapter(gdelt_http_client or http_client, limiter, clock, settings.gdelt_history_months)
     if source_key is SourceKey.HACKERNEWS:
         return HackerNewsAdapter(http_client, limiter, clock, settings.hackernews_history_months)
+    if source_key is SourceKey.NEWS_ARCHIVE:
+        if archive is None:
+            raise ValueError("архиву новостей нужно хранилище PostgreSQL")
+        return NewsArchiveAdapter(http_client, limiter, clock, archive, settings.news_archive_window_months)
+    if source_key is SourceKey.CROSSREF:
+        return CrossrefAdapter(http_client, limiter, clock, settings.contact_email, settings.collector_targeted_window_months)
+    if source_key is SourceKey.HUGGINGFACE:
+        return HuggingFaceAdapter(http_client, limiter, clock)
     if source_key is SourceKey.ROSPATENT:
         return RospatentAdapter(http_client, limiter, clock, settings.rospatent_token)
     return None  # patentsview и hh включаются после подтверждения условий API (§6.5 ТЗ)

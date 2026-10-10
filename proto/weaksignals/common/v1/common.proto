@@ -47,6 +47,9 @@ enum SourceKey {
   SOURCE_KEY_GDELT = 10;
   SOURCE_KEY_ROSPATENT = 11;
   SOURCE_KEY_HACKERNEWS = 12;  // Hacker News Search (Algolia), этап 3.1
+  SOURCE_KEY_NEWS_ARCHIVE = 13; // локальный архив новостей: Wayback Machine и RSS, этап 4.3
+  SOURCE_KEY_CROSSREF = 14;     // Crossref REST API, этап 4.3
+  SOURCE_KEY_HUGGINGFACE = 15;  // Hugging Face Hub API, этап 4.3
 }
 
 // Документ открытого источника. Владелец данных — collector.
