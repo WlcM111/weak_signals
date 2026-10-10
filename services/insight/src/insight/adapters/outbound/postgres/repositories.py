@@ -49,18 +49,19 @@ _SELECT_SOURCES = (
     "WHERE insight_id = %s ORDER BY position"
 )
 _SELECT_EXPANSION = (
-    "SELECT query_norm, ru_terms, en_terms, domain_tags, used_fallback, provider, model, "
+    "SELECT query_norm, ru_terms, en_terms, domain_tags, technologies, used_fallback, provider, model, "
     "prompt_version FROM query_expansions WHERE query_norm = %s AND prompt_version = %s AND NOT used_fallback"
 )
 _UPSERT_EXPANSION = """
 INSERT INTO query_expansions
-  (query_norm, prompt_version, ru_terms, en_terms, domain_tags, used_fallback, provider, model)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+  (query_norm, prompt_version, ru_terms, en_terms, domain_tags, technologies, used_fallback, provider, model)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (query_norm) DO UPDATE SET
   prompt_version = EXCLUDED.prompt_version,
   ru_terms = EXCLUDED.ru_terms,
   en_terms = EXCLUDED.en_terms,
   domain_tags = EXCLUDED.domain_tags,
+  technologies = EXCLUDED.technologies,
   used_fallback = EXCLUDED.used_fallback,
   provider = EXCLUDED.provider,
   model = EXCLUDED.model,
@@ -181,6 +182,7 @@ class PostgresExpansionRepository:
             ru_terms=tuple(row["ru_terms"]),
             en_terms=tuple(row["en_terms"]),
             domain_tags=tuple(row["domain_tags"] or ()),
+            technologies=tuple(row["technologies"] or ()),
             used_fallback=row["used_fallback"],
             provenance=Provenance(
                 provider=row["provider"], model=row["model"] or "", prompt_version=row["prompt_version"]
@@ -198,6 +200,7 @@ class PostgresExpansionRepository:
                     list(expansion.ru_terms),
                     list(expansion.en_terms),
                     list(expansion.domain_tags),
+                    list(expansion.technologies),
                     expansion.used_fallback,
                     expansion.provenance.provider,
                     expansion.provenance.model,

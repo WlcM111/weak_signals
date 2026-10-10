@@ -84,7 +84,7 @@ class CollectorServicer(collector_pb2_grpc.CollectorServiceServicer):
             command = StartCollectionCommand(
                 idempotency_key=validate_idempotency_key(request.idempotency_key),
                 query_text=validate_query_text(request.query_text),
-                terms=validate_terms(request.terms.ru, request.terms.en),
+                terms=validate_terms(request.terms.ru, request.terms.en, request.terms.technologies),
                 mode=mode,
                 limits=validate_limits(
                     mode,

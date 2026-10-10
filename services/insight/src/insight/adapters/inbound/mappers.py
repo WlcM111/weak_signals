@@ -141,6 +141,7 @@ def to_expand_response(expansion: QueryExpansion) -> insight_pb2.ExpandQueryResp
         domain_tags=list(expansion.domain_tags),
         provenance=to_provenance(expansion.provenance),
         used_fallback=expansion.used_fallback,
+        technologies=list(expansion.technologies),
     )
 
 

@@ -126,6 +126,9 @@ class SearchTerms:
 
     ru: tuple[str, ...] = ()
     en: tuple[str, ...] = ()
+    # Этап 4: конкретные технологии темы для прицельного прохода (от модели; извлечённые из документов
+    # широкого прохода добавляет сам сбор). Пусто — только широкий проход и извлечение.
+    technologies: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.ru and not self.en:

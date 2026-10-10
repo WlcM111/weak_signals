@@ -69,12 +69,13 @@ class GrpcCollectorClient:
         en_terms: Sequence[str],
         time_budget_seconds: int,
         max_total_documents: int,
+        technologies: Sequence[str] = (),
     ) -> str:
-        """Запускает сбор в режиме SEARCH."""
+        """Запускает сбор в режиме SEARCH: широкий проход по фразам темы и прицельный — по технологиям."""
         request = collector_pb2.StartCollectionRequest(
             idempotency_key=idempotency_key,
             query_text=query_text,
-            terms=collector_pb2.SearchTerms(ru=list(ru_terms), en=list(en_terms)),
+            terms=collector_pb2.SearchTerms(ru=list(ru_terms), en=list(en_terms), technologies=list(technologies)),
             mode=collector_pb2.COLLECTION_MODE_SEARCH,
             limits=collector_pb2.CollectionLimits(
                 time_budget_seconds=time_budget_seconds, max_total_documents=max_total_documents
@@ -221,6 +222,7 @@ class GrpcInsightClient:
             en_terms=tuple(response.en_terms),
             domain_tags=tuple(response.domain_tags),
             used_fallback=response.used_fallback,
+            technologies=tuple(response.technologies),
         )
 
     async def judge_candidates(

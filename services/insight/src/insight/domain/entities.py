@@ -172,6 +172,8 @@ class QueryExpansion:
     domain_tags: tuple[str, ...] = ()
     used_fallback: bool = False
     provenance: Provenance = field(default_factory=Provenance)
+    # Этап 4: конкретные ранние технологии темы для прицельного поиска (англ. названия, prompt expand_v2).
+    technologies: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.ru_terms or not self.en_terms:

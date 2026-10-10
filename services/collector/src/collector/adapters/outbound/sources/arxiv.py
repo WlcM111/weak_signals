@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import asyncio
 import re
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
+from datetime import UTC, date
 from typing import Any
 
 from collector.adapters.outbound.sources.base import (
@@ -123,6 +124,31 @@ class ArxivAdapter(BaseSourceAdapter):
                 if len(entries) < PAGE_SIZE:
                     break
 
+    supports_targeted = True
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Этап 4: точная фраза технологии в окне дат, по релевантности; без совпадений — все слова фразы."""
+        until = self._clock.now().astimezone(UTC).date()
+        for term in technologies:
+            for query in (phrase_query(term), search_query(term)):
+                if self.deadline_reached(deadline):
+                    return
+                body = await self._fetch_page({
+                    "search_query": f"{query} AND submittedDate:[{since:%Y%m%d}0000 TO {until:%Y%m%d}2359]",
+                    "start": 0,
+                    "max_results": per_term,
+                    "sortBy": "relevance",
+                    "sortOrder": "descending",
+                })
+                entries = parse_xml(body, what="arXiv").findall("atom:entry", NS)
+                documents = [doc for doc in (_to_raw_document(entry, term) for entry in entries) if doc is not None]
+                for document in documents[:per_term]:
+                    yield document
+                if documents or query == search_query(term):
+                    break
+
     async def _fetch_page(self, params: dict[str, str | int]) -> str:
         """Один запрос к arXiv через общий шлюз процесса."""
         async with _GATE.lock:
@@ -162,6 +188,11 @@ def _status(failure: AdapterFailure) -> int | None:
 _VIA_RE = re.compile(r"via=([^;\]]*)")
 _WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9\-]{2,}")
 _QUERY_STOP = frozenset({"and", "for", "the", "with", "from", "into", "based", "using", "via", "new", "novel"})
+
+
+def phrase_query(term: str) -> str:
+    """Точная фраза технологии во всех полях arXiv (прицельный поиск, этап 4)."""
+    return 'all:"' + " ".join(term.replace('"', " ").split()) + '"'
 
 
 def search_query(term: str) -> str:

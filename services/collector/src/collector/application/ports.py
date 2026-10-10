@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Mapping, Sequence
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Protocol
 
 from collector.application.dto import (
@@ -108,6 +108,14 @@ class SourceAdapter(Protocol):
     ) -> AsyncIterator[RawDocument]:
         """Итератор документов; `deadline` — монотонное время окончания бюджета."""
 
+    # Этап 4: прицельный проход — по каждой технологии малая квота, ранжирование по релевантности в окне дат.
+    supports_targeted: bool
+
+    def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Документы по технологиям: не больше `per_term` на технологию, опубликованные не раньше `since`."""
+
 
 class EncyclopediaProbe(Protocol):
     """Проверка статьи Wikipedia (используется `CheckEncyclopedia`)."""
@@ -122,6 +130,9 @@ class EncyclopediaProbe(Protocol):
 
 class CollectionRepository(Protocol):
     """Хранилище коллекций (таблица `collections`)."""
+
+    async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
+        """Сохраняет технологии, извлечённые из документов широкого прохода (этап 4)."""
 
     async def create_if_absent(self, draft: CollectionDraft) -> tuple[Collection, bool]:
         """Создаёт коллекцию и запуски адаптеров одной транзакцией.

@@ -59,7 +59,24 @@ def validate_query_text(value: str) -> str:
     return text
 
 
-def validate_terms(ru: Sequence[str], en: Sequence[str]) -> SearchTerms:
+MAX_TECHNOLOGIES = 40
+MIN_TECHNOLOGY_LENGTH = 2
+MAX_TECHNOLOGY_LENGTH = 80
+
+
+def validate_technologies(values: Sequence[str]) -> tuple[str, ...]:
+    """Технологии прицельного поиска: не больше 40, каждая 2..80 символов, без дублей."""
+    items = tuple(" ".join((value or "").split()) for value in values)
+    if len(items) > MAX_TECHNOLOGIES:
+        raise ValidationError(f"terms.technologies: не более {MAX_TECHNOLOGIES} технологий", "INVALID_TERMS")
+    if any(not MIN_TECHNOLOGY_LENGTH <= len(item) <= MAX_TECHNOLOGY_LENGTH for item in items):
+        raise ValidationError("terms.technologies: длина 2..80 символов", "INVALID_TERMS")
+    if len({item.lower() for item in items}) != len(items):
+        raise ValidationError("terms.technologies: дублирующиеся технологии", "INVALID_TERMS")
+    return items
+
+
+def validate_terms(ru: Sequence[str], en: Sequence[str], technologies: Sequence[str] = ()) -> SearchTerms:
     """Поисковые фразы: ru+en ≥ 1, каждая 2..120 символов, ≤ 8 в списке, без дублей."""
     cleaned: dict[str, tuple[str, ...]] = {}
     for name, values in (("ru", ru), ("en", en)):
@@ -73,7 +90,7 @@ def validate_terms(ru: Sequence[str], en: Sequence[str]) -> SearchTerms:
         cleaned[name] = items
     if not cleaned["ru"] and not cleaned["en"]:
         raise ValidationError("terms: требуется хотя бы одна фраза", "INVALID_TERMS")
-    return SearchTerms(ru=cleaned["ru"], en=cleaned["en"])
+    return SearchTerms(ru=cleaned["ru"], en=cleaned["en"], technologies=validate_technologies(technologies))
 
 
 def validate_limits(

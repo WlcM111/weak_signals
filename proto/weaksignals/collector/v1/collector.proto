@@ -33,6 +33,7 @@ enum CollectionMode {
 message SearchTerms {
   repeated string ru = 1; // 0..8 фраз, каждая 2..120 символов
   repeated string en = 2; // 0..8 фраз, каждая 2..120 символов; ru+en ≥ 1
+  repeated string technologies = 3; // 0..40 технологий для прицельного поиска, каждая 2..80 символов
 }
 
 message CollectionLimits {

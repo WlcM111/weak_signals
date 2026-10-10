@@ -18,6 +18,9 @@ domains:
   technologyreview.com: INDUSTRY_MEDIA
   finextra.com: INDUSTRY_MEDIA
   helpnetsecurity.com: INDUSTRY_MEDIA
+  # Этап 4: ленты, доступные по проверке сети 06.10.2026 (через VPN США — все).
+  theblock.co: INDUSTRY_MEDIA
+  eu-startups.com: NEWS
   wired.com: NEWS
   reuters.com: NEWS
   cnews.ru: INDUSTRY_MEDIA

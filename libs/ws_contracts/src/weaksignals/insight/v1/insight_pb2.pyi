@@ -36,18 +36,20 @@ class ExpandQueryRequest(_message.Message):
     def __init__(self, query_text: _Optional[str] = ...) -> None: ...
 
 class ExpandQueryResponse(_message.Message):
-    __slots__ = ("ru_terms", "en_terms", "domain_tags", "provenance", "used_fallback")
+    __slots__ = ("ru_terms", "en_terms", "domain_tags", "provenance", "used_fallback", "technologies")
     RU_TERMS_FIELD_NUMBER: _ClassVar[int]
     EN_TERMS_FIELD_NUMBER: _ClassVar[int]
     DOMAIN_TAGS_FIELD_NUMBER: _ClassVar[int]
     PROVENANCE_FIELD_NUMBER: _ClassVar[int]
     USED_FALLBACK_FIELD_NUMBER: _ClassVar[int]
+    TECHNOLOGIES_FIELD_NUMBER: _ClassVar[int]
     ru_terms: _containers.RepeatedScalarFieldContainer[str]
     en_terms: _containers.RepeatedScalarFieldContainer[str]
     domain_tags: _containers.RepeatedScalarFieldContainer[str]
     provenance: Provenance
     used_fallback: bool
-    def __init__(self, ru_terms: _Optional[_Iterable[str]] = ..., en_terms: _Optional[_Iterable[str]] = ..., domain_tags: _Optional[_Iterable[str]] = ..., provenance: _Optional[_Union[Provenance, _Mapping]] = ..., used_fallback: bool = ...) -> None: ...
+    technologies: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, ru_terms: _Optional[_Iterable[str]] = ..., en_terms: _Optional[_Iterable[str]] = ..., domain_tags: _Optional[_Iterable[str]] = ..., provenance: _Optional[_Union[Provenance, _Mapping]] = ..., used_fallback: bool = ..., technologies: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class EvidenceDocument(_message.Message):
     __slots__ = ("document_id", "title", "url", "text", "language_code", "published_at", "source_type", "trust_level")

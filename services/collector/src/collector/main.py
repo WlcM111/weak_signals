@@ -141,6 +141,13 @@ async def serve(settings: CollectorSettings) -> int:
         config=RunCollectionConfig(
             lease_seconds=settings.collector_lease_seconds,
             heartbeat_seconds=settings.collector_heartbeat_seconds,
+            targeted_enabled=settings.collector_targeted_enabled,
+            targeted_per_term=settings.collector_targeted_per_term,
+            broad_time_share=settings.collector_broad_time_share,
+            targeted_reserve_documents=settings.collector_targeted_reserve_documents,
+            broad_max_documents_per_source=settings.collector_broad_max_documents_per_source,
+            mined_technologies=settings.collector_mined_technologies,
+            targeted_window_months=settings.collector_targeted_window_months,
         ),
         unavailable_sources=unavailable,
         metrics=metrics,

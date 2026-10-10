@@ -181,3 +181,20 @@ def split_market_glue(
         result.append([i for i in cluster if i not in market or i == keep])
         result.extend([i] for i in market if i != keep)
     return result
+
+
+def pick_singletons(
+    misc: Sequence[int],
+    relevances: Sequence[float],
+    document_ids: Sequence[str],
+    limit: int,
+    max_candidates: int,
+) -> list[list[int]]:
+    """Этап 4 (B4): самые близкие к запросу одиночные документы — отдельные кандидаты, не больше четверти пула.
+
+    У слабого сигнала часто всего один источник: «орбитальные дата-центры» (pos-0059) дважды терялись одиночным
+    кластером. Одиночки получают свои места сверх кластеров, но не больше `max_candidates // 4`.
+    """
+    count = min(max(limit, 0), max_candidates // 4)
+    ranked = sorted(misc, key=lambda index: (-relevances[index], document_ids[index]))
+    return [[index] for index in ranked[:count]]

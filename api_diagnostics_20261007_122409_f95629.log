@@ -1,0 +1,877 @@
+[15:24:10] Подготовка диагностического образа bookworm; код проекта в сборку не передаётся
+[15:24:10] Сборка bookworm: выполняется, 0 с
+[15:24:20] Сборка bookworm: выполняется, 10 с
+[15:24:30] Сборка bookworm: выполняется, 20 с
+[15:24:40] Сборка bookworm: выполняется, 30 с
+[15:24:49] Подготовка диагностического образа trixie; код проекта в сборку не передаётся
+[15:24:49] Сборка trixie: выполняется, 0 с
+[15:24:59] Сборка trixie: выполняется, 10 с
+[15:25:07] Временная штатная остановка collector; восстановление записано
+[15:25:07] Временная штатная остановка insight; восстановление записано
+[15:25:08] Пауза 65 с для завершения недавних запросов; это не доказательство сброса серверной квоты
+[15:25:08] Пауза: осталось 64 с
+[15:25:18] Пауза: осталось 54 с
+[15:25:28] Пауза: осталось 44 с
+[15:25:38] Пауза: осталось 34 с
+[15:25:48] Пауза: осталось 24 с
+[15:25:58] Пауза: осталось 14 с
+[15:26:13] Среда host: Python 3.14.0; OpenSSL 3.0.18 30 Sep 2025
+[15:26:14] Среда project_collector: Python 3.12.14; OpenSSL 3.0.20 7 Apr 2026
+[15:26:14] Среда bookworm: Python 3.12.15; OpenSSL 3.0.22 25 Aug 2026
+[15:26:15] Среда trixie: Python 3.12.15; OpenSSL 3.5.7 9 Jun 2026
+[15:26:15] host | egress_ip | observed_egress | curl
+[15:26:15]   HTTP 200 | VALID_JSON_SCHEMA | 0.6641 с
+[15:26:17] project_collector | egress_ip | observed_egress | urllib
+[15:26:18]   HTTP 200 | VALID_JSON_SCHEMA | 0.5768 с
+[15:26:20] bookworm | egress_ip | observed_egress | curl
+[15:26:20]   HTTP 200 | VALID_JSON_SCHEMA | 0.5889 с
+[15:26:22] trixie | egress_ip | observed_egress | curl
+[15:26:23]   HTTP 200 | VALID_JSON_SCHEMA | 0.5058 с
+[15:26:23] host | semantic_official_status | official_status_page | urllib
+[15:26:24]   HTTP 200 | VALID_JSON_SCHEMA | 0.9817 с
+[15:26:24] host | arxiv_official_status | official_status_page | urllib
+[15:26:25]   HTTP 200 | TEXT | 0.8412 с
+[15:26:25] host | rss_robots_01 | robots_policy_hints | urllib
+[15:26:25]   HTTP 200 | ROBOTS_RESPONSE | 0.6424 с
+[15:26:25] host | rss_robots_02 | robots_policy_hints | urllib
+[15:26:26]   HTTP 200 | ROBOTS_RESPONSE | 0.5222 с
+[15:26:26] host | rss_robots_03 | robots_policy_hints | urllib
+[15:26:27]   HTTP 403 | ROBOTS_RESPONSE | 0.5855 с
+[15:26:27] host | rss_robots_04 | robots_policy_hints | urllib
+[15:26:27]   HTTP 200 | ROBOTS_RESPONSE | 0.8684 с
+[15:26:27] host | rss_robots_05 | robots_policy_hints | urllib
+[15:26:28]   HTTP 200 | ROBOTS_RESPONSE | 0.5568 с
+[15:26:28] host | rss_robots_06 | robots_policy_hints | urllib
+[15:26:29]   HTTP 200 | ROBOTS_RESPONSE | 0.8173 с
+[15:26:29] host | rss_robots_07 | robots_policy_hints | urllib
+[15:26:29]   HTTP 200 | ROBOTS_RESPONSE | 0.5748 с
+[15:26:29] host | rss_robots_08 | robots_policy_hints | urllib
+[15:26:30]   HTTP 200 | ROBOTS_RESPONSE | 0.8335 с
+[15:26:30] host | rss_robots_09 | robots_policy_hints | urllib
+[15:26:31]   HTTP 200 | ROBOTS_RESPONSE | 0.8649 с
+[15:26:31] host | rss_robots_10 | robots_policy_hints | urllib
+[15:26:33]   HTTP 200 | ROBOTS_RESPONSE | 1.8548 с
+[15:26:33] host | rss_robots_11 | robots_policy_hints | urllib
+[15:26:34]   HTTP 200 | ROBOTS_RESPONSE | 0.718 с
+[15:26:34] host | rss_robots_12 | robots_policy_hints | urllib
+[15:26:40]   HTTP 404 | ROBOTS_RESPONSE | 6.5064 с
+[15:26:40] host | rss_robots_13 | robots_policy_hints | urllib
+[15:26:41]   HTTP 200 | ROBOTS_RESPONSE | 0.6216 с
+[15:26:41] host | rss_robots_14 | robots_policy_hints | urllib
+[15:26:42]   HTTP 200 | ROBOTS_RESPONSE | 0.9285 с
+[15:26:42] host | rss_robots_15 | robots_policy_hints | urllib
+[15:26:42]   HTTP 200 | ROBOTS_RESPONSE | 0.634 с
+[15:26:42] host | rss_robots_16 | robots_policy_hints | urllib
+[15:26:45]   HTTP 200 | ROBOTS_RESPONSE | 2.4433 с
+[15:26:45] host | rss_robots_17 | robots_policy_hints | urllib
+[15:26:46]   HTTP 200 | ROBOTS_RESPONSE | 1.374 с
+[15:26:46] host | rss_robots_18 | robots_policy_hints | urllib
+[15:26:48]   HTTP 403 | ROBOTS_RESPONSE | 1.2717 с
+[15:26:48] host | rss_robots_19 | robots_policy_hints | urllib
+[15:26:48]   HTTP 200 | ROBOTS_RESPONSE | 0.8662 с
+[15:26:49] host | rss_robots_20 | robots_policy_hints | urllib
+[15:26:50]   HTTP 200 | ROBOTS_RESPONSE | 1.2142 с
+[15:26:50] host | rss_robots_21 | robots_policy_hints | urllib
+[15:26:51]   HTTP 200 | ROBOTS_RESPONSE | 0.7829 с
+[15:26:51] host | rss_robots_22 | robots_policy_hints | urllib
+[15:26:51]   HTTP 200 | ROBOTS_RESPONSE | 0.705 с
+[15:26:51] host | rss_robots_23 | robots_policy_hints | urllib
+[15:26:52]   HTTP 200 | ROBOTS_RESPONSE | 0.9865 с
+[15:26:52] host | rss_robots_24 | robots_policy_hints | urllib
+[15:26:53]   HTTP 200 | ROBOTS_RESPONSE | 0.6952 с
+[15:26:53] host | rss_robots_25 | robots_policy_hints | urllib
+[15:26:54]   HTTP 200 | ROBOTS_RESPONSE | 0.8046 с
+[15:26:54] host | rss_robots_26 | robots_policy_hints | urllib
+[15:27:00]   HTTP 200 | ROBOTS_RESPONSE | 5.9461 с
+[15:27:00] host | arxiv | baseline | urllib
+[15:27:01]   HTTP 200 | VALID_FEED | 0.8505 с
+[15:27:04] project_collector | arxiv | baseline | httpx
+[15:27:05]   HTTP 200 | VALID_FEED | 0.6189 с
+[15:27:08] bookworm | arxiv | baseline | httpx
+[15:27:09]   HTTP 200 | VALID_FEED | 0.5135 с
+[15:27:12] trixie | arxiv | baseline | httpx
+[15:27:13]   HTTP 200 | VALID_FEED | 0.5593 с
+[15:27:13] host | gdelt_recent | baseline | urllib
+[15:27:23] Ожидание host: 10 с
+[15:27:25]   HTTP 429 | UNEXPECTED_PAYLOAD | 12.0665 с
+[15:27:25] Пауза: осталось 119 с
+[15:27:35] Пауза: осталось 109 с
+[15:27:45] Пауза: осталось 99 с
+[15:27:55] Пауза: осталось 89 с
+[15:28:05] Пауза: осталось 79 с
+[15:28:15] Пауза: осталось 69 с
+[15:28:25] Пауза: осталось 59 с
+[15:28:35] Пауза: осталось 49 с
+[15:28:45] Пауза: осталось 39 с
+[15:28:55] Пауза: осталось 29 с
+[15:29:05] Пауза: осталось 19 с
+[15:29:25] project_collector | gdelt_recent | baseline | httpx
+[15:29:35] Ожидание project_collector: 10 с
+[15:29:36]   HTTP 429 | UNEXPECTED_PAYLOAD | 11.5545 с
+[15:29:37] bookworm | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:29:37] trixie | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:29:37] host | semantic_bulk | baseline | urllib
+[15:29:41]   HTTP 200 | VALID_JSON_SCHEMA | 4.98 с
+[15:29:44] project_collector | semantic_bulk | baseline | httpx
+[15:29:45]   HTTP 429 | UNEXPECTED_PAYLOAD | 0.9552 с
+[15:29:45] Пауза: осталось 64 с
+[15:29:55] Пауза: осталось 54 с
+[15:30:05] Пауза: осталось 44 с
+[15:30:15] Пауза: осталось 34 с
+[15:30:25] Пауза: осталось 24 с
+[15:30:35] Пауза: осталось 14 с
+[15:30:50] bookworm | semantic_bulk | baseline | httpx
+[15:30:52]   HTTP 200 | VALID_JSON_SCHEMA | 2.5151 с
+[15:30:55] trixie | semantic_bulk | baseline | httpx
+[15:30:58]   HTTP 200 | VALID_JSON_SCHEMA | 3.0884 с
+[15:31:01] host | semantic_relevance | baseline | urllib
+[15:31:02]   HTTP 429 | UNEXPECTED_PAYLOAD | 0.9741 с
+[15:31:02] project_collector | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:31:02] bookworm | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:31:02] trixie | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:31:02] host | openalex | baseline | urllib
+[15:31:03]   HTTP 200 | VALID_JSON_SCHEMA | 1.3997 с
+[15:31:04] project_collector | openalex | baseline | httpx
+[15:31:05]   HTTP 200 | VALID_JSON_SCHEMA | 0.9845 с
+[15:31:06] bookworm | openalex | baseline | httpx
+[15:31:08]   HTTP 200 | VALID_JSON_SCHEMA | 1.1291 с
+[15:31:09] trixie | openalex | baseline | httpx
+[15:31:09]   HTTP 200 | VALID_JSON_SCHEMA | 0.6854 с
+[15:31:09] host | github_search | baseline | urllib
+[15:31:11]   HTTP 200 | VALID_JSON_SCHEMA | 1.1302 с
+[15:31:18] project_collector | github_search | baseline | httpx
+[15:31:18]   HTTP 200 | VALID_JSON_SCHEMA | 0.6583 с
+[15:31:25] bookworm | github_search | baseline | httpx
+[15:31:26]   HTTP 200 | VALID_JSON_SCHEMA | 0.5682 с
+[15:31:33] trixie | github_search | baseline | httpx
+[15:31:33]   HTTP 200 | VALID_JSON_SCHEMA | 0.5718 с
+[15:31:33] host | zenodo | baseline | urllib
+[15:31:34]   HTTP 200 | VALID_JSON_SCHEMA | 0.9624 с
+[15:31:38] project_collector | zenodo | baseline | httpx
+[15:31:39]   HTTP 200 | VALID_JSON_SCHEMA | 0.6659 с
+[15:31:42] bookworm | zenodo | baseline | httpx
+[15:31:43]   HTTP 200 | VALID_JSON_SCHEMA | 0.7878 с
+[15:31:46] trixie | zenodo | baseline | httpx
+[15:31:48]   HTTP 200 | VALID_JSON_SCHEMA | 1.4367 с
+[15:31:48] host | hackernews | baseline | urllib
+[15:31:49]   HTTP 200 | VALID_JSON_SCHEMA | 0.9361 с
+[15:31:50] project_collector | hackernews | baseline | httpx
+[15:31:51]   HTTP 200 | VALID_JSON_SCHEMA | 0.8096 с
+[15:31:52] bookworm | hackernews | baseline | httpx
+[15:31:53]   HTTP 200 | VALID_JSON_SCHEMA | 0.9445 с
+[15:31:54] trixie | hackernews | baseline | httpx
+[15:31:55]   HTTP 200 | VALID_JSON_SCHEMA | 0.9045 с
+[15:31:55] host | rospatent | baseline | urllib
+[15:31:56]   HTTP 200 | VALID_JSON_SCHEMA | 0.9147 с
+[15:31:59] project_collector | rospatent | baseline | httpx
+[15:32:00]   HTTP 200 | VALID_JSON_SCHEMA | 1.1339 с
+[15:32:03] bookworm | rospatent | baseline | httpx
+[15:32:04]   HTTP 200 | VALID_JSON_SCHEMA | 0.7643 с
+[15:32:07] trixie | rospatent | baseline | httpx
+[15:32:09]   HTTP 200 | VALID_JSON_SCHEMA | 1.8234 с
+[15:32:09] host | huggingface_api | baseline | urllib
+[15:32:10]   HTTP 200 | VALID_JSON_SCHEMA | 1.1293 с
+[15:32:11] project_collector | huggingface_api | baseline | httpx
+[15:32:12]   HTTP 200 | VALID_JSON_SCHEMA | 0.7344 с
+[15:32:13] bookworm | huggingface_api | baseline | httpx
+[15:32:14]   HTTP 200 | VALID_JSON_SCHEMA | 0.8827 с
+[15:32:15] trixie | huggingface_api | baseline | httpx
+[15:32:16]   HTTP 200 | VALID_JSON_SCHEMA | 0.6795 с
+[15:32:17] host | huggingface_resolve | baseline | urllib
+[15:32:19]   HTTP 200 | VALID_JSON_SCHEMA | 2.1922 с
+[15:32:20] project_collector | huggingface_resolve | baseline | httpx
+[15:32:23]   HTTP 200 | VALID_JSON_SCHEMA | 2.3241 с
+[15:32:24] bookworm | huggingface_resolve | baseline | httpx
+[15:32:26]   HTTP 200 | VALID_JSON_SCHEMA | 2.4063 с
+[15:32:28] trixie | huggingface_resolve | baseline | httpx
+[15:32:30]   HTTP 200 | VALID_JSON_SCHEMA | 2.2556 с
+[15:32:30] host | hh_disabled | baseline | urllib
+[15:32:30]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.6338 с
+[15:32:33] project_collector | hh_disabled | baseline | httpx
+[15:32:34]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.5564 с
+[15:32:37] bookworm | hh_disabled | baseline | httpx
+[15:32:38]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.9183 с
+[15:32:41] trixie | hh_disabled | baseline | httpx
+[15:32:42]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.8779 с
+[15:32:42] host | patentsview_disabled | baseline | urllib
+[15:32:42]   HTTP 0 | gaierror | 0.167 с
+[15:32:45] project_collector | patentsview_disabled | baseline | httpx
+[15:32:45]   HTTP 0 | gaierror | 0.0977 с
+[15:32:48] bookworm | patentsview_disabled | baseline | httpx
+[15:32:48]   HTTP 0 | gaierror | 0.0115 с
+[15:32:51] trixie | patentsview_disabled | baseline | httpx
+[15:32:51]   HTTP 0 | gaierror | 0.0119 с
+[15:32:51] host | wikipedia_en_summary | baseline | urllib
+[15:32:52]   HTTP 200 | VALID_JSON_SCHEMA | 0.6028 с
+[15:32:53] project_collector | wikipedia_en_summary | baseline | httpx
+[15:32:54]   HTTP 200 | VALID_JSON_SCHEMA | 0.597 с
+[15:32:55] bookworm | wikipedia_en_summary | baseline | httpx
+[15:32:55]   HTTP 200 | VALID_JSON_SCHEMA | 0.619 с
+[15:32:57] trixie | wikipedia_en_summary | baseline | httpx
+[15:32:57]   HTTP 200 | VALID_JSON_SCHEMA | 0.5871 с
+[15:32:58] host | wikipedia_en_revisions | baseline | urllib
+[15:32:59]   HTTP 200 | VALID_JSON_SCHEMA | 0.6871 с
+[15:33:00] project_collector | wikipedia_en_revisions | baseline | httpx
+[15:33:01]   HTTP 200 | VALID_JSON_SCHEMA | 0.7527 с
+[15:33:02] bookworm | wikipedia_en_revisions | baseline | httpx
+[15:33:03]   HTTP 200 | VALID_JSON_SCHEMA | 0.7541 с
+[15:33:04] trixie | wikipedia_en_revisions | baseline | httpx
+[15:33:05]   HTTP 200 | VALID_JSON_SCHEMA | 0.8892 с
+[15:33:06] host | wikipedia_en_pageviews | baseline | urllib
+[15:33:07]   HTTP 200 | VALID_JSON_SCHEMA | 0.7159 с
+[15:33:08] project_collector | wikipedia_en_pageviews | baseline | httpx
+[15:33:09]   HTTP 200 | VALID_JSON_SCHEMA | 0.5747 с
+[15:33:10] bookworm | wikipedia_en_pageviews | baseline | httpx
+[15:33:11]   HTTP 200 | VALID_JSON_SCHEMA | 0.5191 с
+[15:33:12] trixie | wikipedia_en_pageviews | baseline | httpx
+[15:33:12]   HTTP 200 | VALID_JSON_SCHEMA | 0.5265 с
+[15:33:14] host | wikipedia_ru_summary | baseline | urllib
+[15:33:14]   HTTP 200 | VALID_JSON_SCHEMA | 0.8041 с
+[15:33:16] project_collector | wikipedia_ru_summary | baseline | httpx
+[15:33:16]   HTTP 200 | VALID_JSON_SCHEMA | 0.4972 с
+[15:33:17] bookworm | wikipedia_ru_summary | baseline | httpx
+[15:33:18]   HTTP 200 | VALID_JSON_SCHEMA | 0.5521 с
+[15:33:19] trixie | wikipedia_ru_summary | baseline | httpx
+[15:33:20]   HTTP 200 | VALID_JSON_SCHEMA | 0.5575 с
+[15:33:21] host | wikipedia_ru_revisions | baseline | urllib
+[15:33:21]   HTTP 200 | VALID_JSON_SCHEMA | 0.6436 с
+[15:33:23] project_collector | wikipedia_ru_revisions | baseline | httpx
+[15:33:23]   HTTP 200 | VALID_JSON_SCHEMA | 0.6816 с
+[15:33:25] bookworm | wikipedia_ru_revisions | baseline | httpx
+[15:33:25]   HTTP 200 | VALID_JSON_SCHEMA | 0.7056 с
+[15:33:26] trixie | wikipedia_ru_revisions | baseline | httpx
+[15:33:27]   HTTP 200 | VALID_JSON_SCHEMA | 0.7173 с
+[15:33:28] host | wikipedia_ru_pageviews | baseline | urllib
+[15:33:29]   HTTP 200 | VALID_JSON_SCHEMA | 0.6522 с
+[15:33:30] project_collector | wikipedia_ru_pageviews | baseline | httpx
+[15:33:31]   HTTP 200 | VALID_JSON_SCHEMA | 0.5291 с
+[15:33:32] bookworm | wikipedia_ru_pageviews | baseline | httpx
+[15:33:33]   HTTP 200 | VALID_JSON_SCHEMA | 0.6171 с
+[15:33:34] trixie | wikipedia_ru_pageviews | baseline | httpx
+[15:33:34]   HTTP 200 | VALID_JSON_SCHEMA | 0.5666 с
+[15:33:34] host | rss_01 | baseline | urllib
+[15:33:35]   HTTP 200 | VALID_FEED | 0.577 с
+[15:33:40] project_collector | rss_01 | baseline | httpx
+[15:33:41]   HTTP 200 | VALID_FEED | 0.6081 с
+[15:33:46] bookworm | rss_01 | baseline | httpx
+[15:33:46]   HTTP 200 | VALID_FEED | 0.5596 с
+[15:33:51] trixie | rss_01 | baseline | httpx
+[15:33:52]   HTTP 200 | VALID_FEED | 0.5397 с
+[15:33:52] host | rss_02 | baseline | urllib
+[15:34:02] Ожидание host: 10 с
+[15:34:05]   HTTP 200 | VALID_FEED | 13.0731 с
+[15:34:15] project_collector | rss_02 | baseline | httpx
+[15:34:25] Ожидание project_collector: 10 с
+[15:34:27]   HTTP 200 | VALID_FEED | 12.4416 с
+[15:34:37] bookworm | rss_02 | baseline | httpx
+[15:34:47] Ожидание bookworm: 10 с
+[15:34:50]   HTTP 200 | VALID_FEED | 12.5369 с
+[15:35:00] trixie | rss_02 | baseline | httpx
+[15:35:10] Ожидание trixie: 10 с
+[15:35:12]   HTTP 200 | VALID_FEED | 12.1126 с
+[15:35:12] host | rss_03 | baseline | urllib
+[15:35:13]   HTTP 200 | VALID_FEED | 1.0116 с
+[15:35:18] project_collector | rss_03 | baseline | httpx
+[15:35:19]   HTTP 200 | VALID_FEED | 0.5986 с
+[15:35:24] bookworm | rss_03 | baseline | httpx
+[15:35:24]   HTTP 200 | VALID_FEED | 0.6567 с
+[15:35:29] trixie | rss_03 | baseline | httpx
+[15:35:30]   HTTP 200 | VALID_FEED | 0.5646 с
+[15:35:30] host | rss_04 | baseline | urllib
+[15:35:31]   HTTP 200 | VALID_FEED | 1.0432 с
+[15:35:31] Пауза: осталось 59 с
+[15:35:41] Пауза: осталось 49 с
+[15:35:51] Пауза: осталось 39 с
+[15:36:01] Пауза: осталось 29 с
+[15:36:11] Пауза: осталось 19 с
+[15:36:31] project_collector | rss_04 | baseline | httpx
+[15:36:32]   HTTP 200 | VALID_FEED | 0.8443 с
+[15:36:32] Пауза: осталось 59 с
+[15:36:42] Пауза: осталось 49 с
+[15:36:52] Пауза: осталось 39 с
+[15:37:02] Пауза: осталось 29 с
+[15:37:12] Пауза: осталось 19 с
+[15:37:32] bookworm | rss_04 | baseline | httpx
+[15:37:33]   HTTP 200 | VALID_FEED | 0.8539 с
+[15:37:33] Пауза: осталось 59 с
+[15:37:43] Пауза: осталось 49 с
+[15:37:53] Пауза: осталось 39 с
+[15:38:03] Пауза: осталось 29 с
+[15:38:13] Пауза: осталось 19 с
+[15:38:33] trixie | rss_04 | baseline | httpx
+[15:38:33]   HTTP 200 | VALID_FEED | 0.7647 с
+[15:38:33] host | rss_05 | baseline | urllib
+[15:38:34]   HTTP 200 | VALID_FEED | 1.0482 с
+[15:38:39] project_collector | rss_05 | baseline | httpx
+[15:38:41]   HTTP 200 | VALID_FEED | 1.1184 с
+[15:38:46] bookworm | rss_05 | baseline | httpx
+[15:38:47]   HTTP 200 | VALID_FEED | 1.0091 с
+[15:38:52] trixie | rss_05 | baseline | httpx
+[15:38:52]   HTTP 200 | VALID_FEED | 0.8836 с
+[15:38:53] host | rss_06 | baseline | urllib
+[15:38:53]   HTTP 200 | VALID_FEED | 0.716 с
+[15:38:58] project_collector | rss_06 | baseline | httpx
+[15:38:59]   HTTP 200 | VALID_FEED | 0.5409 с
+[15:39:04] bookworm | rss_06 | baseline | httpx
+[15:39:04]   HTTP 200 | VALID_FEED | 0.5878 с
+[15:39:09] trixie | rss_06 | baseline | httpx
+[15:39:10]   HTTP 200 | VALID_FEED | 0.703 с
+[15:39:10] host | rss_07 | baseline | urllib
+[15:39:11]   HTTP 200 | VALID_FEED | 0.6253 с
+[15:39:16] project_collector | rss_07 | baseline | httpx
+[15:39:17]   HTTP 200 | VALID_FEED | 0.881 с
+[15:39:22] bookworm | rss_07 | baseline | httpx
+[15:39:22]   HTTP 200 | VALID_FEED | 0.755 с
+[15:39:27] trixie | rss_07 | baseline | httpx
+[15:39:28]   HTTP 200 | VALID_FEED | 0.7667 с
+[15:39:33] host | rss_08 | baseline | urllib
+[15:39:34]   HTTP 200 | VALID_FEED | 0.848 с
+[15:39:39] project_collector | rss_08 | baseline | httpx
+[15:39:40]   HTTP 200 | VALID_FEED | 0.7117 с
+[15:39:45] bookworm | rss_08 | baseline | httpx
+[15:39:46]   HTTP 200 | VALID_FEED | 0.7282 с
+[15:39:51] trixie | rss_08 | baseline | httpx
+[15:39:52]   HTTP 200 | VALID_FEED | 1.02 с
+[15:39:57] host | rss_09 | baseline | urllib
+[15:39:57]   HTTP 200 | VALID_FEED | 0.844 с
+[15:40:02] project_collector | rss_09 | baseline | httpx
+[15:40:03]   HTTP 200 | VALID_FEED | 0.7161 с
+[15:40:08] bookworm | rss_09 | baseline | httpx
+[15:40:09]   HTTP 200 | VALID_FEED | 0.9079 с
+[15:40:14] trixie | rss_09 | baseline | httpx
+[15:40:16]   HTTP 200 | VALID_FEED | 2.3241 с
+[15:40:21] host | rss_10 | baseline | urllib
+[15:40:22]   HTTP 200 | VALID_FEED | 0.6255 с
+[15:40:27] project_collector | rss_10 | baseline | httpx
+[15:40:28]   HTTP 200 | VALID_FEED | 0.7824 с
+[15:40:33] bookworm | rss_10 | baseline | httpx
+[15:40:34]   HTTP 200 | VALID_FEED | 0.7867 с
+[15:40:39] trixie | rss_10 | baseline | httpx
+[15:40:39]   HTTP 200 | VALID_FEED | 0.8422 с
+[15:40:44] host | rss_11 | baseline | urllib
+[15:40:46]   HTTP 200 | VALID_FEED | 1.0408 с
+[15:40:51] project_collector | rss_11 | baseline | httpx
+[15:40:52]   HTTP 200 | VALID_FEED | 1.625 с
+[15:40:57] bookworm | rss_11 | baseline | httpx
+[15:40:58]   HTTP 200 | VALID_FEED | 0.7471 с
+[15:41:03] trixie | rss_11 | baseline | httpx
+[15:41:04]   HTTP 200 | VALID_FEED | 0.7803 с
+[15:41:09] host | rss_12 | baseline | urllib
+[15:41:09]   HTTP 200 | VALID_FEED | 0.7748 с
+[15:41:14] project_collector | rss_12 | baseline | httpx
+[15:41:15]   HTTP 200 | VALID_FEED | 0.6859 с
+[15:41:20] bookworm | rss_12 | baseline | httpx
+[15:41:21]   HTTP 200 | VALID_FEED | 0.8565 с
+[15:41:26] trixie | rss_12 | baseline | httpx
+[15:41:27]   HTTP 200 | VALID_FEED | 0.7252 с
+[15:41:32] host | rss_13 | baseline | urllib
+[15:41:32]   HTTP 200 | VALID_FEED | 0.7014 с
+[15:41:37] project_collector | rss_13 | baseline | httpx
+[15:41:38]   HTTP 200 | VALID_FEED | 0.7622 с
+[15:41:43] bookworm | rss_13 | baseline | httpx
+[15:41:44]   HTTP 200 | VALID_FEED | 0.8123 с
+[15:41:49] trixie | rss_13 | baseline | httpx
+[15:41:50]   HTTP 200 | VALID_FEED | 0.6795 с
+[15:41:55] host | rss_14 | baseline | urllib
+[15:41:56]   HTTP 200 | VALID_FEED | 0.9901 с
+[15:42:01] project_collector | rss_14 | baseline | httpx
+[15:42:02]   HTTP 200 | VALID_FEED | 0.836 с
+[15:42:07] bookworm | rss_14 | baseline | httpx
+[15:42:08]   HTTP 200 | VALID_FEED | 1.0376 с
+[15:42:13] trixie | rss_14 | baseline | httpx
+[15:42:13]   HTTP 200 | VALID_FEED | 0.719 с
+[15:42:18] host | rss_15 | baseline | urllib
+[15:42:19]   HTTP 200 | VALID_FEED | 0.7256 с
+[15:42:24] project_collector | rss_15 | baseline | httpx
+[15:42:25]   HTTP 200 | VALID_FEED | 0.8197 с
+[15:42:30] bookworm | rss_15 | baseline | httpx
+[15:42:31]   HTTP 200 | VALID_FEED | 0.8595 с
+[15:42:36] trixie | rss_15 | baseline | httpx
+[15:42:37]   HTTP 200 | VALID_FEED | 0.8 с
+[15:42:37] host | rss_16 | baseline | urllib
+[15:42:38]   HTTP 200 | VALID_FEED | 1.1059 с
+[15:42:43] project_collector | rss_16 | baseline | httpx
+[15:42:44]   HTTP 200 | VALID_FEED | 0.937 с
+[15:42:49] bookworm | rss_16 | baseline | httpx
+[15:42:50]   HTTP 200 | VALID_FEED | 1.0091 с
+[15:42:55] trixie | rss_16 | baseline | httpx
+[15:42:56]   HTTP 200 | VALID_FEED | 1.0425 с
+[15:42:56] host | rss_17 | baseline | urllib
+[15:42:57]   HTTP 200 | VALID_FEED | 1.5261 с
+[15:43:07] project_collector | rss_17 | baseline | httpx
+[15:43:09]   HTTP 200 | VALID_FEED | 1.3402 с
+[15:43:19] bookworm | rss_17 | baseline | httpx
+[15:43:21]   HTTP 200 | VALID_FEED | 1.8652 с
+[15:43:31] trixie | rss_17 | baseline | httpx
+[15:43:31]   HTTP 200 | VALID_FEED | 0.8407 с
+[15:43:31] host | rss_18 | baseline | urllib
+[15:43:32]   HTTP 200 | VALID_FEED | 1.0056 с
+[15:43:37] project_collector | rss_18 | baseline | httpx
+[15:43:38]   HTTP 200 | VALID_FEED | 1.0019 с
+[15:43:44] bookworm | rss_18 | baseline | httpx
+[15:43:44]   HTTP 200 | VALID_FEED | 0.8699 с
+[15:43:49] trixie | rss_18 | baseline | httpx
+[15:43:50]   HTTP 200 | VALID_FEED | 0.6602 с
+[15:43:50] host | rss_19 | baseline | urllib
+[15:43:52]   HTTP 200 | VALID_FEED | 1.8877 с
+[15:44:02] project_collector | rss_19 | baseline | httpx
+[15:44:03]   HTTP 200 | VALID_FEED | 0.5653 с
+[15:44:13] bookworm | rss_19 | baseline | httpx
+[15:44:14]   HTTP 200 | VALID_FEED | 1.3466 с
+[15:44:24] trixie | rss_19 | baseline | httpx
+[15:44:26]   HTTP 200 | VALID_FEED | 1.6614 с
+[15:44:26] host | rss_20 | baseline | urllib
+[15:44:27]   HTTP 200 | VALID_FEED | 1.7985 с
+[15:44:32] project_collector | rss_20 | baseline | httpx
+[15:44:34]   HTTP 200 | VALID_FEED | 1.5481 с
+[15:44:39] bookworm | rss_20 | baseline | httpx
+[15:44:40]   HTTP 200 | VALID_FEED | 1.3409 с
+[15:44:45] trixie | rss_20 | baseline | httpx
+[15:44:47]   HTTP 200 | VALID_FEED | 1.2373 с
+[15:44:47] host | rss_21 | baseline | urllib
+[15:44:47]   HTTP 200 | VALID_FEED | 0.5893 с
+[15:44:52] project_collector | rss_21 | baseline | httpx
+[15:44:53]   HTTP 200 | VALID_FEED | 0.6243 с
+[15:44:58] bookworm | rss_21 | baseline | httpx
+[15:44:58]   HTTP 200 | VALID_FEED | 0.5073 с
+[15:45:03] trixie | rss_21 | baseline | httpx
+[15:45:05]   HTTP 200 | VALID_FEED | 1.468 с
+[15:45:05] host | rss_22 | baseline | urllib
+[15:45:06]   HTTP 200 | VALID_FEED | 1.0041 с
+[15:45:11] project_collector | rss_22 | baseline | httpx
+[15:45:12]   HTTP 200 | VALID_FEED | 0.8227 с
+[15:45:17] bookworm | rss_22 | baseline | httpx
+[15:45:17]   HTTP 200 | VALID_FEED | 0.7955 с
+[15:45:22] trixie | rss_22 | baseline | httpx
+[15:45:23]   HTTP 200 | VALID_FEED | 0.8431 с
+[15:45:23] host | rss_23 | baseline | urllib
+[15:45:25]   HTTP 200 | VALID_FEED | 1.1729 с
+[15:45:30] project_collector | rss_23 | baseline | httpx
+[15:45:30]   HTTP 200 | VALID_FEED | 0.8964 с
+[15:45:35] bookworm | rss_23 | baseline | httpx
+[15:45:36]   HTTP 200 | VALID_FEED | 0.8815 с
+[15:45:41] trixie | rss_23 | baseline | httpx
+[15:45:42]   HTTP 200 | VALID_FEED | 1.1273 с
+[15:45:43] host | rss_24 | baseline | urllib
+[15:45:43]   HTTP 200 | VALID_FEED | 0.8382 с
+[15:45:48] project_collector | rss_24 | baseline | httpx
+[15:45:49]   HTTP 200 | VALID_FEED | 0.7682 с
+[15:45:54] bookworm | rss_24 | baseline | httpx
+[15:45:55]   HTTP 200 | VALID_FEED | 0.738 с
+[15:46:00] trixie | rss_24 | baseline | httpx
+[15:46:00]   HTTP 200 | VALID_FEED | 0.5869 с
+[15:46:01] host | rss_25 | baseline | urllib
+[15:46:01]   HTTP 200 | VALID_FEED | 0.7189 с
+[15:46:06] project_collector | rss_25 | baseline | httpx
+[15:46:07]   HTTP 200 | VALID_FEED | 0.5688 с
+[15:46:12] bookworm | rss_25 | baseline | httpx
+[15:46:12]   HTTP 200 | VALID_FEED | 0.6594 с
+[15:46:17] trixie | rss_25 | baseline | httpx
+[15:46:18]   HTTP 200 | VALID_FEED | 0.6259 с
+[15:46:18] host | rss_26 | baseline | urllib
+[15:46:19]   HTTP 200 | VALID_FEED | 1.0419 с
+[15:46:29] project_collector | rss_26 | baseline | httpx
+[15:46:39] Ожидание project_collector: 10 с
+[15:46:49] Ожидание project_collector: 20 с
+[15:46:54]   HTTP 200 | VALID_FEED | 24.9995 с
+[15:47:04] bookworm | rss_26 | baseline | httpx
+[15:47:05]   HTTP 200 | VALID_FEED | 0.8923 с
+[15:47:15] trixie | rss_26 | baseline | httpx
+[15:47:16]   HTTP 200 | VALID_FEED | 0.7611 с
+[15:47:16] host | rss_27 | baseline | urllib
+[15:47:18]   HTTP 200 | VALID_FEED | 1.8642 с
+[15:47:23] project_collector | rss_27 | baseline | httpx
+[15:47:24]   HTTP 200 | VALID_FEED | 1.2585 с
+[15:47:29] bookworm | rss_27 | baseline | httpx
+[15:47:30]   HTTP 200 | VALID_FEED | 1.289 с
+[15:47:35] trixie | rss_27 | baseline | httpx
+[15:47:37]   HTTP 200 | VALID_FEED | 1.2522 с
+[15:47:37] host | rss_28 | baseline | urllib
+[15:47:38]   HTTP 200 | VALID_FEED | 1.8398 с
+[15:47:43] project_collector | rss_28 | baseline | httpx
+[15:47:45]   HTTP 200 | VALID_FEED | 1.7797 с
+[15:47:50] bookworm | rss_28 | baseline | httpx
+[15:47:52]   HTTP 200 | VALID_FEED | 1.4695 с
+[15:47:57] trixie | rss_28 | baseline | httpx
+[15:47:58]   HTTP 200 | VALID_FEED | 1.7184 с
+[15:47:59] host | rss_29 | baseline | urllib
+[15:47:59]   HTTP 200 | VALID_FEED | 0.6985 с
+[15:48:04] project_collector | rss_29 | baseline | httpx
+[15:48:05]   HTTP 200 | VALID_FEED | 0.651 с
+[15:48:10] bookworm | rss_29 | baseline | httpx
+[15:48:11]   HTTP 200 | VALID_FEED | 0.6284 с
+[15:48:16] trixie | rss_29 | baseline | httpx
+[15:48:16]   HTTP 200 | VALID_FEED | 0.6147 с
+[15:48:16] host | rss_30 | baseline | urllib
+[15:48:18]   HTTP 200 | VALID_FEED | 1.9082 с
+[15:48:23] project_collector | rss_30 | baseline | httpx
+[15:48:25]   HTTP 200 | VALID_FEED | 1.7484 с
+[15:48:30] bookworm | rss_30 | baseline | httpx
+[15:48:32]   HTTP 200 | VALID_FEED | 1.8268 с
+[15:48:37] trixie | rss_30 | baseline | httpx
+[15:48:40]   HTTP 200 | VALID_FEED | 3.1124 с
+[15:48:40] host | rss_31 | baseline | urllib
+[15:48:47]   HTTP 404 | XML_DTD_REJECTED | 7.2054 с
+[15:48:52] project_collector | rss_31 | baseline | httpx
+[15:48:53]   HTTP 200 | VALID_FEED | 0.7735 с
+[15:48:58] bookworm | rss_31 | baseline | httpx
+[15:48:59]   HTTP 200 | VALID_FEED | 0.7417 с
+[15:49:04] trixie | rss_31 | baseline | httpx
+[15:49:04]   HTTP 200 | VALID_FEED | 0.6799 с
+[15:49:04] host | rss_32 | baseline | urllib
+[15:49:05]   HTTP 200 | VALID_FEED | 0.6491 с
+[15:49:10] project_collector | rss_32 | baseline | httpx
+[15:49:10]   HTTP 200 | VALID_FEED | 0.5152 с
+[15:49:15] bookworm | rss_32 | baseline | httpx
+[15:49:16]   HTTP 200 | VALID_FEED | 0.4948 с
+[15:49:21] trixie | rss_32 | baseline | httpx
+[15:49:22]   HTTP 200 | VALID_FEED | 0.5954 с
+[15:49:22] host | rss_33 | baseline | urllib
+[15:49:22]   HTTP 429 | XML_DTD_REJECTED | 0.7566 с
+[15:49:22] Пауза: осталось 64 с
+[15:49:32] Пауза: осталось 54 с
+[15:49:42] Пауза: осталось 44 с
+[15:49:52] Пауза: осталось 34 с
+[15:50:02] Пауза: осталось 24 с
+[15:50:12] Пауза: осталось 14 с
+[15:50:27] project_collector | rss_33 | baseline | httpx
+[15:50:28]   HTTP 429 | XML_DTD_REJECTED | 0.6424 с
+[15:50:28] bookworm | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:50:28] trixie | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:50:28] host | rss_34 | baseline | urllib
+[15:50:29]   HTTP 200 | VALID_FEED | 0.8717 с
+[15:50:29] Пауза: осталось 59 с
+[15:50:39] Пауза: осталось 49 с
+[15:50:49] Пауза: осталось 39 с
+[15:50:59] Пауза: осталось 29 с
+[15:51:09] Пауза: осталось 19 с
+[15:51:29] project_collector | rss_34 | baseline | httpx
+[15:51:30]   HTTP 200 | VALID_FEED | 0.5203 с
+[15:51:30] Пауза: осталось 59 с
+[15:51:40] Пауза: осталось 49 с
+[15:51:50] Пауза: осталось 39 с
+[15:52:00] Пауза: осталось 29 с
+[15:52:10] Пауза: осталось 19 с
+[15:52:30] bookworm | rss_34 | baseline | httpx
+[15:52:30]   HTTP 200 | VALID_FEED | 0.5713 с
+[15:52:30] Пауза: осталось 59 с
+[15:52:40] Пауза: осталось 49 с
+[15:52:50] Пауза: осталось 39 с
+[15:53:00] Пауза: осталось 29 с
+[15:53:10] Пауза: осталось 19 с
+[15:53:30] trixie | rss_34 | baseline | httpx
+[15:53:31]   HTTP 200 | VALID_FEED | 0.5463 с
+[15:53:31] host | rss_35 | baseline | urllib
+[15:53:32]   HTTP 404 | XML_DTD_REJECTED | 0.9954 с
+[15:53:37] project_collector | rss_35 | baseline | httpx
+[15:53:38]   HTTP 404 | XML_DTD_REJECTED | 0.7845 с
+[15:53:43] bookworm | rss_35 | baseline | httpx
+[15:53:43]   HTTP 404 | XML_DTD_REJECTED | 0.9331 с
+[15:53:48] trixie | rss_35 | baseline | httpx
+[15:53:49]   HTTP 404 | XML_DTD_REJECTED | 0.8553 с
+[15:53:49] host | rss_36 | baseline | urllib
+[15:53:56]   HTTP 200 | VALID_FEED | 6.2819 с
+[15:54:01] project_collector | rss_36 | baseline | httpx
+[15:54:07]   HTTP 200 | VALID_FEED | 6.0227 с
+[15:54:12] bookworm | rss_36 | baseline | httpx
+[15:54:18]   HTTP 200 | VALID_FEED | 6.2309 с
+[15:54:23] trixie | rss_36 | baseline | httpx
+[15:54:29]   HTTP 200 | VALID_FEED | 6.0185 с
+[15:54:29] host | rss_37 | baseline | urllib
+[15:54:39] Ожидание host: 10 с
+[15:54:41]   HTTP 200 | VALID_FEED | 12.3495 с
+[15:54:51] project_collector | rss_37 | baseline | httpx
+[15:55:01] Ожидание project_collector: 10 с
+[15:55:04]   HTTP 200 | VALID_FEED | 12.3542 с
+[15:55:14] bookworm | rss_37 | baseline | httpx
+[15:55:24] Ожидание bookworm: 10 с
+[15:55:26]   HTTP 200 | VALID_FEED | 12.2912 с
+[15:55:36] trixie | rss_37 | baseline | httpx
+[15:55:46] Ожидание trixie: 10 с
+[15:55:48]   HTTP 200 | VALID_FEED | 11.6367 с
+[15:55:48] trixie | arxiv | repeat_reverse_order | httpx
+[15:55:48]   HTTP 200 | VALID_FEED | 0.5562 с
+[15:55:52] bookworm | arxiv | repeat_reverse_order | httpx
+[15:55:52]   HTTP 200 | VALID_FEED | 0.5038 с
+[15:55:56] project_collector | arxiv | repeat_reverse_order | httpx
+[15:55:56]   HTTP 200 | VALID_FEED | 0.5382 с
+[15:56:00] host | arxiv | repeat_reverse_order | urllib
+[15:56:00]   HTTP 200 | VALID_FEED | 0.4671 с
+[15:56:00] trixie | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:00] bookworm | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:00] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:00] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] project_collector | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] trixie | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] bookworm | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] project_collector | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:01] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:04] host | arxiv | other_http_client | curl
+[15:56:04]   HTTP 200 | VALID_FEED | 0.5516 с
+[15:56:08] host | arxiv | ipv4 | curl
+[15:56:08]   HTTP 200 | VALID_FEED | 0.5132 с
+[15:56:12] host | arxiv | ipv6 | curl
+[15:56:12]   HTTP 200 | VALID_FEED | 0.5077 с
+[15:56:16] host | arxiv | tls12 | curl
+[15:56:17]   HTTP 200 | VALID_FEED | 0.6572 с
+[15:56:20] host | arxiv | tls13 | curl
+[15:56:20]   HTTP 0 | EMPTY_BODY | 0.0327 с
+[15:56:24] host | arxiv | http2_requested | curl
+[15:56:24]   HTTP 200 | VALID_FEED | 0.435 с
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:24] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:25] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:25] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:25] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:25] host | semantic_relevance | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:56:25] host | hh_disabled | other_http_client | curl
+[15:56:25]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.6906 с
+[15:56:28] host | hh_disabled | ipv4 | curl
+[15:56:29]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.6013 с
+[15:56:32] host | hh_disabled | ipv6 | curl
+[15:56:32]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.5829 с
+[15:56:33] host | patentsview_disabled | other_http_client | curl
+[15:56:33]   HTTP 0 | gaierror | 0.0022 с
+[15:56:36] host | patentsview_disabled | ipv4 | curl
+[15:56:36]   HTTP 0 | gaierror | 0.004 с
+[15:56:39] host | patentsview_disabled | ipv6 | curl
+[15:56:39]   HTTP 0 | gaierror | 0.0037 с
+[15:56:39] host | rss_31 | other_http_client | curl
+[15:56:47]   HTTP 404 | XML_DTD_REJECTED | 8.8363 с
+[15:56:52] host | rss_31 | ipv4 | curl
+[15:57:00]   HTTP 404 | XML_DTD_REJECTED | 7.1429 с
+[15:57:05] host | rss_31 | ipv6 | curl
+[15:57:13]   HTTP 404 | XML_DTD_REJECTED | 8.8393 с
+[15:57:18] host | rss_31 | rss_accept_header | urllib
+[15:57:19]   HTTP 200 | VALID_FEED | 0.7978 с
+[15:57:24] host | rss_31 | explicit_diagnostic_user_agent | urllib
+[15:57:31]   HTTP 404 | XML_DTD_REJECTED | 6.9487 с
+[15:57:31] host | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:57:31] host | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:57:31] host | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:57:31] host | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:57:31] host | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:57:31] host | rss_35 | other_http_client | curl
+[15:57:32]   HTTP 404 | XML_DTD_REJECTED | 0.9648 с
+[15:57:37] host | rss_35 | ipv4 | curl
+[15:57:38]   HTTP 404 | XML_DTD_REJECTED | 0.9022 с
+[15:57:43] host | rss_35 | ipv6 | curl
+[15:57:44]   HTTP 404 | XML_DTD_REJECTED | 0.7356 с
+[15:57:49] host | rss_35 | rss_accept_header | urllib
+[15:57:50]   HTTP 404 | XML_DTD_REJECTED | 0.905 с
+[15:57:55] host | rss_35 | explicit_diagnostic_user_agent | urllib
+[15:57:56]   HTTP 404 | XML_DTD_REJECTED | 1.1431 с
+[15:57:56] project_collector | arxiv | other_http_client | urllib
+[15:57:57]   HTTP 200 | VALID_FEED | 0.5412 с
+[15:58:00] project_collector | arxiv | httpx_tls12 | httpx
+[15:58:01]   HTTP 200 | VALID_FEED | 0.5572 с
+[15:58:04] project_collector | arxiv | httpx_tls13 | httpx
+[15:58:05]   HTTP 200 | VALID_FEED | 0.5319 с
+[15:58:05] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:05] project_collector | hh_disabled | other_http_client | urllib
+[15:58:06]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.8305 с
+[15:58:06] project_collector | patentsview_disabled | other_http_client | urllib
+[15:58:06]   HTTP 0 | gaierror | 0.0047 с
+[15:58:06] project_collector | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:06] project_collector | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:06] project_collector | rss_33 | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:06] project_collector | rss_35 | other_http_client | urllib
+[15:58:07]   HTTP 404 | XML_DTD_REJECTED | 1.028 с
+[15:58:12] project_collector | rss_35 | rss_accept_header | httpx
+[15:58:13]   HTTP 404 | XML_DTD_REJECTED | 1.0303 с
+[15:58:18] project_collector | rss_35 | explicit_diagnostic_user_agent | httpx
+[15:58:19]   HTTP 404 | XML_DTD_REJECTED | 0.8327 с
+[15:58:19] bookworm | arxiv | other_http_client | curl
+[15:58:19]   HTTP 200 | VALID_FEED | 0.51 с
+[15:58:23] bookworm | arxiv | ipv4 | curl
+[15:58:23]   HTTP 200 | VALID_FEED | 0.4556 с
+[15:58:27] bookworm | arxiv | ipv6 | curl
+[15:58:27]   HTTP 0 | EMPTY_BODY | 0.0247 с
+[15:58:30] bookworm | arxiv | tls12 | curl
+[15:58:31]   HTTP 200 | VALID_FEED | 0.6344 с
+[15:58:35] bookworm | arxiv | tls13 | curl
+[15:58:35]   HTTP 200 | VALID_FEED | 0.6268 с
+[15:58:39] bookworm | arxiv | http2_requested | curl
+[15:58:39]   HTTP 200 | VALID_FEED | 0.4907 с
+[15:58:43] bookworm | arxiv | httpx_tls12 | httpx
+[15:58:43]   HTTP 200 | VALID_FEED | 0.7125 с
+[15:58:47] bookworm | arxiv | httpx_tls13 | httpx
+[15:58:47]   HTTP 200 | VALID_FEED | 0.5091 с
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:58:48] bookworm | hh_disabled | other_http_client | curl
+[15:58:48]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.6212 с
+[15:58:51] bookworm | hh_disabled | ipv4 | curl
+[15:58:52]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.5255 с
+[15:58:55] bookworm | hh_disabled | ipv6 | curl
+[15:58:55]   HTTP 0 | EMPTY_BODY | 0.0351 с
+[15:58:55] bookworm | patentsview_disabled | other_http_client | curl
+[15:58:55]   HTTP 0 | gaierror | 0.0042 с
+[15:58:58] bookworm | patentsview_disabled | ipv4 | curl
+[15:58:58]   HTTP 0 | gaierror | 0.0243 с
+[15:59:01] bookworm | patentsview_disabled | ipv6 | curl
+[15:59:01]   HTTP 0 | gaierror | 0.0132 с
+[15:59:01] bookworm | rss_35 | other_http_client | curl
+[15:59:02]   HTTP 404 | XML_DTD_REJECTED | 0.7818 с
+[15:59:07] bookworm | rss_35 | ipv4 | curl
+[15:59:08]   HTTP 404 | XML_DTD_REJECTED | 0.7305 с
+[15:59:13] bookworm | rss_35 | ipv6 | curl
+[15:59:13]   HTTP 0 | EMPTY_BODY | 0.0274 с
+[15:59:18] bookworm | rss_35 | rss_accept_header | httpx
+[15:59:19]   HTTP 404 | XML_DTD_REJECTED | 0.9405 с
+[15:59:24] bookworm | rss_35 | explicit_diagnostic_user_agent | httpx
+[15:59:24]   HTTP 404 | XML_DTD_REJECTED | 0.8326 с
+[15:59:25] trixie | arxiv | other_http_client | curl
+[15:59:25]   HTTP 200 | VALID_FEED | 0.7068 с
+[15:59:29] trixie | arxiv | ipv4 | curl
+[15:59:29]   HTTP 200 | VALID_FEED | 0.5713 с
+[15:59:33] trixie | arxiv | ipv6 | curl
+[15:59:33]   HTTP 0 | EMPTY_BODY | 0.0076 с
+[15:59:36] trixie | arxiv | tls12 | curl
+[15:59:37]   HTTP 200 | VALID_FEED | 0.5454 с
+[15:59:40] trixie | arxiv | tls13 | curl
+[15:59:41]   HTTP 200 | VALID_FEED | 0.5592 с
+[15:59:44] trixie | arxiv | http2_requested | curl
+[15:59:45]   HTTP 200 | VALID_FEED | 0.4816 с
+[15:59:48] trixie | arxiv | httpx_tls12 | httpx
+[15:59:49]   HTTP 200 | VALID_FEED | 0.5902 с
+[15:59:53] trixie | arxiv | httpx_tls13 | httpx
+[15:59:53]   HTTP 200 | VALID_FEED | 0.5088 с
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[15:59:53] trixie | hh_disabled | other_http_client | curl
+[15:59:54]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.5716 с
+[15:59:57] trixie | hh_disabled | ipv4 | curl
+[15:59:58]   HTTP 403 | UNEXPECTED_PAYLOAD | 0.8288 с
+[16:00:01] trixie | hh_disabled | ipv6 | curl
+[16:00:01]   HTTP 0 | EMPTY_BODY | 0.0079 с
+[16:00:01] trixie | patentsview_disabled | other_http_client | curl
+[16:00:01]   HTTP 0 | gaierror | 0.0066 с
+[16:00:04] trixie | patentsview_disabled | ipv4 | curl
+[16:00:04]   HTTP 0 | gaierror | 0.0061 с
+[16:00:07] trixie | patentsview_disabled | ipv6 | curl
+[16:00:07]   HTTP 0 | gaierror | 0.012 с
+[16:00:07] trixie | rss_35 | other_http_client | curl
+[16:00:08]   HTTP 404 | XML_DTD_REJECTED | 0.9565 с
+[16:00:13] trixie | rss_35 | ipv4 | curl
+[16:00:14]   HTTP 404 | XML_DTD_REJECTED | 0.8688 с
+[16:00:19] trixie | rss_35 | ipv6 | curl
+[16:00:19]   HTTP 0 | EMPTY_BODY | 0.017 с
+[16:00:24] trixie | rss_35 | rss_accept_header | httpx
+[16:00:25]   HTTP 404 | XML_DTD_REJECTED | 0.8838 с
+[16:00:30] trixie | rss_35 | explicit_diagnostic_user_agent | httpx
+[16:00:31]   HTTP 404 | XML_DTD_REJECTED | 1.1958 с
+[16:00:31] project_collector | openalex | auth_control_anonymous | httpx
+[16:00:32]   HTTP 200 | VALID_JSON_SCHEMA | 1.4125 с
+[16:00:32] project_collector | rss_01 | conditional_get | httpx
+[16:00:33]   HTTP 304 | NOT_MODIFIED | 0.6774 с
+[16:00:33] project_collector | rss_06 | conditional_get | httpx
+[16:00:34]   HTTP 304 | NOT_MODIFIED | 0.8807 с
+[16:00:34] project_collector | rss_07 | conditional_get | httpx
+[16:00:35]   HTTP 200 | VALID_FEED | 0.8232 с
+[16:00:40] project_collector | rss_08 | conditional_get | httpx
+[16:00:41]   HTTP 200 | VALID_FEED | 0.7467 с
+[16:00:46] project_collector | rss_09 | conditional_get | httpx
+[16:00:47]   HTTP 200 | VALID_FEED | 0.834 с
+[16:00:52] project_collector | rss_10 | conditional_get | httpx
+[16:00:52]   HTTP 200 | VALID_FEED | 0.7804 с
+[16:00:57] project_collector | rss_11 | conditional_get | httpx
+[16:00:58]   HTTP 200 | VALID_FEED | 0.8643 с
+[16:01:03] project_collector | rss_12 | conditional_get | httpx
+[16:01:04]   HTTP 200 | VALID_FEED | 0.7582 с
+[16:01:09] project_collector | rss_13 | conditional_get | httpx
+[16:01:10]   HTTP 200 | VALID_FEED | 0.7192 с
+[16:01:15] project_collector | rss_14 | conditional_get | httpx
+[16:01:16]   HTTP 200 | VALID_FEED | 0.8059 с
+[16:01:21] project_collector | rss_15 | conditional_get | httpx
+[16:01:21]   HTTP 200 | VALID_FEED | 0.7108 с
+[16:01:21] project_collector | rss_18 | conditional_get | httpx
+[16:01:22]   HTTP 200 | VALID_FEED | 0.9777 с
+[16:01:22] project_collector | rss_19 | conditional_get | httpx
+[16:01:23]   HTTP 304 | NOT_MODIFIED | 0.5995 с
+[16:01:23] project_collector | rss_20 | conditional_get | httpx
+[16:01:25]   HTTP 200 | VALID_FEED | 1.6303 с
+[16:01:25] project_collector | rss_21 | conditional_get | httpx
+[16:01:27]   HTTP 200 | VALID_FEED | 1.976 с
+[16:01:27] project_collector | rss_22 | conditional_get | httpx
+[16:01:27]   HTTP 304 | NOT_MODIFIED | 0.6189 с
+[16:01:27] project_collector | rss_23 | conditional_get | httpx
+[16:01:28]   HTTP 304 | NOT_MODIFIED | 0.7391 с
+[16:01:28] project_collector | rss_24 | conditional_get | httpx
+[16:01:29]   HTTP 304 | NOT_MODIFIED | 0.5306 с
+[16:01:29] project_collector | rss_25 | conditional_get | httpx
+[16:01:29]   HTTP 304 | NOT_MODIFIED | 0.6128 с
+[16:01:29] project_collector | rss_27 | conditional_get | httpx
+[16:01:31]   HTTP 304 | NOT_MODIFIED | 1.2103 с
+[16:01:31] project_collector | rss_28 | conditional_get | httpx
+[16:01:33]   HTTP 200 | VALID_FEED | 2.1166 с
+[16:01:33] project_collector | rss_29 | conditional_get | httpx
+[16:01:34]   HTTP 200 | VALID_FEED | 0.8887 с
+[16:01:34] project_collector | rss_30 | conditional_get | httpx
+[16:01:36]   HTTP 200 | VALID_FEED | 1.8316 с
+[16:01:36] project_collector | rss_31 | conditional_get | httpx
+[16:01:39]   HTTP 200 | VALID_FEED | 3.4637 с
+[16:01:39] project_collector | rss_32 | conditional_get | httpx
+[16:01:40]   HTTP 304 | NOT_MODIFIED | 0.5957 с
+[16:01:40] project_collector | rss_34 | conditional_get | httpx
+[16:01:41]   HTTP 304 | NOT_MODIFIED | 0.6813 с
+[16:01:41] project_collector | rss_36 | conditional_get | httpx
+[16:01:47]   HTTP 304 | NOT_MODIFIED | 6.2826 с
+[16:01:47] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[16:01:47] project_collector | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[16:01:47] project_collector | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[16:01:48] Среда bookworm_default_bridge: Python 3.12.15; OpenSSL 3.0.22 25 Aug 2026
+[16:01:48] bookworm_default_bridge | arxiv | network_control | httpx
+[16:01:48]   HTTP 200 | VALID_FEED | 0.6027 с
+[16:01:48] bookworm_default_bridge | gdelt_recent | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[16:01:48] bookworm_default_bridge | semantic_bulk | пропуск: CIRCUIT_OPEN_AFTER_TWO_THROTTLES
+[16:01:49] Среда project_analyzer: Python 3.12.15; OpenSSL 3.5.7 9 Jun 2026
+[16:01:49] project_analyzer | huggingface_api | actual_analyzer_image | httpx
+[16:01:50]   HTTP 200 | VALID_JSON_SCHEMA | 1.0761 с
+[16:01:51] project_analyzer | huggingface_resolve | actual_analyzer_image | httpx
+[16:01:53]   HTTP 200 | VALID_JSON_SCHEMA | 2.2584 с
+[16:01:54] Среда project_insight: Python 3.12.15; OpenSSL 3.5.7 9 Jun 2026
+[16:01:54] GigaChat: проверка TLS, OAuth и списка моделей
+[16:01:56] project_insight | gigachat_models | sdk_configured_base | httpx
+[16:01:59]   HTTP 200 | VALID_JSON_SCHEMA | 3.3843 с
+[16:02:01] project_insight | gigachat_models_alternative_domain | official_domain_migration_control | httpx
+[16:02:02]   HTTP 200 | VALID_JSON_SCHEMA | 0.8574 с
+[16:02:04] project_insight | gigachat_chat | tiny_generation | httpx
+[16:02:05]   HTTP 200 | VALID_JSON_SCHEMA | 0.7114 с
+[16:02:05] YandexGPT: ключ или folder id отсутствует; авторизованная генерация не проверена
+[16:02:07] Восстановление контейнера e1bc0f58f2a3: OK
+[16:02:07] Восстановление контейнера c87aaf38f5d2: OK
+[16:02:07] Готово: api_diagnostics_20261007_122409_f95629.json
+[16:02:07] Архив для отправки: api_diagnostics_latest.zip

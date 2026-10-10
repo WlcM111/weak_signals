@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import AsyncIterator
-from datetime import UTC, datetime, timedelta
+from collections.abc import AsyncIterator, Sequence
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from collector.adapters.outbound.sources.base import BaseSourceAdapter, parse_datetime
@@ -29,6 +29,8 @@ from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTe
 from ws_common.clock import Clock
 
 API_URL = "https://api.semanticscholar.org/graph/v1/paper/search/bulk"
+# Этап 4: прицельный поиск — обычный поиск с ранжированием по релевантности (bulk ранжирования не имеет).
+RELEVANCE_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 SORT = "publicationDate:desc"
 DEFAULT_WINDOW_MONTHS = 24
 DAYS_PER_MONTH = 30.44
@@ -52,6 +54,29 @@ class SemanticScholarAdapter(BaseSourceAdapter):
         super().__init__(http, limiter, clock)
         self._headers = {"x-api-key": api_key} if api_key else {}
         self._window_months = window_months
+
+    supports_targeted = True
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Этап 4: технология — поиск по релевантности, публикации не раньше `since`."""
+        for term in technologies:
+            query = _relevance_query(term)
+            if not query or self.deadline_reached(deadline):
+                continue
+            payload = await self.fetch_json(RELEVANCE_URL, params={
+                "query": query, "fields": FIELDS, "limit": per_term, "publicationDateOrYear": f"{since.isoformat()}:",
+            }, headers=self._headers)
+            taken = 0
+            for paper in _papers(payload):
+                document = _to_raw_document(paper, term)
+                if document is None:
+                    continue
+                taken += 1
+                yield document
+                if taken >= per_term:
+                    break
 
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float
@@ -91,6 +116,10 @@ class SemanticScholarAdapter(BaseSourceAdapter):
                 token = next_token if isinstance(next_token, str) and next_token else None
                 if token is None or not papers:
                     break
+
+
+def _relevance_query(term: str) -> str:
+    return " ".join(_SYNTAX_RE.sub(" ", term).split())
 
 
 def bulk_query(term: str) -> str:

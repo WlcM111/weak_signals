@@ -37,6 +37,7 @@ from analyzer.domain.clustering import (
     cluster_documents,
     near_dup_filter,
     normalize_rows,
+    pick_singletons,
     select_top_clusters,
     split_market_glue,
     split_small_clusters,
@@ -125,6 +126,9 @@ class RunAnalysisConfig:
     market_notes_separate: bool = False
     # Сколько из max_candidates мест зарезервировать под кластеры с документами СМИ (0 — без резерва).
     market_reserved_candidates: int = 0
+    # Этап 4 (B4): сколько самых близких к запросу одиночных документов остаются кандидатами (0 — ни одного).
+    # У слабого сигнала часто всего один источник: «орбитальные дата-центры» дважды терялись одиночным кластером.
+    singleton_candidates: int = 0
     evidence_max: int = 8
     keyphrases_top_k: int = 10
     encyclopedia_languages: tuple[str, ...] = ("ru", "en")
@@ -314,15 +318,20 @@ class RunAnalysis:
             self._log.info("analysis.funnel", step="clustering",
                            kept=_types([documents[i] for cluster in scored_clusters for i in cluster]),
                            misc=_types([documents[i] for i in misc]))
+            singles = pick_singletons(misc, [float(value) for value in relevances],
+                                      [document.document_id for document in documents],
+                                      self._config.singleton_candidates, analysis.params.max_candidates)
             scored_clusters = select_top_clusters(
                 scored_clusters,
                 [float(value) for value in relevances],
-                analysis.params.max_candidates,
+                analysis.params.max_candidates - len(singles),
                 trust_weights(documents) if self._config.trust_weighted_selection else None,
                 [any(documents[i].source_type in MARKET_SINGLE_TYPES for i in cluster) for cluster in scored_clusters],
                 self._config.market_reserved_candidates,
             )
+            scored_clusters = sorted(scored_clusters + singles, key=min)
             self._funnel(
+                singleton_candidates=[documents[cluster[0]].document_id for cluster in singles],
                 clusters_selected=[[documents[index].document_id for index in cluster] for cluster in scored_clusters],
                 max_candidates=analysis.params.max_candidates,
             )

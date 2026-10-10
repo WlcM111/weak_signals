@@ -35,10 +35,11 @@ class SourcePolicy:
 # пул отвечает 429 без Retry-After — пауза 10 с и два повтора. GDELT: не больше 8 окон истории за сбор (правило GDELT
 # «не чаще раза в 5 с» и ответы 11–16 с не дают сделать больше за 120 с бюджета сбора); паузы — у шлюза адаптера.
 DEFAULT_POLICIES: dict[SourceKey, SourcePolicy] = {
-    SourceKey.SEMANTIC_SCHOLAR: SourcePolicy(max_requests=6, rate_limit_retries=2, rate_limit_pause=10.0),
+    # этап 4: + до 40 прицельных запросов по технологиям
+    SourceKey.SEMANTIC_SCHOLAR: SourcePolicy(max_requests=50, rate_limit_retries=2, rate_limit_pause=10.0),
     SourceKey.GDELT: SourcePolicy(max_requests=8),
     # Hacker News: две фразы × девять окон за 24 месяца; ответ ~0,6 с, лимит 10 000 запросов в час с IP.
-    SourceKey.HACKERNEWS: SourcePolicy(max_requests=18, rate_limit_retries=1, rate_limit_pause=10.0),
+    SourceKey.HACKERNEWS: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
 }
 
 _FIELDS = {"requests": "max_requests", "retries": "rate_limit_retries", "pause": "rate_limit_pause"}

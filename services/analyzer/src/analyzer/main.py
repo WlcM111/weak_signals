@@ -142,6 +142,7 @@ def serve(settings: AnalyzerSettings) -> int:
             query_relevance_mode=settings.query_relevance_mode,
             market_notes_separate=settings.market_notes_separate,
             market_reserved_candidates=settings.market_reserved_candidates,
+            singleton_candidates=settings.singleton_candidates,
             evidence_max=settings.evidence_max,
             ml_score_ablation=settings.ml_score_ablation,
         ),

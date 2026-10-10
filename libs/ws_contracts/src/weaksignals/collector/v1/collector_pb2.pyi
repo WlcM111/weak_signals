@@ -18,12 +18,14 @@ COLLECTION_MODE_SEARCH: CollectionMode
 COLLECTION_MODE_ENRICHMENT: CollectionMode
 
 class SearchTerms(_message.Message):
-    __slots__ = ("ru", "en")
+    __slots__ = ("ru", "en", "technologies")
     RU_FIELD_NUMBER: _ClassVar[int]
     EN_FIELD_NUMBER: _ClassVar[int]
+    TECHNOLOGIES_FIELD_NUMBER: _ClassVar[int]
     ru: _containers.RepeatedScalarFieldContainer[str]
     en: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, ru: _Optional[_Iterable[str]] = ..., en: _Optional[_Iterable[str]] = ...) -> None: ...
+    technologies: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, ru: _Optional[_Iterable[str]] = ..., en: _Optional[_Iterable[str]] = ..., technologies: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CollectionLimits(_message.Message):
     __slots__ = ("max_documents_per_source", "max_total_documents", "time_budget_seconds", "published_since_year")

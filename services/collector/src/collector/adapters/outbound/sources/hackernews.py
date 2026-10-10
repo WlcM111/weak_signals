@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import html
 import re
-from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from collections.abc import AsyncIterator, Sequence
+from datetime import UTC, date, datetime
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -111,6 +111,30 @@ class HackerNewsAdapter(BaseSourceAdapter):
             first = failures[0]
             raise AdapterFailure(first.code,
                                  f"Hacker News: не удалось {len(failures)} из {attempted} запросов; первый: {first.message}")
+
+    supports_targeted = True
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Этап 4: технология — поиск по релевантности, публикации не раньше `since`."""
+        start = int(datetime(since.year, since.month, since.day, tzinfo=UTC).timestamp())
+        for term in technologies:
+            query = hn_query(term)
+            if not query or self.deadline_reached(deadline):
+                continue
+            payload = await self.fetch_json(API_URL, params={
+                "query": query, "tags": "story", "numericFilters": f"created_at_i>{start}", "hitsPerPage": per_term,
+            })
+            taken = 0
+            for hit in _hits(payload):
+                document = _to_raw_document(hit, term)
+                if document is None:
+                    continue
+                taken += 1
+                yield document
+                if taken >= per_term:
+                    break
 
 
 def hn_query(term: str) -> str:

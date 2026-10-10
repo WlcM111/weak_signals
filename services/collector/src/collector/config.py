@@ -46,6 +46,14 @@ class CollectorSettings(BaseServiceSettings):
     semantic_scholar_window_months: int = Field(default=24, ge=3, le=120)
     # Этап 3.1: история публикаций Hacker News — окна по 90 дней на эту глубину.
     hackernews_history_months: int = Field(default=24, ge=3, le=120)
+    # Этап 4: прицельный проход по технологиям после широкого (см. RunCollectionConfig).
+    collector_targeted_enabled: bool = True
+    collector_targeted_per_term: int = Field(default=3, ge=1, le=10)
+    collector_broad_time_share: float = Field(default=0.5, ge=0.2, le=0.9)
+    collector_targeted_reserve_documents: int = Field(default=300, ge=0, le=2000)
+    collector_broad_max_documents_per_source: int = Field(default=60, ge=10, le=500)
+    collector_mined_technologies: int = Field(default=15, ge=0, le=40)
+    collector_targeted_window_months: int = Field(default=24, ge=3, le=120)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

@@ -50,6 +50,7 @@ async def run_collect(
             en_terms=expansion.en_terms,
             time_budget_seconds=config.time_budget_seconds,
             max_total_documents=config.max_total_documents,
+            technologies=expansion.technologies,
         )
     except UpstreamUnavailable as error:
         raise StageFailed(

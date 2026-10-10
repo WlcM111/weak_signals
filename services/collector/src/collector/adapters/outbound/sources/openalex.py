@@ -6,7 +6,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
+from datetime import date
 from typing import Any
 
 from collector.adapters.outbound.sources.base import PAGE_SIZE, BaseSourceAdapter, parse_datetime
@@ -39,6 +40,33 @@ class OpenAlexAdapter(BaseSourceAdapter):
         if not api_key:
             raise ValueError("OpenAlexAdapter требует WS_OPENALEX_API_KEY")
         self._api_key = api_key
+
+    supports_targeted = True
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Этап 4: технология — запрос `search` (релевантность), публикации не раньше `since`."""
+        for term in technologies:
+            if self.deadline_reached(deadline):
+                return
+            payload = await self.fetch_json(API_URL, params={
+                "search": term,
+                "filter": f"from_publication_date:{since.isoformat()}",
+                "per-page": per_term,
+                "page": 1,
+                "select": SELECT_FIELDS,
+                "api_key": self._api_key,
+            })
+            taken = 0
+            for item in _results(payload):
+                document = _to_raw_document(item, term)
+                if document is None:
+                    continue
+                taken += 1
+                yield document
+                if taken >= per_term:
+                    break
 
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float

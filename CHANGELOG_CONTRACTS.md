@@ -1,5 +1,21 @@
 # Изменения контрактов
 
+## 2026-10-07 — v18: этап 4 — поиск «от темы к технологиям»
+- proto:
+  - `insight.v1.ExpandQueryResponse.technologies = 6` — 0..40 конкретных технологий (англ. названия);
+  - `collector.v1.SearchTerms.technologies = 3` — технологии для прицельного прохода.
+  Сгенерированные модули обновлены тем же дескриптором, что даёт `protoc`.
+- insight: prompt `expand_v2` и схема `expand_v2_llm_output.schema.json` — список `technologies` необязателен,
+  без него расширение не уходит в резерв; миграция `0004_expansion_technologies.sql`.
+- collector:
+  - миграция `0010_collection_technologies.sql`: `terms_technologies`, `technologies_mined`;
+  - `SourceAdapter.search_targeted` у arXiv, Semantic Scholar (`/paper/search`), OpenAlex, GitHub, Hacker News;
+  - сбор в два прохода, извлечение технологий `domain/technology_mining.py`;
+  - бюджет Semantic Scholar 50 запросов, Hacker News — 60.
+- analyzer: `singleton_candidates` — ближайшие к запросу одиночные документы остаются кандидатами.
+- orchestrator: `WS_COLLECT_TIME_BUDGET_SECONDS` по умолчанию 240.
+- GDELT не менялся.
+
 ## 2026-10-06 — v17: этап 3.1 — Hacker News вместо GDELT, Semantic Scholar по всем словам
 - proto `common.v1.SourceKey`: новое значение `SOURCE_KEY_HACKERNEWS = 12`. Сгенерированный `common_pb2.py`
   обновлён тем же дескриптором, что даёт `protoc`; при сборке образов код генерируется заново из proto.

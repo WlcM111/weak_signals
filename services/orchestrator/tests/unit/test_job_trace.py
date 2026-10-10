@@ -84,7 +84,8 @@ class RunJobTraceTest(unittest.IsolatedAsyncioTestCase):
 
     def test_plain_serializes_dates_and_tuples(self) -> None:
         payload = plain(ExpansionView(ru_terms=("а",), en_terms=(), domain_tags=(), used_fallback=True))
-        self.assertEqual(payload, {"ru_terms": ["а"], "en_terms": [], "domain_tags": [], "used_fallback": True})
+        self.assertEqual(payload, {"ru_terms": ["а"], "en_terms": [], "domain_tags": [], "used_fallback": True,
+                                   "technologies": []})
 
 
 if __name__ == "__main__":

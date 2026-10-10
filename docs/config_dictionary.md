@@ -48,7 +48,7 @@
 | WS_JOB_HEARTBEAT_SECONDS | 5–300 (< lease/2) | 20 | | продление аренды |
 | WS_JOB_MAX_ATTEMPTS | 1–10 | 3 | | попытки после истечения аренды |
 | WS_STAGE_POLL_SECONDS | 1–30 | 3 | | опрос GetCollection/GetAnalysis |
-| WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 120 | | бюджет сбора |
+| WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 240 | | бюджет сбора: широкий и прицельный проходы (этап 4; было 120) |
 | WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 800 | | лимит документов |
 | WS_MIN_DOCUMENTS | 1–1000 | 20 | | меньше → FAILED TOO_FEW_DOCUMENTS |
 | WS_ANALYZE_TIMEOUT_SECONDS | 30–1800 | 300 | | ожидание анализа |
@@ -83,6 +83,14 @@
 | WS_GDELT_CONNECT_TIMEOUT_SECONDS | 3–60 | 20 | | таймаут соединения с GDELT (остальные источники — 5 с) |
 | WS_SEMANTIC_SCHOLAR_WINDOW_MONTHS | 3–120 | 24 | | окно публикаций bulk-поиска Semantic Scholar |
 | WS_HACKERNEWS_HISTORY_MONTHS | 3–120 | 24 | | глубина истории публикаций Hacker News (Search by Algolia): окна по 90 дней |
+| WS_COLLECTOR_TARGETED_ENABLED | true/false | true | | прицельный проход по технологиям после широкого (этап 4) |
+| WS_COLLECTOR_TARGETED_PER_TERM | 1–10 | 3 | | документов на технологию в каждом источнике прицельного прохода |
+| WS_COLLECTOR_BROAD_TIME_SHARE | 0,2–0,9 | 0,5 | | доля бюджета времени сбора на широкий проход |
+| WS_COLLECTOR_TARGETED_RESERVE_DOCUMENTS | 0–2000 | 300 | | места общего лимита, которые широкий проход оставляет прицельному (не больше половины лимита) |
+| WS_COLLECTOR_BROAD_MAX_DOCUMENTS_PER_SOURCE | 10–500 | 60 | | лимит широкого прохода на источник при двух проходах; RSS не ограничивается |
+| WS_COLLECTOR_MINED_TECHNOLOGIES | 0–40 | 15 | | сколько технологий извлекать из заголовков широкого прохода |
+| WS_COLLECTOR_TARGETED_WINDOW_MONTHS | 3–120 | 24 | | окно дат прицельного поиска |
+| WS_SINGLETON_CANDIDATES | 0–20 | 0 | | одиночные документы, ближайшие к запросу, остаются кандидатами (не больше четверти пула) |
 | WS_COLLECTOR_SOURCE_POLICY | `источник:requests=N,retries=N,pause=С;…` | пусто | | бюджет запросов на сбор, повторы после 429 и пауза по источникам поверх значений по умолчанию (Semantic Scholar 6/2/10, GDELT 8, Hacker News 18/1/10) |
 
 ## analyzer

@@ -8,7 +8,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+import dataclasses
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from typing import Any
@@ -30,11 +31,16 @@ from collector.domain.dedup import DedupIndex
 from collector.domain.entities import AdapterRun, Collection, RawDocument, compute_final_status
 from collector.domain.errors import AdapterFailure, InvariantViolation, LeaseLost
 from collector.domain.normalization import build_document_draft
-from collector.domain.values import AdapterErrorCode, OperationStatus, SourceKey
+from collector.domain.technology_mining import mine_technologies, targeted_since
+from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
 
 _SENTINEL = object()
+
+
+PHASE_BROAD = "broad"
+PHASE_TARGETED = "targeted"
 
 
 class StopReason(StrEnum):
@@ -55,6 +61,19 @@ class RunCollectionConfig:
     batch_size: int = 50
     queue_maxsize: int = 100
     idle_poll_seconds: float = 0.2
+    # Этап 4: после широкого прохода по фразам темы — прицельный проход по технологиям (от модели и извлечённым
+    # из заголовков широкого прохода): по `targeted_per_term` документов на технологию в каждом источнике,
+    # по релевантности в окне `targeted_window_months`. Широкий проход получает `broad_time_share` бюджета
+    # времени и уступает прицельному `targeted_reserve_documents` мест общего лимита; лимит широкого прохода
+    # на источник — `broad_max_documents_per_source` (RSS не ограничивается: новости не вытесняются).
+    targeted_enabled: bool = True
+    targeted_per_term: int = 3
+    broad_time_share: float = 0.5
+    targeted_reserve_documents: int = 300
+    broad_max_documents_per_source: int = 60
+    mined_technologies: int = 15
+    max_technologies: int = 40
+    targeted_window_months: int = 24
 
 
 class RunCollection:
@@ -113,7 +132,7 @@ class RunCollection:
         active = await self._prepare_runs(state)
         try:
             if active:
-                await self._collect(state, active, owner)
+                await self._run_phases(state, active, owner, started)
             else:
                 state.stop_reason = StopReason.DRAINED
         except LeaseLost:
@@ -122,6 +141,73 @@ class RunCollection:
             raise
         await self._finalize_runs(state)
         return await self._finish(state, owner, duration=self._clock.monotonic() - started)
+
+    def _targeted(self, collection: Collection, active: Mapping[SourceKey, SourceAdapter]) -> bool:
+        """Прицельный проход: включён, режим SEARCH и хотя бы один активный источник его поддерживает."""
+        return (self._config.targeted_enabled and collection.mode is CollectionMode.SEARCH
+                and any(getattr(adapter, "supports_targeted", False) for adapter in active.values()))
+
+    def _broad_limits(self, state: _RunState, source_key: SourceKey) -> CollectionLimits:
+        """Лимиты широкого прохода: при прицельном проходе источник (кроме RSS) получает меньшую долю."""
+        limits = state.collection.limits
+        if not state.two_phase or source_key is SourceKey.RSS:
+            return limits
+        cap = min(limits.max_documents_per_source, self._config.broad_max_documents_per_source)
+        return dataclasses.replace(limits, max_documents_per_source=cap)
+
+    async def _run_phases(
+        self, state: _RunState, active: dict[SourceKey, SourceAdapter], owner: str, started: float
+    ) -> None:
+        """Широкий проход по фразам темы, затем — прицельный по технологиям (этап 4)."""
+        limits = state.collection.limits
+        targeted = self._targeted(state.collection, active)
+        final_deadline = started + limits.time_budget_seconds
+        if targeted:
+            state.two_phase = True
+            state.deadline = started + limits.time_budget_seconds * self._config.broad_time_share
+            reserve = min(self._config.targeted_reserve_documents, limits.max_total_documents // 2)
+            state.total_cap = max(1, limits.max_total_documents - reserve)
+        await self._collect(
+            state, active, owner,
+            lambda key, adapter: adapter.search(state.collection.terms, self._broad_limits(state, key), state.deadline),
+        )
+        if not targeted or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
+            return
+        technologies = await self._technologies(state)
+        sources = {
+            key: adapter for key, adapter in active.items()
+            if getattr(adapter, "supports_targeted", False) and not state.runs[key].status.is_terminal
+        }
+        if not technologies or not sources or self._clock.monotonic() >= final_deadline:
+            return
+        state.phase = PHASE_TARGETED
+        state.deadline = final_deadline
+        state.total_cap = limits.max_total_documents
+        state.stop_reason = None
+        since = targeted_since(self._clock.now(), self._config.targeted_window_months, limits.published_since_year)
+        self._log.info("collection.targeted", collection_id=state.collection.collection_id,
+                       technologies=len(technologies), sources=[key.value for key in sources], since=since.isoformat())
+        await self._collect(
+            state, sources, owner,
+            lambda _key, adapter: adapter.search_targeted(technologies, self._config.targeted_per_term, since, state.deadline),
+        )
+
+    async def _technologies(self, state: _RunState) -> tuple[str, ...]:
+        """Технологии прицельного прохода: сначала от модели, затем извлечённые из заголовков широкого прохода."""
+        terms = state.collection.terms
+        mined = mine_technologies(state.titles, exclude=(*terms.en, *terms.ru, *terms.technologies),
+                                  limit=self._config.mined_technologies)
+        try:
+            await self._collections.save_mined_technologies(state.collection.collection_id, mined)
+        except Exception as exc:  # noqa: BLE001 — список извлечённых технологий не должен срывать сбор
+            self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
+        merged: dict[str, str] = {}
+        for item in (*terms.technologies, *mined):
+            merged.setdefault(" ".join(item.lower().split()), item)
+        technologies = tuple(merged.values())[: self._config.max_technologies]
+        self._log.info("collection.technologies", collection_id=state.collection.collection_id,
+                       from_model=len(terms.technologies), mined=mined, total=len(technologies))
+        return technologies
 
     async def _prepare_runs(self, state: _RunState) -> dict[SourceKey, SourceAdapter]:
         """Отмечает недоступные адаптеры и переводит остальные в RUNNING."""
@@ -139,14 +225,20 @@ class RunCollection:
             active[source_key] = adapter
         return active
 
-    async def _collect(self, state: _RunState, active: dict[SourceKey, SourceAdapter], owner: str) -> None:
+    async def _collect(
+        self,
+        state: _RunState,
+        active: dict[SourceKey, SourceAdapter],
+        owner: str,
+        iterate: Callable[[SourceKey, SourceAdapter], AsyncIterator[RawDocument]],
+    ) -> None:
         """Запускает задачи адаптеров, heartbeat и потребителя партий."""
         queues = {key: asyncio.Queue[Any](maxsize=self._config.queue_maxsize) for key in active}
         wakeup = asyncio.Event()
         failure: Exception | None = None
         async with asyncio.TaskGroup() as group:
             producers = {
-                key: group.create_task(self._produce(state, key, adapter, queues[key], wakeup))
+                key: group.create_task(self._produce(state, key, iterate(key, adapter), queues[key], wakeup))
                 for key, adapter in active.items()
             }
             heartbeat = group.create_task(self._heartbeat(state, owner, wakeup))
@@ -165,7 +257,7 @@ class RunCollection:
         self,
         state: _RunState,
         source_key: SourceKey,
-        adapter: SourceAdapter,
+        documents: AsyncIterator[RawDocument],
         queue: asyncio.Queue[Any],
         wakeup: asyncio.Event,
     ) -> None:
@@ -173,9 +265,7 @@ class RunCollection:
         run = state.runs[source_key]
         cancelled = False
         try:
-            async for raw in adapter.search(
-                state.collection.terms, state.collection.limits, state.deadline
-            ):
+            async for raw in documents:
                 await queue.put(raw)
                 wakeup.set()
         except AdapterFailure as failure:
@@ -264,7 +354,7 @@ class RunCollection:
             return StopReason.CANCELLED
         if state.cancel_requested:
             return StopReason.CANCELLED
-        if state.documents_total + len(state.pending_new) >= state.collection.limits.max_total_documents:
+        if state.documents_total + len(state.pending_new) >= state.total_cap:
             return StopReason.CAP_REACHED
         if self._clock.monotonic() >= state.deadline:
             return StopReason.BUDGET_EXHAUSTED
@@ -279,10 +369,12 @@ class RunCollection:
         run = state.runs[source_key]
         run.documents_found += 1
         state.found_delta[source_key] = state.found_delta.get(source_key, 0) + 1
-        if state.per_source_accepted.get(source_key, 0) >= state.collection.limits.max_documents_per_source:
-            _note(state, source_key, raw, DocumentEvent.SOURCE_CAP,
-                  detail=f"лимит {state.collection.limits.max_documents_per_source} документов на источник")
-            return
+        if state.phase == PHASE_BROAD:
+            cap = self._broad_limits(state, source_key).max_documents_per_source
+            if state.per_source_accepted.get(source_key, 0) >= cap:
+                _note(state, source_key, raw, DocumentEvent.SOURCE_CAP, detail=f"лимит {cap} документов на источник")
+                return
+        # прицельный проход ограничен квотой на технологию в самом адаптере и общим лимитом сбора
         adapter = self._adapters[source_key]
         try:
             draft = build_document_draft(
@@ -304,6 +396,8 @@ class RunCollection:
             return
         state.rank += 1
         state.per_source_accepted[source_key] = state.per_source_accepted.get(source_key, 0) + 1
+        if state.phase == PHASE_BROAD:
+            state.titles.append((draft.title, source_key.value))
         state.pending_new.add(draft.url_hash)
         batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
         _note(state, source_key, raw, DocumentEvent.ACCEPTED, url_hash=draft.url_hash, doi=draft.doi,
@@ -439,9 +533,15 @@ class _RunState:
     cancelled_producers: set[SourceKey] = field(default_factory=set)
     accounting: RequestAccounting = field(default_factory=RequestAccounting)
     trace: CollectionTrace | None = None
+    # Этап 4: проход сбора, общий лимит текущего прохода, заголовки широкого прохода для извлечения технологий.
+    phase: str = "broad"
+    two_phase: bool = False
+    total_cap: int = 0
+    titles: list[tuple[str, str]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.rank = self.documents_total  # продолжение нумерации при повторном запуске
+        self.total_cap = self.total_cap or self.collection.limits.max_total_documents
 
 
 def _note(

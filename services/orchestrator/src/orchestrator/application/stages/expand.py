@@ -17,6 +17,7 @@ from ws_common.logging import get_logger
 from ws_common.query_fallback import fallback_terms
 
 MAX_TERMS = 8
+MAX_TECHNOLOGIES = 40
 _WORD_RE = re.compile(r"[\w-]+", re.UNICODE)
 log = get_logger("orchestrator.stage.expand")
 
@@ -78,15 +79,18 @@ async def run_expand(insight: InsightClient | None, query_text: str, glossary: G
         return fallback_expansion(query_text, glossary)
     ru_terms = tuple(expansion.ru_terms[:MAX_TERMS]) or (query_text,)
     en_terms = tuple(expansion.en_terms[:MAX_TERMS]) or (glossary.translate(query_text),)
+    technologies = tuple(dict.fromkeys(t.strip() for t in expansion.technologies if 2 <= len(t.strip()) <= 80))[:MAX_TECHNOLOGIES]
     log.info(
         "stage.expand",
         used_fallback=expansion.used_fallback,
         ru_terms=len(ru_terms),
         en_terms=len(en_terms),
+        technologies=len(technologies),
     )
     return ExpansionView(
         ru_terms=ru_terms,
         en_terms=en_terms,
         domain_tags=tuple(expansion.domain_tags),
         used_fallback=expansion.used_fallback,
+        technologies=technologies,
     )

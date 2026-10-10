@@ -17,7 +17,7 @@ from collector.domain.values import (
 )
 
 COLLECTION_COLUMNS = (
-    "collection_id, idempotency_key, query_text, mode, terms_ru, terms_en, max_documents_per_source, "
+    "collection_id, idempotency_key, query_text, mode, terms_ru, terms_en, terms_technologies, max_documents_per_source, "
     "max_total_documents, time_budget_seconds, published_since_year, status, cancel_requested, "
     "lease_owner, lease_expires_at, documents_total, http_requests_total, error_code, error_message, "
     "created_at, started_at, finished_at"
@@ -51,7 +51,8 @@ def row_to_collection(row: dict[str, Any]) -> Collection:
         idempotency_key=row["idempotency_key"],
         query_text=row["query_text"],
         mode=CollectionMode(row["mode"]),
-        terms=SearchTerms(ru=tuple(row["terms_ru"] or ()), en=tuple(row["terms_en"] or ())),
+        terms=SearchTerms(ru=tuple(row["terms_ru"] or ()), en=tuple(row["terms_en"] or ()),
+                          technologies=tuple(row.get("terms_technologies") or ())),
         limits=CollectionLimits(
             max_documents_per_source=row["max_documents_per_source"],
             max_total_documents=row["max_total_documents"],

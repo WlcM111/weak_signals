@@ -317,11 +317,12 @@ class FakeCollector:
     collection_id: str = new_id(10)
 
     async def start_collection(self, idempotency_key, query_text, ru_terms, en_terms,
-                               time_budget_seconds, max_total_documents):  # noqa: ANN001, ANN201
+                               time_budget_seconds, max_total_documents, technologies=()):  # noqa: ANN001, ANN201
         """Запуск сбора."""
         if self.fail_start:
             raise UpstreamUnavailable("StartCollection: UNAVAILABLE")
         self.started.append(idempotency_key)
+        self.technologies = tuple(technologies)
         return self.collection_id
 
     async def get_collection(self, collection_id: str) -> CollectionView:

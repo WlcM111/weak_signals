@@ -66,7 +66,11 @@ class FakeClock:
 class InMemoryCollectionRepository:
     """Хранилище коллекций в памяти с семантикой аренд и идемпотентности."""
 
+    async def save_mined_technologies(self, collection_id: str, technologies) -> None:  # noqa: ANN001
+        self.mined[collection_id] = tuple(technologies)
+
     def __init__(self, clock: FakeClock, adapter_runs: InMemoryAdapterRunRepository) -> None:
+        self.mined: dict[str, tuple[str, ...]] = {}
         self._clock = clock
         self._adapter_runs = adapter_runs
         self.items: dict[str, Collection] = {}

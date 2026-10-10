@@ -53,6 +53,8 @@ class AnalyzerSettings(BaseServiceSettings):
     query_relevance_mode: str = Field(default="mean", pattern="^(mean|max)$")
     market_notes_separate: bool = False
     market_reserved_candidates: int = Field(default=0, ge=0, le=40)
+    # Этап 4: одиночные документы, ближайшие к запросу, остаются кандидатами (не больше четверти пула).
+    singleton_candidates: int = Field(default=0, ge=0, le=20)
     evidence_max: int = Field(default=8, ge=1, le=50)
     enrichment_timeout_seconds: float = Field(default=60.0, ge=5.0, le=300.0)
     grpc_max_concurrent_rpcs: int = Field(default=16, ge=1, le=256)

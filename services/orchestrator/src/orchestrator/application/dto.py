@@ -170,6 +170,8 @@ class ExpansionView:
     en_terms: tuple[str, ...]
     domain_tags: tuple[str, ...] = ()
     used_fallback: bool = False
+    # Этап 4: конкретные ранние технологии темы — прицельный поиск collector (пусто при резервном расширении).
+    technologies: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

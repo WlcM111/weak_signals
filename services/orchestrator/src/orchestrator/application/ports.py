@@ -109,7 +109,8 @@ class CollectorClient(Protocol):
 
     async def start_collection(self, idempotency_key: str, query_text: str, ru_terms: Sequence[str],
                                en_terms: Sequence[str], time_budget_seconds: int,
-                               max_total_documents: int) -> str:
+                               max_total_documents: int,
+                               technologies: Sequence[str] = ()) -> str:
         """Запускает сбор в режиме SEARCH и возвращает `collection_id`."""
 
     async def get_collection(self, collection_id: str) -> CollectionView:

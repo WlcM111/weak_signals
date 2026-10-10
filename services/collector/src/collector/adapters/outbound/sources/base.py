@@ -9,8 +9,8 @@ from __future__ import annotations
 import asyncio
 import math
 import time
-from collections.abc import Mapping
-from datetime import UTC, datetime, timedelta
+from collections.abc import AsyncIterator, Mapping, Sequence
+from datetime import UTC, date, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from typing import Any
 
@@ -88,6 +88,15 @@ class BaseSourceAdapter:
 
     # Бюджет запросов и паузы источника (аудит B2-b); main.py назначает политику из настроек.
     policy: SourcePolicy = SourcePolicy()
+    # Этап 4: источник умеет прицельный поиск по технологиям (по релевантности в окне дат).
+    supports_targeted: bool = False
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """По умолчанию источник прицельный поиск не поддерживает."""
+        return
+        yield  # pragma: no cover — делает метод асинхронным генератором
 
     def requests_made(self) -> int:
         """Логических запросов источника в текущем сборе (учёт сбора), иначе — за жизнь адаптера."""
@@ -292,3 +301,4 @@ def records_per_request(quota: int, planned: int, minimum: int = 10, maximum: in
     if planned <= 0:
         return minimum
     return max(minimum, min(maximum, math.ceil(quota / planned)))
+

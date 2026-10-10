@@ -28,7 +28,7 @@ from insight.domain.values import (
 )
 from ws_common.logging import get_logger
 
-EXPAND_MAX_TOKENS = 512
+EXPAND_MAX_TOKENS = 1200  # фразы темы и до 40 технологий
 MIN_STEM_LENGTH = 6
 _WORD_RE = re.compile(r"[\w-]+", re.UNICODE)
 log = get_logger("insight.expand_query")
@@ -96,6 +96,34 @@ def _contains(query_norm: str, term: str) -> bool:
     return term[:MIN_STEM_LENGTH] in query_norm
 
 
+MAX_TECHNOLOGIES = 40
+MIN_TECHNOLOGY_LENGTH = 2
+MAX_TECHNOLOGY_LENGTH = 80
+MAX_TECHNOLOGY_WORDS = 6
+# Общие области — не технологии: по ним прицельный поиск возвращает массовый поток, а не ранние сигналы.
+GENERIC_TECHNOLOGIES = frozenset({
+    "ai", "artificial intelligence", "machine learning", "deep learning", "neural networks", "generative ai",
+    "large language models", "llm", "llms", "edge computing", "cloud computing", "cybersecurity", "robotics",
+    "fintech", "blockchain", "internet of things", "iot", "data center", "data centers", "big data", "automation",
+    "digital transformation", "industry 4.0", "computer vision", "natural language processing", "5g",
+})
+
+
+def clean_technologies(items: Sequence[str], forbidden: Sequence[str] = ()) -> tuple[str, ...]:
+    """Технологии из ответа модели: длина, не больше 6 слов, без общих областей, без повторов, не больше 40."""
+    blocked = {item.lower() for item in forbidden} | GENERIC_TECHNOLOGIES
+    seen: dict[str, str] = {}
+    for raw in items:
+        term = " ".join(str(raw).split()).strip(" .,;:")
+        key = term.lower()
+        if not MIN_TECHNOLOGY_LENGTH <= len(term) <= MAX_TECHNOLOGY_LENGTH or len(term.split()) > MAX_TECHNOLOGY_WORDS:
+            continue
+        if key in blocked or key in seen:
+            continue
+        seen[key] = term
+    return tuple(seen.values())[:MAX_TECHNOLOGIES]
+
+
 def clean_terms(terms: Sequence[str], forbidden: Sequence[str] = ()) -> tuple[str, ...]:
     """Пост-обработка фраз: длины, дедупликация, приоритет словосочетаниям (§7 HANDOFF)."""
     blocked = {item.lower() for item in forbidden}
@@ -144,6 +172,7 @@ class ExpandQuery:
             used_fallback=expansion.used_fallback,
             ru_count=len(expansion.ru_terms),
             en_count=len(expansion.en_terms),
+            technologies=len(expansion.technologies),
         )
         return expansion
 
@@ -178,11 +207,13 @@ class ExpandQuery:
         tags = tuple(
             tag for tag in dict.fromkeys(payload.get("domain_tags", [])) if tag in DOMAIN_TAGS
         )[:MAX_DOMAIN_TAGS]
+        technologies = clean_technologies(payload.get("technologies", []), forbidden=(*DOMAIN_TAGS, *en_terms))
         return QueryExpansion(
             query_norm=query_norm,
             ru_terms=ru_terms,
             en_terms=en_terms,
             domain_tags=tags,
+            technologies=technologies,
             used_fallback=False,
             provenance=Provenance(
                 provider=provider,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from datetime import datetime
 from typing import Any
 
@@ -15,9 +17,9 @@ from collector.domain.values import OperationStatus, SourceKey
 
 _INSERT_COLLECTION = f"""
 INSERT INTO collections (
-  idempotency_key, query_text, mode, terms_ru, terms_en,
+  idempotency_key, query_text, mode, terms_ru, terms_en, terms_technologies,
   max_documents_per_source, max_total_documents, time_budget_seconds, published_since_year
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (idempotency_key) DO NOTHING
 RETURNING {COLLECTION_COLUMNS}
 """
@@ -91,6 +93,11 @@ class PostgresCollectionRepository:
     def __init__(self, pool: AsyncConnectionPool[AsyncConnection[Any]]) -> None:
         self._pool = pool
 
+    async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
+        """Технологии, извлечённые из документов широкого прохода (этап 4)."""
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.execute(_SAVE_MINED, (list(technologies), collection_id))
+
     async def create_if_absent(self, draft: CollectionDraft) -> tuple[Collection, bool]:
         """Создаёт коллекцию и строки `adapter_runs` в одной транзакции (идемпотентно по ключу)."""
         async with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
@@ -102,6 +109,7 @@ class PostgresCollectionRepository:
                     draft.mode.value,
                     list(draft.terms.ru),
                     list(draft.terms.en),
+                    list(draft.terms.technologies),
                     draft.limits.max_documents_per_source,
                     draft.limits.max_total_documents,
                     draft.limits.time_budget_seconds,
@@ -194,3 +202,5 @@ class PostgresCollectionRepository:
             )
             rows = await cur.fetchall()
         return tuple(SourceKey(row["source_key"]) for row in rows)
+
+_SAVE_MINED = "UPDATE collections SET technologies_mined = %s WHERE collection_id = %s"

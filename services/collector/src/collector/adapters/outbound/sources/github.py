@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
+from datetime import date
 from typing import Any
 
 from collector.adapters.outbound.sources.base import (
@@ -18,6 +19,7 @@ from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTe
 from ws_common.clock import Clock
 
 API_URL = "https://api.github.com/search/repositories"
+MAX_TARGETED_TERMS = 20
 MAX_PAGES = 3
 
 
@@ -32,13 +34,44 @@ class GithubAdapter(BaseSourceAdapter):
         super().__init__(http, limiter, clock)
         self._token = token
 
+    supports_targeted = True
+
+    def _headers(self) -> dict[str, str]:
+        headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+        if self._token:
+            headers["Authorization"] = f"Bearer {self._token}"
+        return headers
+
+    async def search_targeted(
+        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
+    ) -> AsyncIterator[RawDocument]:
+        """Этап 4: репозитории по технологии — сортировка GitHub по умолчанию (best match), активные с `since`.
+
+        Поиск GitHub ограничен по частоте строже остальных источников, поэтому прицельно спрашиваются только
+        первые `MAX_TARGETED_TERMS` технологий (сначала идут технологии от модели, затем извлечённые).
+        """
+        headers = self._headers()
+        for term in list(technologies)[:MAX_TARGETED_TERMS]:
+            if self.deadline_reached(deadline):
+                return
+            payload = await self.fetch_json(
+                API_URL, params={"q": f"{term} pushed:>={since.isoformat()}", "per_page": per_term}, headers=headers
+            )
+            taken = 0
+            for item in _items(payload):
+                document = _to_raw_document(item, term)
+                if document is None:
+                    continue
+                taken += 1
+                yield document
+                if taken >= per_term:
+                    break
+
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float
     ) -> AsyncIterator[RawDocument]:
         """Репозитории по фразам запроса; токен повышает лимит источника, но не обязателен."""
-        headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
-        if self._token:
-            headers["Authorization"] = f"Bearer {self._token}"
+        headers = self._headers()
         produced = 0
         for term, _language in english_first(terms):
             for page in range(1, MAX_PAGES + 1):
