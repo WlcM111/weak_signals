@@ -30,11 +30,13 @@ class HttpStatusError(HttpError):
     """Ответ с кодом ≥ 400; `retry_after` — секунды из заголовка `Retry-After`, если он был."""
 
     def __init__(self, status: int, message: str, retry_after: float | None = None,
-                 cdn_headers: dict[str, str] | None = None) -> None:
+                 cdn_headers: dict[str, str] | None = None, rate_headers: dict[str, str] | None = None) -> None:
         super().__init__(message)
         self.status = status
         self.retry_after = retry_after
         self.cdn_headers = cdn_headers or {}
+        # Заголовки квоты (x-ratelimit-*): GitHub сообщает исчерпание поиска кодом 403, а не 429 (этап 4.2).
+        self.rate_headers = rate_headers or {}
 
 
 class HttpTimeoutError(HttpError):
@@ -90,7 +92,10 @@ class RateLimiter(Protocol):
         """Ожидает разрешения на один запрос к источнику."""
 
     async def penalize(self, source_key: SourceKey, retry_after: float | None) -> None:
-        """Реакция на 429: пауза `Retry-After` и временное снижение лимита."""
+        """Реакция на 429: общая пауза `Retry-After` для всех задач источника и временное снижение лимита."""
+
+    def defer(self, source_key: SourceKey, seconds: float) -> None:
+        """Короткая общая пауза источника без снижения лимита (повтор после сетевого сбоя или 5xx)."""
 
 
 class SourceAdapter(Protocol):

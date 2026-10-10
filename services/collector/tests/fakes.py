@@ -364,12 +364,16 @@ class FakeRateLimiter:
     def __init__(self) -> None:
         self.acquired: list[SourceKey] = []
         self.penalties: list[tuple[SourceKey, float | None]] = []
+        self.deferred: list[tuple[SourceKey, float]] = []
 
     async def acquire(self, source_key: SourceKey) -> None:
         self.acquired.append(source_key)
 
     async def penalize(self, source_key: SourceKey, retry_after: float | None) -> None:
         self.penalties.append((source_key, retry_after))
+
+    def defer(self, source_key: SourceKey, seconds: float) -> None:
+        self.deferred.append((source_key, seconds))
 
 
 class ScriptedAdapter:

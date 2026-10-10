@@ -107,24 +107,26 @@ class AdapterErrorMappingTest(unittest.IsolatedAsyncioTestCase):
         self.limiter = FakeRateLimiter()
         self.adapter = OpenAlexAdapter(self.http, self.limiter, FakeClock(), api_key="k")
 
-    async def assert_code(self, response: Exception, expected: AdapterErrorCode) -> AdapterFailure:
-        self.http.enqueue(response)
+    async def assert_code(self, response: Exception, expected: AdapterErrorCode, times: int = 1) -> AdapterFailure:
+        for _ in range(times):  # этап 4.2: сетевой сбой, таймаут и 5xx повторяются один раз через лимитер
+            self.http.enqueue(response)
         with self.assertRaises(AdapterFailure) as ctx:
             await collect(self.adapter)
         self.assertEqual(ctx.exception.code, expected.value)
         return ctx.exception
 
     async def test_timeout(self) -> None:
-        await self.assert_code(HttpTimeoutError("timeout"), AdapterErrorCode.TIMEOUT)
+        await self.assert_code(HttpTimeoutError("timeout"), AdapterErrorCode.TIMEOUT, times=2)
+        self.assertEqual(len(self.limiter.deferred), 1)
 
     async def test_client_error(self) -> None:
         await self.assert_code(status_error(403), AdapterErrorCode.HTTP_4XX)
 
     async def test_server_error(self) -> None:
-        await self.assert_code(status_error(500), AdapterErrorCode.HTTP_5XX)
+        await self.assert_code(status_error(500), AdapterErrorCode.HTTP_5XX, times=2)
 
     async def test_transport_error(self) -> None:
-        await self.assert_code(HttpTransportError("dns"), AdapterErrorCode.HTTP_5XX)
+        await self.assert_code(HttpTransportError("dns"), AdapterErrorCode.NETWORK_ERROR, times=2)  # не 5xx: ответа не было
 
     async def test_payload_error(self) -> None:
         await self.assert_code(HttpPayloadError("too big"), AdapterErrorCode.PARSE_ERROR)
@@ -144,9 +146,10 @@ class AdapterErrorMappingTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_http_requests_counted(self) -> None:
         self.http.enqueue(status_error(500))
+        self.http.enqueue(status_error(500))
         with self.assertRaises(AdapterFailure):
             await collect(self.adapter)
-        self.assertEqual(self.adapter.http_requests, 1)
+        self.assertEqual(self.adapter.http_requests, 2)  # каждая попытка — отдельный запрос через лимитер
 
 
 class ArxivTest(unittest.IsolatedAsyncioTestCase):
@@ -216,6 +219,7 @@ class RssTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_feed_failure_does_not_stop_others(self) -> None:
         self.http.enqueue(status_error(500))
+        self.http.enqueue(status_error(500))  # повтор ленты после 5xx
         self.http.enqueue(load_text("rss/feed_atom.xml"))
         documents = await collect(self.adapter, terms=SearchTerms(en=("neuromorphic edge",)))
         self.assertEqual(len(documents), 1)
@@ -281,8 +285,8 @@ class WikipediaTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_pageviews_unavailable_returns_minus_one(self) -> None:
         self.http.enqueue(load_json("wikipedia/summary_found.json"))
-        self.http.enqueue(status_error(500))
-        self.http.enqueue(status_error(500))
+        for _ in range(4):  # просмотры и дата создания: по запросу и одному повтору после 5xx
+            self.http.enqueue(status_error(500))
         hit = await self.probe.probe("Kubernetes", "en")
         self.assertTrue(hit.exists)
         self.assertEqual(hit.pageviews_30d, -1)

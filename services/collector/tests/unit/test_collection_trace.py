@@ -41,6 +41,9 @@ class _Limiter:
     async def penalize(self, source_key, retry_after) -> None:  # noqa: ANN001
         return None
 
+    def defer(self, source_key, seconds) -> None:  # noqa: ANN001
+        return None
+
 
 class _Clock:
     def now(self):  # noqa: ANN201
@@ -108,7 +111,8 @@ class RedactionTest(unittest.TestCase):
 
 class FetchRecordingTest(unittest.IsolatedAsyncioTestCase):
     async def test_ok_429_and_timeout_are_recorded_with_body(self) -> None:
-        adapter = _Adapter(_Http([{"results": [1]}, HttpStatusError(429, "лимит"), HttpTimeoutError("медленно")]),
+        adapter = _Adapter(_Http([{"results": [1]}, HttpStatusError(429, "лимит"), HttpTimeoutError("медленно"),
+                                  HttpTimeoutError("медленно")]),
                            _Limiter(), _Clock())
         trace = begin_collection_trace()
         self.assertIs(current_collection_trace(), trace)
@@ -119,11 +123,11 @@ class FetchRecordingTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(AdapterFailure):
             await adapter.fetch_json("https://api.openalex.org/works", params={"q": "z"})
         responses, _ = trace.drain()
-        self.assertEqual([r.outcome for r in responses], ["OK", "RATE_LIMITED", "TIMEOUT"])
+        self.assertEqual([r.outcome for r in responses], ["OK", "RATE_LIMITED", "TIMEOUT", "TIMEOUT"])  # каждая попытка
         self.assertEqual(json.loads(gzip.decompress(responses[0].body_gzip)), {"results": [1]})
         self.assertNotIn("K", responses[0].url.split("api_key=")[1][:3])
         self.assertIsNone(responses[1].body_gzip)
-        self.assertEqual([r.seq for r in responses], [1, 2, 3])
+        self.assertEqual([r.seq for r in responses], [1, 2, 3, 4])
 
 
 class RunCollectionTraceTest(RunCollectionTestBase):

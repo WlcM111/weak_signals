@@ -168,7 +168,7 @@ class GateTest(ZenodoTestCase):
         await self.assert_cooldown_after(HttpTimeoutError("таймаут"), AdapterErrorCode.TIMEOUT.value)
 
     async def test_cooldown_after_network_error(self) -> None:
-        await self.assert_cooldown_after(HttpTransportError("разрыв"), AdapterErrorCode.HTTP_5XX.value)
+        await self.assert_cooldown_after(HttpTransportError("разрыв"), AdapterErrorCode.NETWORK_ERROR.value)
 
     async def test_cooldown_after_rate_limit(self) -> None:
         await self.assert_cooldown_after(status_error(429), AdapterErrorCode.RATE_LIMITED.value)

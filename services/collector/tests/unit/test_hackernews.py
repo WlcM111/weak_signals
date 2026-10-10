@@ -89,6 +89,7 @@ class HackerNewsTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_failed_window_does_not_stop_others_and_is_reported(self) -> None:
         self.http.enqueue(status_error(503))
+        self.http.enqueue(status_error(503))  # этап 4.2: один повтор после 5xx — через лимитер, с общей паузой
         self.http.enqueue(page(STORY))
         for _ in range(16):
             self.http.enqueue(page())
@@ -96,6 +97,7 @@ class HackerNewsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(documents), 1)
         self.assertEqual(failure.code, AdapterErrorCode.HTTP_5XX.value)  # type: ignore[union-attr]
         self.assertIn("1 из 18", failure.message)  # type: ignore[union-attr]
+        self.assertEqual(self.limiter.deferred, [(SourceKey.HACKERNEWS, 2.0)])
 
     async def test_rate_limit_retries_once_then_stops(self) -> None:
         self.http.enqueue(status_error(429))

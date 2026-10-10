@@ -19,7 +19,7 @@ from insight.domain.entities import CandidateContext, EvidenceDocument
 from insight.domain.values import Purpose
 
 INSIGHT_PROMPT_VERSION = "insight_v1"
-EXPAND_PROMPT_VERSION = "expand_v2"  # этап 4: + список конкретных технологий
+EXPAND_PROMPT_VERSION = "expand_v3"  # этап 4.2: строже к конкретности технологий, примеры вне тем кейса
 INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_v2_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"

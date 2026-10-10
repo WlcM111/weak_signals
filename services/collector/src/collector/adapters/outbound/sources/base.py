@@ -30,6 +30,9 @@ from collector.domain.values import AdapterErrorCode, SearchTerms, SourceKey
 from ws_common.clock import Clock
 
 MAX_CONSECUTIVE_RATE_LIMITS = 3
+TRANSIENT_RETRY_PAUSE = 2.0  # общая пауза источника перед повтором после сетевого сбоя, таймаута или 5xx
+QUOTA_RESET_MAX_WAIT = 120.0  # дольше квотного сброса GitHub внутри сбора не ждём
+TRANSIENT_CODES = frozenset({"TIMEOUT", "HTTP_5XX", "NETWORK_ERROR"})
 PAGE_SIZE = 50
 
 
@@ -116,7 +119,7 @@ class BaseSourceAdapter:
 
         Каждая попытка — отдельный логический запрос: она расходует бюджет и пишется в трассу сбора.
         """
-        attempt = 0
+        rate_attempt = transient_attempt = 0
         while True:
             if self.policy.max_requests and self.requests_made() >= self.policy.max_requests:
                 raise AdapterFailure(AdapterErrorCode.BUDGET_EXHAUSTED.value,
@@ -124,11 +127,18 @@ class BaseSourceAdapter:
             try:
                 return await self._fetch_traced(url, params=params, headers=headers, as_json=as_json, json_body=json_body)
             except AdapterFailure as failure:
-                repeat = (failure.code == AdapterErrorCode.RATE_LIMITED.value and failure.retryable
-                          and attempt < self.policy.rate_limit_retries)
-                if not repeat:
+                # Единственный владелец повторов (этап 4.2): каждая попытка заново проходит лимитер источника.
+                if failure.code == AdapterErrorCode.RATE_LIMITED.value and failure.retryable:
+                    if rate_attempt >= self.policy.rate_limit_retries:
+                        raise
+                    rate_attempt += 1
+                elif failure.code in TRANSIENT_CODES and failure.retryable:
+                    if transient_attempt >= self.policy.transient_retries:
+                        raise
+                    transient_attempt += 1
+                    self._limiter.defer(self.key, TRANSIENT_RETRY_PAUSE)
+                else:
                     raise
-                attempt += 1
 
     async def _fetch_traced(
         self,
@@ -198,19 +208,25 @@ class BaseSourceAdapter:
             await self._on_status_error(exc)
             raise AssertionError("unreachable")  # pragma: no cover - _on_status_error всегда бросает
         except HttpTimeoutError as exc:
-            raise AdapterFailure(AdapterErrorCode.TIMEOUT.value, f"таймаут запроса к источнику: {exc}") from exc
+            raise AdapterFailure(AdapterErrorCode.TIMEOUT.value, f"таймаут запроса к источнику: {exc}",
+                                 retryable=True) from exc
         except HttpPayloadError as exc:
             raise AdapterFailure(AdapterErrorCode.PARSE_ERROR.value, f"ответ источника не разобран: {exc}") from exc
         except HttpTransportError as exc:
-            raise AdapterFailure(AdapterErrorCode.HTTP_5XX.value, f"источник недоступен: {exc}") from exc
+            # DNS, соединение, TLS, запрещённый редирект: HTTP-ответа не было — это не 5xx (этап 4.2)
+            raise AdapterFailure(AdapterErrorCode.NETWORK_ERROR.value, f"источник недоступен: {exc}",
+                                 retryable="не разрешён" not in str(exc)) from exc
         self._reset_rate_limit()
         return payload
 
     async def _on_status_error(self, exc: HttpStatusError) -> None:
-        """429 → штраф лимитеру и счётчик подряд; прочие коды → HTTP_4XX/HTTP_5XX."""
-        if exc.status == 429:
+        """429 и квотный 403 → общая пауза лимитера и счётчик подряд; прочие коды → HTTP_4XX/HTTP_5XX."""
+        quota_reset = quota_exhausted_wait(exc, time.time())
+        if exc.status == 429 or quota_reset is not None:
             streak = self._bump_rate_limit()
-            pause = exc.retry_after if exc.retry_after is not None else (self.policy.rate_limit_pause or None)
+            pause = exc.retry_after if exc.retry_after is not None else quota_reset
+            if pause is None:
+                pause = self.policy.rate_limit_pause or None
             await self._limiter.penalize(self.key, pause)
             if streak >= MAX_CONSECUTIVE_RATE_LIMITS:
                 raise AdapterFailure(
@@ -219,7 +235,7 @@ class BaseSourceAdapter:
                 )
             raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value, "источник ответил 429", retryable=True)
         code = AdapterErrorCode.HTTP_4XX if exc.status < 500 else AdapterErrorCode.HTTP_5XX
-        raise AdapterFailure(code.value, f"источник ответил кодом {exc.status}")
+        raise AdapterFailure(code.value, f"источник ответил кодом {exc.status}", retryable=exc.status >= 500)
 
     def _bump_rate_limit(self) -> int:
         """Серия ответов 429 подряд: в пределах текущего сбора, вне сбора — экземпляра адаптера."""
@@ -302,3 +318,23 @@ def records_per_request(quota: int, planned: int, minimum: int = 10, maximum: in
         return minimum
     return max(minimum, min(maximum, math.ceil(quota / planned)))
 
+
+def quota_exhausted_wait(exc: HttpStatusError, now_epoch: float) -> float | None:
+    """403 с исчерпанной квотой (GitHub: `x-ratelimit-remaining: 0` или `Retry-After`) → секунды до сброса, иначе None.
+
+    GitHub сообщает исчерпание поисковой квоты кодом 403 или 429 (документация Search API); обычный 403 — отказ.
+    """
+    if exc.status != 403:
+        return None
+    if exc.retry_after is not None:
+        return min(exc.retry_after, QUOTA_RESET_MAX_WAIT)
+    if exc.rate_headers.get("x-ratelimit-remaining") != "0":
+        return None
+    try:
+        reset = float(exc.rate_headers.get("x-ratelimit-reset", ""))
+    except ValueError:
+        return DEFAULT_QUOTA_WAIT
+    return min(max(1.0, reset - now_epoch), QUOTA_RESET_MAX_WAIT)
+
+
+DEFAULT_QUOTA_WAIT = 60.0

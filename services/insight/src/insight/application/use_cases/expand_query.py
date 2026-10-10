@@ -109,8 +109,36 @@ GENERIC_TECHNOLOGIES = frozenset({
 })
 
 
+# Этап 4.2 (замер 07.10.2026: у 44 из 226 названий в конце слово-категория, много зрелых учебных тем).
+CATEGORY_TAILS = frozenset("""algorithm algorithms system systems model models framework frameworks technique techniques
+method methods mechanism mechanisms solution solutions tool tools platform platforms approach approaches application
+applications strategy strategies technology technologies process processes architecture architectures engine engines
+interface interfaces capability capabilities service services analytics management optimization optimisation
+integration automation""".split())
+MATURE_TECHNOLOGIES = frozenset({
+    "adversarial training", "differential privacy", "federated learning", "anomaly detection", "predictive maintenance",
+    "digital twin", "digital twins", "digital twin simulation", "reinforcement learning", "transfer learning",
+    "robotic process automation", "smart contracts", "explainable ai", "machine vision", "swarm robotics",
+    "quantum computing", "zero trust", "biometric authentication", "chatbots", "recommendation systems",
+    "generative design", "collaborative robots", "cobots", "autonomous vehicles", "augmented reality",
+    "virtual reality", "3d printing", "additive manufacturing", "model compression", "knowledge distillation",
+    "neural network pruning", "microservices", "data lakes", "wearables",
+})
+MARKETING_PREFIXES = ("ai-powered", "ai-driven", "ai-based", "ai-enabled", "intelligent", "smart", "advanced",
+                      "next-generation", "next generation", "innovative", "cognitive")
+
+
+def is_specific_technology(term: str) -> bool:
+    """Название конкретной технологии: не кончается словом-категорией, не зрелая тема, без рекламного определения."""
+    key = term.lower()
+    words = key.split()
+    if not words or words[-1] in CATEGORY_TAILS or key in MATURE_TECHNOLOGIES:
+        return False
+    return not key.startswith(MARKETING_PREFIXES)
+
+
 def clean_technologies(items: Sequence[str], forbidden: Sequence[str] = ()) -> tuple[str, ...]:
-    """Технологии из ответа модели: длина, не больше 6 слов, без общих областей, без повторов, не больше 40."""
+    """Технологии из ответа модели: длина, не больше 6 слов, конкретные (этап 4.2), без повторов, не больше 40."""
     blocked = {item.lower() for item in forbidden} | GENERIC_TECHNOLOGIES
     seen: dict[str, str] = {}
     for raw in items:
@@ -118,7 +146,7 @@ def clean_technologies(items: Sequence[str], forbidden: Sequence[str] = ()) -> t
         key = term.lower()
         if not MIN_TECHNOLOGY_LENGTH <= len(term) <= MAX_TECHNOLOGY_LENGTH or len(term.split()) > MAX_TECHNOLOGY_WORDS:
             continue
-        if key in blocked or key in seen:
+        if key in blocked or key in seen or not is_specific_technology(term):
             continue
         seen[key] = term
     return tuple(seen.values())[:MAX_TECHNOLOGIES]

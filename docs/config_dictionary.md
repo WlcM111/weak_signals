@@ -64,7 +64,7 @@
 | Переменная | Тип / диапазон | По умолчанию | О/С | Влияние |
 |---|---|---|---|---|
 | WS_OPENALEX_API_KEY | строка | пусто | С | пусто → адаптер openalex `AUTH_MISSING` (отключён) |
-| WS_GITHUB_TOKEN | строка | пусто | С | повышает лимит GitHub Search |
+| WS_GITHUB_TOKEN | строка | пусто | С | GitHub Search: 30 запросов/мин с токеном; без него сбор ограничивает поиск 1 запросом в 7 с |
 | WS_PATENTSVIEW_API_KEY | строка | пусто | С | включает адаптер patentsview |
 | WS_COLLECTOR_RSS_FEEDS | список URL через запятую (≥ 1) | 3 ленты из `.env.example` | О | ленты адаптера rss |
 | WS_CONTACT_EMAIL | email | team@example.org | | User-Agent для вежливых запросов |
@@ -74,7 +74,7 @@
 | WS_COLLECTOR_LEASE_SECONDS | 15–600 | 60 | | аренда коллекции |
 | WS_COLLECTOR_HTTP_TIMEOUT_SECONDS | 3–60 | 15 | | read-таймаут внешних запросов |
 | WS_COLLECTOR_HTTP_MAX_BYTES | 1–50 (МБ) | 5 | | лимит размера ответа |
-| WS_COLLECTOR_HTTP_RETRIES | 0–5 | 3 | | ретраи 429/5xx |
+| WS_COLLECTOR_HTTP_RETRIES | 0–5 | 3 | | с этапа 4.2 HTTP-клиент источников не повторяет запросы: повторы делает адаптер через лимитер (политика источника, `transient`) |
 | WS_ENCYCLOPEDIA_CACHE_DAYS | 1–90 | 7 | | TTL кеша Wikipedia |
 | WS_DOCUMENT_RETENTION_DAYS | 7–3650 | 90 | | удаление «осиротевших» документов |
 | WS_SOURCE_ENABLED_OVERRIDE | `openalex=true,hh=false,…` | пусто | | переопределение флагов `source_catalog.enabled` без миграции |
@@ -91,7 +91,7 @@
 | WS_COLLECTOR_MINED_TECHNOLOGIES | 0–40 | 15 | | сколько технологий извлекать из заголовков широкого прохода |
 | WS_COLLECTOR_TARGETED_WINDOW_MONTHS | 3–120 | 24 | | окно дат прицельного поиска |
 | WS_SINGLETON_CANDIDATES | 0–20 | 0 | | одиночные документы, ближайшие к запросу, остаются кандидатами (не больше четверти пула) |
-| WS_COLLECTOR_SOURCE_POLICY | `источник:requests=N,retries=N,pause=С;…` | пусто | | бюджет запросов на сбор, повторы после 429 и пауза по источникам поверх значений по умолчанию (Semantic Scholar 6/2/10, GDELT 8, Hacker News 18/1/10) |
+| WS_COLLECTOR_SOURCE_POLICY | `источник:requests=N,retries=N,pause=С,transient=N;…` | пусто | | бюджет запросов на сбор, повторы после 429, пауза и повторы после сетевого сбоя/5xx по источникам поверх значений по умолчанию: Semantic Scholar 50/2/10, Hacker News 60/1/10, GDELT 8 запросов; `transient` по умолчанию 1, у arXiv, Zenodo и GDELT 0 (у них свой шлюз) |
 
 ## analyzer
 

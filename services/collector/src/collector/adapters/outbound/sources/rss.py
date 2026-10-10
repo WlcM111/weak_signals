@@ -17,12 +17,18 @@ from collector.application.ports import HttpClient, RateLimiter
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
 from collector.domain.rules import term_coverage
-from collector.domain.values import CollectionLimits, SearchTerms, SourceKey
+from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTerms, SourceKey
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
 
 RELEVANCE_THRESHOLD = 0.5
 ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
+
+
+# Этап 4.2: явный Accept ленты. PR Newswire на запрос без него отвечает 301 на адрес со слешем и затем 404,
+# с этим заголовком — сразу 200 и валидная лента (диагностика API 07.10.2026, rss_31).
+FEED_ACCEPT = {"Accept": "application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8"}
+RSS1_NS = {"rss1": "http://purl.org/rss/1.0/", "dc": "http://purl.org/dc/elements/1.1/"}
 
 
 class RssAdapter(BaseSourceAdapter):
@@ -46,19 +52,27 @@ class RssAdapter(BaseSourceAdapter):
     async def search(
         self, terms: SearchTerms, limits: CollectionLimits, deadline: float
     ) -> AsyncIterator[RawDocument]:
-        """Записи лент, релевантные хотя бы одной фразе запроса."""
+        """Записи лент, релевантные хотя бы одной фразе запроса или технологии темы (этап 4.2).
+
+        Ленты читаются один раз, поэтому записи сверяются и с технологиями от модели — без новых запросов.
+        Отказ одной ленты не прекращает обход; если отказали все ленты, источник сообщает отказ, а не пустую выдачу.
+        """
         produced = 0
-        phrases = [term for term, _language in terms.pairs()]
+        phrases = [term for term, _language in terms.pairs()] + [t for t in terms.technologies if t not in terms.en]
+        failures: list[tuple[str, AdapterFailure]] = []
+        attempted = 0
         for feed_url in self._feeds:
             if produced >= limits.max_documents_per_source or self.deadline_reached(deadline):
                 return
+            attempted += 1
             try:
-                body = await self.fetch_text(feed_url)
+                body = await self.fetch_text(feed_url, headers=FEED_ACCEPT)
                 entries = list(parse_feed(body, feed_url))
             except AdapterFailure as failure:
                 # отказ или неразборчивый ответ одной ленты не прекращает обход остальных (стенд 29.09: пустой
                 # ответ 202 одной ленты обрывал весь адаптер с PARSE_ERROR, и следующие ленты не читались)
                 self._log.warning("rss.feed_failed", feed=feed_url, code=failure.code)
+                failures.append((feed_url, failure))
                 continue
             for entry in entries:
                 matched = _best_term(entry, phrases)
@@ -78,6 +92,9 @@ class RssAdapter(BaseSourceAdapter):
                 yield document
                 if produced >= limits.max_documents_per_source:
                     return
+        if failures and len(failures) == attempted:
+            first_url, first = failures[0]
+            raise AdapterFailure(first.code, f"все {attempted} лент недоступны; первая {first_url}: {first.message}")
 
 
 class FeedEntry:
@@ -103,14 +120,38 @@ class FeedEntry:
 
 
 def parse_feed(body: str, feed_url: str) -> list[FeedEntry]:
-    """Разбирает ленту RSS 2.0 или Atom в список записей."""
+    """Разбирает ленту RSS 2.0, RSS 1.0 (RDF) или Atom; другой корневой элемент — отказ PARSE_ERROR.
+
+    Этап 4.2: прежде HTML или иной XML без ленты тихо превращался в ноль записей (аудит API 07.10.2026, п. 2.6).
+    """
     root = parse_xml(body, what=f"лента {feed_url}")
-    channel = root.find("channel")
-    if channel is not None:
+    tag = root.tag.rsplit("}", 1)[-1].lower()
+    if tag == "rss":
+        channel = root.find("channel")
+        if channel is None:
+            raise AdapterFailure(AdapterErrorCode.PARSE_ERROR.value, f"лента {feed_url}: RSS без channel")
         feed_title = text_of(channel.find("title"))
         return [_rss_entry(item, feed_title) for item in channel.findall("item")]
-    feed_title = text_of(root.find("atom:title", ATOM_NS))
-    return [_atom_entry(entry, feed_title) for entry in root.findall("atom:entry", ATOM_NS)]
+    if tag == "rdf":
+        channel = root.find("rss1:channel", RSS1_NS)
+        feed_title = text_of(channel.find("rss1:title", RSS1_NS)) if channel is not None else ""
+        return [_rdf_entry(item, feed_title) for item in root.findall("rss1:item", RSS1_NS)]
+    if tag == "feed":
+        feed_title = text_of(root.find("atom:title", ATOM_NS))
+        return [_atom_entry(entry, feed_title) for entry in root.findall("atom:entry", ATOM_NS)]
+    raise AdapterFailure(AdapterErrorCode.PARSE_ERROR.value, f"лента {feed_url}: не RSS и не Atom (корень <{tag}>)")
+
+
+def _rdf_entry(item: Any, feed_title: str) -> FeedEntry:
+    """Запись RSS 1.0 (RDF): заголовок, ссылка, описание и дата Dublin Core."""
+    return FeedEntry(
+        title=text_of(item.find("rss1:title", RSS1_NS)),
+        link=text_of(item.find("rss1:link", RSS1_NS)),
+        summary=text_of(item.find("rss1:description", RSS1_NS)),
+        published_at=parse_datetime(text_of(item.find("dc:date", RSS1_NS)) or None),
+        feed_title=feed_title,
+        categories=[text_of(subject) for subject in item.findall("dc:subject", RSS1_NS) if text_of(subject)],
+    )
 
 
 def _rss_entry(item: Any, feed_title: str) -> FeedEntry:

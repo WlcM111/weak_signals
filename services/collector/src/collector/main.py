@@ -49,7 +49,7 @@ from collector.application.use_cases.start_collection import StartCollection
 from collector.application.use_cases.stream_documents import StreamDocuments
 from collector.config import CollectorSettings
 from collector.domain.values import AdapterErrorCode, SourceKey
-from collector.domain.source_policy import SourcePolicy
+from collector.domain.source_policy import SourcePolicy, effective_rates
 from ws_common.clock import SystemClock
 from ws_common.config import load_settings
 from ws_common.db import build_pool
@@ -104,7 +104,11 @@ async def serve(settings: CollectorSettings) -> int:
         connect_timeout_seconds=settings.gdelt_connect_timeout_seconds,
     )
     limiter = TokenBucketRateLimiter(
-        rates={entry.source_key: entry.rate_limit_rps for entry in catalog.values()},
+        rates=effective_rates(
+            {entry.source_key: entry.rate_limit_rps for entry in catalog.values()},
+            github_token=bool(settings.github_token),
+            semantic_scholar_key=bool(settings.semantic_scholar_api_key),
+        ),
         clock=clock,
         replicas=settings.collector_replicas,
         on_wait=metrics.rate_limit_wait,

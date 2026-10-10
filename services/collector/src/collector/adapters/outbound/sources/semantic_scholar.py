@@ -52,6 +52,9 @@ class SemanticScholarAdapter(BaseSourceAdapter):
         window_months: int = DEFAULT_WINDOW_MONTHS,
     ) -> None:
         super().__init__(http, limiter, clock)
+        # Этап 4.2: прицельный проход (до 40 запросов на тему) — только с ключом: без него общий анонимный пул
+        # отвечает 429 (замер 07.10.2026: три 429 подряд в каждой теме). Широкий bulk-проход идёт и без ключа.
+        self.supports_targeted = bool(api_key)
         self._headers = {"x-api-key": api_key} if api_key else {}
         self._window_months = window_months
 

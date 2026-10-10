@@ -29,6 +29,12 @@ CONNECT_TIMEOUT_SECONDS = 5.0
 RETRY_BASE_DELAY = 0.5
 RETRY_MAX_DELAY = 8.0
 RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+MAX_REDIRECTS = 5
+# Заголовки, которые нельзя переносить на другой origin при редиректе (ключи источников).
+SENSITIVE_HEADERS = frozenset({"authorization", "x-api-key", "cookie"})
+RATE_HEADERS = ("x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset", "x-ratelimit-resource",
+                "x-ratelimit-used", "retry-after")
 # Суммарное ожидание внутренних повторов одного логического вызова: остальное — лимитеру источника.
 MAX_RETRY_SLEEP_TOTAL = 15.0
 
@@ -55,7 +61,9 @@ class HttpxClient:
                 max_connections=max_connections_per_host * 4, max_keepalive_connections=max_connections_per_host
             ),
             headers={"User-Agent": f"weak-signals/1.0 (mailto:{contact_email})"},
-            follow_redirects=True,
+            # Этап 4.2: переходы выполняются вручную — хост каждого проверяется по белому списку адаптера,
+            # ключи не уходят на чужой origin (аудит API 07.10.2026, п. 2.8).
+            follow_redirects=False,
             verify=True,
         )
 
@@ -136,7 +144,7 @@ class HttpxClient:
         while True:
             self.attempts_total += 1
             try:
-                return await self._attempt(url, params, headers, method, json_body)
+                return await self._attempt(url, params, headers, method, json_body, allowed_hosts)
             except (HttpStatusError, HttpTimeoutError, HttpTransportError) as exc:
                 retryable = isinstance(exc, (HttpTimeoutError, HttpTransportError)) or (
                     isinstance(exc, HttpStatusError) and exc.status in RETRYABLE_STATUSES
@@ -164,15 +172,38 @@ class HttpxClient:
         headers: Mapping[str, str] | None,
         method: str = "GET",
         json_body: Mapping[str, Any] | None = None,
+        allowed_hosts: frozenset[str] | None = None,
     ) -> bytes:
-        """Один HTTP-запрос с потоковым чтением и контролем размера ответа."""
-        try:
-            request = self._client.build_request(method, url, params=params, headers=headers, json=json_body)
-            response = await self._client.send(request, stream=True)
-        except httpx.TimeoutException as exc:
-            raise HttpTimeoutError(f"таймаут запроса: {exc}") from exc
-        except httpx.HTTPError as exc:
-            raise HttpTransportError(f"сетевая ошибка: {exc}") from exc
+        """Один HTTP-запрос: переходы по редиректам с проверкой хоста, потоковое чтение, контроль размера."""
+        current_headers = dict(headers or {})
+        current_params = params
+        current_method, current_body = method, json_body
+        origin = _origin(url)
+        response = None
+        for _hop in range(MAX_REDIRECTS + 1):
+            try:
+                request = self._client.build_request(current_method, url, params=current_params,
+                                                     headers=current_headers, json=current_body)
+                response = await self._client.send(request, stream=True)
+            except httpx.TimeoutException as exc:
+                raise HttpTimeoutError(f"таймаут запроса: {exc}") from exc
+            except httpx.HTTPError as exc:
+                raise HttpTransportError(f"сетевая ошибка ({type(exc).__name__}): {exc}") from exc
+            location = response.headers.get("location")
+            if response.status_code not in REDIRECT_STATUSES or not location:
+                break
+            await response.aclose()
+            url = str(response.url.join(location))
+            if allowed_hosts is not None:
+                self._check_host(url, allowed_hosts)
+            if _origin(url) != origin:
+                current_headers = {k: v for k, v in current_headers.items() if k.lower() not in SENSITIVE_HEADERS}
+            current_params = None  # параметры уже вошли в адрес исходного запроса; Location — полный адрес
+            if response.status_code == 303 or (response.status_code in (301, 302) and current_method == "POST"):
+                current_method, current_body = "GET", None
+        else:
+            await response.aclose()
+            raise HttpTransportError(f"больше {MAX_REDIRECTS} редиректов: {url}")
         try:
             if response.status_code >= 400:
                 # Заголовки CDN показывают, кто отказал: сервер источника или промежуточный узел (arXiv, 406).
@@ -184,6 +215,7 @@ class HttpxClient:
                     f"источник ответил кодом {response.status_code}" + (f" [{details}]" if details else ""),
                     _retry_after(response.headers.get("Retry-After")),
                     cdn,
+                    {name: response.headers.get(name, "")[:40] for name in RATE_HEADERS if response.headers.get(name)},
                 )
             chunks: list[bytes] = []
             size = 0
@@ -215,6 +247,11 @@ class HttpxClient:
             raise HttpTransportError(f"недопустимая схема URL: {parts.scheme}")
         if not any(host == allowed or host.endswith(f".{allowed}") for allowed in allowed_hosts):
             raise HttpTransportError(f"хост {host} не разрешён для этого адаптера")
+
+
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parts = urlsplit(url)
+    return parts.scheme.lower(), (parts.hostname or "").lower(), parts.port
 
 
 def _retry_after(value: str | None) -> float | None:

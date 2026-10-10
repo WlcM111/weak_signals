@@ -5,10 +5,9 @@ from __future__ import annotations
 import unittest
 from datetime import UTC, date, datetime
 from pathlib import Path
-from urllib.parse import unquote
 
 from collector.adapters.outbound.rules_loader import load_classification_config
-from collector.adapters.outbound.sources.arxiv import ArxivAdapter, phrase_query, reset_arxiv_gate
+from collector.adapters.outbound.sources.arxiv import ArxivAdapter
 from collector.adapters.outbound.sources.github import MAX_TARGETED_TERMS, GithubAdapter
 from collector.adapters.outbound.sources.hackernews import HackerNewsAdapter
 from collector.adapters.outbound.sources.openalex import OpenAlexAdapter
@@ -33,13 +32,6 @@ from ..fakes import (
 NOW = datetime(2026, 10, 7, 12, 0, tzinfo=UTC)
 SINCE = date(2024, 10, 7)
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
-EMPTY_FEED = '<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'
-ONE_ENTRY = """<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">
-<entry><id>http://arxiv.org/abs/2602.17449v1</id><published>2026-02-19T10:00:00Z</published>
-<updated>2026-02-19T10:00:00Z</updated><title>ACOS: Arrays of Cheap Optical Switches</title>
-<summary>Optical circuit switching for AI training clusters.</summary>
-<link href="http://arxiv.org/abs/2602.17449v1" rel="alternate" type="text/html"/></entry></feed>"""
-
 
 async def drain(iterator) -> list:  # noqa: ANN001
     return [item async for item in iterator]
@@ -90,23 +82,14 @@ class ValidationTest(unittest.TestCase):
 
 class TargetedAdaptersTest(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        reset_arxiv_gate()
         self.http = FakeHttpClient()
         self.clock = FakeClock(NOW)
 
-    async def test_arxiv_phrase_in_date_window_by_relevance_then_all_words(self) -> None:
-        self.http.enqueue(EMPTY_FEED)
-        self.http.enqueue(ONE_ENTRY)
-        adapter = ArxivAdapter(self.http, FakeRateLimiter(), self.clock)
-        documents = await drain(adapter.search_targeted(["optical circuit switching"], 3, SINCE, 10_000.0))
-        first, second = (call[1]["params"] for call in self.http.calls)
-        self.assertEqual(first["sortBy"], "relevance")
-        self.assertEqual(first["max_results"], 3)
-        self.assertEqual(first["search_query"],
-                         'all:"optical circuit switching" AND submittedDate:[202410070000 TO 202610072359]')
-        self.assertTrue(second["search_query"].startswith("all:optical AND all:circuit AND all:switching"))
-        self.assertEqual([d.matched_term for d in documents], ["optical circuit switching"])
-        self.assertEqual(phrase_query("KV cache  offloading"), 'all:"KV cache offloading"')
+    def test_arxiv_never_targeted_and_s2_only_with_key(self) -> None:
+        # Этап 4.2: arXiv в прицельном проходе не опрашивается; Semantic Scholar — только с ключом
+        self.assertFalse(ArxivAdapter(self.http, FakeRateLimiter(), self.clock).supports_targeted)
+        self.assertFalse(SemanticScholarAdapter(self.http, FakeRateLimiter(), self.clock).supports_targeted)
+        self.assertTrue(SemanticScholarAdapter(self.http, FakeRateLimiter(), self.clock, api_key="k").supports_targeted)
 
     async def test_openalex_github_s2_hn_requests(self) -> None:
         self.http.enqueue({"results": [{"id": "https://openalex.org/W1", "title": "KV cache offloading",
@@ -124,7 +107,7 @@ class TargetedAdaptersTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(github_calls), MAX_TARGETED_TERMS)
         self.assertEqual(github_calls[0][1]["params"], {"q": "tech 0 pushed:>=2024-10-07", "per_page": 3})
         self.http.enqueue({"data": []})
-        await drain(SemanticScholarAdapter(self.http, FakeRateLimiter(), self.clock).search_targeted(
+        await drain(SemanticScholarAdapter(self.http, FakeRateLimiter(), self.clock, api_key="k").search_targeted(
             ['x402 "payments"'], 3, SINCE, 10_000.0))
         url, call = self.http.calls[-1]
         self.assertEqual(url, RELEVANCE_URL)
@@ -164,10 +147,12 @@ class TwoPhaseCollectionTest(unittest.IsolatedAsyncioTestCase):
     async def test_broad_then_targeted_with_model_and_mined_technologies(self) -> None:
         broad = [raw_document(f"https://example.org/broad/{i}", title=title)
                  for i, title in enumerate(["KV cache offloading at scale", "Tiered KV cache offloading on CXL",
-                                            "Survey of storage", "KV cache offloading engine"]
-                                           + [f"Unrelated broad paper {n}" for n in range(6)])]
+                                            "Survey of storage"] + [f"Unrelated broad paper {n}" for n in range(6)])]
         openalex = TargetedScriptedAdapter(SourceKey.OPENALEX, broad, targeted={"optical circuit switching": 2})
-        rss = ScriptedAdapter(SourceKey.RSS, [raw_document("https://techcrunch.com/2026/10/01/a", title="Startup news")])
+        # этап 4.2: технология извлекается, только если повторяется в двух разных источниках
+        rss = ScriptedAdapter(SourceKey.RSS, [raw_document("https://techcrunch.com/2026/10/01/a", title="Startup news"),
+                                              raw_document("https://techcrunch.com/2026/10/02/b",
+                                                           title="Startup ships KV cache offloading engine")])
         collection, _ = await self.collections.create_if_absent(CollectionDraft(
             idempotency_key="job-1:collect", query_text="инфраструктура для ИИ", mode=CollectionMode.SEARCH,
             terms=SearchTerms(ru=("инфраструктура ИИ",), en=("ai infrastructure",), technologies=("optical circuit switching",)),

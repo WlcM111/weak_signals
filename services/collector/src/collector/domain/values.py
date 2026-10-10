@@ -100,6 +100,8 @@ class AdapterErrorCode(StrEnum):
     HTTP_4XX = "HTTP_4XX"
     HTTP_5XX = "HTTP_5XX"
     TIMEOUT = "TIMEOUT"
+    # Этап 4.2: отказ до HTTP-ответа — DNS, соединение, TLS (раньше записывался как HTTP_5XX).
+    NETWORK_ERROR = "NETWORK_ERROR"
     PARSE_ERROR = "PARSE_ERROR"
     AUTH_MISSING = "AUTH_MISSING"
     DISABLED = "DISABLED"

@@ -16,8 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from collections.abc import AsyncIterator, Sequence
-from datetime import UTC, date
+from collections.abc import AsyncIterator
 from typing import Any
 
 from collector.adapters.outbound.sources.base import (
@@ -30,6 +29,7 @@ from collector.adapters.outbound.sources.base import (
 from collector.adapters.outbound.sources.xml_utils import parse_xml, text_of
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
+from collector.domain.source_policy import SourcePolicy
 from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTerms, SourceKey
 from ws_common.logging import get_logger
 
@@ -48,7 +48,7 @@ COOLDOWN_SECONDS = 30 * 60
 # Таймаут не включает паузу: медленный ответ — не отказ сервера. Стенд 29.09: один таймаут в теме финтеха
 # выключил arXiv на 30 минут, и в темах «защита ИИ» и «edge» не было ни одного запроса (q0).
 COOLDOWN_CODES = frozenset(
-    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value}
+    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value, AdapterErrorCode.NETWORK_ERROR.value}
 )
 # 403 — блокировка клиента, 406 — отказ по частоте от Varnish arXiv.
 COOLDOWN_STATUSES = frozenset({403, 406})
@@ -89,6 +89,11 @@ class ArxivAdapter(BaseSourceAdapter):
     """Поиск препринтов arXiv по фразам запроса."""
 
     key = SourceKey.ARXIV
+    # Этап 4.2: в прицельном проходе arXiv не опрашивается — препринты arXiv индексирует OpenAlex и ищет
+    # по релевантности, а один ответ 429 выключает arXiv на 30 минут на весь сбор.
+    supports_targeted = False
+    # Повтор после сбоя — не здесь: шлюз arXiv ставит паузу после отказа (этап 4.2, быстрых повторов нет).
+    policy = SourcePolicy(transient_retries=0)
     raw_meta_keys = frozenset({"categories"})
     allowed_hosts = frozenset({"export.arxiv.org", "arxiv.org"})
 
@@ -122,31 +127,6 @@ class ArxivAdapter(BaseSourceAdapter):
                     if produced >= limits.max_documents_per_source:
                         return
                 if len(entries) < PAGE_SIZE:
-                    break
-
-    supports_targeted = True
-
-    async def search_targeted(
-        self, technologies: Sequence[str], per_term: int, since: date, deadline: float
-    ) -> AsyncIterator[RawDocument]:
-        """Этап 4: точная фраза технологии в окне дат, по релевантности; без совпадений — все слова фразы."""
-        until = self._clock.now().astimezone(UTC).date()
-        for term in technologies:
-            for query in (phrase_query(term), search_query(term)):
-                if self.deadline_reached(deadline):
-                    return
-                body = await self._fetch_page({
-                    "search_query": f"{query} AND submittedDate:[{since:%Y%m%d}0000 TO {until:%Y%m%d}2359]",
-                    "start": 0,
-                    "max_results": per_term,
-                    "sortBy": "relevance",
-                    "sortOrder": "descending",
-                })
-                entries = parse_xml(body, what="arXiv").findall("atom:entry", NS)
-                documents = [doc for doc in (_to_raw_document(entry, term) for entry in entries) if doc is not None]
-                for document in documents[:per_term]:
-                    yield document
-                if documents or query == search_query(term):
                     break
 
     async def _fetch_page(self, params: dict[str, str | int]) -> str:
@@ -188,11 +168,6 @@ def _status(failure: AdapterFailure) -> int | None:
 _VIA_RE = re.compile(r"via=([^;\]]*)")
 _WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9\-]{2,}")
 _QUERY_STOP = frozenset({"and", "for", "the", "with", "from", "into", "based", "using", "via", "new", "novel"})
-
-
-def phrase_query(term: str) -> str:
-    """Точная фраза технологии во всех полях arXiv (прицельный поиск, этап 4)."""
-    return 'all:"' + " ".join(term.replace('"', " ").split()) + '"'
 
 
 def search_query(term: str) -> str:

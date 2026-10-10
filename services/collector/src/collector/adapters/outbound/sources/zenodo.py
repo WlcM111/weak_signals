@@ -31,6 +31,7 @@ from collector.adapters.outbound.sources.base import (
 )
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
+from collector.domain.source_policy import SourcePolicy
 from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTerms, SourceKey
 from ws_common.logging import get_logger
 
@@ -50,7 +51,8 @@ COOLDOWN_SECONDS = 10 * 60
 # Коды отказов, означающие недоступность Zenodo или ограничение клиента. HTTP_5XX включает
 # сетевые ошибки: базовый адаптер переводит их в этот код.
 COOLDOWN_CODES = frozenset(
-    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value, AdapterErrorCode.TIMEOUT.value}
+    {AdapterErrorCode.RATE_LIMITED.value, AdapterErrorCode.HTTP_5XX.value, AdapterErrorCode.TIMEOUT.value,
+     AdapterErrorCode.NETWORK_ERROR.value}
 )
 # Ответ 403 Zenodo использует для блокировки клиентов, нарушающих лимиты.
 COOLDOWN_STATUSES = frozenset({403})
@@ -113,6 +115,9 @@ class ZenodoAdapter(BaseSourceAdapter):
     """Поиск препринтов Zenodo по фразам запроса."""
 
     key = SourceKey.ZENODO
+    # Этап 4.2: повтор после сбоя — не здесь: шлюз Zenodo держит интервал 3,4 с и паузу после отказа;
+    # повтор в обход шлюза нарушал бы интервал (аудит API 07.10.2026, Zenodo).
+    policy = SourcePolicy(transient_retries=0)
     raw_meta_keys = frozenset({"record_id", "resource_type"})
     allowed_hosts = frozenset({"zenodo.org"})
 

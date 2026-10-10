@@ -1,7 +1,13 @@
 """Token bucket на адаптер источника (§13.4 ТЗ).
 
-Ёмкость = `rate_limit_rps × 5`, пополнение = `rate_limit_rps`; лимит делится на число реплик.
-Ответ 429 → пауза `Retry-After` и снижение лимита вдвое на 5 минут.
+Этап 4.2 (аудит API 07.10.2026, п. 2.2–2.3):
+- ёмкость 1 — без стартового всплеска: соседние запросы источника не чаще `1 / rate_limit_rps`
+  (прежняя ёмкость `rate × 5` разрешала первые запросы почти одновременно);
+- общая пауза `blocked_until`: после 429 или квотного 403 ни одна задача источника не получает разрешение раньше
+  срока `Retry-After` (прежде засыпала только задача, получившая отказ); новая пауза только продлевает старую;
+- 429 дополнительно снижает лимит вдвое на 5 минут; `defer` — короткая общая пауза без снижения лимита
+  (повтор после сетевого сбоя или 5xx).
+Лимит делится на число реплик; общий счётчик между процессами не ведётся — стенд работает одним процессом.
 """
 
 from __future__ import annotations
@@ -16,7 +22,6 @@ from ws_common.clock import Clock
 PENALTY_SECONDS = 300.0
 PENALTY_FACTOR = 0.5
 DEFAULT_RETRY_AFTER = 5.0
-CAPACITY_MULTIPLIER = 5.0
 
 
 @dataclass(slots=True)
@@ -29,6 +34,7 @@ class _Bucket:
     tokens: float
     updated_at: float
     penalty_until: float = 0.0
+    blocked_until: float = 0.0
 
 
 class TokenBucketRateLimiter:
@@ -50,8 +56,8 @@ class TokenBucketRateLimiter:
             source_key: _Bucket(
                 base_rate=rate / replicas,
                 rate=rate / replicas,
-                capacity=max(1.0, rate / replicas * CAPACITY_MULTIPLIER),
-                tokens=max(1.0, rate / replicas * CAPACITY_MULTIPLIER),
+                capacity=1.0,
+                tokens=1.0,
                 updated_at=now,
             )
             for source_key, rate in rates.items()
@@ -66,25 +72,49 @@ class TokenBucketRateLimiter:
             return
         async with self._locks[source_key]:
             self._refill(bucket)
-            if bucket.tokens < 1.0:
-                wait = (1.0 - bucket.tokens) / bucket.rate
+            while True:
+                now = self._clock.monotonic()
+                blocked = max(0.0, bucket.blocked_until - now)
+                missing = 0.0 if bucket.tokens >= 1.0 else (1.0 - bucket.tokens) / bucket.rate
+                wait = max(blocked, missing)
+                if wait <= 0.0:
+                    break
+                seen = bucket.blocked_until
                 if self._on_wait is not None:
                     self._on_wait(source_key)
                 await self._clock.sleep(wait)
                 self._refill(bucket)
+                if bucket.blocked_until <= seen:
+                    break  # за время ожидания новой общей паузы не появилось — разрешение выдано
             bucket.tokens = max(0.0, bucket.tokens - 1.0)
 
     async def penalize(self, source_key: SourceKey, retry_after: float | None) -> None:
-        """Пауза после 429 и временное снижение лимита источника."""
-        bucket = self._buckets.get(source_key)
+        """429 или квотный 403: общая пауза всем задачам источника и снижение лимита вдвое на 5 минут.
+
+        Вызывающий не засыпает сам: следующий `acquire` любой задачи дождётся конца паузы.
+        """
         pause = DEFAULT_RETRY_AFTER if retry_after is None else max(0.0, retry_after)
-        if bucket is not None:
-            async with self._locks[source_key]:
-                bucket.rate = max(bucket.base_rate * PENALTY_FACTOR, 0.01)
-                bucket.penalty_until = self._clock.monotonic() + PENALTY_SECONDS
-                bucket.tokens = 0.0
-                bucket.updated_at = self._clock.monotonic()
-        await self._clock.sleep(pause)
+        bucket = self._buckets.get(source_key)
+        if bucket is None:
+            await self._clock.sleep(pause)  # неограниченный источник: пауза только для вызывающего
+            return
+        now = self._clock.monotonic()
+        bucket.blocked_until = max(bucket.blocked_until, now + pause)
+        bucket.rate = max(bucket.base_rate * PENALTY_FACTOR, 0.01)
+        bucket.penalty_until = now + PENALTY_SECONDS
+        bucket.tokens = 0.0
+        bucket.updated_at = now
+
+    def defer(self, source_key: SourceKey, seconds: float) -> None:
+        """Короткая общая пауза источника без снижения лимита: повтор после сетевого сбоя или 5xx."""
+        bucket = self._buckets.get(source_key)
+        if bucket is not None and seconds > 0:
+            bucket.blocked_until = max(bucket.blocked_until, self._clock.monotonic() + seconds)
+
+    def blocked_for(self, source_key: SourceKey) -> float:
+        """Сколько секунд источник ещё на общей паузе (диагностика и тесты)."""
+        bucket = self._buckets.get(source_key)
+        return max(0.0, bucket.blocked_until - self._clock.monotonic()) if bucket else 0.0
 
     def _refill(self, bucket: _Bucket) -> None:
         """Пополняет ведро и снимает штраф по истечении срока."""

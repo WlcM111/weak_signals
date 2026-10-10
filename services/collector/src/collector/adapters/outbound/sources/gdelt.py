@@ -36,6 +36,7 @@ from collector.adapters.outbound.sources.base import (
 from collector.application.ports import HttpClient, RateLimiter
 from collector.domain.entities import RawDocument
 from collector.domain.errors import AdapterFailure
+from collector.domain.source_policy import SourcePolicy
 from collector.domain.values import AdapterErrorCode, CollectionLimits, SearchTerms, SourceKey
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
@@ -94,6 +95,8 @@ class GdeltAdapter(BaseSourceAdapter):
     """Поиск деловых новостей GDELT по фразам запроса, окнами истории."""
 
     key = SourceKey.GDELT
+    # Этап 4.2: запросы GDELT не менялись; повтор после таймаута — только собственный повтор окна адаптера.
+    policy = SourcePolicy(max_requests=8, transient_retries=0)
     raw_meta_keys = frozenset({"domain", "source_country"})
     allowed_hosts = frozenset({"api.gdeltproject.org"})
 

@@ -76,7 +76,7 @@ class ArxivGateTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.http.calls), 2)
 
     async def test_cooldown_after_network_error(self) -> None:
-        await self.assert_cooldown_after(HttpTransportError("разрыв"), AdapterErrorCode.HTTP_5XX.value)
+        await self.assert_cooldown_after(HttpTransportError("разрыв"), AdapterErrorCode.NETWORK_ERROR.value)
 
     async def test_no_cooldown_after_bad_request(self) -> None:
         self.http.enqueue(status_error(400))

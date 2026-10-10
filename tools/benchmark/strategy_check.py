@@ -33,7 +33,7 @@ from collector.adapters.outbound.http_client import HttpxClient
 from collector.adapters.outbound.rate_limiter import TokenBucketRateLimiter
 from collector.config import CollectorSettings
 from collector.domain.errors import AdapterFailure
-from collector.domain.source_policy import SourcePolicy
+from collector.domain.source_policy import SourcePolicy, effective_rates
 from collector.domain.technology_mining import mine_technologies, targeted_since
 from collector.domain.values import CollectionLimits, CollectionMode, SearchTerms, SourceKey
 from collector.main import SLOW_SOURCE_TIMEOUT_SECONDS, _create_adapter
@@ -46,8 +46,9 @@ BROAD_SECONDS, TARGETED_SECONDS = 120, 150
 BROAD_PER_SOURCE, RSS_PER_SOURCE, PER_TERM, MINED, MAX_TECH = 60, 150, 3, 15, 40
 DOMAINS = (("индустриальн", "industrial_ai"), ("робототехник", "robotics"), ("инфраструктур", "ai_infrastructure"),
            ("финтех", "fintech"), ("безопасност", "ai_security"), ("edge", "edge"))
-RATES = {SourceKey.ARXIV: 0.33, SourceKey.SEMANTIC_SCHOLAR: 0.5, SourceKey.OPENALEX: 5.0, SourceKey.GITHUB: 0.4,
-         SourceKey.HACKERNEWS: 1.0, SourceKey.ZENODO: 1.0, SourceKey.ROSPATENT: 1.0, SourceKey.RSS: 2.0}
+# Частоты каталога стенда (миграции collector); итоговые — с границами по правилам сервисов (этап 4.2).
+CATALOG_RATES = {SourceKey.ARXIV: 0.1, SourceKey.SEMANTIC_SCHOLAR: 0.5, SourceKey.OPENALEX: 5.0, SourceKey.GITHUB: 0.45,
+                 SourceKey.HACKERNEWS: 1.0, SourceKey.ZENODO: 1.0, SourceKey.ROSPATENT: 0.5, SourceKey.RSS: 2.0}
 _NON_WORD = re.compile(r"[^\w]+", re.UNICODE)
 
 
@@ -134,11 +135,16 @@ async def main() -> None:
     synonyms = yaml.safe_load(open(synonyms_path, encoding="utf-8"))["synonyms"]
     settings, clock = CollectorSettings(), SystemClock()
     http = HttpxClient(contact_email=settings.contact_email, read_timeout_seconds=settings.collector_http_timeout_seconds,
-                       max_bytes=settings.http_max_bytes, retries=settings.collector_http_retries)
+                       max_bytes=settings.http_max_bytes, retries=0)  # повторы — в адаптерах, через лимитер
     slow = HttpxClient(contact_email=settings.contact_email,
                        read_timeout_seconds=max(settings.collector_http_timeout_seconds, SLOW_SOURCE_TIMEOUT_SECONDS),
                        max_bytes=settings.http_max_bytes, retries=0)
-    limiter = TokenBucketRateLimiter(rates=RATES, clock=clock)
+    github_token, s2_key = bool(settings.github_token), bool(settings.semantic_scholar_api_key)
+    rates = effective_rates(CATALOG_RATES, github_token=github_token, semantic_scholar_key=s2_key)
+    limiter = TokenBucketRateLimiter(rates=rates, clock=clock)
+    print(f"доступ: GitHub — {'токен есть' if github_token else 'без токена'}, {rates[SourceKey.GITHUB] * 60:.0f} запросов/мин; "
+          f"Semantic Scholar — {'ключ есть, прицельный поиск включён' if s2_key else 'без ключа, только широкий bulk'}; "
+          f"arXiv — только широкий проход", flush=True)
     report, rows, totals = [], [], {"experts": 0, "broad": 0, "with_targeted": 0, "organizer_url": 0}
     started = time.monotonic()
     for topic in topics:
