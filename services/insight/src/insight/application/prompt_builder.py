@@ -165,14 +165,19 @@ class PromptBuilder:
         return self._bundle(system, user, schema, INSIGHT_PROMPT_VERSION)
 
     def build_expand_prompt(self, query_text: str, domain_tags: Sequence[str]) -> PromptBundle:
-        """Промпт расширения запроса в поисковые термины."""
+        """Промпт расширения запроса в поисковые термины.
+
+        Модель видит полную схему (технологий до 80), а проверка ответа целиком к списку технологий не строга:
+        его проверяет и очищает `ExpandQuery` отдельно, чтобы ошибка в нём не отбрасывала фразы темы
+        (этап 4.2: ответ с 41 технологией целиком уходил в резерв — 2 темы из 6 без технологий).
+        """
         schema = self._schemas[EXPAND_SCHEMA_FILE]
         system = self._environment.get_template(f"{EXPAND_PROMPT_VERSION}.j2").render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2),
             domain_tags=list(domain_tags),
         )
         user = json.dumps({"query": query_text}, ensure_ascii=False)
-        return self._bundle(system, user, schema, EXPAND_PROMPT_VERSION)
+        return self._bundle(system, user, expand_validation_schema(schema), EXPAND_PROMPT_VERSION)
 
     def build_judge_prompt(self, query_text: str, candidates: Sequence[dict]) -> PromptBundle:
         """Промпт смысловой оценки кандидатов; `candidates` — словари с id, title, keyphrases, evidence."""
@@ -212,3 +217,11 @@ class PromptBuilder:
         return PromptBundle(
             messages=messages, json_schema=schema, request_sha256=digest, prompt_version=version
         )
+
+
+def expand_validation_schema(schema: dict) -> dict:
+    """Схема проверки ответа ExpandQuery: `technologies` — любое значение, его проверяет `ExpandQuery` отдельно."""
+    relaxed = json.loads(json.dumps(schema))
+    if "technologies" in relaxed.get("properties", {}):
+        relaxed["properties"]["technologies"] = {}
+    return relaxed

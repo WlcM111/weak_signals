@@ -96,7 +96,8 @@ def _contains(query_norm: str, term: str) -> bool:
     return term[:MIN_STEM_LENGTH] in query_norm
 
 
-MAX_TECHNOLOGIES = 40
+MAX_TECHNOLOGIES = 40          # в работу идут первые 40 после очистки — бюджет прицельного прохода
+MAX_TECHNOLOGIES_RAW = 80      # сколько принимается из ответа модели (схема ответа)
 MIN_TECHNOLOGY_LENGTH = 2
 MAX_TECHNOLOGY_LENGTH = 80
 MAX_TECHNOLOGY_WORDS = 6
@@ -150,6 +151,25 @@ def clean_technologies(items: Sequence[str], forbidden: Sequence[str] = ()) -> t
             continue
         seen[key] = term
     return tuple(seen.values())[:MAX_TECHNOLOGIES]
+
+
+def technologies_payload(value: object) -> tuple[list[str], int, str | None]:
+    """Отдельная проверка списка технологий из ответа модели: строки, не больше 80 (лишние отбрасываются).
+
+    Возвращает принятые строки, сколько элементов вернула модель и описание нарушения (None — без нарушений).
+    Ошибка в этом списке не отменяет фразы темы: расширение остаётся, технологий будет меньше или ни одной.
+    """
+    if value is None:
+        return [], 0, None
+    if not isinstance(value, list):
+        return [], 0, f"technologies — не список, а {type(value).__name__}"
+    strings = [item for item in value if isinstance(item, str)]
+    problems = []
+    if len(strings) != len(value):
+        problems.append(f"не строк: {len(value) - len(strings)}")
+    if len(strings) > MAX_TECHNOLOGIES_RAW:
+        problems.append(f"элементов {len(value)} больше {MAX_TECHNOLOGIES_RAW}, взяты первые {MAX_TECHNOLOGIES_RAW}")
+    return strings[:MAX_TECHNOLOGIES_RAW], len(value), "; ".join(problems) or None
 
 
 def clean_terms(terms: Sequence[str], forbidden: Sequence[str] = ()) -> tuple[str, ...]:
@@ -235,7 +255,11 @@ class ExpandQuery:
         tags = tuple(
             tag for tag in dict.fromkeys(payload.get("domain_tags", [])) if tag in DOMAIN_TAGS
         )[:MAX_DOMAIN_TAGS]
-        technologies = clean_technologies(payload.get("technologies", []), forbidden=(*DOMAIN_TAGS, *en_terms))
+        raw, returned, problem = technologies_payload(payload.get("technologies"))
+        technologies = clean_technologies(raw, forbidden=(*DOMAIN_TAGS, *en_terms))
+        (log.warning if problem else log.info)(
+            "expand.technologies", returned=returned, accepted=len(raw), kept=len(technologies), problem=problem
+        )
         return QueryExpansion(
             query_norm=query_norm,
             ru_terms=ru_terms,
