@@ -151,13 +151,13 @@ def article_entry(original: str, timestamp: str, publisher: str) -> ArchiveEntry
         captured = datetime.strptime(timestamp[:14].ljust(14, "0"), "%Y%m%d%H%M%S").replace(tzinfo=UTC)
     except ValueError:
         captured = None
-    published = published_from_path(path) or (captured.date() if captured else None)
+    published = published_from_path(path)  # этап 4.6 (P09): дата сохранения в архиве — не дата публикации
     tokens = tokens_of(title)
     if not tokens:
         return None
     return ArchiveEntry(url=f"https://{host}{path}", publisher=publisher, origin="wayback",
                         title=title[:1].upper() + title[1:], published_on=published, captured_at=captured,
-                        tokens=tuple(tokens))
+                        tokens=tuple(tokens), published_source="url" if published else "capture", text_status="slug")
 
 
 class WaybackHarvester:
@@ -170,37 +170,54 @@ class WaybackHarvester:
         self._report = report
 
     async def harvest(self, publishers: Sequence[Publisher], months: Sequence[str], refresh: Sequence[str] = ()) -> int:
-        """Все месяцы всех изданий; уже перечисленные пропускаются, кроме месяцев `refresh`. Возвращает число записей."""
+        """Все месяцы всех изданий; перечисленные до конца пропускаются, кроме месяцев `refresh`.
+
+        Этап 4.6 (аудит P11): месяц, где после MAX_PAGES страниц осталось продолжение, получает статус partial и
+        место продолжения; следующий запуск продолжает с него, а done ставится только по подтверждённому концу.
+        """
         total = 0
         for publisher in publishers:
-            done = await self._store.harvested_periods(publisher.host)
+            states = await self._store.harvest_states(publisher.host)
             for period in months:
-                if done.get(period) == "done" and period not in refresh:
+                status, resume = states.get(period, ("", None))
+                if status == "done" and period not in refresh:
                     continue
-                saved, detail = await self._harvest_month(publisher, period)
-                status = "done" if detail is None else "failed"
-                await self._store.mark_harvest(publisher.host, period, status, saved, detail or "")
+                saved, detail, left = await self._harvest_month(publisher, period, resume if status == "partial" else None)
+                state = "failed" if detail is not None else ("partial" if left else "done")
+                await self._store.mark_harvest(publisher.host, period, state, saved, detail or "", left)
                 total += saved
-                self._report(f"{publisher.host:30} {period}: {'записей ' + str(saved) if detail is None else 'ОТКАЗ ' + detail}")
+                note = {"done": f"записей {saved}", "partial": f"записей {saved}, продолжение — следующим запуском",
+                        "failed": f"ОТКАЗ {detail}"}[state]
+                self._report(f"{publisher.host:30} {period}: {note}")
         return total
 
-    async def _harvest_month(self, publisher: Publisher, period: str) -> tuple[int, str | None]:
+    async def _harvest_month(self, publisher: Publisher, period: str,
+                             resume: str | None = None) -> tuple[int, str | None, str | None]:
+        """Записей сохранено, причина отказа и место продолжения («номер префикса|ключ») либо None."""
         saved = 0
-        for prefix in publisher.prefixes:
-            resume_key = None
+        start, resume_key = 0, None
+        if resume and "|" in resume:
+            index, _, key = resume.partition("|")
+            start, resume_key = (int(index), key or None) if index.isdigit() else (0, None)
+        for index, prefix in enumerate(publisher.prefixes):
+            if index < start:
+                continue
+            key = resume_key if index == start else None
             for _page in range(MAX_PAGES):
-                body, failure = await self._fetch(cdx_query(prefix, period, publisher, resume_key))
+                body, failure = await self._fetch(cdx_query(prefix, period, publisher, key))
                 if failure is not None:
-                    return saved, failure
+                    return saved, failure, None
                 try:
-                    rows, resume_key = parse_cdx(body)
+                    rows, key = parse_cdx(body)
                 except ValueError as error:
-                    return saved, f"ответ CDX не JSON: {error}"
+                    return saved, f"ответ CDX не JSON: {error}", None
                 entries = [entry for entry in (article_entry(o, t, publisher.host) for o, t in rows) if entry]
                 saved += await self._store.save_entries(entries)
-                if not resume_key:
+                if not key:
                     break
-        return saved, None
+            if key:
+                return saved, None, f"{index}|{key}"
+        return saved, None, None
 
     async def _fetch(self, url: str) -> tuple[str, str | None]:
         """Запрос с паузой перед ним; 429/5xx/таймаут — повтор после Retry-After (или 30 с), не больше 3 попыток."""

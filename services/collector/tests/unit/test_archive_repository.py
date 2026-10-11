@@ -73,8 +73,8 @@ class _Pool:
 
 class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
     async def test_archive_reads_rows_by_column_name(self) -> None:
-        archive = PostgresNewsArchive(_Pool([{"period": "2026-09", "status": "done"}]))  # type: ignore[arg-type]
-        self.assertEqual(await archive.harvested_periods("techcrunch.com"), {"2026-09": "done"})
+        archive = PostgresNewsArchive(_Pool([{"period": "2026-09", "status": "partial", "resume": "0|k"}]))  # type: ignore[arg-type]
+        self.assertEqual(await archive.harvest_states("techcrunch.com"), {"2026-09": ("partial", "0|k")})
         pool = _Pool([{"title": "Robot skill marketplace", "published_on": date(2026, 9, 4)}])
         archive = PostgresNewsArchive(pool)  # type: ignore[arg-type]
         self.assertEqual(await archive.titles_matching(["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10),
@@ -100,7 +100,8 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
                        "published_on": date(2025, 3, 1), "captured_at": None, "title": "A", "summary": ""}])
         entries = await PostgresNewsArchive(pool).search(["kv", "cache"], date(2024, 10, 1), 5, 2)  # type: ignore[arg-type]
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["kv", "cache"], ["kv", "cache"], 2, date(2024, 10, 1), ["kv", "cache"], 5))
+        self.assertEqual(params, (["kv", "cache"], ["kv", "cache"], 2, date(2024, 10, 1), date(2024, 10, 1),
+                                  ["kv", "cache"], 5))  # этап 4.6 (P09): окно по дате публикации или сохранения
         self.assertLess(sql.index("INTERSECT"), sql.index("published_on DESC"))  # сначала число совпавших слов
         self.assertEqual(entries[0].url, "https://techcrunch.com/a/")
 
@@ -109,8 +110,9 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await corpus.titles_matching(["optical", "switching"], 2, date(2021, 1, 1), date(2024, 10, 1), 5),
                          [("Optical circuit switching", date(2025, 6, 1))])
         corpus = PostgresCorpus(_Pool([{"set_spec": "cs", "resumption_token": "t", "records": 1000, "kept": 400,
-                                        "status": "running"}]))  # type: ignore[arg-type]
-        self.assertEqual(await corpus.harvest_state("cs"), CorpusHarvestState("cs", "t", 1000, 400, "running"))
+                                        "status": "running", "watermark": date(2026, 10, 1)}]))  # type: ignore[arg-type]
+        self.assertEqual(await corpus.harvest_state("cs"),
+                         CorpusHarvestState("cs", "t", 1000, 400, "running", date(2026, 10, 1)))
 
 
 if __name__ == "__main__":

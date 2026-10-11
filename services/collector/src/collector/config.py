@@ -78,10 +78,19 @@ class CollectorSettings(BaseServiceSettings):
     # Этап 4.5: канал «события стартапов», Crossref по 1 документу на технологию, новости — только заголовки RSS.
     collector_event_channel_documents: int = Field(default=150, ge=0, le=1000)
     collector_event_min_overlap: int = Field(default=2, ge=1, le=5)
-    collector_event_pool: int = Field(default=4000, ge=100, le=20000)
+    collector_event_pool: int = Field(default=8000, ge=100, le=50000)
     collector_crossref_per_term: int = Field(default=1, ge=1, le=10)
     collector_news_emergence_origin: str = Field(default="rss", pattern=r"^(rss|wayback|)$")
     collector_news_emergence_min_rows: int = Field(default=2000, ge=0, le=100000)
+    # Этап 4.6: реестр ресурсов, текст архива, квоты каналов технологий, правила возникновения.
+    source_registry_path: Path = SERVICE_ROOT / "config" / "source_registry.yaml"
+    archive_enrich_pause_seconds: float = Field(default=2.0, ge=0.5, le=60.0)
+    archive_discover_pause_seconds: float = Field(default=1.0, ge=0.2, le=60.0)
+    collector_emerging_quota: int = Field(default=15, ge=0, le=40)
+    collector_mined_quota: int = Field(default=9, ge=0, le=40)
+    collector_entity_quota: int = Field(default=6, ge=0, le=40)
+    collector_emergence_min_growth: float = Field(default=1.5, ge=1.0, le=10.0)
+    collector_emergence_min_base: int = Field(default=300, ge=0, le=100000)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

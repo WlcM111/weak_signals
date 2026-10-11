@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import math
+import re
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from datetime import date
@@ -22,9 +23,20 @@ from collector.domain.archive import ArchiveEntry
 from collector.domain.technology_filters import GENERIC_TOPIC_WORDS, topic_keywords, with_variants
 from collector.domain.text_tokens import tokens_of
 
-EVENT_CUES = ("raises", "raise", "raised", "raising", "funding", "funded", "seed", "series", "round", "secures",
-              "closes", "launches", "launch", "launched", "unveils", "unveil", "unveiled", "debuts", "emerges", "stealth",
-              "backed", "startup", "startups", "introduces", "acquires", "acquisition", "invests", "investment", "million")
+EVENT_CUES = (
+    # финансирование и запуск
+    "raises", "raise", "raised", "raising", "funding", "funded", "seed", "series", "round", "secures", "closes",
+    "launches", "launch", "launched", "unveils", "unveil", "unveiled", "debuts", "emerges", "stealth", "backed",
+    "startup", "startups", "introduces", "acquires", "acquisition", "invests", "investment", "million",
+    # этап 4.6 (аудит P20): внедрение, пилот, прототип, контракт, патент, сертификация, стандарт, открытый код
+    "pilot", "pilots", "deploys", "deployed", "deployment", "prototype", "prototypes", "contract", "contracts",
+    "patent", "patents", "certified", "certification", "standard", "standards", "open-source", "opensource",
+    "releases", "partnership", "partners", "adopts", "selects", "awarded", "grant",
+    # русские маркеры событий
+    "привлекла", "привлек", "привлекает", "раунд", "раунде", "инвестиции", "инвестиций", "запустила", "запускает",
+    "запуск", "представила", "представил", "пилот", "пилотный", "внедрила", "внедрение", "контракт", "патент",
+    "прототип", "сертификат", "стандарт", "грант",
+)
 # Слова заголовков рыночных отчётов, пресс-релизов и анонсов мероприятий: словосочетание с ними из новостей —
 # не технология («germany semiconductor memory market», «data center colocation databook», «reach us billion»).
 NEWS_BOILERPLATE = frozenset("""market markets size share report reports forecast forecasts databook cagr billion million
@@ -82,3 +94,23 @@ def rank_events(
 def is_news_boilerplate(term: str) -> bool:
     """Словосочетание из шаблона новости: рыночный отчёт, пресс-релиз, мероприятие."""
     return any(word in NEWS_BOILERPLATE for word in term.lower().split())
+
+
+_ENTITY = re.compile(
+    r"\b(?P<name>[A-Z][\w&.'’-]*(?:\s+[A-Z0-9][\w&.'’-]*){0,3})\s+(?:raises|raised|launches|unveils|emerges|secures|"
+    r"closes|debuts|introduces|announces|acquires|lands|nabs|bags|gets)\b")
+_NOT_ENTITY = frozenset("""the a an new this startup startups company report exclusive breaking update ai why how what
+week today""".split())
+
+
+def extract_entities(titles: Iterable[str], limit: int = 20) -> list[str]:
+    """Этап 4.6 (аудит P22): компании и продукты из настоящих заголовков событий («Keycard raises…»,
+    «Tetragen Robotics launches…»); по убыванию числа заголовков. Названия от модели их не заменяют."""
+    counts: Counter[str] = Counter()
+    for title in titles:
+        for match in _ENTITY.finditer(title or ""):
+            name = " ".join(match.group("name").split())
+            words = name.lower().split()
+            if words and words[0] not in _NOT_ENTITY and len(name) >= 3:
+                counts[name] += 1
+    return [name for name, _count in counts.most_common(limit)]

@@ -79,8 +79,24 @@ def mature_key(phrase: str) -> str:
 
 
 def is_mature(phrase: str) -> bool:
-    """Зрелая область или её вариант с уточнением."""
-    return mature_key(phrase) in MATURE
+    """Зрелая область без конкретного применения (этап 4.6, аудит P17).
+
+    Голое название («federated learning») и вариант с общим уточнением («… for systems») — зрелые. Новое применение
+    зрелого метода («federated learning for anti-money laundering») — кандидат: зрелость базы — признак, не запрет.
+    """
+    key = mature_key(phrase)
+    if key not in MATURE:
+        return False
+    full = " ".join(phrase.lower().replace("-", " ").split())
+    rest = full[len(key):] if full.startswith(key) else full.replace(key, " ")
+    qualifier = [w for w in rest.split() if w not in ("for", "in", "on", "with", "using", "via", "based", "of", "and", "the")]
+    return all(w in GENERIC_TOPIC_WORDS or w in GENERIC_QUALIFIERS or len(w) < 3 for w in qualifier)
+
+
+# Уточнения, которые не делают применение зрелого метода конкретным (те же, что в insight.expand_query).
+GENERIC_QUALIFIERS = frozenset("""systems system applications application industry industries business businesses
+enterprises enterprise organizations data operations solutions platforms factories factory production processes
+manufacturing distributed decisions decision operational""".split())
 
 
 def is_verbish(words: list[str]) -> bool:

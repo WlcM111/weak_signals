@@ -44,6 +44,7 @@ class RssAdapter(BaseSourceAdapter):
     ) -> None:
         super().__init__(http, limiter, clock)
         self._archive = archive  # этап 4.3: все записи лент — в архив новостей
+        self._rotation = 0  # этап 4.6 (P21): сдвиг начала обхода лент между сборами
         if not feeds:
             raise ValueError("RssAdapter требует непустой список лент WS_COLLECTOR_RSS_FEEDS")
         self._feeds = tuple(feeds)
@@ -73,9 +74,18 @@ class RssAdapter(BaseSourceAdapter):
         phrases = [term for term, _language in terms.pairs()] + [t for t in terms.technologies if t not in terms.en]
         failures: list[tuple[str, AdapterFailure]] = []
         attempted = 0
-        for feed_url in self._feeds:
-            if produced >= limits.max_documents_per_source or self.deadline_reached(deadline):
-                return
+        # Этап 4.6 (аудит P21): прежде ленты читались по порядку до заполнения квоты — поздние не читались и не
+        # попадали в архив. Теперь начало обхода чередуется между сборами, у каждой ленты своя доля квоты, а после
+        # заполнения квоты ленты дочитываются ради архива (до дедлайна), но документы больше не отдаются.
+        feeds = list(self._feeds)
+        if feeds:
+            shift = self._rotation % len(feeds)
+            feeds = feeds[shift:] + feeds[:shift]
+            self._rotation += 1
+        per_feed = max(3, -(-limits.max_documents_per_source // max(1, len(feeds))))
+        for feed_url in feeds:
+            if self.deadline_reached(deadline):
+                break
             attempted += 1
             try:
                 body = await self.fetch_text(feed_url, headers=FEED_ACCEPT)
@@ -87,7 +97,10 @@ class RssAdapter(BaseSourceAdapter):
                 self._log.warning("rss.feed_failed", feed=feed_url, code=failure.code, detail=failure.message[:200])
                 failures.append((feed_url, failure))
                 continue
+            taken = 0
             for entry in entries:
+                if produced >= limits.max_documents_per_source or taken >= per_feed:
+                    break
                 matched = _best_term(entry, phrases)
                 if matched is None:
                     continue
@@ -102,9 +115,8 @@ class RssAdapter(BaseSourceAdapter):
                 if not within_since_year(document.published_at, limits.published_since_year):
                     continue
                 produced += 1
+                taken += 1
                 yield document
-                if produced >= limits.max_documents_per_source:
-                    return
         if failures and len(failures) == attempted:
             first_url, first = failures[0]
             raise AdapterFailure(first.code, f"все {attempted} лент недоступны; первая {first_url}: {first.message}")

@@ -274,7 +274,8 @@ class LimitsTest(RunCollectionTestBase):
         self.assertEqual(collection.error_code, AdapterErrorCode.BUDGET_EXHAUSTED.value)
         self.assertLess(collection.documents_total, 30)
         runs = await self.runs.list_runs(collection.collection_id)
-        self.assertEqual(runs[0].error_code, AdapterErrorCode.BUDGET_EXHAUSTED.value)
+        # этап 4.6 (аудит P04): общий дедлайн сбора — DEADLINE_REACHED, а не исчерпанная квота источника
+        self.assertEqual(runs[0].error_code, AdapterErrorCode.DEADLINE_REACHED.value)
         self.assertIs(runs[0].status, OperationStatus.COMPLETED)
 
 

@@ -31,7 +31,9 @@ SHEET_FIELDS = ["pair_id", "run", "topic", "expert_row_id", "expert_title", "exp
                 "object_id", "object_title", "rule", "matched_term", "decision", "comment"]
 TOPIC_DOMAIN = {query: domain for domain, query in DOMAIN_QUERY.items()}
 _DOI_RE = re.compile(r"10\.\d{4,9}/[^\s?#]+", re.IGNORECASE)
-_ARXIV_RE = re.compile(r"arxiv\.org/(?:abs|pdf)/(\d{4}\.\d{4,5})", re.IGNORECASE)
+# Этап 4.6 (аудит P02): arXiv abs/pdf/html и ar5iv, с версией и без, — одна работа.
+_ARXIV_RE = re.compile(r"(?:arxiv\.org/(?:abs|pdf|html)|ar5iv(?:\.labs)?\.arxiv\.org/(?:html|abs))/(\d{4}\.\d{4,5})",
+                       re.IGNORECASE)
 _ARXIV_DOI_RE = re.compile(r"10\.48550/arxiv\.(\d{4}\.\d{4,5})", re.IGNORECASE)
 
 
@@ -39,6 +41,20 @@ def normalize(text: str) -> str:
     """Нижний регистр, «ё» → «е», всё кроме букв и цифр — пробел."""
     lowered = (text or "").lower().replace("ё", "е")
     return " ".join(re.sub(r"[^\w]+", " ", lowered).replace("_", " ").split())
+
+
+try:  # общая идентичность collector и benchmark (этап 4.6, аудит P02)
+    from ws_common.identity import canonical_url as _canonical_url
+except ImportError:  # pragma: no cover — окружение без ws_common
+    from urllib.parse import parse_qsl, urlencode, urlsplit
+
+    def _canonical_url(url: str) -> str:
+        parts = urlsplit(url.strip())
+        query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+                 if not re.match(r"^(utm_[a-z0-9_]+|fbclid|gclid|ref|ref_src)$", k, re.IGNORECASE)]
+        path = parts.path.rstrip("/") if parts.path not in ("", "/") else ""
+        return ((parts.hostname or "").lower().removeprefix("www.") + path
+                + (("?" + urlencode(sorted(query))) if query else ""))
 
 
 def url_keys(url: str | None, doi: str | None = None) -> set[str]:
@@ -53,8 +69,8 @@ def url_keys(url: str | None, doi: str | None = None) -> set[str]:
         for found in _DOI_RE.findall(text):
             keys.add(f"doi:{found.lower().rstrip('.,;)')}")
         if text.startswith(("http://", "https://")):
-            rest = text.split("://", 1)[1].split("#", 1)[0].split("?", 1)[0].lower().removeprefix("www.").rstrip("/")
-            keys.add(f"url:{rest}")
+            # Этап 4.6 (P02): удаляются только параметры отслеживания; смысловые (article?id=1) сохраняются
+            keys.add(f"url:{_canonical_url(text)}")
     return keys
 
 
@@ -79,11 +95,36 @@ def expert_acronyms(row: dict[str, Any], synonyms: dict[str, list[str]]) -> list
     return found
 
 
-def acronym_hit(raw: str, acronyms: list[str]) -> str | None:
-    """Первая аббревиатура, которая стоит в тексте отдельным словом в верхнем регистре."""
+_GENERIC_CONTEXT = frozenset("""ai ии artificial intelligence machine learning model models system systems data based using
+new novel platform platforms solution solutions technology technologies approach method methods long short high low
+large small open""".split())
+
+
+def _base(word: str) -> str:
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")):
+        return word[:-1]
+    return word
+
+
+def expert_context(row: dict[str, Any], synonyms: dict[str, list[str]]) -> set[str]:
+    """Этап 4.6 (аудит P01): слова контекста сигнала — значимые слова его синонимов (единственное число)."""
+    return {_base(w) for s in synonyms.get(str(row["row_id"]), []) for w in normalize(str(s)).split()
+            if len(w) >= 4 and w not in _GENERIC_CONTEXT}
+
+
+def acronym_hit(raw: str, acronyms: list[str], context: set[str] | None = None) -> str | None:
+    """Первая аббревиатура, которая стоит в тексте отдельным словом в верхнем регистре.
+
+    Этап 4.6 (аудит P01): если передан контекст, аббревиатура засчитывается только вместе с хотя бы одним словом
+    контекста сигнала — «OCS» в постороннем тексте не равна оптической коммутации.
+    """
+    words = {_base(w) for w in normalize(raw).split()} if context is not None else set()
     for acronym in acronyms:
         if re.search(rf"(?<![\w]){re.escape(acronym)}(?![\w])", raw or ""):
-            return acronym
+            if context is None or (context - {_base(acronym.lower())}) & words:
+                return acronym
     return None
 
 
@@ -191,6 +232,7 @@ def match(snapshots: list[Snapshot], dataset_rows: list[dict[str, Any]], synonym
             keys = set().union(*(url_keys(u) for u in expert.get("source_urls") or [])) if expert.get("source_urls") else set()
             terms = expert_terms(expert, synonyms)
             acronyms = expert_acronyms(expert, synonyms)
+            context = expert_context(expert, synonyms)
             found: dict[str, list[dict[str, str]]] = {}
             for stage in STAGES:
                 if stage not in stages:
@@ -208,7 +250,7 @@ def match(snapshots: list[Snapshot], dataset_rows: list[dict[str, Any]], synonym
                                          "object_title": obj["title"][:300], "rule": rule, "term": term})
                             break
                     else:
-                        acronym = acronym_hit(obj.get("raw", ""), acronyms)
+                        acronym = acronym_hit(obj.get("raw", ""), acronyms, context)
                         if acronym:
                             hits.append({"object_kind": obj["kind"], "object_id": obj["id"],
                                          "object_title": obj["title"][:300], "rule": "acronym", "term": acronym})

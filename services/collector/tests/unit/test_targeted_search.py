@@ -39,7 +39,9 @@ async def drain(iterator) -> list:  # noqa: ANN001
 
 class MiningTest(unittest.TestCase):
     def test_candidates_skip_cyrillic_stopword_edges_and_frame_words(self) -> None:
-        self.assertEqual(candidate_phrases("Новые методы защиты ИИ"), set())
+        # этап 4.6 (аудит P17): русские заголовки дают кандидатов; служебные слова по краям — нет
+        self.assertIn("методы защиты", candidate_phrases("Новые методы защиты ИИ"))
+        self.assertIn("mcp", candidate_phrases("MCP servers get a security scanner"))
         found = candidate_phrases("Optical circuit switching for AI clusters: a survey")
         self.assertIn("optical circuit switching", found)
         self.assertNotIn("switching for", found)
@@ -166,7 +168,8 @@ class TwoPhaseCollectionTest(unittest.IsolatedAsyncioTestCase):
         await use_case.execute(collection, "collector:test")
         self.assertEqual(self.collections.mined[collection.collection_id], ("kv cache offloading",))
         # этап 4.3: сначала технологии из корпусов (здесь их нет), затем извлечённые, затем от модели
-        self.assertEqual(openalex.targeted_calls[0], ["kv cache offloading", "optical circuit switching"])
+        # этап 4.6 (аудит P14): по очереди из каналов с квотами — модель, затем извлечённые (корпусов здесь нет)
+        self.assertEqual(openalex.targeted_calls[0], ["optical circuit switching", "kv cache offloading"])
         stored = {doc.url for doc in self.documents.documents.values()}
         self.assertIn("https://example.org/optical-circuit-switching/1", stored)
         self.assertIn("https://example.org/kv-cache-offloading/0", stored)

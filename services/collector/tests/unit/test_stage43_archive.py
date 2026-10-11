@@ -68,10 +68,10 @@ class _Archive:
     async def titles_matching(self, keywords, min_overlap, start, end, limit):  # noqa: ANN001, ANN201
         return [(title, day) for title, day in self.titles if start <= day < end][:limit]
 
-    async def harvested_periods(self, publisher):  # noqa: ANN001, ANN201
-        return self.done.get(publisher, {})
+    async def harvest_states(self, publisher):  # noqa: ANN001, ANN201
+        return {period: (status, None) for period, status in self.done.get(publisher, {}).items()}
 
-    async def mark_harvest(self, publisher, period, status, rows, detail):  # noqa: ANN001, ANN201
+    async def mark_harvest(self, publisher, period, status, rows, detail, resume=None):  # noqa: ANN001, ANN201
         self.marks.append((publisher, period, status, rows))
 
 
@@ -90,7 +90,9 @@ class TokensAndFiltersTest(unittest.TestCase):
         self.assertTrue(is_verbish(["addressing", "regulatory"]))
         self.assertFalse(is_verbish(["kv", "cache", "offloading"]))
         self.assertEqual(mature_key("Federated learning for distributed factories"), "federated learning")
-        self.assertTrue(is_mature("anomaly detection on IoT data streams"))
+        self.assertFalse(is_mature("anomaly detection on IoT data streams"))  # этап 4.6 (P17): новое применение
+        self.assertTrue(is_mature("anomaly detection for systems"))
+        self.assertTrue(is_mature("federated learning"))
         self.assertFalse(is_mature("optical circuit switching"))
 
 
@@ -131,7 +133,9 @@ class WaybackTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(published_from_path("/business/spains-ipronics-raises-125-million-2026-09-02/"), date(2026, 9, 2))
         self.assertEqual(published_from_path("/news/home/20260316829602/en/Edge-Platform"), date(2026, 3, 16))
         undated = article_entry("https://pulse2.com/keycard-launched-with-38-million/", "20260115000000", "pulse2.com")
-        self.assertEqual(undated.published_on, date(2026, 1, 15))  # дата сохранения в архиве
+        # этап 4.6 (аудит P09): дата сохранения — не дата публикации
+        self.assertEqual((undated.published_on, undated.published_source, undated.captured_at.date()),
+                         (None, "capture", date(2026, 1, 15)))
 
     async def test_harvest_skips_done_refreshes_last_and_marks_failures(self) -> None:
         publisher = Publisher("techcrunch.com", "url_month", ("techcrunch.com/{yyyy}/{mm}/",))
@@ -206,7 +210,8 @@ class NewAdaptersTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(store.searches[0][0][:2], ("robot", "robots"))  # этап 4.4: сначала технология, обе формы числа
         self.assertEqual(store.searches[0][3], 2)  # из трёх слов фразы должны совпасть два
         targeted = [d async for d in adapter.search_targeted(["skill marketplace"], 5, date(2024, 10, 1), 10_000.0)]
-        self.assertEqual((targeted[0].url, targeted[0].raw_meta), (entry.url, {"publisher": "techcrunch.com", "origin": "wayback"}))
+        self.assertEqual((targeted[0].url, targeted[0].raw_meta["publisher"], targeted[0].raw_meta["origin"]),
+                         (entry.url, "techcrunch.com", "wayback"))
         self.assertEqual(store.searches[-1], (("skill", "skills", "marketplace", "marketplaces"), date(2024, 10, 1), 5, 2))
 
     async def test_crossref_and_huggingface_requests_and_parsing(self) -> None:
@@ -277,7 +282,7 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
             collections=collections, documents=documents, adapter_runs=runs, adapters={SourceKey.OPENALEX: adapter},
             classification=load_classification_config(config_dir / "trust_rules.yaml", config_dir / "rss_domains.yaml"),
             clock=clock, config=RunCollectionConfig(lease_seconds=60, heartbeat_seconds=10_000, idle_poll_seconds=0.01,
-                                                    llm_technologies=2),
+                                                    llm_technologies=2, emergence_min_base=0),
             corpus=(corpus := Corpus()),
         )
         await use_case.execute(collection, "collector:test")
@@ -288,7 +293,9 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
         first = adapter.targeted_calls[0]
         self.assertEqual(first[0], "optical circuit switching")
         self.assertEqual(collections.emerging[collection.collection_id][0], "optical circuit switching")
-        self.assertEqual([t for t in first if t.startswith("model technology")], ["model technology 0", "model technology 1"])
+        # этап 4.6 (аудит P14): квота гарантирует каналу модели долю (здесь 2), а свободные места дозаполняются
+        self.assertEqual([t for t in first if t.startswith("model technology")][:2], ["model technology 0", "model technology 1"])
+        self.assertLess(first.index("optical circuit switching"), first.index("model technology 0"))
         self.assertNotIn("federated learning for factories", first)
 
 

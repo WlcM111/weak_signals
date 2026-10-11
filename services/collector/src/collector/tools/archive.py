@@ -41,6 +41,11 @@ def _parser(settings: CollectorSettings) -> argparse.ArgumentParser:
     arxiv.add_argument("--sets", default=settings.corpus_arxiv_sets)
     arxiv.add_argument("--since-year", type=int, default=settings.corpus_since_year)
     arxiv.add_argument("--restart", action="store_true")
+    enrich = commands.add_parser("enrich", help="текст статей архива из архивных копий страниц (этап 4.6)")
+    enrich.add_argument("--limit", type=int, default=2000)
+    discover = commands.add_parser("discover-feeds", help="ленты RSS/Atom ресурсов реестра (этап 4.6)")
+    discover.add_argument("--priority", default="P1,P2")
+    discover.add_argument("--limit", type=int, default=0)
     commands.add_parser("status", help="сводка архива и корпуса")
     return parser
 
@@ -74,6 +79,20 @@ async def _run(argv: list[str]) -> int:
             for set_spec in [s.strip() for s in args.sets.split(",") if s.strip()]:
                 state = await harvester.harvest(set_spec, restart=args.restart)
                 print(f"{set_spec}: статус {state.status}, записей {state.records}, сохранено {state.kept}")
+        elif args.command == "enrich":
+            from collector.adapters.outbound.news_archive.enrich import ArchiveEnricher
+            from collector.domain.event_channel import EVENT_CUES
+
+            done, failed = await ArchiveEnricher(http, archive, clock, EVENT_CUES,
+                                                 settings.archive_enrich_pause_seconds).run(args.limit)
+            print(f"ИТОГО: с текстом {done}, без текста {failed}")
+        elif args.command == "discover-feeds":
+            from collector.adapters.outbound.news_archive.feeds import FeedDiscoverer, load_registry
+
+            sources = load_registry(settings.source_registry_path, [p.strip() for p in args.priority.split(",") if p.strip()])
+            sources = sources[: args.limit] if args.limit > 0 else sources
+            found, failed = await FeedDiscoverer(http, archive, clock, settings.archive_discover_pause_seconds).run(sources)
+            print(f"ИТОГО ресурсов: {len(sources)}; лент найдено {found}, не найдено {failed}")
         else:
             print("== Архив новостей (издание, происхождение, записей, с, по)")
             for row in await archive.stats():

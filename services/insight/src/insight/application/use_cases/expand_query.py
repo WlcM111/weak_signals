@@ -130,6 +130,10 @@ MARKETING_PREFIXES = ("ai-powered", "ai-driven", "ai-based", "ai-enabled", "inte
 
 
 _KEY_SPLIT = (" for ", " in ", " on ", " with ", " using ", " via ", " based ", " of ")
+_KEY_WORDS = frozenset({"for", "in", "on", "with", "using", "via", "based", "of", "and", "the"})
+_GENERIC_QUALIFIERS = frozenset("""systems system applications application industry industries business businesses
+enterprises enterprise organizations data operations solutions platforms factories factory production processes
+manufacturing distributed decisions decision operational""".split())
 
 
 def mature_key(term: str) -> str:
@@ -146,8 +150,14 @@ def is_specific_technology(term: str) -> bool:
     уточнением («federated learning for …»), без рекламного определения."""
     key = term.lower()
     words = key.split()
-    if not words or words[-1] in CATEGORY_TAILS or key in MATURE_TECHNOLOGIES or mature_key(key) in MATURE_TECHNOLOGIES:
+    if not words or words[-1] in CATEGORY_TAILS or key in MATURE_TECHNOLOGIES:
         return False
+    if mature_key(key) in MATURE_TECHNOLOGIES:
+        # этап 4.6 (аудит P17): вариант зрелого метода отсекается, только если уточнение общее («… for systems»);
+        # конкретное применение («federated learning for anti-money laundering») — кандидат
+        qualifier = [w for w in key[len(mature_key(key)):].split() if w not in _KEY_WORDS]
+        if all(w in _GENERIC_QUALIFIERS for w in qualifier):
+            return False
     return not key.startswith(MARKETING_PREFIXES)
 
 

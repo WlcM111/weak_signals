@@ -30,13 +30,15 @@ from collector.domain.technology_filters import (
     is_verbish,
 )
 
-_TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9+\-]*[A-Za-z0-9+]|[A-Za-z]")
+_TOKEN_RE = re.compile(r"[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9+\-]*[A-Za-zА-Яа-яЁё0-9+]|[A-Za-zА-Яа-яЁё]")
+_ACRONYM_RE = re.compile(r"\b[A-Z][A-Z0-9]{1,5}\b")  # этап 4.6 (P17): MCP, CXL, OCS — в исходном регистре
 _CYRILLIC_RE = re.compile(r"[А-Яа-яЁё]")
 _SEGMENT_RE = re.compile(r"\s[-–—|]\s|[:;,.!?()\[\]{}\"“”«»/]|[–—]")
 _HN_PREFIX_RE = re.compile(r"^\s*(?:show|ask|tell|launch)\s+hn\b\s*[:\-–—]?\s*", re.IGNORECASE)
 STOP = frozenset("""a an the and or of for to in on at by with from via into over under as is are be its their our
 this that these those using based towards toward through across within without between vs versus new novel
 how what why when where which who can could should would may might do does we you they it not no more less
+и в во на с со к по о об от до из за для при над под про без через или а но же ли не ни что как это этот эта эти
 """.split())
 TAIL_STOP = frozenset("""approach approaches framework frameworks study studies analysis survey review paper case
 challenges opportunities perspective perspectives overview application applications results method methods
@@ -95,7 +97,7 @@ def _acceptable(gram: list[str]) -> bool:
         return False
     if any(word in STOP for word in gram[1:-1]):
         return False  # «card for time series», «safety in the age» — обрывки, а не названия
-    if any(word in NON_ENGLISH or word == "hn" for word in gram):
+    if any(word in NON_ENGLISH or word == "hn" for word in gram) and not any(_CYRILLIC_RE.search(w) for w in gram):
         return False
     if any(len(word) < 2 or word.isdigit() for word in gram):
         return False
@@ -108,9 +110,7 @@ def candidate_phrases(title: str) -> set[str]:
     Этап 4.3: не обрывок общего термина (следующее слово не «learning», «networks»…), не на глаголе,
     не общая тема домена и не зрелая область.
     """
-    if _CYRILLIC_RE.search(title or ""):
-        return set()
-    found: set[str] = set()
+    found: set[str] = set()  # этап 4.6 (аудит P17): русские заголовки больше не отбрасываются целиком
     for words in _segments(title or ""):
         for size in (2, 3, 4):
             for start in range(len(words) - size + 1):
@@ -125,6 +125,9 @@ def candidate_phrases(title: str) -> set[str]:
                 if phrase in GENERIC_PHRASES or is_mature(phrase):
                     continue
                 found.add(phrase)
+    for acronym in _ACRONYM_RE.findall(_HN_PREFIX_RE.sub("", title or "")):
+        if acronym not in ("AI", "HN", "US", "UK", "EU", "CEO", "CTO", "IPO", "API", "LLC", "INC", "USA", "Q1", "Q2", "Q3", "Q4"):
+            found.add(acronym.lower())  # одиночная аббревиатура — кандидат при повторе в независимых свидетельствах
     return found
 
 
@@ -132,7 +135,12 @@ def mine_technologies(
     titles: Iterable[tuple[str, str]], exclude: Sequence[str] = (), limit: int = 15
 ) -> list[str]:
     """Технологии из заголовков `(заголовок, источник)` широкого прохода, по убыванию оценки, не больше `limit`."""
-    rows = list(titles)
+    rows, seen_titles = [], set()
+    for title, source in titles:  # этап 4.6 (P16): перепечатка одного заголовка — одно свидетельство
+        key = " ".join((title or "").lower().split())
+        if key and key not in seen_titles:
+            seen_titles.add(key)
+            rows.append((title, source))
     docs: dict[str, set[int]] = defaultdict(set)
     sources: dict[str, set[str]] = defaultdict(set)
     surfaces: dict[str, Counter[str]] = defaultdict(Counter)

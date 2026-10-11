@@ -20,6 +20,10 @@ class ArchiveEntry:
     captured_at: datetime | None = None
     summary: str = ""
     tokens: tuple[str, ...] = field(default_factory=tuple)
+    # Этап 4.6 (аудит P08, P09): откуда дата публикации (url/rss/page; capture — дата сохранения, а не публикации)
+    # и чем является текст (slug — только слова адреса, rss — анонс ленты, page — извлечён со страницы).
+    published_source: str = "unknown"
+    text_status: str = "slug"
 
 
 @dataclass(frozen=True)
@@ -43,12 +47,13 @@ class CorpusHarvestState:
     records: int
     kept: int
     status: str
+    watermark: date | None = None  # этап 4.6 (P12): последний datestamp OAI-PMH для инкрементального обновления
 
 
 def archive_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:
     """Запись архива → сырой документ; текст — заголовок и анонс (у статей из Wayback — слова адреса)."""
-    published = datetime(entry.published_on.year, entry.published_on.month, entry.published_on.day, tzinfo=UTC) \
-        if entry.published_on else None
+    day = entry.published_on or (entry.captured_at.date() if entry.captured_at else None)  # окно — не публикация
+    published = datetime(day.year, day.month, day.day, tzinfo=UTC) if entry.published_on else None
     return RawDocument(
         url=entry.url,
         title=entry.title,
@@ -57,5 +62,6 @@ def archive_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:
         published_at=published,
         language_code=None,
         doi=None,
-        raw_meta={"publisher": entry.publisher, "origin": entry.origin},
+        raw_meta={"publisher": entry.publisher, "origin": entry.origin, "text_status": entry.text_status,
+                  "published_source": entry.published_source},
     )

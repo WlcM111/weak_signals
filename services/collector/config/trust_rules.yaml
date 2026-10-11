@@ -26,6 +26,8 @@ source_defaults:
   news_archive: { type: NEWS,                   trust: MEDIUM, trust_ceiling: MEDIUM, by_domain: true }
   crossref:     { type: SCIENTIFIC_PUBLICATION, trust: HIGH }
   huggingface:  { type: CODE_REPOSITORY,        trust: MEDIUM, trust_ceiling: MEDIUM }
+  # Этап 4.6 (аудит P13): локальный корпус arXiv — те же препринты, что у адаптера arXiv.
+  corpus:       { type: PREPRINT,               trust: HIGH }
 
 # Доверенность по типу источника (применяется после определения типа).
 type_trust:

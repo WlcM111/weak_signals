@@ -81,8 +81,7 @@ class GithubAdapter(BaseSourceAdapter):
                     API_URL,
                     params={
                         "q": f"{term} created:>{limits.published_since_year}-01-01",
-                        "sort": "stars",
-                        "order": "desc",
+                        # этап 4.6 (аудит P24): лучшее совпадение, а не звёзды — популярность не признак слабого сигнала
                         "per_page": PAGE_SIZE,
                         "page": page,
                     },

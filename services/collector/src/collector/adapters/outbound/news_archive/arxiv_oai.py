@@ -9,7 +9,7 @@ OAI-PMH — официальный путь массовой выгрузки м
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import date
+from datetime import date, timedelta
 
 from collector.adapters.outbound.sources.xml_utils import parse_xml, text_of
 from collector.application.ports import CorpusStore, HttpClient, HttpStatusError, HttpTimeoutError, HttpTransportError
@@ -21,6 +21,18 @@ OAI_URL = "https://oaipmh.arxiv.org/oai"
 OAI_HOSTS = frozenset({"oaipmh.arxiv.org", "export.arxiv.org"})
 NS = {"oai": "http://www.openarchives.org/OAI/2.0/", "ax": "http://arxiv.org/OAI/arXiv/"}
 MAX_TRIES = 5
+
+
+def page_watermark(body: str) -> date | None:
+    """Наибольший datestamp заголовков страницы ListRecords (этап 4.6, аудит P12)."""
+    root = parse_xml(body, what="arXiv OAI-PMH")
+    stamps = []
+    for stamp in root.findall(".//oai:header/oai:datestamp", NS):
+        try:
+            stamps.append(date.fromisoformat(text_of(stamp)[:10]))
+        except ValueError:
+            continue
+    return max(stamps, default=None)
 
 
 def parse_page(body: str, since_year: int) -> tuple[list[CorpusPaper], int, str | None, bool]:
@@ -69,31 +81,46 @@ class ArxivOaiHarvester:
         self._pause, self._since_year, self._report = pause_seconds, since_year, report
 
     async def harvest(self, set_spec: str, restart: bool = False) -> CorpusHarvestState:
+        """Первичная загрузка набора, а после неё — инкрементальное обновление по datestamp (этап 4.6, аудит P12).
+
+        Прежде завершённый набор больше не обновлялся обычным запуском (0 запросов), хотя запускать команду
+        рекомендовалось ежемесячно. Теперь при статусе done запрос идёт с `from=<watermark>`; datestamp OAI-PMH —
+        дата изменения метаданных, поэтому новые и исправленные записи попадают в корпус без полного перезапуска.
+        """
         state = await self._store.harvest_state(set_spec)
-        if state is not None and state.status == "done" and not restart:
-            self._report(f"{set_spec}: уже выгружен ({state.kept} работ)")
-            return state
-        if state is None or restart or state.status == "failed" and not state.resumption_token:
-            state = CorpusHarvestState(set_spec, None, 0, 0, "running")
-        first = state.resumption_token is None and state.records == 0
-        while True:
-            params = ({"verb": "ListRecords", "metadataPrefix": "arXiv", "set": set_spec} if first
+        incremental = state is not None and state.status == "done" and not restart
+        if incremental:
+            since = state.watermark or (date.today() - timedelta(days=45))
+            params: dict[str, str] = {"verb": "ListRecords", "metadataPrefix": "arXiv", "set": set_spec,
+                                      "from": since.isoformat()}
+            self._report(f"{set_spec}: обновление с {since.isoformat()}")
+            state = CorpusHarvestState(set_spec, None, state.records, state.kept, "running", state.watermark)
+        else:
+            if state is None or restart or state.status == "failed" and not state.resumption_token:
+                state = CorpusHarvestState(set_spec, None, 0, 0, "running")
+            params = ({"verb": "ListRecords", "metadataPrefix": "arXiv", "set": set_spec}
+                      if state.resumption_token is None and state.records == 0
                       else {"verb": "ListRecords", "resumptionToken": state.resumption_token or ""})
+        watermark = state.watermark
+        while True:
             body, failure = await self._fetch(params)
             if failure is not None:
-                state = CorpusHarvestState(set_spec, state.resumption_token, state.records, state.kept, "failed")
+                state = CorpusHarvestState(set_spec, state.resumption_token, state.records, state.kept,
+                                           "done" if incremental else "failed", watermark)
                 await self._store.save_harvest_state(state, failure)
                 self._report(f"{set_spec}: ОТКАЗ {failure}; продолжение — повторным запуском")
                 return state
             papers, seen, token, empty = parse_page(body, self._since_year)
+            stamp = page_watermark(body) if not empty else None
+            watermark = max(filter(None, (watermark, stamp)), default=None)
             kept = await self._store.save_papers(papers)
             status = "done" if token is None else "running"
-            state = CorpusHarvestState(set_spec, token, state.records + seen, state.kept + kept, status)
+            state = CorpusHarvestState(set_spec, token, state.records + seen, state.kept + kept, status, watermark)
             await self._store.save_harvest_state(state)
             self._report(f"{set_spec}: записей {state.records}, сохранено {state.kept}" + (" — готово" if token is None else ""))
             if token is None or empty:
                 return state
-            first = False
+            params = {"verb": "ListRecords", "resumptionToken": token}
 
     async def _fetch(self, params: dict[str, str]) -> tuple[str, str | None]:
         detail = "нет ответа"

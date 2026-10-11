@@ -38,11 +38,12 @@ from collector.adapters.outbound.sources.hackernews import HackerNewsAdapter
 from collector.adapters.outbound.sources.crossref import CrossrefAdapter
 from collector.adapters.outbound.sources.huggingface import HuggingFaceAdapter
 from collector.adapters.outbound.sources.news_archive import NewsArchiveAdapter
+from collector.adapters.outbound.sources.corpus import CorpusAdapter
 from collector.adapters.outbound.postgres.archive_repository import PostgresCorpus, PostgresNewsArchive
 from collector.adapters.outbound.sources.rospatent import RospatentAdapter
 from collector.adapters.outbound.sources.zenodo import ZenodoAdapter
 from collector.adapters.outbound.sources.wikipedia import WikipediaProbe
-from collector.application.ports import NewsArchiveStore, SourceAdapter
+from collector.application.ports import CorpusStore, NewsArchiveStore, SourceAdapter
 from collector.application.use_cases.cancel_collection import CancelCollection
 from collector.application.use_cases.check_encyclopedia import CheckEncyclopedia
 from collector.application.use_cases.get_collection import GetCollection
@@ -122,7 +123,7 @@ async def serve(settings: CollectorSettings) -> int:
         on_wait=metrics.rate_limit_wait,
     )
     adapters, unavailable = build_adapters(settings, catalog, http_client, limiter, clock, arxiv_http_client,
-                                           gdelt_http_client, archive)
+                                           gdelt_http_client, archive, corpus)
     log.info(
         "sources.configured",
         enabled=[key.value for key in adapters],
@@ -178,6 +179,11 @@ async def serve(settings: CollectorSettings) -> int:
             event_pool=settings.collector_event_pool,
             news_emergence_origin=settings.collector_news_emergence_origin or None,
             news_emergence_min_rows=settings.collector_news_emergence_min_rows,
+            emerging_quota=settings.collector_emerging_quota,
+            mined_quota=settings.collector_mined_quota,
+            entity_quota=settings.collector_entity_quota,
+            emergence_min_growth=settings.collector_emergence_min_growth,
+            emergence_min_base=settings.collector_emergence_min_base,
         ),
         unavailable_sources=unavailable,
         metrics=metrics,
@@ -247,6 +253,7 @@ def build_adapters(
     arxiv_http_client: HttpxClient | None = None,
     gdelt_http_client: HttpxClient | None = None,
     archive: NewsArchiveStore | None = None,
+    corpus: CorpusStore | None = None,
 ) -> tuple[dict[SourceKey, SourceAdapter], dict[SourceKey, AdapterErrorCode]]:
     """Собирает включённые адаптеры; недоступные источники получают код отказа вместо заглушки."""
     override = settings.source_override
@@ -261,7 +268,7 @@ def build_adapters(
             continue
         try:
             adapter = _create_adapter(source_key, settings, http_client, limiter, clock, arxiv_http_client,
-                                      gdelt_http_client, archive)
+                                      gdelt_http_client, archive, corpus)
         except ValueError as exc:
             unavailable[source_key] = (
                 AdapterErrorCode.AUTH_MISSING if entry.requires_api_key else AdapterErrorCode.DISABLED
@@ -286,6 +293,7 @@ def _create_adapter(
     arxiv_http_client: HttpxClient | None = None,
     gdelt_http_client: HttpxClient | None = None,
     archive: NewsArchiveStore | None = None,
+    corpus: CorpusStore | None = None,
 ) -> SourceAdapter | None:
     """Создаёт адаптер источника; ValueError означает отсутствие обязательной настройки."""
     if source_key is SourceKey.OPENALEX:
@@ -309,6 +317,10 @@ def _create_adapter(
         if archive is None:
             raise ValueError("архиву новостей нужно хранилище PostgreSQL")
         return NewsArchiveAdapter(http_client, limiter, clock, archive, settings.news_archive_window_months)
+    if source_key is SourceKey.CORPUS:
+        if corpus is None:
+            raise ValueError("локальному корпусу нужно хранилище PostgreSQL")
+        return CorpusAdapter(http_client, limiter, clock, corpus, settings.collector_targeted_window_months)
     if source_key is SourceKey.CROSSREF:
         return CrossrefAdapter(http_client, limiter, clock, settings.contact_email, settings.collector_targeted_window_months)
     if source_key is SourceKey.HUGGINGFACE:

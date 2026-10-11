@@ -1,0 +1,1431 @@
+# Реестр ресурсов поиска слабых сигналов (этап 4.6) — по документу «02_weak_signals_sources» (11.10.2026).
+# resources — 95 карточек R001–R095 (приоритет, тип, официальная страница ресурса из документа);
+# domains — 206 доменов ссылок эталона с разделом документа. Ссылки самих эталонных статей сюда НЕ переносятся:
+# в слепом поиске используется только корень домена.
+# discover: false — ресурс не проверяется на ленты RSS/Atom (причина в reason).
+# Команда `python -m collector.tools.archive discover-feeds` находит ленты на страницах ресурсов и в корне доменов,
+# проверяет их разбором и сохраняет рабочие в collector.feed_registry; `archive rss` затем ежедневно читает их вместе
+# с WS_COLLECTOR_RSS_FEEDS, и записи попадают в архив новостей (источник news_archive при сборе).
+resources:
+- id: R001
+  name: Common Crawl
+  priority: P2
+  kind: Веб-архив
+  url: https://commoncrawl.org/get-started
+  discover: false
+  reason: Common Crawl не подключается — решение владельца проекта
+- id: R002
+  name: Semantic Scholar
+  priority: P1
+  kind: Наука
+  url: https://webflow.semanticscholar.org/product/api/tutorial
+- id: R003
+  name: OpenAlex
+  priority: P1
+  kind: Наука
+  url: https://help.openalex.org/api/
+- id: R004
+  name: arXiv API и OAI-PMH
+  priority: P1
+  kind: Наука
+  url: https://info.arxiv.org/help/api/user-manual.html
+- id: R005
+  name: Crossref
+  priority: P1
+  kind: Наука
+  url: https://www.crossref.org/documentation/retrieve-metadata/rest-api/
+- id: R006
+  name: OpenReview
+  priority: P2
+  kind: Наука
+  url: https://docs.openreview.net/
+- id: R007
+  name: ACL Anthology
+  priority: P2
+  kind: Наука
+  url: https://aclanthology.org/
+- id: R008
+  name: CVF Open Access
+  priority: P2
+  kind: Наука
+  url: https://openaccess.thecvf.com/
+- id: R009
+  name: NeurIPS Proceedings
+  priority: P2
+  kind: Наука
+  url: https://proceedings.neurips.cc/
+- id: R010
+  name: Europe PMC
+  priority: P2
+  kind: Наука
+  url: https://europepmc.org/RestfulWebService
+- id: R011
+  name: PubMed Central
+  priority: P2
+  kind: Наука
+  url: https://www.ncbi.nlm.nih.gov/pmc/tools/developers/
+- id: R012
+  name: Zenodo
+  priority: P2
+  kind: Наука и данные
+  url: https://developers.zenodo.org/
+- id: R013
+  name: GitHub Search
+  priority: P1
+  kind: Код
+  url: https://docs.github.com/en/rest/search
+- id: R014
+  name: Hugging Face Hub
+  priority: P2
+  kind: Код и модели
+  url: https://huggingface.co/docs/hub/api
+- id: R015
+  name: Hacker News / Algolia
+  priority: P2
+  kind: Обнаружение новостей
+  url: https://hn.algolia.com/api
+- id: R016
+  name: EPO Open Patent Services
+  priority: P2
+  kind: Патенты
+  url: https://www.epo.org/en/searching-for-patents/data/web-services/ops
+- id: R017
+  name: USPTO Open Data Portal
+  priority: P2
+  kind: Патенты
+  url: https://data.uspto.gov/
+- id: R018
+  name: WIPO PATENTSCOPE
+  priority: P2
+  kind: Патенты
+  url: https://patentscope.wipo.int/
+- id: R019
+  name: Поисковая платформа Роспатента
+  priority: P2
+  kind: Патенты
+  url: https://searchplatform.rospatent.gov.ru/
+- id: R020
+  name: CORDIS
+  priority: P1
+  kind: Гранты
+  url: https://cordis.europa.eu/
+- id: R021
+  name: NSF Awards
+  priority: P2
+  kind: Гранты
+  url: https://www.nsf.gov/awards
+- id: R022
+  name: SBIR / STTR
+  priority: P1
+  kind: Гранты
+  url: https://www.sbir.gov/
+- id: R023
+  name: UKRI Gateway to Research
+  priority: P2
+  kind: Гранты
+  url: https://gtr.ukri.org/
+- id: R024
+  name: ARPA-E
+  priority: P2
+  kind: Энергетика
+  url: https://arpa-e.energy.gov/
+- id: R025
+  name: DARPA
+  priority: P2
+  kind: Исследования
+  url: https://www.darpa.mil/
+- id: R026
+  name: USAspending
+  priority: P2
+  kind: Контракты
+  url: https://www.usaspending.gov/
+- id: R027
+  name: SAM.gov
+  priority: P2
+  kind: Контракты
+  url: https://sam.gov/
+- id: R028
+  name: TED
+  priority: P2
+  kind: Контракты
+  url: https://ted.europa.eu/
+- id: R029
+  name: SEC EDGAR
+  priority: P2
+  kind: Раскрытия
+  url: https://www.sec.gov/edgar/search/
+- id: R030
+  name: BIS Innovation Hub
+  priority: P1
+  kind: Финансовые пилоты
+  url: https://www.bis.org/about/bisih.htm
+- id: R031
+  name: MAS Project Guardian
+  priority: P1
+  kind: Финансовые пилоты
+  url: https://www.mas.gov.sg/schemes-and-initiatives/project-guardian
+- id: R032
+  name: FCA Innovation Hub
+  priority: P2
+  kind: Финансовые пилоты
+  url: https://www.fca.org.uk/firms/innovation
+- id: R033
+  name: Банк России — финтех
+  priority: P2
+  kind: Финансовые пилоты
+  url: https://www.cbr.ru/fintech/
+- id: R034
+  name: ECB Digital Euro
+  priority: P2
+  kind: Финансовая инфраструктура
+  url: https://www.ecb.europa.eu/paym/digital_euro/html/index.en.html
+- id: R035
+  name: Bank of England — fintech
+  priority: P2
+  kind: Финансовые пилоты
+  url: https://www.bankofengland.co.uk/fintech
+- id: R036
+  name: NIST AI RMF
+  priority: P2
+  kind: Безопасность и стандарты
+  url: https://www.nist.gov/itl/ai-risk-management-framework
+- id: R037
+  name: CISA KEV
+  priority: P2
+  kind: Безопасность
+  url: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+- id: R038
+  name: NVD
+  priority: P2
+  kind: Безопасность
+  url: https://nvd.nist.gov/developers
+- id: R039
+  name: MITRE ATLAS
+  priority: P1
+  kind: Безопасность ИИ
+  url: https://atlas.mitre.org/
+- id: R040
+  name: OWASP GenAI Security
+  priority: P1
+  kind: Безопасность ИИ
+  url: https://genai.owasp.org/
+- id: R041
+  name: ENISA
+  priority: P2
+  kind: Безопасность
+  url: https://www.enisa.europa.eu/
+- id: R042
+  name: IETF Datatracker
+  priority: P1
+  kind: Стандарты
+  url: https://datatracker.ietf.org/
+- id: R043
+  name: W3C TR
+  priority: P2
+  kind: Стандарты
+  url: https://www.w3.org/TR/
+- id: R044
+  name: MLCommons
+  priority: P1
+  kind: Бенчмарки и устройства
+  url: https://mlcommons.org/
+- id: R045
+  name: Khronos
+  priority: P2
+  kind: Стандарты
+  url: https://www.khronos.org/
+- id: R046
+  name: ONNX
+  priority: P2
+  kind: Код и стандарты
+  url: https://onnx.ai/
+- id: R047
+  name: Open Compute Project
+  priority: P1
+  kind: Инфраструктура
+  url: https://www.opencompute.org/
+- id: R048
+  name: Compute Express Link
+  priority: P1
+  kind: Инфраструктура
+  url: https://computeexpresslink.org/blog/increasing-tokens-per-dollar-with-cxl-fms-2026-recap-4788/
+- id: R049
+  name: Linux Foundation
+  priority: P2
+  kind: Открытые технологии
+  url: https://www.linuxfoundation.org/
+- id: R050
+  name: ISO/IEC JTC 1/SC 42
+  priority: P2
+  kind: Стандарты ИИ
+  url: https://www.iso.org/committee/6794475.html
+- id: R051
+  name: 3GPP
+  priority: P2
+  kind: Связь и edge
+  url: https://www.3gpp.org/specifications-technologies
+- id: R052
+  name: ETSI
+  priority: P2
+  kind: Связь и edge
+  url: https://www.etsi.org/technologies
+- id: R053
+  name: OPC Foundation
+  priority: P2
+  kind: Промышленность
+  url: https://opcfoundation.org/
+- id: R054
+  name: ROS
+  priority: P2
+  kind: Робототехника
+  url: https://www.ros.org/
+- id: R055
+  name: NIST News
+  priority: P2
+  kind: Официальные исследования
+  url: https://www.nist.gov/news-events/news
+- id: R056
+  name: Brave Search API
+  priority: P1
+  kind: Веб-поиск
+  url: https://brave.com/search/api/
+  discover: false
+  reason: Brave Search API — нужен ключ и план доступа
+- id: R057
+  name: Crunchbase
+  priority: P2
+  kind: Инвестиции
+  url: https://www.crunchbase.com/
+  discover: false
+  reason: лицензированная база, нужен договор
+- id: R058
+  name: Dealroom
+  priority: P2
+  kind: Инвестиции
+  url: https://dealroom.co/
+  discover: false
+  reason: лицензированная база, нужен договор
+- id: R059
+  name: PitchBook
+  priority: P3
+  kind: Инвестиции
+  url: https://pitchbook.com/
+  discover: false
+  reason: коммерческий доступ
+- id: R060
+  name: Tracxn
+  priority: P3
+  kind: Инвестиции
+  url: https://tracxn.com/
+  discover: false
+  reason: коммерческий доступ
+- id: R061
+  name: Y Combinator
+  priority: P1
+  kind: Акселераторы
+  url: https://www.ycombinator.com/companies
+- id: R062
+  name: Techstars
+  priority: P2
+  kind: Акселераторы
+  url: https://www.techstars.com/portfolio
+- id: R063
+  name: HAX
+  priority: P1
+  kind: Hard tech
+  url: https://hax.co/
+- id: R064
+  name: SOSV
+  priority: P2
+  kind: Deep tech
+  url: https://sosv.com/
+- id: R065
+  name: Plug and Play
+  priority: P2
+  kind: Акселераторы
+  url: https://www.plugandplaytechcenter.com/
+- id: R066
+  name: Alchemist Accelerator
+  priority: P2
+  kind: B2B-стартапы
+  url: https://www.alchemistaccelerator.com/
+- id: R067
+  name: In-Q-Tel
+  priority: P2
+  kind: Deep tech
+  url: https://www.iqt.org/portfolio
+- id: R068
+  name: Fraunhofer
+  priority: P1
+  kind: Прикладная наука
+  url: https://www.fraunhofer.de/en/press.html
+- id: R069
+  name: MIT News
+  priority: P2
+  kind: Научные новости
+  url: https://news.mit.edu/
+- id: R070
+  name: Tech.eu
+  priority: P2
+  kind: Стартап-медиа
+  url: https://tech.eu/
+- id: R071
+  name: Sifted
+  priority: P2
+  kind: Стартап-медиа
+  url: https://sifted.eu/
+- id: R072
+  name: 36Kr
+  priority: P2
+  kind: Региональные медиа
+  url: https://www.36kr.com/
+- id: R073
+  name: IT桔子
+  priority: P3
+  kind: Региональные сделки
+  url: https://www.itjuzi.com/
+- id: R074
+  name: Nikkei Asia
+  priority: P2
+  kind: Региональные медиа
+  url: https://asia.nikkei.com/
+- id: R075
+  name: Rest of World
+  priority: P2
+  kind: Региональные медиа
+  url: https://restofworld.org/
+- id: R076
+  name: Semiconductor Engineering
+  priority: P1
+  kind: Микроэлектроника
+  url: https://semiengineering.com/
+- id: R077
+  name: Automation World
+  priority: P1
+  kind: Промышленность
+  url: https://www.automationworld.com/
+- id: R078
+  name: Control Engineering
+  priority: P1
+  kind: Промышленность
+  url: https://www.controleng.com/
+- id: R079
+  name: International Federation of Robotics
+  priority: P2
+  kind: Робототехника
+  url: https://ifr.org/
+- id: R080
+  name: Automate
+  priority: P2
+  kind: Робототехника и выставки
+  url: https://www.automateshow.com/
+- id: R081
+  name: Interop Tokyo
+  priority: P3
+  kind: Инфраструктура и выставки
+  url: https://www.interop-tokyo.jp/
+- id: R082
+  name: Caixin Global
+  priority: P2
+  kind: Экономика Китая
+  url: https://www.caixinglobal.com/
+- id: R083
+  name: South China Morning Post — Tech
+  priority: P2
+  kind: Азия и технологии
+  url: https://www.scmp.com/tech
+- id: R084
+  name: Habr
+  priority: P2
+  kind: Русскоязычные технологии
+  url: https://habr.com/ru/
+- id: R085
+  name: CNews
+  priority: P2
+  kind: Русскоязычные ИТ-медиа
+  url: https://www.cnews.ru/
+- id: R086
+  name: TAdviser
+  priority: P2
+  kind: Русскоязычные внедрения
+  url: https://www.tadviser.ru/
+- id: R087
+  name: Сколково
+  priority: P2
+  kind: Стартапы и гранты
+  url: https://sk.ru/
+- id: R088
+  name: Фонд содействия инновациям
+  priority: P2
+  kind: Гранты
+  url: https://fasie.ru/
+- id: R089
+  name: Российский научный фонд
+  priority: P2
+  kind: Гранты и наука
+  url: https://www.rscf.ru/
+- id: R090
+  name: IMF Fintech
+  priority: P3
+  kind: Макроэкономика и финтех
+  url: https://www.imf.org/en/Topics/fintech
+- id: R091
+  name: OECD Digital
+  priority: P3
+  kind: Политика технологий
+  url: https://www.oecd.org/en/topics/digital.html
+- id: R092
+  name: World Bank Financial Infrastructure
+  priority: P3
+  kind: Финансовая инфраструктура
+  url: https://www.worldbank.org/en/topic/fintech
+- id: R093
+  name: IBM Quantum Blog
+  priority: P2
+  kind: Первичная корпоративная наука
+  url: https://www.ibm.com/quantum/blog
+- id: R094
+  name: AWS AI Blog
+  priority: P2
+  kind: Первичная инфраструктура
+  url: https://aws.amazon.com/blogs/machine-learning/
+- id: R095
+  name: Google Research Blog
+  priority: P2
+  kind: Первичная наука
+  url: https://research.google/blog/
+domains:
+- id: D001
+  domain: arxiv.org
+  section: Наука
+  url: https://arxiv.org/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D002
+  domain: nature.com
+  section: Наука
+  url: https://nature.com/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D003
+  domain: mdpi.com
+  section: Наука
+  url: https://mdpi.com/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D004
+  domain: aiche.confex.com
+  section: Наука
+  url: https://aiche.confex.com/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D005
+  domain: ar5iv.labs.arxiv.org
+  section: Наука
+  url: https://ar5iv.labs.arxiv.org/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D006
+  domain: computerfraudsecurity.com
+  section: Наука
+  url: https://computerfraudsecurity.com/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D007
+  domain: elib.uni-stuttgart.de
+  section: Наука
+  url: https://elib.uni-stuttgart.de/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D008
+  domain: frontiersin.org
+  section: Наука
+  url: https://frontiersin.org/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D009
+  domain: ijiemjournal.uns.ac.rs
+  section: Наука
+  url: https://ijiemjournal.uns.ac.rs/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D010
+  domain: pmc.ncbi.nlm.nih.gov
+  section: Наука
+  url: https://pmc.ncbi.nlm.nih.gov/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D011
+  domain: pubs.rsc.org
+  section: Наука
+  url: https://pubs.rsc.org/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D012
+  domain: science.org
+  section: Наука
+  url: https://science.org/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D013
+  domain: snu.elsevierpure.com
+  section: Наука
+  url: https://snu.elsevierpure.com/
+  discover: false
+  reason: научные площадки — через DOI/arXiv/индексы и корпус, не через ленты
+- id: D014
+  domain: techcrunch.com
+  section: Отраслевые и деловые медиа
+  url: https://techcrunch.com/
+- id: D015
+  domain: siliconangle.com
+  section: Отраслевые и деловые медиа
+  url: https://siliconangle.com/
+- id: D016
+  domain: theaiinsider.tech
+  section: Отраслевые и деловые медиа
+  url: https://theaiinsider.tech/
+- id: D017
+  domain: datacenterdynamics.com
+  section: Отраслевые и деловые медиа
+  url: https://datacenterdynamics.com/
+- id: D018
+  domain: eetimes.com
+  section: Отраслевые и деловые медиа
+  url: https://eetimes.com/
+- id: D019
+  domain: geekwire.com
+  section: Отраслевые и деловые медиа
+  url: https://geekwire.com/
+- id: D020
+  domain: pandaily.com
+  section: Отраслевые и деловые медиа
+  url: https://pandaily.com/
+- id: D021
+  domain: roboticsandautomationnews.com
+  section: Отраслевые и деловые медиа
+  url: https://roboticsandautomationnews.com/
+- id: D022
+  domain: edge-ai-vision.com
+  section: Отраслевые и деловые медиа
+  url: https://edge-ai-vision.com/
+- id: D023
+  domain: eu-startups.com
+  section: Отраслевые и деловые медиа
+  url: https://eu-startups.com/
+- id: D024
+  domain: finance.yahoo.com
+  section: Отраслевые и деловые медиа
+  url: https://finance.yahoo.com/
+- id: D025
+  domain: fortune.com
+  section: Отраслевые и деловые медиа
+  url: https://fortune.com/
+- id: D026
+  domain: pulse2.com
+  section: Отраслевые и деловые медиа
+  url: https://pulse2.com/
+- id: D027
+  domain: reuters.com
+  section: Отраслевые и деловые медиа
+  url: https://reuters.com/
+- id: D028
+  domain: runtimewire.com
+  section: Отраслевые и деловые медиа
+  url: https://runtimewire.com/
+- id: D029
+  domain: techfundingnews.com
+  section: Отраслевые и деловые медиа
+  url: https://techfundingnews.com/
+- id: D030
+  domain: theblock.co
+  section: Отраслевые и деловые медиа
+  url: https://theblock.co/
+- id: D031
+  domain: therobotreport.com
+  section: Отраслевые и деловые медиа
+  url: https://therobotreport.com/
+- id: D032
+  domain: thesaasnews.com
+  section: Отраслевые и деловые медиа
+  url: https://thesaasnews.com/
+- id: D033
+  domain: tomshardware.com
+  section: Отраслевые и деловые медиа
+  url: https://tomshardware.com/
+- id: D034
+  domain: allaboutcircuits.com
+  section: Отраслевые и деловые медиа
+  url: https://allaboutcircuits.com/
+- id: D035
+  domain: amlintelligence.com
+  section: Отраслевые и деловые медиа
+  url: https://amlintelligence.com/
+- id: D036
+  domain: biometricupdate.com
+  section: Отраслевые и деловые медиа
+  url: https://biometricupdate.com/
+- id: D037
+  domain: bits-chips.com
+  section: Отраслевые и деловые медиа
+  url: https://bits-chips.com/
+- id: D038
+  domain: calcalistech.com
+  section: Отраслевые и деловые медиа
+  url: https://calcalistech.com/
+- id: D039
+  domain: chinadaily.com.cn
+  section: Отраслевые и деловые медиа
+  url: https://chinadaily.com.cn/
+- id: D040
+  domain: cignal.ai
+  section: Отраслевые и деловые медиа
+  url: https://cignal.ai/
+- id: D041
+  domain: crowdfundinsider.com
+  section: Отраслевые и деловые медиа
+  url: https://crowdfundinsider.com/
+- id: D042
+  domain: datacenterfrontier.com
+  section: Отраслевые и деловые медиа
+  url: https://datacenterfrontier.com/
+- id: D043
+  domain: develop3d.com
+  section: Отраслевые и деловые медиа
+  url: https://develop3d.com/
+- id: D044
+  domain: dutchstartup.ai
+  section: Отраслевые и деловые медиа
+  url: https://dutchstartup.ai/
+- id: D045
+  domain: economictimes.com
+  section: Отраслевые и деловые медиа
+  url: https://economictimes.com/
+- id: D046
+  domain: en.wowtale.net
+  section: Отраслевые и деловые медиа
+  url: https://en.wowtale.net/
+- id: D047
+  domain: finance-commerce.com
+  section: Отраслевые и деловые медиа
+  url: https://finance-commerce.com/
+- id: D048
+  domain: fintech.global
+  section: Отраслевые и деловые медиа
+  url: https://fintech.global/
+- id: D049
+  domain: gizmodo.com
+  section: Отраслевые и деловые медиа
+  url: https://gizmodo.com/
+- id: D050
+  domain: highways.today
+  section: Отраслевые и деловые медиа
+  url: https://highways.today/
+- id: D051
+  domain: indianstartupnews.com
+  section: Отраслевые и деловые медиа
+  url: https://indianstartupnews.com/
+- id: D052
+  domain: interestingengineering.com
+  section: Отраслевые и деловые медиа
+  url: https://interestingengineering.com/
+- id: D053
+  domain: invezz.com
+  section: Отраслевые и деловые медиа
+  url: https://invezz.com/
+- id: D054
+  domain: ioplus.nl
+  section: Отраслевые и деловые медиа
+  url: https://ioplus.nl/
+- id: D055
+  domain: leaderobot.com
+  section: Отраслевые и деловые медиа
+  url: https://leaderobot.com/
+- id: D056
+  domain: networkworld.com
+  section: Отраслевые и деловые медиа
+  url: https://networkworld.com/
+- id: D057
+  domain: nextplatform.com
+  section: Отраслевые и деловые медиа
+  url: https://nextplatform.com/
+- id: D058
+  domain: picmagazine.net
+  section: Отраслевые и деловые медиа
+  url: https://picmagazine.net/
+- id: D059
+  domain: securityweek.com
+  section: Отраслевые и деловые медиа
+  url: https://securityweek.com/
+- id: D060
+  domain: semiwiki.com
+  section: Отраслевые и деловые медиа
+  url: https://semiwiki.com/
+- id: D061
+  domain: startupticker.ch
+  section: Отраслевые и деловые медиа
+  url: https://startupticker.ch/
+- id: D062
+  domain: tech.yahoo.com
+  section: Отраслевые и деловые медиа
+  url: https://tech.yahoo.com/
+- id: D063
+  domain: techbeat.ca
+  section: Отраслевые и деловые медиа
+  url: https://techbeat.ca/
+- id: D064
+  domain: techpowerup.com
+  section: Отраслевые и деловые медиа
+  url: https://techpowerup.com/
+- id: D065
+  domain: techradar.com
+  section: Отраслевые и деловые медиа
+  url: https://techradar.com/
+- id: D066
+  domain: techstartups.com
+  section: Отраслевые и деловые медиа
+  url: https://techstartups.com/
+- id: D067
+  domain: techxplore.com
+  section: Отраслевые и деловые медиа
+  url: https://techxplore.com/
+- id: D068
+  domain: theasianbanker.com
+  section: Отраслевые и деловые медиа
+  url: https://theasianbanker.com/
+- id: D069
+  domain: thedeeptech.in
+  section: Отраслевые и деловые медиа
+  url: https://thedeeptech.in/
+- id: D070
+  domain: theinnovator.news
+  section: Отраслевые и деловые медиа
+  url: https://theinnovator.news/
+- id: D071
+  domain: theregister.com
+  section: Отраслевые и деловые медиа
+  url: https://theregister.com/
+- id: D072
+  domain: unite.ai
+  section: Отраслевые и деловые медиа
+  url: https://unite.ai/
+- id: D073
+  domain: wccftech.com
+  section: Отраслевые и деловые медиа
+  url: https://wccftech.com/
+- id: D074
+  domain: cloud.google.com
+  section: Первичные страницы организаций
+  url: https://cloud.google.com/
+- id: D075
+  domain: jpmorgan.com
+  section: Первичные страницы организаций
+  url: https://jpmorgan.com/
+- id: D076
+  domain: ycombinator.com
+  section: Первичные страницы организаций
+  url: https://ycombinator.com/
+- id: D077
+  domain: 1kosmos.com
+  section: Первичные страницы организаций
+  url: https://1kosmos.com/
+- id: D078
+  domain: 1x.tech
+  section: Первичные страницы организаций
+  url: https://1x.tech/
+- id: D079
+  domain: agentfacts.org
+  section: Первичные страницы организаций
+  url: https://agentfacts.org/
+- id: D080
+  domain: ai.google.dev
+  section: Первичные страницы организаций
+  url: https://ai.google.dev/
+- id: D081
+  domain: akamai.com
+  section: Первичные страницы организаций
+  url: https://akamai.com/
+- id: D082
+  domain: allenai.org
+  section: Первичные страницы организаций
+  url: https://allenai.org/
+- id: D083
+  domain: amd.com
+  section: Первичные страницы организаций
+  url: https://amd.com/
+- id: D084
+  domain: anthropic.com
+  section: Первичные страницы организаций
+  url: https://anthropic.com/
+- id: D085
+  domain: apolloresearch.ai
+  section: Первичные страницы организаций
+  url: https://apolloresearch.ai/
+- id: D086
+  domain: asia.ccb.com
+  section: Первичные страницы организаций
+  url: https://asia.ccb.com/
+- id: D087
+  domain: blog.cloudflare.com
+  section: Первичные страницы организаций
+  url: https://blog.cloudflare.com/
+- id: D088
+  domain: blog.digitalasset.com
+  section: Первичные страницы организаций
+  url: https://blog.digitalasset.com/
+- id: D089
+  domain: blog.zk.me
+  section: Первичные страницы организаций
+  url: https://blog.zk.me/
+- id: D090
+  domain: blogs.cisco.com
+  section: Первичные страницы организаций
+  url: https://blogs.cisco.com/
+- id: D091
+  domain: blogs.microsoft.com
+  section: Первичные страницы организаций
+  url: https://blogs.microsoft.com/
+- id: D092
+  domain: capaloai.com
+  section: Первичные страницы организаций
+  url: https://capaloai.com/
+- id: D093
+  domain: citigroup.com
+  section: Первичные страницы организаций
+  url: https://citigroup.com/
+- id: D094
+  domain: computeexpresslink.org
+  section: Первичные страницы организаций
+  url: https://computeexpresslink.org/
+- id: D095
+  domain: confidential.ai
+  section: Первичные страницы организаций
+  url: https://confidential.ai/
+- id: D096
+  domain: consilient.com
+  section: Первичные страницы организаций
+  url: https://consilient.com/
+- id: D097
+  domain: corsound.ai
+  section: Первичные страницы организаций
+  url: https://corsound.ai/
+- id: D098
+  domain: credora.network
+  section: Первичные страницы организаций
+  url: https://credora.network/
+- id: D099
+  domain: credprotocol.com
+  section: Первичные страницы организаций
+  url: https://credprotocol.com/
+- id: D100
+  domain: crossmint.com
+  section: Первичные страницы организаций
+  url: https://crossmint.com/
+- id: D101
+  domain: cryptomathic.com
+  section: Первичные страницы организаций
+  url: https://cryptomathic.com/
+- id: D102
+  domain: dbs.com
+  section: Первичные страницы организаций
+  url: https://dbs.com/
+- id: D103
+  domain: deploymentsafety.openai.com
+  section: Первичные страницы организаций
+  url: https://deploymentsafety.openai.com/
+- id: D104
+  domain: developers.cloudflare.com
+  section: Первичные страницы организаций
+  url: https://developers.cloudflare.com/
+- id: D105
+  domain: docs.phala.com
+  section: Первичные страницы организаций
+  url: https://docs.phala.com/
+- id: D106
+  domain: en.alpsentek.com
+  section: Первичные страницы организаций
+  url: https://en.alpsentek.com/
+- id: D107
+  domain: flagright.com
+  section: Первичные страницы организаций
+  url: https://flagright.com/
+- id: D108
+  domain: fluix.ai
+  section: Первичные страницы организаций
+  url: https://fluix.ai/
+- id: D109
+  domain: help.zededa.com
+  section: Первичные страницы организаций
+  url: https://help.zededa.com/
+- id: D110
+  domain: hirundo.io
+  section: Первичные страницы организаций
+  url: https://hirundo.io/
+- id: D111
+  domain: ibecbarcelona.eu
+  section: Первичные страницы организаций
+  url: https://ibecbarcelona.eu/
+- id: D112
+  domain: imt-starter.fr
+  section: Первичные страницы организаций
+  url: https://imt-starter.fr/
+- id: D113
+  domain: infohub.delltechnologies.com
+  section: Первичные страницы организаций
+  url: https://infohub.delltechnologies.com/
+- id: D114
+  domain: intelcapital.com
+  section: Первичные страницы организаций
+  url: https://intelcapital.com/
+- id: D115
+  domain: invariantlabs.ai
+  section: Первичные страницы организаций
+  url: https://invariantlabs.ai/
+- id: D116
+  domain: investor.nvidia.com
+  section: Первичные страницы организаций
+  url: https://investor.nvidia.com/
+- id: D117
+  domain: is.mpg.de
+  section: Первичные страницы организаций
+  url: https://is.mpg.de/
+- id: D118
+  domain: kamiwaza.ai
+  section: Первичные страницы организаций
+  url: https://kamiwaza.ai/
+- id: D119
+  domain: labs.snyk.io
+  section: Первичные страницы организаций
+  url: https://labs.snyk.io/
+- id: D120
+  domain: marianaminerals.com
+  section: Первичные страницы организаций
+  url: https://marianaminerals.com/
+- id: D121
+  domain: marvell.com
+  section: Первичные страницы организаций
+  url: https://marvell.com/
+- id: D122
+  domain: micro-insurance.yas.com.hk
+  section: Первичные страницы организаций
+  url: https://micro-insurance.yas.com.hk/
+- id: D123
+  domain: microsoft.com
+  section: Первичные страницы организаций
+  url: https://microsoft.com/
+- id: D124
+  domain: momenta.vc
+  section: Первичные страницы организаций
+  url: https://momenta.vc/
+- id: D125
+  domain: mpp.dev
+  section: Первичные страницы организаций
+  url: https://mpp.dev/
+- id: D126
+  domain: news.microsoft.com
+  section: Первичные страницы организаций
+  url: https://news.microsoft.com/
+- id: D127
+  domain: nordicsemi.com
+  section: Первичные страницы организаций
+  url: https://nordicsemi.com/
+- id: D128
+  domain: novarctech.com
+  section: Первичные страницы организаций
+  url: https://novarctech.com/
+- id: D129
+  domain: nvidianews.nvidia.com
+  section: Первичные страницы организаций
+  url: https://nvidianews.nvidia.com/
+- id: D130
+  domain: openai.com
+  section: Первичные страницы организаций
+  url: https://openai.com/
+- id: D131
+  domain: openfort.io
+  section: Первичные страницы организаций
+  url: https://openfort.io/
+- id: D132
+  domain: phala.com
+  section: Первичные страницы организаций
+  url: https://phala.com/
+- id: D133
+  domain: pi.website
+  section: Первичные страницы организаций
+  url: https://pi.website/
+- id: D134
+  domain: polygon.technology
+  section: Первичные страницы организаций
+  url: https://polygon.technology/
+- id: D135
+  domain: premisys.ai
+  section: Первичные страницы организаций
+  url: https://premisys.ai/
+- id: D136
+  domain: prophesee.ai
+  section: Первичные страницы организаций
+  url: https://prophesee.ai/
+- id: D137
+  domain: qualcomm.com
+  section: Первичные страницы организаций
+  url: https://qualcomm.com/
+- id: D138
+  domain: radware.com
+  section: Первичные страницы организаций
+  url: https://radware.com/
+- id: D139
+  domain: sei.cmu.edu
+  section: Первичные страницы организаций
+  url: https://sei.cmu.edu/
+- id: D140
+  domain: semiai.ai
+  section: Первичные страницы организаций
+  url: https://semiai.ai/
+- id: D141
+  domain: sharpa.com
+  section: Первичные страницы организаций
+  url: https://sharpa.com/
+- id: D142
+  domain: sherpa.ai
+  section: Первичные страницы организаций
+  url: https://sherpa.ai/
+- id: D143
+  domain: speedrun.a16z.com
+  section: Первичные страницы организаций
+  url: https://speedrun.a16z.com/
+- id: D144
+  domain: streamanalyze.com
+  section: Первичные страницы организаций
+  url: https://streamanalyze.com/
+- id: D145
+  domain: swift.com
+  section: Первичные страницы организаций
+  url: https://swift.com/
+- id: D146
+  domain: syncrobotic.ai
+  section: Первичные страницы организаций
+  url: https://syncrobotic.ai/
+- id: D147
+  domain: tempo.xyz
+  section: Первичные страницы организаций
+  url: https://tempo.xyz/
+- id: D148
+  domain: tinfoil.sh
+  section: Первичные страницы организаций
+  url: https://tinfoil.sh/
+- id: D149
+  domain: veea.com
+  section: Первичные страницы организаций
+  url: https://veea.com/
+- id: D150
+  domain: venturelab.swiss
+  section: Первичные страницы организаций
+  url: https://venturelab.swiss/
+- id: D151
+  domain: zyphe.com
+  section: Первичные страницы организаций
+  url: https://zyphe.com/
+- id: D152
+  domain: prnewswire.com
+  section: Пресс-релизы
+  url: https://prnewswire.com/
+- id: D153
+  domain: businesswire.com
+  section: Пресс-релизы
+  url: https://businesswire.com/
+- id: D154
+  domain: accessnewswire.com
+  section: Пресс-релизы
+  url: https://accessnewswire.com/
+- id: D155
+  domain: globenewswire.com
+  section: Пресс-релизы
+  url: https://globenewswire.com/
+- id: D156
+  domain: github.com
+  section: Код и модели
+  url: https://github.com/
+  discover: false
+  reason: покрываются адаптерами GitHub и Hugging Face
+- id: D157
+  domain: huggingface.co
+  section: Код и модели
+  url: https://huggingface.co/
+  discover: false
+  reason: покрываются адаптерами GitHub и Hugging Face
+- id: D158
+  domain: abovea.tech
+  section: Дополнительные зацепки
+  url: https://abovea.tech/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D159
+  domain: agenticindex.io
+  section: Дополнительные зацепки
+  url: https://agenticindex.io/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D160
+  domain: agentmarketcap.ai
+  section: Дополнительные зацепки
+  url: https://agentmarketcap.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D161
+  domain: aisecurityandsafety.org
+  section: Дополнительные зацепки
+  url: https://aisecurityandsafety.org/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D162
+  domain: amlnetwork.org
+  section: Дополнительные зацепки
+  url: https://amlnetwork.org/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D163
+  domain: app.fundz.net
+  section: Дополнительные зацепки
+  url: https://app.fundz.net/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D164
+  domain: appsecsanta.com
+  section: Дополнительные зацепки
+  url: https://appsecsanta.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D165
+  domain: awesomeagents.ai
+  section: Дополнительные зацепки
+  url: https://awesomeagents.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D166
+  domain: coinpaprika.com
+  section: Дополнительные зацепки
+  url: https://coinpaprika.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D167
+  domain: cryptodaily.co.uk
+  section: Дополнительные зацепки
+  url: https://cryptodaily.co.uk/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D168
+  domain: discoveryalert.com
+  section: Дополнительные зацепки
+  url: https://discoveryalert.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D169
+  domain: embodiedglobal.com
+  section: Дополнительные зацепки
+  url: https://embodiedglobal.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D170
+  domain: f6s.com
+  section: Дополнительные зацепки
+  url: https://f6s.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D171
+  domain: geo.sig.ai
+  section: Дополнительные зацепки
+  url: https://geo.sig.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D172
+  domain: gmacouncil.org
+  section: Дополнительные зацепки
+  url: https://gmacouncil.org/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D173
+  domain: hypertrends.com
+  section: Дополнительные зацепки
+  url: https://hypertrends.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D174
+  domain: insidedeeptech.com
+  section: Дополнительные зацепки
+  url: https://insidedeeptech.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D175
+  domain: jobswithstartups.com
+  section: Дополнительные зацепки
+  url: https://jobswithstartups.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D176
+  domain: neuromorphiccore.ai
+  section: Дополнительные зацепки
+  url: https://neuromorphiccore.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D177
+  domain: neuronfeed.com
+  section: Дополнительные зацепки
+  url: https://neuronfeed.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D178
+  domain: neutronrise.com
+  section: Дополнительные зацепки
+  url: https://neutronrise.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D179
+  domain: newmarketpitch.com
+  section: Дополнительные зацепки
+  url: https://newmarketpitch.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D180
+  domain: oxmaint.com
+  section: Дополнительные зацепки
+  url: https://oxmaint.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D181
+  domain: recodex.pro
+  section: Дополнительные зацепки
+  url: https://recodex.pro/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D182
+  domain: robotsatlas.com
+  section: Дополнительные зацепки
+  url: https://robotsatlas.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D183
+  domain: securityscientist.net
+  section: Дополнительные зацепки
+  url: https://securityscientist.net/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D184
+  domain: seedlist.com
+  section: Дополнительные зацепки
+  url: https://seedlist.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D185
+  domain: startup-seeker.com
+  section: Дополнительные зацепки
+  url: https://startup-seeker.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D186
+  domain: startupfundraising.com
+  section: Дополнительные зацепки
+  url: https://startupfundraising.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D187
+  domain: startupresearcher.com
+  section: Дополнительные зацепки
+  url: https://startupresearcher.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D188
+  domain: stellagent.ai
+  section: Дополнительные зацепки
+  url: https://stellagent.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D189
+  domain: stocktitan.net
+  section: Дополнительные зацепки
+  url: https://stocktitan.net/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D190
+  domain: tamradar.com
+  section: Дополнительные зацепки
+  url: https://tamradar.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D191
+  domain: thehumanoidrace.com
+  section: Дополнительные зацепки
+  url: https://thehumanoidrace.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D192
+  domain: theroboticlife.com
+  section: Дополнительные зацепки
+  url: https://theroboticlife.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D193
+  domain: tianpan.co
+  section: Дополнительные зацепки
+  url: https://tianpan.co/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D194
+  domain: trysignalbase.com
+  section: Дополнительные зацепки
+  url: https://trysignalbase.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D195
+  domain: x.com
+  section: Дополнительные зацепки
+  url: https://x.com/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D196
+  domain: yespress.io
+  section: Дополнительные зацепки
+  url: https://yespress.io/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D197
+  domain: zylos.ai
+  section: Дополнительные зацепки
+  url: https://zylos.ai/
+  discover: false
+  reason: 'P3: зацепки низкого качества, не доказательство'
+- id: D198
+  domain: celent.com
+  section: Аналитика и контекст
+  url: https://celent.com/
+- id: D199
+  domain: cgap.org
+  section: Аналитика и контекст
+  url: https://cgap.org/
+- id: D200
+  domain: idc.com
+  section: Аналитика и контекст
+  url: https://idc.com/
+- id: D201
+  domain: patsnap.com
+  section: Аналитика и контекст
+  url: https://patsnap.com/
+- id: D202
+  domain: stlpartners.com
+  section: Аналитика и контекст
+  url: https://stlpartners.com/
+- id: D203
+  domain: cftc.gov
+  section: Официальные сведения
+  url: https://cftc.gov/
+- id: D204
+  domain: cirt.gy
+  section: Официальные сведения
+  url: https://cirt.gy/
+- id: D205
+  domain: dhs.gov
+  section: Официальные сведения
+  url: https://dhs.gov/
+- id: D206
+  domain: europol.europa.eu
+  section: Официальные сведения
+  url: https://europol.europa.eu/

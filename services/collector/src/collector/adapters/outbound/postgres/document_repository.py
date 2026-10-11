@@ -23,7 +23,15 @@ INSERT INTO documents (
   published_at, source_key, source_type, trust_level, doi, citation_count, engagement_count,
   raw_meta, fetched_at
 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-ON CONFLICT (url_hash) DO UPDATE SET fetched_at = EXCLUDED.fetched_at
+ON CONFLICT (url_hash) DO UPDATE SET
+  fetched_at = EXCLUDED.fetched_at,
+  -- этап 4.6 (аудит P10): более полный текст заменяет бедную первую версию (например, слова адреса), пустой — нет
+  title = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.title ELSE documents.title END,
+  body_text = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.body_text
+                   ELSE documents.body_text END,
+  content_hash = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.content_hash
+                      ELSE documents.content_hash END,
+  published_at = COALESCE(documents.published_at, EXCLUDED.published_at)
 RETURNING document_id, (xmax = 0) AS inserted
 """
 
@@ -151,6 +159,9 @@ class PostgresDocumentRepository:
             await cur.execute(_FIND_BY_DOI, (draft.doi,))
             existing = await cur.fetchone()
             if existing is not None:
+                # этап 4.6 (аудит P10): найденный по DOI документ тоже дополняется более полным текстом и датой
+                await cur.execute(_ENRICH_BY_ID, {"body": draft.text, "title": draft.title, "hash": draft.content_hash,
+                                                  "published": draft.published_at, "id": existing["document_id"]})
                 return str(existing["document_id"]), False
         await cur.execute(
             _UPSERT_DOCUMENT,
@@ -204,3 +215,12 @@ class PostgresDocumentRepository:
             await cur.execute(_PURGE_ORPHANS, {"threshold": older_than, "batch_size": batch_size})
             rows = await cur.fetchall()
         return len(rows)
+
+_ENRICH_BY_ID = """
+UPDATE documents SET
+  title = CASE WHEN length(%(body)s) > length(body_text) THEN %(title)s ELSE title END,
+  content_hash = CASE WHEN length(%(body)s) > length(body_text) THEN %(hash)s ELSE content_hash END,
+  body_text = CASE WHEN length(%(body)s) > length(body_text) THEN %(body)s ELSE body_text END,
+  published_at = COALESCE(published_at, %(published)s)
+WHERE document_id = %(id)s
+"""

@@ -26,8 +26,9 @@ class ExpandTechnologiesTest(unittest.TestCase):
                  "Federated Learning", "AI-powered supply chain resilience", "Intelligent workload orchestration",
                  "Adaptive power management", "federated learning for distributed factories",
                  "Anomaly detection on IoT data streams"]
+        # этап 4.6 (аудит P17): новое применение зрелого метода остаётся, вариант с общим уточнением — нет
         self.assertEqual(clean_technologies(items, forbidden=("edge AI",)),
-                         ("Sodium-ion battery cathodes", "Solid-state transformers"))
+                         ("Sodium-ion battery cathodes", "Solid-state transformers", "Anomaly detection on IoT data streams"))
         self.assertEqual(len(clean_technologies([f"tech {i} cells" for i in range(60)])), MAX_TECHNOLOGIES)
 
     def test_prompt_v2_asks_for_technologies_and_schema_allows_them(self) -> None:

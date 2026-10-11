@@ -50,7 +50,9 @@ _SELECT_SOURCES = (
 )
 _SELECT_EXPANSION = (
     "SELECT query_norm, ru_terms, en_terms, domain_tags, technologies, used_fallback, provider, model, "
-    "prompt_version FROM query_expansions WHERE query_norm = %s AND prompt_version = %s AND NOT used_fallback"
+    "prompt_version FROM query_expansions WHERE query_norm = %s AND prompt_version = %s AND NOT used_fallback "
+    # этап 4.6 (аудит P23): срок жизни кеша (0 — без срока: замороженный эксперимент) и та же модель
+    "AND (%s = 0 OR created_at >= now() - make_interval(hours => %s)) AND (%s = '' OR model = %s)"
 )
 _UPSERT_EXPANSION = """
 INSERT INTO query_expansions
@@ -164,16 +166,17 @@ class PostgresInsightRepository:
         return _row_to_insight(dict(row), summaries)
 
 
-class PostgresExpansionRepository:
+class PostgresExpansionRepository:  # noqa: D101 — см. get
     """Реализация порта `ExpansionRepository`."""
 
-    def __init__(self, pool: Any) -> None:
+    def __init__(self, pool: Any, ttl_hours: int = 0, model: str = "") -> None:
         self._pool = pool
+        self._ttl_hours, self._model = ttl_hours, model
 
     async def get(self, query_norm: str, prompt_version: str) -> QueryExpansion | None:
         """Сохранённое удачное расширение этой версии промпта; расширение другой версии или резервное не берётся."""
         async with self._pool.connection() as conn, conn.cursor() as cur:
-            await cur.execute(_SELECT_EXPANSION, (query_norm, prompt_version))
+            await cur.execute(_SELECT_EXPANSION, (query_norm, prompt_version, self._ttl_hours, self._ttl_hours, self._model, self._model))
             row = await cur.fetchone()
         if row is None:
             return None

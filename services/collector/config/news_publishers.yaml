@@ -26,9 +26,11 @@ publishers:
   - {host: securityweek.com, mode: capture_month, prefixes: ["securityweek.com/"]}
   - {host: techfundingnews.com, mode: capture_month, prefixes: ["techfundingnews.com/"]}
   - {host: theregister.com, mode: capture_month, prefixes: ["theregister.com/"]}
-  - {host: theblock.co, mode: capture_month, prefixes: ["theblock.co/post/"]}
+  # этап 4.6 (аудит P07): /post/ перенаправляет на /news/business/ — перечисляются оба раздела
+  - {host: theblock.co, mode: capture_month, prefixes: ["theblock.co/post/", "theblock.co/news/"]}
   - {host: techradar.com, mode: capture_month, prefixes: ["techradar.com/pro/"]}
-  - {host: tomshardware.com, mode: capture_month, prefixes: ["tomshardware.com/tech-industry/"]}
+  # этап 4.6 (аудит P07): статьи об оборудовании лежат и в /pc-components/
+  - {host: tomshardware.com, mode: capture_month, prefixes: ["tomshardware.com/tech-industry/", "tomshardware.com/pc-components/"]}
   - {host: interestingengineering.com, mode: capture_month, prefixes: ["interestingengineering.com/"]}
   - {host: spectrum.ieee.org, mode: capture_month, prefixes: ["spectrum.ieee.org/"]}
   - {host: prnewswire.com, mode: capture_month, prefixes: ["prnewswire.com/news-releases/"], tech_filter: true}

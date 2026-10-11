@@ -111,7 +111,7 @@ class ArxivAdapter(BaseSourceAdapter):
                         "search_query": search_query(term),
                         "start": page * PAGE_SIZE,
                         "max_results": PAGE_SIZE,
-                        "sortBy": "submittedDate",
+                        "sortBy": "relevance",  # этап 4.6 (аудит P24): по релевантности, окно дат — в запросе
                         "sortOrder": "descending",
                     }
                 )

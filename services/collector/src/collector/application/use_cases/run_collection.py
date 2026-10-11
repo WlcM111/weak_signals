@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 from datetime import date, timedelta
+from urllib.parse import urlsplit
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
@@ -36,7 +37,13 @@ from collector.domain.errors import AdapterFailure, InvariantViolation, LeaseLos
 from collector.domain.normalization import build_document_draft
 from collector.domain.archive import archive_raw_document
 from collector.domain.emergence import emerging_terms
-from collector.domain.event_channel import EVENT_CUES, event_vocabulary, is_news_boilerplate, rank_events
+from collector.domain.event_channel import (
+    EVENT_CUES,
+    event_vocabulary,
+    extract_entities,
+    is_news_boilerplate,
+    rank_events,
+)
 from collector.domain.technology_filters import is_mature, topic_keywords, with_variants
 from collector.domain.technology_mining import mine_technologies, targeted_since
 from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
@@ -96,6 +103,12 @@ class RunCollectionConfig:
     # оставлена доля `snowball_time_share` времени прицельного прохода.
     emerging_technologies: int = 25
     llm_technologies: int = 10
+    # Этап 4.6 (аудит P14, P22): технологии прицельного прохода набираются по очереди из независимых каналов с
+    # квотами — корпуса, модель, извлечённые, сущности (компании и продукты из заголовков событий); прежде
+    # порядок «корпуса → извлечённые → модель» при насыщении первых двух вытеснял модель целиком.
+    emerging_quota: int = 15
+    mined_quota: int = 9
+    entity_quota: int = 6
     snowball_technologies: int = 15
     targeted_rounds: int = 2
     snowball_time_share: float = 0.25
@@ -107,9 +120,11 @@ class RunCollectionConfig:
     # Этап 4.5: канал «события стартапов» — в начале прицельного прохода архив отдаёт до `event_channel_documents`
     # статей с событием стартапа и хотя бы `event_min_overlap` словами словаря (слова темы и отобранных технологий),
     # по убыванию редкости совпавших слов; кандидатов для ранжирования — до `event_pool`.
+    emergence_min_growth: float = 1.5  # этап 4.6 (P18): рост доли не меньше чем в 1,5 раза
+    emergence_min_base: int = 300  # этап 4.6 (P18): меньше документов в базовом периоде — рост неизвестен
     event_channel_documents: int = 150
     event_min_overlap: int = 2
-    event_pool: int = 4000
+    event_pool: int = 8000  # этап 4.6 (P20): шире пул до ранжирования по редкости слов
     # Оценка возникновения по новостям — только по настоящим заголовкам RSS (слова адресов Wayback склеивались
     # в мусор вроде «capital factory built nuclear») и только при достаточной выборке.
     news_emergence_origin: str | None = "rss"
@@ -264,26 +279,26 @@ class RunCollection:
         )
 
     async def _technologies(self, state: _RunState) -> tuple[str, ...]:
-        """Технологии прицельного прохода (этап 4.3): по оценке возникновения из корпусов, извлечённые из
-        широкого прохода, затем от модели — вспомогательно, не больше `llm_technologies`."""
+        """Технологии прицельного прохода (этап 4.6): по очереди из каналов с квотами, без вытеснения канала."""
         terms = state.collection.terms
         emerging = await self._emerging(state)
         mined = mine_technologies(state.titles, exclude=(*terms.en, *terms.ru, *terms.technologies, *emerging),
                                   limit=self._config.mined_technologies)
+        entities = extract_entities(title for title, _key in state.titles)
         state.mined = tuple(mined)
         try:
             await self._collections.save_mined_technologies(state.collection.collection_id, mined)
             await self._collections.save_emerging_technologies(state.collection.collection_id, emerging)
         except Exception as exc:  # noqa: BLE001 — список технологий не должен срывать сбор
             self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
-        merged: dict[str, str] = {}
-        for item in (*emerging, *mined, *terms.technologies[: self._config.llm_technologies]):
-            if not is_mature(item):
-                merged.setdefault(" ".join(item.lower().split()), item)
-        technologies = tuple(merged.values())[: self._config.max_technologies]
-        self._log.info("collection.technologies", collection_id=state.collection.collection_id,
-                       emerging=emerging, mined=mined, from_model=len(terms.technologies), total=len(technologies))
-        return technologies
+        channels = [("emerging", emerging, self._config.emerging_quota),
+                    ("model", list(terms.technologies), self._config.llm_technologies),
+                    ("mined", mined, self._config.mined_quota),
+                    ("entities", entities, self._config.entity_quota)]
+        technologies, report = select_by_quota(channels, self._config.max_technologies)
+        self._log.info("collection.technologies", collection_id=state.collection.collection_id, total=len(technologies),
+                       **report)
+        return tuple(technologies)
 
     async def _targeted_documents(
         self, key: SourceKey, adapter: SourceAdapter, technologies: tuple[str, ...], since: date, state: _RunState
@@ -364,7 +379,8 @@ class RunCollection:
         min_recent = max(floor, round(len(recent) * share))
         found = emerging_terms(
             [*recent, *base], recent_from=recent_from, base_from=base_from, base_to=recent_from - timedelta(days=1),
-            exclude=exclude, limit=self._config.emerging_technologies, min_recent=min_recent, max_share=0.15)
+            exclude=exclude, limit=self._config.emerging_technologies, min_recent=min_recent, max_share=0.15,
+            min_growth=self._config.emergence_min_growth, min_base_total=self._config.emergence_min_base)
         terms_found = [item.term for item in found if not (boilerplate and is_news_boilerplate(item.term))]
         self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
                        keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent, terms=terms_found)
@@ -558,9 +574,9 @@ class RunCollection:
         state.rank += 1
         state.per_source_accepted[source_key] = state.per_source_accepted.get(source_key, 0) + 1
         if state.phase == PHASE_BROAD:
-            state.titles.append((draft.title, source_key.value))
+            state.titles.append((draft.title, independence_key(source_key, draft.url)))
         else:
-            state.targeted_titles.append((draft.title, source_key.value))
+            state.targeted_titles.append((draft.title, independence_key(source_key, draft.url)))
         state.pending_new.add(draft.url_hash)
         batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
         _note(state, source_key, raw, DocumentEvent.ACCEPTED, url_hash=draft.url_hash, doi=draft.doi,
@@ -601,7 +617,8 @@ class RunCollection:
                 if state.cancel_requested or state.lease_lost:
                     run.cancel(now)
                 elif state.stop_reason is StopReason.BUDGET_EXHAUSTED:
-                    run.complete(now, AdapterErrorCode.BUDGET_EXHAUSTED)
+                    # этап 4.6 (аудит P04): дедлайн сбора — не исчерпанная квота источника
+                    run.complete(now, AdapterErrorCode.DEADLINE_REACHED)
                 else:
                     run.complete(now)
             # сохраняются все запуски, включая отказавшие внутри задачи адаптера: их статус
@@ -730,3 +747,56 @@ def broad_cap(config: RunCollectionConfig, limits: CollectionLimits, source_key:
     """Лимит широкого прохода на источник при двух проходах: общий и, для новых источников, свой (этап 4.4)."""
     cap = min(limits.max_documents_per_source, config.broad_max_documents_per_source)
     return min(cap, config.broad_source_caps.get(source_key, cap))
+
+
+SCHOLARLY = frozenset({SourceKey.ARXIV, SourceKey.OPENALEX, SourceKey.SEMANTIC_SCHOLAR, SourceKey.CROSSREF,
+                       SourceKey.ZENODO, SourceKey.CORPUS, SourceKey.ROSPATENT, SourceKey.GITHUB, SourceKey.HUGGINGFACE})
+
+
+def independence_key(source_key: SourceKey, url: str) -> str:
+    """Этап 4.6 (аудит P16): кто независимо свидетельствует — работа/репозиторий (научные источники, код) или
+    издатель (новости, ленты); имя адаптера больше не создаёт и не отнимает независимость."""
+    if source_key in SCHOLARLY:
+        return url
+    return (urlsplit(url).hostname or url).lower().removeprefix("www.")
+
+
+def select_by_quota(channels: list[tuple[str, list[str], int]], limit: int) -> tuple[list[str], dict[str, object]]:
+    """По очереди по одной технологии из каждого канала в пределах его квоты, затем — остаток по порядку каналов.
+    Зрелые области и повторы отсеиваются; отчёт — сколько взято и отброшено по каждому каналу и почему."""
+    selected: dict[str, str] = {}
+    taken = {name: 0 for name, _items, _quota in channels}
+    rejected = {name: {"mature": 0, "duplicate": 0, "quota": 0} for name, _items, _quota in channels}
+    queues = {name: list(items) for name, items, _quota in channels}
+    quotas = {name: quota for name, _items, quota in channels}
+
+    def take(name: str, respect_quota: bool) -> bool:
+        while queues[name]:
+            item = queues[name].pop(0)
+            key = " ".join(item.lower().split())
+            if is_mature(item):
+                rejected[name]["mature"] += 1
+                continue
+            if key in selected:
+                rejected[name]["duplicate"] += 1
+                continue
+            if respect_quota and taken[name] >= quotas[name]:
+                queues[name].insert(0, item)
+                return False
+            selected[key] = item
+            taken[name] += 1
+            return True
+        return False
+
+    progress = True
+    while len(selected) < limit and progress:
+        progress = False
+        for name, _items, _quota in channels:
+            if len(selected) < limit and take(name, respect_quota=True):
+                progress = True
+    for name, _items, _quota in channels:
+        while len(selected) < limit and take(name, respect_quota=False):
+            pass
+    for name in queues:
+        rejected[name]["quota"] += len(queues[name])
+    return list(selected.values()), {"taken": taken, "rejected": rejected}

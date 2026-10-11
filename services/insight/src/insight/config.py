@@ -19,6 +19,10 @@ ALLOWED_PROVIDERS = ("gigachat", "yandexgpt", "local_llamacpp", "fake", "none")
 
 class InsightSettings(BaseServiceSettings):
     """Параметры сервиса insight."""
+    # Этап 4.6 (аудит P23): кеш расширения запроса — срок жизни в часах (0 — без срока, для замороженного
+    # эксперимента) и модель, чьи ответы принимаются из кеша (пусто — любая).
+    expand_cache_ttl_hours: int = Field(default=168, ge=0, le=8760)
+    expand_cache_model: str = ""
     # Запись промптов и ответов LLM для режима А (аудит A3; решение владельца 03.10.2026).
     llm_record_enabled: bool = True
 

@@ -31,13 +31,14 @@ def archive_entries(feed_entries: Iterable[object], fetched_at: datetime) -> lis
             continue
         summary = " ".join(html.unescape(_TAG_RE.sub(" ", str(getattr(entry, "summary", "") or ""))).split())[:2000]
         published = getattr(entry, "published_at", None)
-        published_on = (published or fetched_at).astimezone(UTC).date()
+        published_on = published.astimezone(UTC).date() if published else None  # этап 4.6 (P09): без даты — неизвестна
         tokens = tokens_of(f"{title} {summary[:300]}")
         if tokens:
             result.append(ArchiveEntry(url=f"{parts.scheme}://{parts.hostname.lower()}{parts.path or '/'}",
                                        publisher=parts.hostname.lower().removeprefix("www."), origin="rss",
                                        title=title[:512], published_on=published_on, captured_at=fetched_at,
-                                       summary=summary, tokens=tuple(tokens)))
+                                       summary=summary, tokens=tuple(tokens),
+                                       published_source="rss" if published_on else "unknown", text_status="rss"))
     return result
 
 
@@ -52,7 +53,12 @@ class RssArchiver:
         from collector.adapters.outbound.sources.rss import FEED_ACCEPT, parse_feed
 
         total = 0
-        for feed in self._feeds:
+        feeds = list(dict.fromkeys(self._feeds))
+        try:  # этап 4.6: и ленты ресурсов из реестра (discover-feeds)
+            feeds += [feed for feed in await self._store.active_feeds() if feed not in feeds]
+        except Exception as error:  # noqa: BLE001
+            self._report(f"реестр лент недоступен: {error}")
+        for feed in feeds:
             host = (urlsplit(feed).hostname or "").lower()
             try:
                 body = await self._http.get_text(feed, allowed_hosts=frozenset({host}), headers=FEED_ACCEPT)

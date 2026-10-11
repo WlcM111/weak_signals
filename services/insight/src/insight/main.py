@@ -134,7 +134,7 @@ async def serve(settings: InsightSettings) -> int:
         expand_query=ExpandQuery(
             chain,
             prompts,
-            PostgresExpansionRepository(pool),
+            PostgresExpansionRepository(pool, settings.expand_cache_ttl_hours, settings.expand_cache_model),
             Glossary.load(settings.glossary_path),
             metrics,
         ),

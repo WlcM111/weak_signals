@@ -49,6 +49,7 @@ class SourceKey(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SOURCE_KEY_NEWS_ARCHIVE: _ClassVar[SourceKey]
     SOURCE_KEY_CROSSREF: _ClassVar[SourceKey]
     SOURCE_KEY_HUGGINGFACE: _ClassVar[SourceKey]
+    SOURCE_KEY_CORPUS: _ClassVar[SourceKey]
 
 class OperationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -94,6 +95,7 @@ SOURCE_KEY_HACKERNEWS: SourceKey
 SOURCE_KEY_NEWS_ARCHIVE: SourceKey
 SOURCE_KEY_CROSSREF: SourceKey
 SOURCE_KEY_HUGGINGFACE: SourceKey
+SOURCE_KEY_CORPUS: SourceKey
 OPERATION_STATUS_UNSPECIFIED: OperationStatus
 OPERATION_STATUS_PENDING: OperationStatus
 OPERATION_STATUS_RUNNING: OperationStatus

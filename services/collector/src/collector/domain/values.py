@@ -30,6 +30,7 @@ class SourceKey(StrEnum):
     NEWS_ARCHIVE = "news_archive"
     CROSSREF = "crossref"
     HUGGINGFACE = "huggingface"
+    CORPUS = "corpus"
 
 
 class SourceType(StrEnum):
@@ -110,6 +111,8 @@ class AdapterErrorCode(StrEnum):
     DISABLED = "DISABLED"
     CANCELLED = "CANCELLED"
     BUDGET_EXHAUSTED = "BUDGET_EXHAUSTED"
+    # Этап 4.6 (аудит P04): общий дедлайн сбора — не исчерпанная квота источника.
+    DEADLINE_REACHED = "DEADLINE_REACHED"
 
 
 class CollectionErrorCode(StrEnum):

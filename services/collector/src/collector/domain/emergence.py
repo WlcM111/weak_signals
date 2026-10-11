@@ -41,6 +41,8 @@ def emerging_terms(
     limit: int = 25,
     min_recent: int = 3,
     max_share: float = 0.2,
+    min_growth: float = 1.5,
+    min_base_total: int = 0,
 ) -> list[EmergingTerm]:
     """Кандидаты по убыванию оценки возникновения, не больше `limit`."""
     recent: Counter[str] = Counter()
@@ -65,7 +67,8 @@ def emerging_terms(
             base.update(keys.keys())
         for key, phrase in keys.items():
             surfaces[key][phrase] += 1
-    if total_recent == 0:
+    # этап 4.6 (аудит P18): без базового периода рост не измерить — «неизвестно», а не уверенный рост
+    if total_recent == 0 or total_base < min_base_total:
         return []
     blocked = {phrase_key(" ".join(item.lower().split())) for item in exclude if item.strip()}
     smoothing = 1.0 / max(1, total_recent + total_base)
@@ -78,6 +81,8 @@ def emerging_terms(
         rate_recent = count / total_recent
         rate_base = base[key] / total_base if total_base else 0.0
         growth = (rate_recent + smoothing) / (rate_base + smoothing)
+        if growth < min_growth:
+            continue  # этап 4.6 (P18): стабильные и падающие термины — не возникновение
         scored.append(EmergingTerm(surfaces[key].most_common(1)[0][0], count, base[key],
                                    round(growth * math.log2(1 + count), 4)))
     scored.sort(key=lambda item: (-item.score, -len(item.term.split()), item.term))

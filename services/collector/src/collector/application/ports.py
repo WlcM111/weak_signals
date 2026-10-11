@@ -286,11 +286,26 @@ class NewsArchiveStore(Protocol):
                                limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
         """Этап 4.5: статьи с событием стартапа (слово из `cues`) и не меньше `min_overlap` словами словаря, с их словами."""
 
-    async def harvested_periods(self, publisher: str) -> dict[str, str]:
-        """Месяцы издания, уже перечисленные в Wayback: «ГГГГ-ММ» → статус."""
+    async def harvest_states(self, publisher: str) -> dict[str, tuple[str, str | None]]:
+        """Месяцы издания в Wayback: «ГГГГ-ММ» → (статус, место продолжения) (этап 4.6, аудит P11)."""
 
-    async def mark_harvest(self, publisher: str, period: str, status: str, rows: int, detail: str) -> None:
-        """Отмечает перечисление месяца издания."""
+    async def mark_harvest(self, publisher: str, period: str, status: str, rows: int, detail: str,
+                           resume: str | None = None) -> None:
+        """Отмечает перечисление месяца издания; partial — с местом продолжения."""
+
+    async def entries_to_enrich(self, cues: Sequence[str], limit: int) -> list[ArchiveEntry]:
+        """Этап 4.6 (P08): записи Wayback только со словами адреса — сначала события стартапов, затем новые."""
+
+    async def save_enrichment(self, url: str, title: str, summary: str, published_on: date | None,
+                              text_status: str, tokens: Sequence[str]) -> None:
+        """Сохраняет текст, извлечённый из архивной копии страницы."""
+
+    async def save_feed(self, feed_url: str, source_id: str, site_url: str, title: str, status: str, entries: int,
+                        detail: str) -> None:
+        """Реестр лент ресурсов: найденная лента и результат проверки."""
+
+    async def active_feeds(self) -> list[str]:
+        """Ленты реестра со статусом active."""
 
     async def stats(self) -> list[dict[str, object]]:
         """Сводка архива по изданиям и происхождению записей."""
@@ -309,6 +324,10 @@ class CorpusStore(Protocol):
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
         """Состояние выгрузки набора."""
+
+    async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[CorpusPaper]:
+        """Этап 4.6 (P13): работы с не меньше `min_match` словами из `words` в заголовке и начале аннотации,
+        созданные не раньше `since`; сначала — больше совпавших слов, затем новее."""
 
     async def save_harvest_state(self, state: CorpusHarvestState, detail: str = "") -> None:
         """Сохраняет состояние выгрузки набора."""
