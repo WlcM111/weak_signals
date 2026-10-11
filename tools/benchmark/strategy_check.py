@@ -115,6 +115,12 @@ def temporal_eligible(urls: list[str], window_start: date) -> bool | None:
     return any(d >= window_start for d in dates)
 
 
+def collection_limits() -> dict[str, int]:
+    """Этап 4.7: время и лимит документов сбора — из окружения, как у orchestrator, а не заданы в замере."""
+    return {"time_budget_seconds": int(os.environ.get("WS_COLLECT_TIME_BUDGET_SECONDS", "480")),
+            "max_total_documents": int(os.environ.get("WS_COLLECT_MAX_TOTAL_DOCUMENTS", "1450"))}
+
+
 def domain_of(topic: str) -> str:
     return next((tag for key, tag in DOMAINS if key in topic.lower()), "other")
 
@@ -199,7 +205,7 @@ async def run_topic(index: int, topic: str, run_id: str) -> dict:
             terms=collector_pb2.SearchTerms(ru=list(expansion.ru_terms), en=list(expansion.en_terms),
                                             technologies=list(expansion.technologies)),
             mode=collector_pb2.COLLECTION_MODE_SEARCH,
-            limits=collector_pb2.CollectionLimits(time_budget_seconds=240, max_total_documents=1200)),
+            limits=collector_pb2.CollectionLimits(**collection_limits())),
             timeout=60, metadata=md)
         status = None
         for _ in range(WAIT_POLLS):
@@ -299,7 +305,7 @@ def main() -> None:
             print(f"    извлечённые ({len(topic.get('mined', []))}): {topic.get('mined', [])[:8]}", flush=True)
         manifest = {
             "as_of": datetime.now(UTC).isoformat(), "cutoff": args.cutoff.isoformat() if args.cutoff else None,
-            "topic_order": names, "rotate": args.rotate,
+            "topic_order": names, "rotate": args.rotate, "limits": collection_limits(),
             "inputs": {"tool": sha256(__file__), "dataset": sha256(args.dataset), "synonyms": sha256(args.synonyms)},
             "settings": settings_snapshot(),
             "topics": [{k: v for k, v in t.items() if k != "documents"} for t in topics],

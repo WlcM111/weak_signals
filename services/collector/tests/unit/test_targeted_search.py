@@ -41,7 +41,10 @@ class MiningTest(unittest.TestCase):
     def test_candidates_skip_cyrillic_stopword_edges_and_frame_words(self) -> None:
         # этап 4.6 (аудит P17): русские заголовки дают кандидатов; служебные слова по краям — нет
         self.assertIn("методы защиты", candidate_phrases("Новые методы защиты ИИ"))
-        self.assertIn("mcp", candidate_phrases("MCP servers get a security scanner"))
+        # этап 4.7: аббревиатура — только внутри словосочетания
+        found_mcp = candidate_phrases("MCP servers get a security scanner")
+        self.assertIn("mcp servers", found_mcp)
+        self.assertNotIn("mcp", found_mcp)
         found = candidate_phrases("Optical circuit switching for AI clusters: a survey")
         self.assertIn("optical circuit switching", found)
         self.assertNotIn("switching for", found)

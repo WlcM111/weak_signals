@@ -78,10 +78,16 @@ class ArchiveEnricher:
         self._http, self._store, self._clock, self._cues = http, store, clock, tuple(cues)
         self._pause, self._report = pause_seconds, report
 
-    async def run(self, limit: int) -> tuple[int, int]:
-        """Возвращает (сколько записей получили текст, сколько не удалось)."""
+    async def run(self, limit: int, from_collections: bool = False) -> tuple[int, int]:
+        """Возвращает (сколько записей получили текст, сколько не удалось).
+
+        Этап 4.7: `from_collections` — сначала записи, которые попали в сборы (в 4.6 у 77 % документов архива в
+        сборе был только текст из слов адреса: обогащение шло по всему архиву, а не по отобранным статьям).
+        """
         done = failed = 0
-        for entry in await self._store.entries_to_enrich(self._cues, limit):
+        entries = (await self._store.entries_from_collections(limit) if from_collections
+                   else await self._store.entries_to_enrich(self._cues, limit))
+        for entry in entries:
             stamp = entry.captured_at.strftime("%Y%m%d%H%M%S") if entry.captured_at else "2"
             await self._clock.sleep(self._pause)
             try:

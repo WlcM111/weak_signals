@@ -76,7 +76,7 @@ class CollectorSettings(BaseServiceSettings):
     collector_emergence_sample: int = Field(default=15000, ge=1000, le=50000)
     collector_news_emergence_sample: int = Field(default=10000, ge=1000, le=50000)
     # Этап 4.5: канал «события стартапов», Crossref по 1 документу на технологию, новости — только заголовки RSS.
-    collector_event_channel_documents: int = Field(default=150, ge=0, le=1000)
+    collector_event_channel_documents: int = Field(default=400, ge=0, le=2000)  # этап 4.7: было 150
     collector_event_min_overlap: int = Field(default=2, ge=1, le=5)
     collector_event_pool: int = Field(default=8000, ge=100, le=50000)
     collector_crossref_per_term: int = Field(default=1, ge=1, le=10)

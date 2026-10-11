@@ -46,6 +46,17 @@ construction investments hyperscale participants advisors expert details""".spli
 MAX_VOCABULARY = 150
 
 
+def base_form(word: str) -> str:
+    """Основа слова для сопоставления форм числа (robots → robot, technologies → technology)."""
+    return _base(word)
+
+
+def is_all_caps(title: str) -> bool:
+    """Заголовок набран прописными (патенты, пресс-релизы): «аббревиатуры» в нём — обычные слова (этап 4.7)."""
+    letters = [ch for ch in title or "" if ch.isalpha()]
+    return len(letters) >= 8 and sum(ch.isupper() for ch in letters) / len(letters) > 0.8
+
+
 def _base(word: str) -> str:
     if len(word) > 4 and word.endswith("ies"):
         return word[:-3] + "y"
@@ -108,6 +119,8 @@ def extract_entities(titles: Iterable[str], limit: int = 20) -> list[str]:
     «Tetragen Robotics launches…»); по убыванию числа заголовков. Названия от модели их не заменяют."""
     counts: Counter[str] = Counter()
     for title in titles:
+        if is_all_caps(title):
+            continue  # этап 4.7: в заголовке прописными каждое слово похоже на название
         for match in _ENTITY.finditer(title or ""):
             name = " ".join(match.group("name").split())
             words = name.lower().split()

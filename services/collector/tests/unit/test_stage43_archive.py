@@ -258,7 +258,7 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
             def __init__(self) -> None:
                 self.calls: list[tuple[object, ...]] = []
 
-            async def titles_matching(self, keywords, min_overlap, start, end, limit):  # noqa: ANN001, ANN201
+            async def titles_matching(self, keywords, min_overlap, start, end, limit, anchors=None):  # noqa: ANN001, ANN201
                 self.calls.append((tuple(keywords), min_overlap, start, end, limit))
                 rows = [(f"Optical circuit switching study {i}", date(2026, 3, 1)) for i in range(4)]
                 rows += [(f"Background paper {i}", date(2022, 2, 1)) for i in range(12)]

@@ -366,6 +366,7 @@ class FakeRateLimiter:
     """Лимитер без задержек: фиксирует вызовы и штрафы."""
 
     def __init__(self) -> None:
+        self.blocked: dict[SourceKey, float] = {}
         self.acquired: list[SourceKey] = []
         self.penalties: list[tuple[SourceKey, float | None]] = []
         self.deferred: list[tuple[SourceKey, float]] = []
@@ -375,6 +376,9 @@ class FakeRateLimiter:
 
     async def penalize(self, source_key: SourceKey, retry_after: float | None) -> None:
         self.penalties.append((source_key, retry_after))
+
+    def blocked_for(self, source_key: SourceKey) -> float:
+        return self.blocked.get(source_key, 0.0)
 
     def defer(self, source_key: SourceKey, seconds: float) -> None:
         self.deferred.append((source_key, seconds))

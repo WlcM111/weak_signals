@@ -45,6 +45,8 @@ DEFAULT_POLICIES: dict[SourceKey, SourcePolicy] = {
     SourceKey.ZENODO: SourcePolicy(transient_retries=0),  # шлюз Zenodo сам держит интервал и паузу
     # этап 4.3: новые источники — до 2 фраз широкого прохода и до 40 технологий прицельного
     SourceKey.CROSSREF: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
+    # этап 4.7: бюджет ключа OpenAlex — $1 в сутки = 1000 поисковых запросов; 40 на сбор → 240 на замер из 6 тем
+    SourceKey.OPENALEX: SourcePolicy(max_requests=40),
     SourceKey.HUGGINGFACE: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
     SourceKey.NEWS_ARCHIVE: SourcePolicy(transient_retries=0),  # локальный архив, внешних запросов нет
     # этап 4: + до 40 прицельных запросов по технологиям

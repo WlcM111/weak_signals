@@ -44,6 +44,9 @@ class _Limiter:
     def defer(self, source_key, seconds) -> None:  # noqa: ANN001
         return None
 
+    def blocked_for(self, source_key) -> float:  # noqa: ANN001
+        return 0.0
+
 
 class _Clock:
     def now(self):  # noqa: ANN201

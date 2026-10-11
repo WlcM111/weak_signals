@@ -39,12 +39,12 @@ from collector.domain.archive import archive_raw_document
 from collector.domain.emergence import emerging_terms
 from collector.domain.event_channel import (
     EVENT_CUES,
+    base_form,
     event_vocabulary,
     extract_entities,
     is_news_boilerplate,
-    rank_events,
 )
-from collector.domain.technology_filters import is_mature, topic_keywords, with_variants
+from collector.domain.technology_filters import is_mature, topic_anchors, topic_keywords, with_variants
 from collector.domain.technology_mining import mine_technologies, targeted_since
 from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
 from ws_common.clock import Clock
@@ -122,7 +122,8 @@ class RunCollectionConfig:
     # по убыванию редкости совпавших слов; кандидатов для ранжирования — до `event_pool`.
     emergence_min_growth: float = 1.5  # этап 4.6 (P18): рост доли не меньше чем в 1,5 раза
     emergence_min_base: int = 300  # этап 4.6 (P18): меньше документов в базовом периоде — рост неизвестен
-    event_channel_documents: int = 150
+    # этап 4.7: 400 (было 150) — по диагностике 11.10.2026 экспертные статьи стояли на местах 125, 236, 237, 393
+    event_channel_documents: int = 400
     event_min_overlap: int = 2
     event_pool: int = 8000  # этап 4.6 (P20): шире пул до ранжирования по редкости слов
     # Оценка возникновения по новостям — только по настоящим заголовкам RSS (слова адресов Wayback склеивались
@@ -314,16 +315,17 @@ class RunCollection:
         """Статьи архива с событием стартапа по словам темы и отобранных технологий, по редкости совпавших слов."""
         terms = state.collection.terms
         vocabulary = event_vocabulary((*terms.en, *terms.ru), technologies)
-        try:
-            candidates = await self._archive.event_candidates(  # type: ignore[union-attr]
-                vocabulary, EVENT_CUES, self._config.event_min_overlap, since, self._config.event_pool)
+        try:  # этап 4.7: порядок — по редкости совпавших основ среди всех кандидатов, посчитанной в запросе
+            ranked = await self._archive.event_candidates(  # type: ignore[union-attr]
+                vocabulary, [base_form(word) for word in vocabulary], EVENT_CUES, self._config.event_min_overlap,
+                since, max(self._config.event_pool, self._config.event_channel_documents))
         except Exception as exc:  # noqa: BLE001 — канал необязателен: прицельный поиск архива идёт дальше
             self._log.warning("collection.event_channel_failed", collection_id=state.collection.collection_id, error=str(exc))
             return
-        ranked = rank_events(candidates, vocabulary, self._config.event_min_overlap, self._config.event_channel_documents)
+        selected = ranked[: self._config.event_channel_documents]
         self._log.info("collection.event_channel", collection_id=state.collection.collection_id,
-                       vocabulary=len(vocabulary), candidates=len(candidates), selected=len(ranked))
-        for entry, matched in ranked:
+                       vocabulary=len(vocabulary), ranked=len(ranked), selected=len(selected))
+        for entry, matched in selected:
             yield archive_raw_document(entry, " ".join(matched[:3]))
 
     async def _emerging(self, state: _RunState) -> list[str]:
@@ -339,16 +341,24 @@ class RunCollection:
         try:
             paper_keys = topic_keywords(terms.en)
             if self._corpus is not None and paper_keys:
+                corpus, paper_anchors = self._corpus, topic_anchors(terms.en) or None
+
+                async def fetch_papers(keys: list[str], overlap: int, start: date, end: date,
+                                       limit: int) -> list[tuple[str, date | None]]:
+                    return await corpus.titles_matching(keys, overlap, start, end, limit, anchors=paper_anchors)
+
                 lists.append(await self._emerging_from(
-                    self._corpus.titles_matching, paper_keys, today - timedelta(days=730), tomorrow,
+                    fetch_papers, paper_keys, today - timedelta(days=730), tomorrow,
                     date(self._config.corpus_since_year, 1, 1), self._config.emergence_sample, exclude,
                     floor=3, share=0.00075, state=state, corpus="papers"))
             news_keys = topic_keywords((*terms.en, *terms.ru))
             if self._archive is not None and news_keys:
                 archive, origin = self._archive, self._config.news_emergence_origin or None
+                news_anchors = topic_anchors((*terms.en, *terms.ru)) or None
 
                 async def fetch(keys: list[str], overlap: int, start: date, end: date, limit: int) -> list[tuple[str, date | None]]:
-                    return await archive.titles_matching(keys, overlap, start, end, limit, origin=origin)
+                    return await archive.titles_matching(keys, overlap, start, end, limit, origin=origin,
+                                                         anchors=news_anchors)
 
                 lists.append(await self._emerging_from(
                     fetch, news_keys, today - timedelta(days=183), tomorrow, today - timedelta(days=550),
@@ -573,7 +583,9 @@ class RunCollection:
             return
         state.rank += 1
         state.per_source_accepted[source_key] = state.per_source_accepted.get(source_key, 0) + 1
-        if state.phase == PHASE_BROAD:
+        if source_key in PATENT_SOURCES:
+            pass  # этап 4.7: заголовки патентов (шаблоны «способ…», «комплекс…») не участвуют в извлечении
+        elif state.phase == PHASE_BROAD:
             state.titles.append((draft.title, independence_key(source_key, draft.url)))
         else:
             state.targeted_titles.append((draft.title, independence_key(source_key, draft.url)))
@@ -800,3 +812,7 @@ def select_by_quota(channels: list[tuple[str, list[str], int]], limit: int) -> t
     for name in queues:
         rejected[name]["quota"] += len(queues[name])
     return list(selected.values()), {"taken": taken, "rejected": rejected}
+
+
+# Этап 4.7: источники патентов — их заголовки не участвуют в извлечении технологий.
+PATENT_SOURCES = frozenset({SourceKey.ROSPATENT, SourceKey.PATENTSVIEW})

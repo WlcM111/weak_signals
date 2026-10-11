@@ -140,3 +140,32 @@ def with_variants(words: Sequence[str]) -> list[str]:
         elif word.isascii() and word.isalpha() and not word.endswith("s"):
             result.setdefault(word + "s", None)
     return list(result)
+
+
+_SUFFIXES = ("izations", "ization", "isation", "ations", "ation", "ics", "ical", "ic", "ies", "ing", "ers", "er", "ed",
+             "es", "s", "ly")
+
+
+def stem(word: str) -> str:
+    """Лёгкая основа английского слова для якорей темы: robotics, robotic, robots → robot."""
+    for suffix in _SUFFIXES:
+        if word.endswith(suffix) and len(word) - len(suffix) >= 4:
+            return word[: -len(suffix)]
+    return word
+
+
+def topic_anchors(phrases: Sequence[str]) -> list[str]:
+    """Этап 4.7: якорные слова темы — ключевые слова, основа которых встречается в двух и более фразах темы
+    (для робототехники — robot*). Возвращаются все формы этих слов из фраз и их вторая форма числа; пусто — якорей
+    нет, выборка тогда только по двум ключевым словам."""
+    from collector.domain.text_tokens import tokens_of
+
+    by_stem: dict[str, set[int]] = {}
+    forms: dict[str, set[str]] = {}
+    for index, phrase in enumerate(phrases):
+        for word in tokens_of(phrase):
+            if len(word) >= 3 and word not in GENERIC_TOPIC_WORDS and not word.isdigit():
+                by_stem.setdefault(stem(word), set()).add(index)
+                forms.setdefault(stem(word), set()).add(word)
+    anchors = [word for key, rows in by_stem.items() if len(rows) >= 2 for word in sorted(forms[key])]
+    return with_variants(anchors)

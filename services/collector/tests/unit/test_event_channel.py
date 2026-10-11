@@ -55,11 +55,11 @@ class _Archive:
     def __init__(self, candidates: list[tuple[ArchiveEntry, tuple[str, ...]]]) -> None:
         self.candidates, self.calls = candidates, []
 
-    async def event_candidates(self, vocabulary, cues, min_overlap, since, limit):  # noqa: ANN001, ANN201
+    async def event_candidates(self, vocabulary, bases, cues, min_overlap, since, limit):  # noqa: ANN001, ANN201
         self.calls.append((tuple(vocabulary), min_overlap, limit))
-        return self.candidates
+        return rank_events(self.candidates, vocabulary, min_overlap, limit)  # как ранжирование в запросе
 
-    async def titles_matching(self, keywords, min_overlap, start, end, limit, origin=None):  # noqa: ANN001, ANN201
+    async def titles_matching(self, keywords, min_overlap, start, end, limit, origin=None, anchors=None):  # noqa: ANN001, ANN201
         self.calls.append(("titles", origin))
         return []
 

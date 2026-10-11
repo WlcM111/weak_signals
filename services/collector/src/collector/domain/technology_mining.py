@@ -31,7 +31,6 @@ from collector.domain.technology_filters import (
 )
 
 _TOKEN_RE = re.compile(r"[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9+\-]*[A-Za-zА-Яа-яЁё0-9+]|[A-Za-zА-Яа-яЁё]")
-_ACRONYM_RE = re.compile(r"\b[A-Z][A-Z0-9]{1,5}\b")  # этап 4.6 (P17): MCP, CXL, OCS — в исходном регистре
 _CYRILLIC_RE = re.compile(r"[А-Яа-яЁё]")
 _SEGMENT_RE = re.compile(r"\s[-–—|]\s|[:;,.!?()\[\]{}\"“”«»/]|[–—]")
 _HN_PREFIX_RE = re.compile(r"^\s*(?:show|ask|tell|launch)\s+hn\b\s*[:\-–—]?\s*", re.IGNORECASE)
@@ -49,7 +48,9 @@ benchmark design implementation use uses future trends report update news launch
 NON_ENGLISH = frozenset("""de la le les des du el los las del da dos das di il lo gli en et y und der die von zu mit
 fur für per con por para na nos au aux une un ein eine""".split())
 # Общие слова: словосочетание только из них (и служебных) — не технология, а общая тема.
-GENERIC_TOKENS = frozenset("""ai artificial intelligence agent agents agentic model models llm llms gpt data cloud edge
+GENERIC_TOKENS = frozenset("""llm llms mllm vlm vlms rag cnn cnns dnn dnns rnn gnn gpu gpus tpu cpu hpc agi gui swe
+api apis sdk vla vlas npu npus tee gan gans ml nlp iot iiot ics cad kv
+ai artificial intelligence agent agents agentic model models gpt data cloud edge
 local open source physical compute computing hardware server servers startup startups age era future security safety
 inference generative machine learning deep neural system systems technology technologies tech digital smart platform
 platforms solution solutions tool tools app apps application applications company companies industry industries
@@ -92,8 +93,18 @@ def _segments(title: str) -> list[list[str]]:
     return [[word.lower() for word in _TOKEN_RE.findall(part)] for part in _SEGMENT_RE.split(title)]
 
 
+# Этап 4.7: слова шаблонов заголовков российских патентов («способ…», «устройство…», «программно-аппаратный
+# комплекс управления параметрами…») — словосочетание с ними не технология.
+RU_PATENT_WORDS = frozenset("""способ способа способы устройство устройства система системы систем комплекс комплекса
+основе основании применением применения использованием использования параметров параметрами управления обработки
+определения получения контроля средство средства изобретение изобретения вариант варианты программно аппаратный
+аппаратного результатов предсказания нормального поведения моделей""".split())
+
+
 def _acceptable(gram: list[str]) -> bool:
     if gram[0] in STOP or gram[-1] in STOP or gram[-1] in TAIL_STOP:
+        return False
+    if any(word in RU_PATENT_WORDS for word in gram):
         return False
     if any(word in STOP for word in gram[1:-1]):
         return False  # «card for time series», «safety in the age» — обрывки, а не названия
@@ -125,9 +136,8 @@ def candidate_phrases(title: str) -> set[str]:
                 if phrase in GENERIC_PHRASES or is_mature(phrase):
                     continue
                 found.add(phrase)
-    for acronym in _ACRONYM_RE.findall(_HN_PREFIX_RE.sub("", title or "")):
-        if acronym not in ("AI", "HN", "US", "UK", "EU", "CEO", "CTO", "IPO", "API", "LLC", "INC", "USA", "Q1", "Q2", "Q3", "Q4"):
-            found.add(acronym.lower())  # одиночная аббревиатура — кандидат при повторе в независимых свидетельствах
+    # Этап 4.7: одиночная аббревиатура больше не кандидат (в 4.6 дали 26 из 150 технологий «llm», «vlm», «rag»…
+    # и «and», «system» из заголовков прописными) — аббревиатура остаётся только внутри словосочетания («mcp server»).
     return found
 
 

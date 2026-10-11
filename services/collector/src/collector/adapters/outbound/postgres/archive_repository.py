@@ -49,15 +49,42 @@ SELECT title, published_on
 FROM news_archive
 WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND published_on >= %s AND published_on < %s
   AND (%s::text IS NULL OR origin = %s::text)
+  AND (%s::text[] IS NULL OR tokens && %s::text[])
 ORDER BY md5(url)
 LIMIT %s
 """
-_EVENTS = f"""
-SELECT url, publisher, origin, published_on, captured_at, title, summary, tokens, published_source, text_status
-FROM news_archive
-WHERE tokens && %s::text[] AND tokens && %s::text[] AND {_MATCHED} >= %s
-  AND COALESCE(published_on, captured_at::date) >= %s
-ORDER BY {_MATCHED} DESC, COALESCE(published_on, captured_at::date) DESC
+# Этап 4.7: ранжирование канала событий прямо в запросе — сумма редкости совпавших основ словаря, где редкость
+# считается по ВСЕМ кандидатам (статьи с событием и хотя бы одним словом словаря), как rank_events. Прежде пул
+# усекался по числу совпавших слов до ранжирования, и при 7–19 тыс. кандидатов экспертные статьи до него не доходили.
+_EVENTS = """
+WITH vocab AS (SELECT * FROM unnest(%s::text[], %s::text[]) AS v(word, base)),
+cand AS (
+  SELECT a.url, a.publisher, a.origin, a.published_on, a.captured_at, a.title, a.summary, a.published_source,
+         a.text_status, ARRAY(SELECT DISTINCT v.base FROM vocab v WHERE v.word = ANY(a.tokens)) AS bases
+  FROM news_archive a
+  WHERE a.tokens && %s::text[] AND a.tokens && %s::text[] AND COALESCE(a.published_on, a.captured_at::date) >= %s
+),
+df AS (SELECT b AS base, count(*) AS df FROM cand CROSS JOIN LATERAL unnest(cand.bases) AS b GROUP BY b),
+total AS (SELECT count(*)::float8 AS n FROM cand)
+SELECT c.url, c.publisher, c.origin, c.published_on, c.captured_at, c.title, c.summary, c.published_source,
+       c.text_status, c.bases,
+       (SELECT COALESCE(sum(ln((total.n + 1) / (df.df + 0.5))), 0) FROM df, total WHERE df.base = ANY(c.bases)) AS score
+FROM cand c
+WHERE cardinality(c.bases) >= %s
+ORDER BY score DESC, COALESCE(c.published_on, c.captured_at::date) DESC, c.url
+LIMIT %s
+"""
+_FROM_COLLECTIONS = """
+SELECT a.url, a.publisher, a.origin, a.published_on, a.captured_at, a.title, a.summary, a.published_source,
+       a.text_status, max(c.created_at) AS last_seen
+FROM news_archive a
+JOIN documents d ON d.url = a.url
+JOIN collection_documents cd ON cd.document_id = d.document_id
+JOIN collections c ON c.collection_id = cd.collection_id
+WHERE a.text_status = 'slug' AND a.origin = 'wayback'
+GROUP BY a.url, a.publisher, a.origin, a.published_on, a.captured_at, a.title, a.summary, a.published_source,
+         a.text_status
+ORDER BY last_seen DESC
 LIMIT %s
 """
 _PERIODS = "SELECT period, status, resume FROM news_archive_harvest WHERE publisher = %s"
@@ -115,6 +142,7 @@ _PAPER_TITLES = f"""
 SELECT title, created_on
 FROM corpus_papers
 WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND created_on >= %s AND created_on < %s
+  AND (%s::text[] IS NULL OR tokens && %s::text[])
 ORDER BY md5(paper_id)
 LIMIT %s
 """
@@ -156,21 +184,27 @@ class PostgresNewsArchive:
         return [_entry(r) for r in rows]
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int, origin: str | None = None) -> list[tuple[str, date | None]]:
+                              limit: int, origin: str | None = None,
+                              anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
         # Пул проекта отдаёт строки словарями (ws_common.db: row_factory = dict_row) — только обращение по имени
         # колонки (этап 4.3.1).
-        keys = list(keywords)
+        keys, anchor = list(keywords), (list(anchors) if anchors else None)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, origin, origin, limit))
+            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, origin, origin, anchor, anchor, limit))
             return [(row["title"], row["published_on"]) for row in await cur.fetchall()]
 
-    async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
-                               limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
+    async def event_candidates(self, vocabulary: Sequence[str], bases: Sequence[str], cues: Sequence[str],
+                               min_overlap: int, since: date, limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
         words = list(vocabulary)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_EVENTS, (words, list(cues), words, min_overlap, since, words, limit))
+            await cur.execute(_EVENTS, (words, list(bases), words, list(cues), since, min_overlap, limit))
             rows = await cur.fetchall()
-        return [(_entry(r), tuple(r["tokens"] or ())) for r in rows]
+        return [(_entry(r), tuple(r["bases"] or ())) for r in rows]
+
+    async def entries_from_collections(self, limit: int) -> list[ArchiveEntry]:
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(_FROM_COLLECTIONS, (limit,))
+            return [_entry(r) for r in await cur.fetchall()]
 
     async def harvest_states(self, publisher: str) -> dict[str, tuple[str, str | None]]:
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
@@ -224,10 +258,10 @@ class PostgresCorpus:
         return len(rows)
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int) -> list[tuple[str, date | None]]:
-        keys = list(keywords)
+                              limit: int, anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
+        keys, anchor = list(keywords), (list(anchors) if anchors else None)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_PAPER_TITLES, (keys, keys, min_overlap, start, end, limit))
+            await cur.execute(_PAPER_TITLES, (keys, keys, min_overlap, start, end, anchor, anchor, limit))
             return [(row["title"], row["created_on"]) for row in await cur.fetchall()]
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:

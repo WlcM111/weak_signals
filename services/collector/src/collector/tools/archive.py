@@ -43,6 +43,8 @@ def _parser(settings: CollectorSettings) -> argparse.ArgumentParser:
     arxiv.add_argument("--restart", action="store_true")
     enrich = commands.add_parser("enrich", help="текст статей архива из архивных копий страниц (этап 4.6)")
     enrich.add_argument("--limit", type=int, default=2000)
+    enrich.add_argument("--from-collections", action="store_true",
+                        help="сначала статьи архива, попавшие в сборы (этап 4.7)")
     discover = commands.add_parser("discover-feeds", help="ленты RSS/Atom ресурсов реестра (этап 4.6)")
     discover.add_argument("--priority", default="P1,P2")
     discover.add_argument("--limit", type=int, default=0)
@@ -84,7 +86,8 @@ async def _run(argv: list[str]) -> int:
             from collector.domain.event_channel import EVENT_CUES
 
             done, failed = await ArchiveEnricher(http, archive, clock, EVENT_CUES,
-                                                 settings.archive_enrich_pause_seconds).run(args.limit)
+                                                 settings.archive_enrich_pause_seconds).run(args.limit,
+                                                                                            args.from_collections)
             print(f"ИТОГО: с текстом {done}, без текста {failed}")
         elif args.command == "discover-feeds":
             from collector.adapters.outbound.news_archive.feeds import FeedDiscoverer, load_registry

@@ -20,6 +20,8 @@ from ws_common.clock import Clock
 API_URL = "https://api.openalex.org/works"
 SELECT_FIELDS = "id,doi,title,display_name,abstract_inverted_index,publication_date,cited_by_count,language,primary_location"
 MAX_PAGES = 10
+# Этап 4.7: широкий проход — не больше 8 запросов из бюджета сбора (40), остальное — прицельному поиску.
+MAX_BROAD_QUERIES = 8
 # arXiv (Cornell University) как источник в OpenAlex: 3,2 млн работ; найдено запросом
 # /sources?search=arxiv 23.09.2026. Препринты arXiv берутся через OpenAlex, не нагружая API arXiv.
 ARXIV_SOURCE_ID = "S4306400194"
@@ -78,7 +80,7 @@ class OpenAlexAdapter(BaseSourceAdapter):
         Теперь каждая английская фраза даёт два запроса — препринты arXiv и вся база, — а русские
         фразы идут после английских; каждый запрос получает свою долю лимита.
         """
-        queries = _query_plan(terms, max(limits.published_since_year, MIN_PUBLICATION_YEAR))
+        queries = _query_plan(terms, max(limits.published_since_year, MIN_PUBLICATION_YEAR))[:MAX_BROAD_QUERIES]
         if not queries:
             return
         quota = -(-limits.max_documents_per_source // len(queries))

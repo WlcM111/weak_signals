@@ -34,7 +34,9 @@ MAX_REDIRECTS = 5
 # Заголовки, которые нельзя переносить на другой origin при редиректе (ключи источников).
 SENSITIVE_HEADERS = frozenset({"authorization", "x-api-key", "cookie"})
 RATE_HEADERS = ("x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset", "x-ratelimit-resource",
-                "x-ratelimit-used", "retry-after")
+                "x-ratelimit-used", "retry-after",
+                # этап 4.7: денежный бюджет OpenAlex — признак суточного лимита
+                "x-ratelimit-remaining-usd", "x-ratelimit-limit-usd")
 # Суммарное ожидание внутренних повторов одного логического вызова: остальное — лимитеру источника.
 MAX_RETRY_SLEEP_TOTAL = 15.0
 

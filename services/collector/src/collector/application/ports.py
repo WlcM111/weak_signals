@@ -95,6 +95,9 @@ class RateLimiter(Protocol):
     async def penalize(self, source_key: SourceKey, retry_after: float | None) -> None:
         """Реакция на 429: общая пауза `Retry-After` для всех задач источника и временное снижение лимита."""
 
+    def blocked_for(self, source_key: SourceKey) -> float:
+        """Сколько секунд источник ещё на общей паузе (этап 4.7: суточный лимит — отказ без ожидания)."""
+
     def defer(self, source_key: SourceKey, seconds: float) -> None:
         """Короткая общая пауза источника без снижения лимита (повтор после сетевого сбоя или 5xx)."""
 
@@ -278,13 +281,19 @@ class NewsArchiveStore(Protocol):
         совпавших слов, при равенстве — новее (этап 4.4: прежде только «новые первыми»)."""
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int, origin: str | None = None) -> list[tuple[str, date | None]]:
+                              limit: int, origin: str | None = None,
+                              anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
         """Заголовки и даты записей с не меньше `min_overlap` ключевыми словами, опубликованных в [start, end);
         `origin` — только записи этого происхождения (этап 4.5: оценка возникновения — по настоящим заголовкам RSS)."""
 
-    async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
-                               limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
-        """Этап 4.5: статьи с событием стартапа (слово из `cues`) и не меньше `min_overlap` словами словаря, с их словами."""
+    async def event_candidates(self, vocabulary: Sequence[str], bases: Sequence[str], cues: Sequence[str],
+                               min_overlap: int, since: date, limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
+        """Этап 4.7: статьи с событием стартапа и не меньше `min_overlap` основами словаря, упорядоченные в запросе
+        по сумме редкости совпавших основ среди ВСЕХ кандидатов (без предварительного усечения), с их основами.
+        `bases[i]` — основа слова `vocabulary[i]`."""
+
+    async def entries_from_collections(self, limit: int) -> list[ArchiveEntry]:
+        """Этап 4.7: записи архива только со словами адреса, попавшие в сборы, — сначала из последних сборов."""
 
     async def harvest_states(self, publisher: str) -> dict[str, tuple[str, str | None]]:
         """Месяцы издания в Wayback: «ГГГГ-ММ» → (статус, место продолжения) (этап 4.6, аудит P11)."""
@@ -318,9 +327,9 @@ class CorpusStore(Protocol):
         """Сохраняет работы (повтор идентификатора обновляет запись); возвращает число работ."""
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int) -> list[tuple[str, date | None]]:
-        """Заголовки и даты работ с не меньше `min_overlap` ключевыми словами темы, созданных в [start, end), новые
-        первыми (этап 4.4: прежде — только работы со всеми словами фразы)."""
+                              limit: int, anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
+        """Заголовки и даты работ с не меньше `min_overlap` ключевыми словами темы (и хотя бы одним якорным словом,
+        если `anchors` заданы — этап 4.7), созданных в [start, end)."""
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
         """Состояние выгрузки набора."""

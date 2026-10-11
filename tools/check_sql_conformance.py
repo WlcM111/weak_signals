@@ -76,6 +76,7 @@ _SQL_KEYWORDS = frozenset(
         "select", "values", "set", "where", "unnest", "candidate", "victims", "now", "true", "false",
         "skip", "locked",  # конструкция FOR UPDATE SKIP LOCKED
         "ordered", "excluded",  # CTE и псевдотаблица ON CONFLICT
+        "vocab", "cand", "df", "total", "lateral",  # CTE канала событий collector (этап 4.7)
     }
 )
 

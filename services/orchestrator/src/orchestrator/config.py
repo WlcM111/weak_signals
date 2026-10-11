@@ -38,9 +38,11 @@ class OrchestratorSettings(BaseServiceSettings):
     job_max_attempts: int = Field(default=3, ge=1, le=10)
     stage_poll_seconds: float = Field(default=3.0, ge=0.5, le=60.0)
     # Этап 4: сбор в два прохода — широкий по фразам темы и прицельный по технологиям, поэтому 240 с.
-    collect_time_budget_seconds: int = Field(default=240, ge=10, le=1800)
+    # Этап 4.7: 480 (было 240) — в 5 темах из 6 у всех 13 источников DEADLINE_REACHED.
+    collect_time_budget_seconds: int = Field(default=480, ge=10, le=1800)
     # Этап 4.4: 1200 (было 800) — в 4 темах из 6 сбор упирался в лимит и прицельный проход обрезался.
-    collect_max_total_documents: int = Field(default=1200, ge=10, le=5000)
+    # Этап 4.7: 1450 (было 1200) — +250 мест под канал событий 400 вместо 150, остальные источники не теснятся.
+    collect_max_total_documents: int = Field(default=1450, ge=10, le=5000)
     min_documents: int = Field(default=20, ge=1, le=1000)
     analyze_timeout_seconds: int = Field(default=300, ge=30, le=3600)
     insight_concurrency: int = Field(default=1, ge=1, le=8)

@@ -30,6 +30,16 @@ from collector.domain.values import AdapterErrorCode, SearchTerms, SourceKey
 from ws_common.clock import Clock
 
 MAX_CONSECUTIVE_RATE_LIMITS = 3
+# Этап 4.7: пауза дольше 10 минут — суточный лимит, а не частота; ждать её внутри сбора бессмысленно.
+LONG_BLOCK_SECONDS = 600.0
+DAILY_LIMIT_PAUSE = 3600.0
+
+
+def daily_limit_exhausted(exc: "HttpStatusError") -> bool:
+    """429 из-за суточного лимита: Retry-After не меньше 10 минут или нулевой остаток денежного бюджета."""
+    if exc.retry_after is not None and exc.retry_after >= LONG_BLOCK_SECONDS:
+        return True
+    return exc.rate_headers.get("x-ratelimit-remaining-usd", "").strip() in ("0", "0.0", "0.00", "0.000")
 TRANSIENT_RETRY_PAUSE = 2.0  # общая пауза источника перед повтором после сетевого сбоя, таймаута или 5xx
 QUOTA_RESET_MAX_WAIT = 120.0  # дольше квотного сброса GitHub внутри сбора не ждём
 TRANSIENT_CODES = frozenset({"TIMEOUT", "HTTP_5XX", "NETWORK_ERROR"})
@@ -121,6 +131,12 @@ class BaseSourceAdapter:
         """
         rate_attempt = transient_attempt = 0
         while True:
+            blocked = self._limiter.blocked_for(self.key)
+            if blocked >= LONG_BLOCK_SECONDS:
+                # этап 4.7: источник на долгой паузе (суточный лимит) — отказ сразу, без ожидания до дедлайна сбора
+                raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value,
+                                     f"суточный лимит источника исчерпан; сброс через {blocked / 60:.0f} мин",
+                                     retryable=False)
             if self.policy.max_requests and self.requests_made() >= self.policy.max_requests:
                 raise AdapterFailure(AdapterErrorCode.BUDGET_EXHAUSTED.value,
                                      f"бюджет запросов источника на сбор исчерпан: {self.policy.max_requests}")
@@ -222,6 +238,13 @@ class BaseSourceAdapter:
     async def _on_status_error(self, exc: HttpStatusError) -> None:
         """429 и квотный 403 → общая пауза лимитера и счётчик подряд; прочие коды → HTTP_4XX/HTTP_5XX."""
         quota_reset = quota_exhausted_wait(exc, time.time())
+        if exc.status == 429 and daily_limit_exhausted(exc):
+            # этап 4.7: суточный лимит (OpenAlex: Retry-After до полуночи UTC, X-RateLimit-Remaining-USD: 0) — пауза
+            # источника до сброса для всех задач процесса и отказ без повторов
+            pause = exc.retry_after if exc.retry_after is not None else DAILY_LIMIT_PAUSE
+            await self._limiter.penalize(self.key, pause)
+            raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value,
+                                 f"суточный лимит источника исчерпан; сброс через {pause / 60:.0f} мин", retryable=False)
         if exc.status == 429 or quota_reset is not None:
             streak = self._bump_rate_limit()
             pause = exc.retry_after if exc.retry_after is not None else quota_reset
