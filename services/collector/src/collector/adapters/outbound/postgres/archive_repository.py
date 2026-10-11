@@ -100,14 +100,16 @@ class PostgresNewsArchive:
                 for r in rows]
 
     async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
-        async with self._pool.connection() as conn, conn.cursor() as cur:
+        # Пул проекта отдаёт строки словарями (ws_common.db: row_factory = dict_row) — только обращение по имени
+        # колонки. В 4.3 здесь было обращение по номеру → KeyError: 0 на первой же строке (этап 4.3.1).
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             await cur.execute(_TITLES, (list(words), since, limit))
-            return [(row[0], row[1]) for row in await cur.fetchall()]
+            return [(row["title"], row["published_on"]) for row in await cur.fetchall()]
 
     async def harvested_periods(self, publisher: str) -> dict[str, str]:
-        async with self._pool.connection() as conn, conn.cursor() as cur:
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             await cur.execute(_PERIODS, (publisher,))
-            return {row[0]: row[1] for row in await cur.fetchall()}
+            return {row["period"]: row["status"] for row in await cur.fetchall()}
 
     async def mark_harvest(self, publisher: str, period: str, status: str, rows: int, detail: str) -> None:
         async with self._pool.connection() as conn, conn.cursor() as cur:
@@ -134,9 +136,9 @@ class PostgresCorpus:
         return len(rows)
 
     async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
-        async with self._pool.connection() as conn, conn.cursor() as cur:
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             await cur.execute(_PAPER_TITLES, (list(words), since, limit))
-            return [(row[0], row[1]) for row in await cur.fetchall()]
+            return [(row["title"], row["created_on"]) for row in await cur.fetchall()]
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:

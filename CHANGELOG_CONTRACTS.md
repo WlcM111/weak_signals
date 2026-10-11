@@ -1,5 +1,11 @@
 # Изменения контрактов
 
+## 2026-10-10 — v20.1: этап 4.3.1 — чтение архива и корпуса
+- collector: `PostgresNewsArchive.titles_for`, `PostgresNewsArchive.harvested_periods` и `PostgresCorpus.titles_for`
+  обращались к строкам по номеру колонки. Пул проекта отдаёт строки словарями, поэтому на первой же строке
+  возникал `KeyError: 0`: загрузка Wayback останавливалась на первом издании, а оценка возникновения в сборе
+  молча оставалась пустой. Теперь строки читаются по именам колонок. Контракты и схема не менялись.
+
 ## 2026-10-10 — v20: этап 4.3 — архив новостей, корпус arXiv, оценка возникновения
 - proto `common.v1.SourceKey`: `SOURCE_KEY_NEWS_ARCHIVE = 13`, `SOURCE_KEY_CROSSREF = 14`,
   `SOURCE_KEY_HUGGINGFACE = 15`.
