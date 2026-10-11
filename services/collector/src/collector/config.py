@@ -50,7 +50,7 @@ class CollectorSettings(BaseServiceSettings):
     collector_targeted_enabled: bool = True
     collector_targeted_per_term: int = Field(default=3, ge=1, le=10)
     collector_broad_time_share: float = Field(default=0.5, ge=0.2, le=0.9)
-    collector_targeted_reserve_documents: int = Field(default=300, ge=0, le=2000)
+    collector_targeted_reserve_documents: int = Field(default=600, ge=0, le=2000)  # этап 4.4: было 300
     collector_broad_max_documents_per_source: int = Field(default=60, ge=10, le=500)
     collector_mined_technologies: int = Field(default=15, ge=0, le=40)
     collector_targeted_window_months: int = Field(default=24, ge=3, le=120)
@@ -67,6 +67,14 @@ class CollectorSettings(BaseServiceSettings):
     collector_llm_technologies: int = Field(default=10, ge=0, le=40)
     collector_snowball_technologies: int = Field(default=15, ge=0, le=40)
     collector_targeted_rounds: int = Field(default=2, ge=1, le=2)
+    # Этап 4.4: бюджет документов и выборка оценки возникновения.
+    collector_snowball_reserve_documents: int = Field(default=200, ge=0, le=1000)
+    collector_crossref_broad_documents: int = Field(default=20, ge=0, le=500)
+    collector_huggingface_broad_documents: int = Field(default=10, ge=0, le=500)
+    collector_news_archive_broad_documents: int = Field(default=20, ge=0, le=500)
+    collector_news_archive_per_term: int = Field(default=5, ge=1, le=20)
+    collector_emergence_sample: int = Field(default=15000, ge=1000, le=50000)
+    collector_news_emergence_sample: int = Field(default=10000, ge=1000, le=50000)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

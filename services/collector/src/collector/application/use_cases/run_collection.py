@@ -35,9 +35,8 @@ from collector.domain.entities import AdapterRun, Collection, RawDocument, compu
 from collector.domain.errors import AdapterFailure, InvariantViolation, LeaseLost
 from collector.domain.normalization import build_document_draft
 from collector.domain.emergence import emerging_terms
-from collector.domain.technology_filters import is_mature
+from collector.domain.technology_filters import is_mature, topic_keywords, with_variants
 from collector.domain.technology_mining import mine_technologies, targeted_since
-from collector.domain.text_tokens import phrase_words
 from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
@@ -75,8 +74,15 @@ class RunCollectionConfig:
     targeted_enabled: bool = True
     targeted_per_term: int = 3
     broad_time_share: float = 0.5
-    targeted_reserve_documents: int = 300
+    # Этап 4.4: прицельному проходу — 600 мест общего лимита (было 300: в 4 темах из 6 сбор упирался в 800),
+    # новые источники в широком проходе урезаны (Crossref брал 132–150 документов на тему), архиву новостей —
+    # до 5 статей на технологию (локальный, без внешних запросов), второму кругу — гарантированные места.
+    targeted_reserve_documents: int = 600
     broad_max_documents_per_source: int = 60
+    broad_source_caps: Mapping[SourceKey, int] = field(default_factory=lambda: {
+        SourceKey.CROSSREF: 20, SourceKey.HUGGINGFACE: 10, SourceKey.NEWS_ARCHIVE: 20})
+    targeted_per_term_overrides: Mapping[SourceKey, int] = field(default_factory=lambda: {SourceKey.NEWS_ARCHIVE: 5})
+    snowball_reserve_documents: int = 200
     mined_technologies: int = 15
     max_technologies: int = 40
     targeted_window_months: int = 24
@@ -90,6 +96,10 @@ class RunCollectionConfig:
     targeted_rounds: int = 2
     snowball_time_share: float = 0.25
     corpus_since_year: int = 2021
+    # Этап 4.4: выборка для оценки возникновения — работы и статьи, где есть хотя бы 2 ключевых слова темы,
+    # по каждому периоду (недавний и базовый) — до `emergence_sample` / `news_emergence_sample` записей.
+    emergence_sample: int = 15000
+    news_emergence_sample: int = 10000
 
 
 class RunCollection:
@@ -172,8 +182,11 @@ class RunCollection:
         limits = state.collection.limits
         if not state.two_phase or source_key is SourceKey.RSS:
             return limits
-        cap = min(limits.max_documents_per_source, self._config.broad_max_documents_per_source)
-        return dataclasses.replace(limits, max_documents_per_source=cap)
+        return dataclasses.replace(limits, max_documents_per_source=broad_cap(self._config, limits, source_key))
+
+    def _per_term(self, source_key: SourceKey) -> int:
+        """Документов на технологию в источнике: общее значение или исключение источника (архив новостей — 5)."""
+        return self._config.targeted_per_term_overrides.get(source_key, self._config.targeted_per_term)
 
     async def _run_phases(
         self, state: _RunState, active: dict[SourceKey, SourceAdapter], owner: str, started: float
@@ -204,14 +217,15 @@ class RunCollection:
         snowball = self._config.targeted_rounds >= 2 and self._config.snowball_technologies > 0
         remaining = final_deadline - self._clock.monotonic()
         state.deadline = final_deadline - (remaining * self._config.snowball_time_share if snowball else 0.0)
-        state.total_cap = limits.max_total_documents
+        reserve = min(self._config.snowball_reserve_documents, limits.max_total_documents // 4) if snowball else 0
+        state.total_cap = max(state.documents_total + 1, limits.max_total_documents - reserve)
         state.stop_reason = None
         since = targeted_since(self._clock.now(), self._config.targeted_window_months, limits.published_since_year)
         self._log.info("collection.targeted", collection_id=state.collection.collection_id,
                        technologies=len(technologies), sources=[key.value for key in sources], since=since.isoformat())
         await self._collect(
             state, sources, owner,
-            lambda _key, adapter: adapter.search_targeted(technologies, self._config.targeted_per_term, since, state.deadline),
+            lambda key, adapter: adapter.search_targeted(technologies, self._per_term(key), since, state.deadline),
         )
         if not snowball or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
             return
@@ -223,6 +237,7 @@ class RunCollection:
         if not extra or self._clock.monotonic() >= final_deadline:
             return
         state.deadline = final_deadline
+        state.total_cap = limits.max_total_documents  # гарантированные места второго круга
         state.stop_reason = None
         self._log.info("collection.snowball", collection_id=state.collection.collection_id, technologies=extra)
         try:
@@ -231,7 +246,7 @@ class RunCollection:
             self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
         await self._collect(
             state, sources, owner,
-            lambda _key, adapter: adapter.search_targeted(extra, self._config.targeted_per_term, since, state.deadline),
+            lambda key, adapter: adapter.search_targeted(extra, self._per_term(key), since, state.deadline),
         )
 
     async def _technologies(self, state: _RunState) -> tuple[str, ...]:
@@ -257,33 +272,30 @@ class RunCollection:
         return technologies
 
     async def _emerging(self, state: _RunState) -> list[str]:
-        """Оценка возникновения по корпусу arXiv и архиву новостей: работы и статьи со всеми словами фраз темы."""
+        """Оценка возникновения (этап 4.4): работы корпуса arXiv и статьи архива новостей, где есть хотя бы 2
+        ключевых слова темы (без общих вроде «ai», «systems»). Прежде работа попадала в выборку, только если в ней
+        были все слова фразы темы, и в 4 темах из 6 выборка была почти пустой. Недавний и базовый периоды
+        выбираются отдельно, порог числа документов — под размер выборки."""
         if self._config.emerging_technologies <= 0 or (self._corpus is None and self._archive is None):
             return []
         terms = state.collection.terms
-        phrases = [words for words in (phrase_words(t) for t in (*terms.en, *terms.ru)) if words][:8]
         today = self._clock.now().date()
+        tomorrow = today + timedelta(days=1)
         exclude = (*terms.en, *terms.ru)
         lists: list[list[str]] = []
         try:
-            if self._corpus is not None:
-                rows: dict[str, date | None] = {}
-                for words in phrases:
-                    for title, day in await self._corpus.titles_for(words, date(self._config.corpus_since_year, 1, 1), 4000):
-                        rows.setdefault(title, day)
-                lists.append([item.term for item in emerging_terms(
-                    rows.items(), recent_from=today - timedelta(days=730),
-                    base_from=date(self._config.corpus_since_year, 1, 1), base_to=today - timedelta(days=731),
-                    exclude=exclude, limit=self._config.emerging_technologies, min_recent=3)])
-            if self._archive is not None:
-                news: dict[str, date | None] = {}
-                for words in phrases:
-                    for title, day in await self._archive.titles_for(words, today - timedelta(days=550), 4000):
-                        news.setdefault(title, day)
-                lists.append([item.term for item in emerging_terms(
-                    news.items(), recent_from=today - timedelta(days=183), base_from=today - timedelta(days=550),
-                    base_to=today - timedelta(days=184), exclude=exclude, limit=self._config.emerging_technologies,
-                    min_recent=2)])
+            paper_keys = topic_keywords(terms.en)
+            if self._corpus is not None and paper_keys:
+                recent_from = today - timedelta(days=730)
+                lists.append(await self._emerging_from(
+                    self._corpus, paper_keys, recent_from, tomorrow, date(self._config.corpus_since_year, 1, 1),
+                    self._config.emergence_sample, exclude, floor=3, share=0.00075, state=state, corpus="papers"))
+            news_keys = topic_keywords((*terms.en, *terms.ru))
+            if self._archive is not None and news_keys:
+                recent_from = today - timedelta(days=183)
+                lists.append(await self._emerging_from(
+                    self._archive, news_keys, recent_from, tomorrow, today - timedelta(days=550),
+                    self._config.news_emergence_sample, exclude, floor=2, share=0.001, state=state, corpus="news"))
         except Exception as exc:  # noqa: BLE001 — корпус необязателен: без него остаются извлечённые и модель
             self._log.warning("collection.emerging_failed", collection_id=state.collection.collection_id, error=str(exc))
         result: dict[str, str] = {}
@@ -292,6 +304,23 @@ class RunCollection:
                 if index < len(items):
                     result.setdefault(items[index].lower(), items[index])
         return list(result.values())[: self._config.emerging_technologies]
+
+    async def _emerging_from(self, store: CorpusStore | NewsArchiveStore, keywords: list[str], recent_from: date,
+                             end: date, base_from: date, sample: int, exclude: tuple[str, ...], *, floor: int,
+                             share: float, state: _RunState, corpus: str) -> list[str]:
+        """Выборка недавнего и базового периодов и оценка возникновения по ней."""
+        keys = with_variants(keywords)
+        overlap = min(2, len(keywords))
+        recent = await store.titles_matching(keys, overlap, recent_from, end, sample)
+        base = await store.titles_matching(keys, overlap, base_from, recent_from, sample)
+        min_recent = max(floor, round(len(recent) * share))
+        found = emerging_terms(
+            [*recent, *base], recent_from=recent_from, base_from=base_from, base_to=recent_from - timedelta(days=1),
+            exclude=exclude, limit=self._config.emerging_technologies, min_recent=min_recent, max_share=0.15)
+        self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
+                       keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent,
+                       terms=[item.term for item in found])
+        return [item.term for item in found]
 
     async def _prepare_runs(self, state: _RunState) -> dict[SourceKey, SourceAdapter]:
         """Отмечает недоступные адаптеры и переводит остальные в RUNNING."""
@@ -647,3 +676,9 @@ def _note(
         return
     state.trace.add_event(source_key=source_key.value, matched_term=raw.matched_term, event=event, url=raw.url,
                           title=raw.title, url_hash=url_hash, doi=doi or raw.doi, detail=detail)
+
+
+def broad_cap(config: RunCollectionConfig, limits: CollectionLimits, source_key: SourceKey) -> int:
+    """Лимит широкого прохода на источник при двух проходах: общий и, для новых источников, свой (этап 4.4)."""
+    cap = min(limits.max_documents_per_source, config.broad_max_documents_per_source)
+    return min(cap, config.broad_source_caps.get(source_key, cap))

@@ -49,7 +49,7 @@
 | WS_JOB_MAX_ATTEMPTS | 1–10 | 3 | | попытки после истечения аренды |
 | WS_STAGE_POLL_SECONDS | 1–30 | 3 | | опрос GetCollection/GetAnalysis |
 | WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 240 | | бюджет сбора: широкий и прицельный проходы (этап 4; было 120) |
-| WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 800 | | лимит документов |
+| WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 1200 | | лимит документов сбора (этап 4.4; было 800) |
 | WS_MIN_DOCUMENTS | 1–1000 | 20 | | меньше → FAILED TOO_FEW_DOCUMENTS |
 | WS_ANALYZE_TIMEOUT_SECONDS | 30–1800 | 300 | | ожидание анализа |
 | WS_INSIGHT_CONCURRENCY | 1–20 | 1 | | параллельных GenerateInsight на задание |
@@ -86,7 +86,14 @@
 | WS_COLLECTOR_TARGETED_ENABLED | true/false | true | | прицельный проход по технологиям после широкого (этап 4) |
 | WS_COLLECTOR_TARGETED_PER_TERM | 1–10 | 3 | | документов на технологию в каждом источнике прицельного прохода |
 | WS_COLLECTOR_BROAD_TIME_SHARE | 0,2–0,9 | 0,5 | | доля бюджета времени сбора на широкий проход |
-| WS_COLLECTOR_TARGETED_RESERVE_DOCUMENTS | 0–2000 | 300 | | места общего лимита, которые широкий проход оставляет прицельному (не больше половины лимита) |
+| WS_COLLECTOR_TARGETED_RESERVE_DOCUMENTS | 0–2000 | 600 | | места общего лимита, которые широкий проход оставляет прицельному (не больше половины лимита; этап 4.4: было 300) |
+| WS_COLLECTOR_SNOWBALL_RESERVE_DOCUMENTS | 0–1000 | 200 | | места второго круга: прицельный проход оставляет их свободными (не больше четверти лимита) |
+| WS_COLLECTOR_CROSSREF_BROAD_DOCUMENTS | 0–500 | 20 | | лимит широкого прохода Crossref |
+| WS_COLLECTOR_HUGGINGFACE_BROAD_DOCUMENTS | 0–500 | 10 | | лимит широкого прохода Hugging Face |
+| WS_COLLECTOR_NEWS_ARCHIVE_BROAD_DOCUMENTS | 0–500 | 20 | | лимит широкого прохода архива новостей |
+| WS_COLLECTOR_NEWS_ARCHIVE_PER_TERM | 1–20 | 5 | | статей архива новостей на технологию в прицельном проходе |
+| WS_COLLECTOR_EMERGENCE_SAMPLE | 1000–50000 | 15000 | | работ корпуса arXiv на период выборки оценки возникновения |
+| WS_COLLECTOR_NEWS_EMERGENCE_SAMPLE | 1000–50000 | 10000 | | статей архива на период выборки оценки возникновения |
 | WS_COLLECTOR_BROAD_MAX_DOCUMENTS_PER_SOURCE | 10–500 | 60 | | лимит широкого прохода на источник при двух проходах; RSS не ограничивается |
 | WS_COLLECTOR_MINED_TECHNOLOGIES | 0–40 | 15 | | сколько технологий извлекать из заголовков широкого прохода |
 | WS_COLLECTOR_TARGETED_WINDOW_MONTHS | 3–120 | 24 | | окно дат прицельного поиска |

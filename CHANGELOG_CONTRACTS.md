@@ -1,5 +1,18 @@
 # Изменения контрактов
 
+## 2026-10-11 — v21: этап 4.4 — выборка корпуса, бюджет документов, ранжирование архива
+- collector, порты хранилищ:
+  - `CorpusStore.titles_for` и `NewsArchiveStore.titles_for` заменены на `titles_matching(keywords, min_overlap,
+    start, end, limit)`: работы и статьи хотя бы с двумя ключевыми словами темы, в заданном периоде;
+  - `NewsArchiveStore.search(words, since, limit, min_match)` — порядок по числу совпавших слов, затем по дате.
+  Схема БД и proto не менялись.
+- Бюджет документов:
+  - orchestrator `WS_COLLECT_MAX_TOTAL_DOCUMENTS` по умолчанию 1200 (было 800);
+  - collector `WS_COLLECTOR_TARGETED_RESERVE_DOCUMENTS` 600 (было 300);
+  - лимиты широкого прохода: Crossref 20, Hugging Face 10, архив новостей 20;
+  - архиву новостей — 5 статей на технологию, второму кругу — 200 гарантированных мест.
+- Извлечение технологий: списки общих тем и зрелых областей пополнены по замеру 10.10.2026.
+
 ## 2026-10-10 — v20.1: этап 4.3.1 — чтение архива и корпуса
 - collector: `PostgresNewsArchive.titles_for`, `PostgresNewsArchive.harvested_periods` и `PostgresCorpus.titles_for`
   обращались к строкам по номеру колонки. Пул проекта отдаёт строки словарями, поэтому на первой же строке

@@ -86,7 +86,7 @@ async def run_topic(index: int, topic: str, run_id: str, settings: CollectorSett
             terms=collector_pb2.SearchTerms(ru=list(expansion.ru_terms), en=list(expansion.en_terms),
                                             technologies=list(expansion.technologies)),
             mode=collector_pb2.COLLECTION_MODE_SEARCH,
-            limits=collector_pb2.CollectionLimits(time_budget_seconds=240, max_total_documents=800)),
+            limits=collector_pb2.CollectionLimits(time_budget_seconds=240, max_total_documents=1200)),
             timeout=60, metadata=md("strategy-check"))
         status = None
         for _ in range(240):

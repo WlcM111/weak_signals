@@ -273,11 +273,13 @@ class NewsArchiveStore(Protocol):
     async def save_entries(self, entries: Sequence[ArchiveEntry]) -> int:
         """Сохраняет записи (повтор адреса обновляет: заголовок RSS важнее слов адреса); возвращает число записей."""
 
-    async def search(self, words: Sequence[str], since: date, limit: int) -> list[ArchiveEntry]:
-        """Записи со всеми словами `words`, опубликованные не раньше `since`, новые первыми."""
+    async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[ArchiveEntry]:
+        """Записи, где есть не меньше `min_match` слов из `words`, опубликованные не раньше `since`; сначала — больше
+        совпавших слов, при равенстве — новее (этап 4.4: прежде только «новые первыми»)."""
 
-    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
-        """Заголовки и даты записей со всеми словами `words` — корпус для оценки возникновения."""
+    async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
+                              limit: int) -> list[tuple[str, date | None]]:
+        """Заголовки и даты записей с не меньше `min_overlap` ключевыми словами, опубликованных в [start, end)."""
 
     async def harvested_periods(self, publisher: str) -> dict[str, str]:
         """Месяцы издания, уже перечисленные в Wayback: «ГГГГ-ММ» → статус."""
@@ -295,8 +297,10 @@ class CorpusStore(Protocol):
     async def save_papers(self, papers: Sequence[CorpusPaper]) -> int:
         """Сохраняет работы (повтор идентификатора обновляет запись); возвращает число работ."""
 
-    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
-        """Заголовки и даты работ со всеми словами `words`, созданных не раньше `since`, новые первыми."""
+    async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
+                              limit: int) -> list[tuple[str, date | None]]:
+        """Заголовки и даты работ с не меньше `min_overlap` ключевыми словами темы, созданных в [start, end), новые
+        первыми (этап 4.4: прежде — только работы со всеми словами фразы)."""
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
         """Состояние выгрузки набора."""

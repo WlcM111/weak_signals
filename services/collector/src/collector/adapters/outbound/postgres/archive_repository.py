@@ -25,17 +25,20 @@ ON CONFLICT (url) DO UPDATE SET
   captured_at = COALESCE(news_archive.captured_at, EXCLUDED.captured_at),
   tokens = ARRAY(SELECT DISTINCT unnest(news_archive.tokens || EXCLUDED.tokens))
 """
-_SEARCH = """
+# Этап 4.4: число совпавших слов — пересечение массива слов записи с запросом; индекс GIN отбирает записи хотя бы
+# с одним словом (`&&`), порядок — по числу совпавших слов, затем по дате.
+_MATCHED = "cardinality(ARRAY(SELECT unnest(tokens) INTERSECT SELECT unnest(%s::text[])))"
+_SEARCH = f"""
 SELECT url, publisher, origin, published_on, captured_at, title, summary
 FROM news_archive
-WHERE tokens @> %s::text[] AND (published_on IS NULL OR published_on >= %s)
-ORDER BY published_on DESC NULLS LAST, url
+WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND (published_on IS NULL OR published_on >= %s)
+ORDER BY {_MATCHED} DESC, published_on DESC NULLS LAST, url
 LIMIT %s
 """
-_TITLES = """
+_TITLES = f"""
 SELECT title, published_on
 FROM news_archive
-WHERE tokens @> %s::text[] AND published_on >= %s
+WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND published_on >= %s AND published_on < %s
 ORDER BY published_on DESC
 LIMIT %s
 """
@@ -56,10 +59,10 @@ VALUES (%s, %s, %s, %s, %s::text[], %s::text[])
 ON CONFLICT (paper_id) DO UPDATE SET
   title = EXCLUDED.title, abstract = EXCLUDED.abstract, categories = EXCLUDED.categories, tokens = EXCLUDED.tokens
 """
-_PAPER_TITLES = """
+_PAPER_TITLES = f"""
 SELECT title, created_on
 FROM corpus_papers
-WHERE tokens @> %s::text[] AND created_on >= %s
+WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND created_on >= %s AND created_on < %s
 ORDER BY created_on DESC
 LIMIT %s
 """
@@ -91,19 +94,22 @@ class PostgresNewsArchive:
                 await cur.executemany(_SAVE_ENTRY, rows[start : start + _BATCH])
         return len(rows)
 
-    async def search(self, words: Sequence[str], since: date, limit: int) -> list[ArchiveEntry]:
+    async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[ArchiveEntry]:
+        keys = list(words)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_SEARCH, (list(words), since, limit))
+            await cur.execute(_SEARCH, (keys, keys, min_match, since, keys, limit))
             rows = await cur.fetchall()
         return [ArchiveEntry(url=r["url"], publisher=r["publisher"], origin=r["origin"], title=r["title"],
                              published_on=r["published_on"], captured_at=r["captured_at"], summary=r["summary"])
                 for r in rows]
 
-    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
+    async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
+                              limit: int) -> list[tuple[str, date | None]]:
         # Пул проекта отдаёт строки словарями (ws_common.db: row_factory = dict_row) — только обращение по имени
-        # колонки. В 4.3 здесь было обращение по номеру → KeyError: 0 на первой же строке (этап 4.3.1).
+        # колонки (этап 4.3.1).
+        keys = list(keywords)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_TITLES, (list(words), since, limit))
+            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, limit))
             return [(row["title"], row["published_on"]) for row in await cur.fetchall()]
 
     async def harvested_periods(self, publisher: str) -> dict[str, str]:
@@ -135,9 +141,11 @@ class PostgresCorpus:
                 await cur.executemany(_SAVE_PAPER, rows[start : start + _BATCH])
         return len(rows)
 
-    async def titles_for(self, words: Sequence[str], since: date, limit: int) -> list[tuple[str, date | None]]:
+    async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
+                              limit: int) -> list[tuple[str, date | None]]:
+        keys = list(keywords)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_PAPER_TITLES, (list(words), since, limit))
+            await cur.execute(_PAPER_TITLES, (keys, keys, min_overlap, start, end, limit))
             return [(row["title"], row["created_on"]) for row in await cur.fetchall()]
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:

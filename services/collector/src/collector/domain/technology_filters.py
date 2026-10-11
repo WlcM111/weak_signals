@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 # Слово после словосочетания делает его обрывком: «deep reinforcement [learning]», «graph neural [networks]».
 FRAGMENT_HEADS = frozenset("""learning intelligence network networks computing model models vision processing language
 languages reality system systems science engineering""".split())
@@ -24,6 +26,24 @@ painting inspecting docking landing driving flying walking swimming""".split())
 VERB_TAILS = frozenset("""owns built uses makes enables becomes gets raises launches says shows unveils announces introduces
 brings adds helps lets wants targets takes""".split())
 GENERIC_PHRASES = frozenset({
+    # этап 4.4 — по быстрому замеру 10.10.2026 (списки «извлечённые» и «из корпусов»)
+    "current state", "data collection", "data processing", "data engineering", "use case", "use cases",
+    "public sector", "service quality", "customer experience", "food industry", "medicinal plants", "power plants",
+    "nuclear power", "ieee transactions", "now available", "process optimization", "manufacturing process",
+    "manufacturing processes", "advanced manufacturing", "advanced manufacturing technologies", "factory environments",
+    "manufacturing environments", "chemical manufacturing", "electronics manufacturing", "semiconductor manufacturing",
+    "financial sector", "financial services sector", "banking sector", "financial transaction", "financial transactions",
+    "electronic payments", "credit card", "credit cards", "stock market", "behavioral biases", "transaction tax",
+    "fraud risk", "ai adoption", "ai integration", "ai strategy", "ai risk", "ai risks", "ai deployment",
+    "ai governance", "ai act", "secure ai", "trustworthy ai", "sustainable ai", "security testing", "cyber security",
+    "security threats", "security risks", "security controls", "security assessment", "advanced security",
+    "defense strategies", "mitigation strategies", "software engineering", "systematic security", "threat detection",
+    "access control", "resource allocation", "task scheduling", "sensor network", "sensor networks", "iot networks",
+    "network architectures", "distribution networks", "energy optimization", "energy efficient", "battery storage",
+    "battery energy", "information propagation", "artificial general intelligence", "robot control",
+    "robot interactions", "robot collaboration", "humanoid robotics", "efficient edge", "edge deployment",
+    "inference optimization", "inference performance", "language model inference", "multimodal llm", "multimodal ai",
+    "ai flow",
     "future directions", "future research", "research directions", "social media", "systematic literature",
     "systematic review", "literature review", "customer satisfaction", "financial literacy", "smart home",
     "magnetic resonance", "energy storage", "energy efficiency", "case study", "comparative study",
@@ -40,6 +60,8 @@ MATURE = frozenset({
     "3d printing", "additive manufacturing", "model compression", "knowledge distillation", "neural network pruning",
     "microservice", "data lake", "wearable", "edge computing", "cloud computing", "blockchain", "internet of things",
     "industrial iot", "smart manufacturing", "human robot interaction", "human robot collaboration",
+    # этап 4.4 — зрелые области из быстрого замера 10.10.2026
+    "imitation learning", "fuzzy logic", "autonomous driving", "mobile robot",
 })
 _KEY_SPLIT = (" for ", " in ", " on ", " with ", " using ", " via ", " based ", " of ")
 
@@ -66,3 +88,39 @@ def is_verbish(words: list[str]) -> bool:
     if any(word.endswith("ing") and len(word) > 4 and word not in NOUN_ING for word in words):
         return True
     return words[-1] in VERB_TAILS
+
+
+# Этап 4.4: ключевые слова темы для выборки корпуса и архива — без общих слов, которые есть почти в любой работе.
+GENERIC_TOPIC_WORDS = frozenset("""ai artificial intelligence system systems based using new novel approach approaches method
+methods data technology technologies solution solutions application applications platform platforms model models framework
+frameworks management software advanced emerging future development integration optimization high performance efficient
+smart intelligent digital modern innovative perspective perspectives promising decision making environment environments
+machine deep learning analysis research study overview state art use case cases tool tools network networks process
+processes level levels support driven enabled powered towards toward improving improved
+искусственный искусственного искусственным интеллект интеллекта интеллектом система системы систем системах технология
+технологии технологий решение решения решений данные данных обработка обработки методы методов новые перспективные
+современные интеллектуальные цифровые развитие применение использование""".split())
+
+
+def topic_keywords(phrases: Sequence[str], limit: int = 16) -> list[str]:
+    """Ключевые слова фраз темы для выборки «хотя бы 2 слова темы»: без общих слов, не короче 3 букв, без повторов."""
+    from collector.domain.text_tokens import tokens_of
+
+    words: dict[str, None] = {}
+    for phrase in phrases:
+        for word in tokens_of(phrase):
+            if len(word) >= 3 and word not in GENERIC_TOPIC_WORDS and not word.isdigit():
+                words.setdefault(word, None)
+    return list(words)[:limit]
+
+
+def with_variants(words: Sequence[str]) -> list[str]:
+    """Слова и их вторая форма числа (robot/robots, agents/agent): индекс хранит слова как в тексте."""
+    result: dict[str, None] = {}
+    for word in words:
+        result.setdefault(word, None)
+        if len(word) > 4 and word.endswith("s") and not word.endswith(("ss", "us", "is")):
+            result.setdefault(word[:-1], None)
+        elif word.isascii() and word.isalpha() and not word.endswith("s"):
+            result.setdefault(word + "s", None)
+    return list(result)

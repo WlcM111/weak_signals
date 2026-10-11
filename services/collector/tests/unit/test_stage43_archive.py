@@ -60,12 +60,13 @@ class _Archive:
         self.saved.extend(entries)
         return len(entries)
 
-    async def search(self, words, since, limit):  # noqa: ANN001, ANN201
-        self.searches.append((tuple(words), since, limit))
-        return [e for e in self.entries if set(words) <= set(e.tokens)][:limit]
+    async def search(self, words, since, limit, min_match):  # noqa: ANN001, ANN201
+        self.searches.append((tuple(words), since, limit, min_match))
+        ranked = sorted(((len(set(words) & set(e.tokens)), e) for e in self.entries), key=lambda item: -item[0])
+        return [e for matched, e in ranked if matched >= min_match][:limit]
 
-    async def titles_for(self, words, since, limit):  # noqa: ANN001, ANN201
-        return self.titles[:limit]
+    async def titles_matching(self, keywords, min_overlap, start, end, limit):  # noqa: ANN001, ANN201
+        return [(title, day) for title, day in self.titles if start <= day < end][:limit]
 
     async def harvested_periods(self, publisher):  # noqa: ANN001, ANN201
         return self.done.get(publisher, {})
@@ -202,9 +203,11 @@ class NewAdaptersTest(unittest.IsolatedAsyncioTestCase):
         terms = SearchTerms(en=("robot software",), technologies=("robot skill marketplace",))
         docs = [d async for d in adapter.search(terms, LIMITS, 10_000.0)]
         self.assertEqual([d.matched_term for d in docs], ["robot skill marketplace"])
-        targeted = [d async for d in adapter.search_targeted(["skill marketplace"], 3, date(2024, 10, 1), 10_000.0)]
+        self.assertEqual(store.searches[0][0][:2], ("robot", "robots"))  # этап 4.4: сначала технология, обе формы числа
+        self.assertEqual(store.searches[0][3], 2)  # из трёх слов фразы должны совпасть два
+        targeted = [d async for d in adapter.search_targeted(["skill marketplace"], 5, date(2024, 10, 1), 10_000.0)]
         self.assertEqual((targeted[0].url, targeted[0].raw_meta), (entry.url, {"publisher": "techcrunch.com", "origin": "wayback"}))
-        self.assertEqual(store.searches[-1], (("skill", "marketplace"), date(2024, 10, 1), 3))
+        self.assertEqual(store.searches[-1], (("skill", "skills", "marketplace", "marketplaces"), date(2024, 10, 1), 5, 2))
 
     async def test_crossref_and_huggingface_requests_and_parsing(self) -> None:
         http = FakeHttpClient()
@@ -247,10 +250,15 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
         from .test_targeted_search import TargetedScriptedAdapter
 
         class Corpus:
-            async def titles_for(self, words, since, limit):  # noqa: ANN001, ANN201
+            def __init__(self) -> None:
+                self.calls: list[tuple[object, ...]] = []
+
+            async def titles_matching(self, keywords, min_overlap, start, end, limit):  # noqa: ANN001, ANN201
+                self.calls.append((tuple(keywords), min_overlap, start, end, limit))
                 rows = [(f"Optical circuit switching study {i}", date(2026, 3, 1)) for i in range(4)]
                 rows += [(f"Background paper {i}", date(2022, 2, 1)) for i in range(12)]
-                return rows + [(f"Recent other {i}", date(2026, 1, 1)) for i in range(30)]  # доля фразы < 20 %
+                rows += [(f"Recent other {i}", date(2026, 1, 1)) for i in range(30)]  # доля фразы < 15 %
+                return [(title, day) for title, day in rows if start <= day < end][:limit]
 
         clock = FakeClock()
         runs = InMemoryAdapterRunRepository()
@@ -270,11 +278,44 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
             classification=load_classification_config(config_dir / "trust_rules.yaml", config_dir / "rss_domains.yaml"),
             clock=clock, config=RunCollectionConfig(lease_seconds=60, heartbeat_seconds=10_000, idle_poll_seconds=0.01,
                                                     llm_technologies=2),
-            corpus=Corpus(),
+            corpus=(corpus := Corpus()),
         )
         await use_case.execute(collection, "collector:test")
+        # этап 4.4: ключевые слова темы без общих («ai»), хотя бы 2 совпадения, два периода — недавний и базовый
+        self.assertEqual(corpus.calls[0][0][:4], ("center", "centers", "networking", "networkings"))
+        self.assertEqual([call[1] for call in corpus.calls], [2, 2])
+        self.assertEqual(corpus.calls[1][3], corpus.calls[0][2])  # базовый период кончается там, где начинается недавний
         first = adapter.targeted_calls[0]
         self.assertEqual(first[0], "optical circuit switching")
         self.assertEqual(collections.emerging[collection.collection_id][0], "optical circuit switching")
         self.assertEqual([t for t in first if t.startswith("model technology")], ["model technology 0", "model technology 1"])
         self.assertNotIn("federated learning for factories", first)
+
+
+class Stage44BudgetTest(unittest.TestCase):
+    """Этап 4.4: лимиты широкого прохода новых источников, ключевые слова темы, формы числа."""
+
+    def test_broad_caps_and_per_term_overrides(self) -> None:
+        from collector.application.use_cases.run_collection import RunCollectionConfig, broad_cap
+        from collector.domain.values import SourceKey
+
+        config = RunCollectionConfig()
+        self.assertEqual(config.targeted_reserve_documents, 600)
+        self.assertEqual(broad_cap(config, LIMITS, SourceKey.CROSSREF), 20)
+        self.assertEqual(broad_cap(config, LIMITS, SourceKey.NEWS_ARCHIVE), 20)
+        self.assertEqual(broad_cap(config, LIMITS, SourceKey.HUGGINGFACE), 10)
+        self.assertEqual(broad_cap(config, LIMITS, SourceKey.OPENALEX), 60)
+        self.assertEqual(config.targeted_per_term_overrides, {SourceKey.NEWS_ARCHIVE: 5})
+        self.assertEqual(config.snowball_reserve_documents, 200)
+
+    def test_topic_keywords_drop_generic_words(self) -> None:
+        from collector.domain.technology_filters import topic_keywords, with_variants
+
+        self.assertEqual(topic_keywords(["high-performance AI computing systems", "hybrid intelligent robots"]),
+                         ["computing", "hybrid", "robots"])
+        self.assertEqual(with_variants(["robots", "edge"]), ["robots", "robot", "edge", "edges"])
+        self.assertEqual(topic_keywords(["искусственный интеллект в финтехе"]), ["финтехе"])
+
+    def test_generic_phrases_from_measurement_are_rejected(self) -> None:
+        found = candidate_phrases("Use cases and current state of public sector data collection: ieee transactions")
+        self.assertFalse(found & {"use cases", "current state", "public sector", "data collection", "ieee transactions"})

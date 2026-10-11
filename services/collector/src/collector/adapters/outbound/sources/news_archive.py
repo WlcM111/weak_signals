@@ -1,4 +1,8 @@
-"""Адаптер локального архива новостей (этап 4.3): поиск по словам статей изданий и записей RSS без внешних запросов.
+"""Адаптер локального архива новостей (этапы 4.3–4.4): поиск по словам статей изданий и записей RSS без внешних запросов.
+
+Этап 4.4: поиск идёт в основном по технологиям (общие фразы темы приносили самые свежие общие статьи), статьи
+ранжируются по числу совпавших слов, а не по дате; короткая фраза (до двух слов) — все слова, длинная — все,
+кроме одного. Слова ищутся в обеих формах числа (robot/robots).
 
 Архив наполняется заранее: `collector.tools.archive wayback` (адреса статей из Wayback Machine, раз в месяц)
 и `collector.tools.archive rss` плюс каждый сбор (все записи лент). Фраза находит статью, если в ней есть все
@@ -17,12 +21,14 @@ from collector.application.ports import HttpClient, NewsArchiveStore, RateLimite
 from collector.domain.archive import ArchiveEntry
 from collector.domain.entities import RawDocument
 from collector.domain.source_policy import SourcePolicy
+from collector.domain.technology_filters import with_variants
 from collector.domain.technology_mining import targeted_since
 from collector.domain.text_tokens import phrase_words
 from collector.domain.values import CollectionLimits, SearchTerms, SourceKey
 from ws_common.clock import Clock
 
-MODEL_TECHNOLOGIES_IN_BROAD = 10
+BROAD_TECHNOLOGIES = 20  # широкий проход: технологии модели — основная часть фраз
+BROAD_TOPIC_PHRASES = 2  # и не больше двух фраз темы
 
 
 class NewsArchiveAdapter(BaseSourceAdapter):
@@ -41,17 +47,17 @@ class NewsArchiveAdapter(BaseSourceAdapter):
         self._window_months = window_months
 
     async def search(self, terms: SearchTerms, limits: CollectionLimits, deadline: float) -> AsyncIterator[RawDocument]:
-        """Фразы темы и первые технологии модели; квота источника — поровну между фразами."""
-        phrases = [term for term, _language in terms.pairs()]
-        phrases += [t for t in terms.technologies[:MODEL_TECHNOLOGIES_IN_BROAD] if t not in phrases]
+        """В основном технологии модели (до 20), плюс не больше двух фраз темы; квота источника — поровну."""
+        topic = [term for term, _language in terms.pairs()][:BROAD_TOPIC_PHRASES]
+        phrases = list(dict.fromkeys([*terms.technologies[:BROAD_TECHNOLOGIES], *topic]))
         since = targeted_since(self._clock.now(), self._window_months, limits.published_since_year)
-        per_phrase = max(5, math.ceil(limits.max_documents_per_source / max(1, len(phrases))))
+        per_phrase = max(3, math.ceil(limits.max_documents_per_source / max(1, len(phrases))))
         produced, seen = 0, set()
         for phrase in phrases:
             words = phrase_words(phrase)
             if not words or self.deadline_reached(deadline):
                 continue
-            for entry in await self._store.search(words, since, per_phrase):
+            for entry in await self._store.search(with_variants(words), since, per_phrase, min_match(words)):
                 if entry.url in seen:
                     continue
                 seen.add(entry.url)
@@ -67,8 +73,13 @@ class NewsArchiveAdapter(BaseSourceAdapter):
             words = phrase_words(term)
             if not words or self.deadline_reached(deadline):
                 continue
-            for entry in await self._store.search(words, since, per_term):
+            for entry in await self._store.search(with_variants(words), since, per_term, min_match(words)):
                 yield to_raw_document(entry, term)
+
+
+def min_match(words: Sequence[str]) -> int:
+    """Сколько слов фразы должно совпасть: до двух слов — все, длиннее — все, кроме одного."""
+    return len(words) if len(words) <= 2 else len(words) - 1
 
 
 def to_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:

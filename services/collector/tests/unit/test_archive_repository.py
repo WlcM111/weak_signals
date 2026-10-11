@@ -77,13 +77,25 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await archive.harvested_periods("techcrunch.com"), {"2026-09": "done"})
         pool = _Pool([{"title": "Robot skill marketplace", "published_on": date(2026, 9, 4)}])
         archive = PostgresNewsArchive(pool)  # type: ignore[arg-type]
-        self.assertEqual(await archive.titles_for(["robot"], date(2025, 1, 1), 10),
+        self.assertEqual(await archive.titles_matching(["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10),
                          [("Robot skill marketplace", date(2026, 9, 4))])
-        self.assertEqual(pool.cursor.executed[0][1], (["robot"], date(2025, 1, 1), 10))
+        sql, params = pool.cursor.executed[0]
+        self.assertEqual(params, (["robot", "skill"], ["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10))
+        self.assertIn("tokens && %s::text[]", sql)  # этап 4.4: хотя бы одно слово через GIN, затем порог совпадений
+        self.assertNotIn("@>", sql)
+
+    async def test_archive_search_ranks_by_matched_words(self) -> None:
+        pool = _Pool([{"url": "https://techcrunch.com/a/", "publisher": "techcrunch.com", "origin": "wayback",
+                       "published_on": date(2025, 3, 1), "captured_at": None, "title": "A", "summary": ""}])
+        entries = await PostgresNewsArchive(pool).search(["kv", "cache"], date(2024, 10, 1), 5, 2)  # type: ignore[arg-type]
+        sql, params = pool.cursor.executed[0]
+        self.assertEqual(params, (["kv", "cache"], ["kv", "cache"], 2, date(2024, 10, 1), ["kv", "cache"], 5))
+        self.assertLess(sql.index("INTERSECT"), sql.index("published_on DESC"))  # сначала число совпавших слов
+        self.assertEqual(entries[0].url, "https://techcrunch.com/a/")
 
     async def test_corpus_reads_rows_by_column_name(self) -> None:
         corpus = PostgresCorpus(_Pool([{"title": "Optical circuit switching", "created_on": date(2025, 6, 1)}]))  # type: ignore[arg-type]
-        self.assertEqual(await corpus.titles_for(["optical"], date(2021, 1, 1), 5),
+        self.assertEqual(await corpus.titles_matching(["optical", "switching"], 2, date(2021, 1, 1), date(2024, 10, 1), 5),
                          [("Optical circuit switching", date(2025, 6, 1))])
         corpus = PostgresCorpus(_Pool([{"set_spec": "cs", "resumption_token": "t", "records": 1000, "kept": 400,
                                         "status": "running"}]))  # type: ignore[arg-type]
