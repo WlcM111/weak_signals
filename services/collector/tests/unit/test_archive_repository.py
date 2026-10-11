@@ -80,9 +80,20 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await archive.titles_matching(["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10),
                          [("Robot skill marketplace", date(2026, 9, 4))])
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["robot", "skill"], ["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10))
+        self.assertEqual(params, (["robot", "skill"], ["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1),
+                                  None, None, 10))  # этап 4.5: происхождение записей (None — любое)
         self.assertIn("tokens && %s::text[]", sql)  # этап 4.4: хотя бы одно слово через GIN, затем порог совпадений
         self.assertNotIn("@>", sql)
+
+    async def test_event_candidates_query_and_rows(self) -> None:
+        pool = _Pool([{"url": "https://techcrunch.com/2026/08/11/x/", "publisher": "techcrunch.com", "origin": "wayback",
+                       "published_on": date(2026, 8, 11), "captured_at": None, "title": "Tetragen raises seed",
+                       "summary": "", "tokens": ["tetragen", "raises", "seed", "welding"]}])
+        rows = await PostgresNewsArchive(pool).event_candidates(["welding"], ["raises"], 1, date(2024, 10, 1), 50)  # type: ignore[arg-type]
+        sql, params = pool.cursor.executed[0]
+        self.assertEqual(params, (["welding"], ["raises"], ["welding"], 1, date(2024, 10, 1), ["welding"], 50))
+        self.assertEqual(sql.count("tokens && %s::text[]"), 2)  # словарь и событие стартапа
+        self.assertEqual((rows[0][0].title, rows[0][1]), ("Tetragen raises seed", ("tetragen", "raises", "seed", "welding")))
 
     async def test_archive_search_ranks_by_matched_words(self) -> None:
         pool = _Pool([{"url": "https://techcrunch.com/a/", "publisher": "techcrunch.com", "origin": "wayback",

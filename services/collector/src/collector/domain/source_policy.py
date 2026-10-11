@@ -51,7 +51,8 @@ DEFAULT_POLICIES: dict[SourceKey, SourcePolicy] = {
     SourceKey.SEMANTIC_SCHOLAR: SourcePolicy(max_requests=50, rate_limit_retries=2, rate_limit_pause=10.0),
     SourceKey.GDELT: SourcePolicy(max_requests=8, transient_retries=0),  # повтор окна — в самом адаптере
     # Hacker News: две фразы × девять окон за 24 месяца; ответ ~0,6 с, лимит 10 000 запросов в час с IP.
-    SourceKey.HACKERNEWS: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
+    # этап 4.5: 18 широкого прохода + 40 технологий + второй круг — 60 не хватало (BUDGET_EXHAUSTED во всех темах)
+    SourceKey.HACKERNEWS: SourcePolicy(max_requests=80, rate_limit_retries=1, rate_limit_pause=10.0),
 }
 
 _FIELDS = {"requests": "max_requests", "retries": "rate_limit_retries", "pause": "rate_limit_pause", "transient": "transient_retries"}

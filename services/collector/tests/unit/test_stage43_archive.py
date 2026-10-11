@@ -305,7 +305,7 @@ class Stage44BudgetTest(unittest.TestCase):
         self.assertEqual(broad_cap(config, LIMITS, SourceKey.NEWS_ARCHIVE), 20)
         self.assertEqual(broad_cap(config, LIMITS, SourceKey.HUGGINGFACE), 10)
         self.assertEqual(broad_cap(config, LIMITS, SourceKey.OPENALEX), 60)
-        self.assertEqual(config.targeted_per_term_overrides, {SourceKey.NEWS_ARCHIVE: 5})
+        self.assertEqual(config.targeted_per_term_overrides, {SourceKey.NEWS_ARCHIVE: 5, SourceKey.CROSSREF: 1})
         self.assertEqual(config.snowball_reserve_documents, 200)
 
     def test_topic_keywords_drop_generic_words(self) -> None:

@@ -278,8 +278,13 @@ class NewsArchiveStore(Protocol):
         совпавших слов, при равенстве — новее (этап 4.4: прежде только «новые первыми»)."""
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int) -> list[tuple[str, date | None]]:
-        """Заголовки и даты записей с не меньше `min_overlap` ключевыми словами, опубликованных в [start, end)."""
+                              limit: int, origin: str | None = None) -> list[tuple[str, date | None]]:
+        """Заголовки и даты записей с не меньше `min_overlap` ключевыми словами, опубликованных в [start, end);
+        `origin` — только записи этого происхождения (этап 4.5: оценка возникновения — по настоящим заголовкам RSS)."""
+
+    async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
+                               limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
+        """Этап 4.5: статьи с событием стартапа (слово из `cues`) и не меньше `min_overlap` словами словаря, с их словами."""
 
     async def harvested_periods(self, publisher: str) -> dict[str, str]:
         """Месяцы издания, уже перечисленные в Wayback: «ГГГГ-ММ» → статус."""

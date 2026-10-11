@@ -75,6 +75,13 @@ class CollectorSettings(BaseServiceSettings):
     collector_news_archive_per_term: int = Field(default=5, ge=1, le=20)
     collector_emergence_sample: int = Field(default=15000, ge=1000, le=50000)
     collector_news_emergence_sample: int = Field(default=10000, ge=1000, le=50000)
+    # Этап 4.5: канал «события стартапов», Crossref по 1 документу на технологию, новости — только заголовки RSS.
+    collector_event_channel_documents: int = Field(default=150, ge=0, le=1000)
+    collector_event_min_overlap: int = Field(default=2, ge=1, le=5)
+    collector_event_pool: int = Field(default=4000, ge=100, le=20000)
+    collector_crossref_per_term: int = Field(default=1, ge=1, le=10)
+    collector_news_emergence_origin: str = Field(default="rss", pattern=r"^(rss|wayback|)$")
+    collector_news_emergence_min_rows: int = Field(default=2000, ge=0, le=100000)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

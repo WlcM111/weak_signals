@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
+
+from collector.domain.entities import RawDocument
 
 
 @dataclass(frozen=True)
@@ -41,3 +43,19 @@ class CorpusHarvestState:
     records: int
     kept: int
     status: str
+
+
+def archive_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:
+    """Запись архива → сырой документ; текст — заголовок и анонс (у статей из Wayback — слова адреса)."""
+    published = datetime(entry.published_on.year, entry.published_on.month, entry.published_on.day, tzinfo=UTC) \
+        if entry.published_on else None
+    return RawDocument(
+        url=entry.url,
+        title=entry.title,
+        text=" ".join(part for part in (entry.title, entry.summary) if part)[:4000],
+        matched_term=term,
+        published_at=published,
+        language_code=None,
+        doi=None,
+        raw_meta={"publisher": entry.publisher, "origin": entry.origin},
+    )

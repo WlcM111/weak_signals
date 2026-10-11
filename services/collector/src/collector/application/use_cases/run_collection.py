@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 from datetime import date, timedelta
-from collections.abc import AsyncIterator, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from typing import Any
@@ -34,7 +34,9 @@ from collector.domain.dedup import DedupIndex
 from collector.domain.entities import AdapterRun, Collection, RawDocument, compute_final_status
 from collector.domain.errors import AdapterFailure, InvariantViolation, LeaseLost
 from collector.domain.normalization import build_document_draft
+from collector.domain.archive import archive_raw_document
 from collector.domain.emergence import emerging_terms
+from collector.domain.event_channel import EVENT_CUES, event_vocabulary, is_news_boilerplate, rank_events
 from collector.domain.technology_filters import is_mature, topic_keywords, with_variants
 from collector.domain.technology_mining import mine_technologies, targeted_since
 from collector.domain.values import AdapterErrorCode, CollectionLimits, CollectionMode, OperationStatus, SourceKey
@@ -81,7 +83,9 @@ class RunCollectionConfig:
     broad_max_documents_per_source: int = 60
     broad_source_caps: Mapping[SourceKey, int] = field(default_factory=lambda: {
         SourceKey.CROSSREF: 20, SourceKey.HUGGINGFACE: 10, SourceKey.NEWS_ARCHIVE: 20})
-    targeted_per_term_overrides: Mapping[SourceKey, int] = field(default_factory=lambda: {SourceKey.NEWS_ARCHIVE: 5})
+    # этап 4.5: Crossref — 1 документ на технологию (брал 172–185 документов на тему и дал 3 сигнала из 14)
+    targeted_per_term_overrides: Mapping[SourceKey, int] = field(
+        default_factory=lambda: {SourceKey.NEWS_ARCHIVE: 5, SourceKey.CROSSREF: 1})
     snowball_reserve_documents: int = 200
     mined_technologies: int = 15
     max_technologies: int = 40
@@ -100,6 +104,16 @@ class RunCollectionConfig:
     # по каждому периоду (недавний и базовый) — до `emergence_sample` / `news_emergence_sample` записей.
     emergence_sample: int = 15000
     news_emergence_sample: int = 10000
+    # Этап 4.5: канал «события стартапов» — в начале прицельного прохода архив отдаёт до `event_channel_documents`
+    # статей с событием стартапа и хотя бы `event_min_overlap` словами словаря (слова темы и отобранных технологий),
+    # по убыванию редкости совпавших слов; кандидатов для ранжирования — до `event_pool`.
+    event_channel_documents: int = 150
+    event_min_overlap: int = 2
+    event_pool: int = 4000
+    # Оценка возникновения по новостям — только по настоящим заголовкам RSS (слова адресов Wayback склеивались
+    # в мусор вроде «capital factory built nuclear») и только при достаточной выборке.
+    news_emergence_origin: str | None = "rss"
+    news_emergence_min_rows: int = 2000
 
 
 class RunCollection:
@@ -225,7 +239,7 @@ class RunCollection:
                        technologies=len(technologies), sources=[key.value for key in sources], since=since.isoformat())
         await self._collect(
             state, sources, owner,
-            lambda key, adapter: adapter.search_targeted(technologies, self._per_term(key), since, state.deadline),
+            lambda key, adapter: self._targeted_documents(key, adapter, technologies, since, state),
         )
         if not snowball or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
             return
@@ -271,11 +285,35 @@ class RunCollection:
                        emerging=emerging, mined=mined, from_model=len(terms.technologies), total=len(technologies))
         return technologies
 
+    async def _targeted_documents(
+        self, key: SourceKey, adapter: SourceAdapter, technologies: tuple[str, ...], since: date, state: _RunState
+    ) -> AsyncIterator[RawDocument]:
+        """Документы прицельного прохода источника; у архива новостей сначала — канал «события стартапов» (этап 4.5)."""
+        if key is SourceKey.NEWS_ARCHIVE and self._archive is not None and self._config.event_channel_documents > 0:
+            async for document in self._event_channel(technologies, since, state):
+                yield document
+        async for document in adapter.search_targeted(technologies, self._per_term(key), since, state.deadline):
+            yield document
+
+    async def _event_channel(self, technologies: tuple[str, ...], since: date, state: _RunState) -> AsyncIterator[RawDocument]:
+        """Статьи архива с событием стартапа по словам темы и отобранных технологий, по редкости совпавших слов."""
+        terms = state.collection.terms
+        vocabulary = event_vocabulary((*terms.en, *terms.ru), technologies)
+        try:
+            candidates = await self._archive.event_candidates(  # type: ignore[union-attr]
+                vocabulary, EVENT_CUES, self._config.event_min_overlap, since, self._config.event_pool)
+        except Exception as exc:  # noqa: BLE001 — канал необязателен: прицельный поиск архива идёт дальше
+            self._log.warning("collection.event_channel_failed", collection_id=state.collection.collection_id, error=str(exc))
+            return
+        ranked = rank_events(candidates, vocabulary, self._config.event_min_overlap, self._config.event_channel_documents)
+        self._log.info("collection.event_channel", collection_id=state.collection.collection_id,
+                       vocabulary=len(vocabulary), candidates=len(candidates), selected=len(ranked))
+        for entry, matched in ranked:
+            yield archive_raw_document(entry, " ".join(matched[:3]))
+
     async def _emerging(self, state: _RunState) -> list[str]:
-        """Оценка возникновения (этап 4.4): работы корпуса arXiv и статьи архива новостей, где есть хотя бы 2
-        ключевых слова темы (без общих вроде «ai», «systems»). Прежде работа попадала в выборку, только если в ней
-        были все слова фразы темы, и в 4 темах из 6 выборка была почти пустой. Недавний и базовый периоды
-        выбираются отдельно, порог числа документов — под размер выборки."""
+        """Оценка возникновения (этапы 4.4–4.5): работы корпуса arXiv и настоящие заголовки RSS, где есть хотя бы 2
+        ключевых слова темы; периоды выбираются отдельно, порог числа документов — под размер выборки."""
         if self._config.emerging_technologies <= 0 or (self._corpus is None and self._archive is None):
             return []
         terms = state.collection.terms
@@ -286,41 +324,51 @@ class RunCollection:
         try:
             paper_keys = topic_keywords(terms.en)
             if self._corpus is not None and paper_keys:
-                recent_from = today - timedelta(days=730)
                 lists.append(await self._emerging_from(
-                    self._corpus, paper_keys, recent_from, tomorrow, date(self._config.corpus_since_year, 1, 1),
-                    self._config.emergence_sample, exclude, floor=3, share=0.00075, state=state, corpus="papers"))
+                    self._corpus.titles_matching, paper_keys, today - timedelta(days=730), tomorrow,
+                    date(self._config.corpus_since_year, 1, 1), self._config.emergence_sample, exclude,
+                    floor=3, share=0.00075, state=state, corpus="papers"))
             news_keys = topic_keywords((*terms.en, *terms.ru))
             if self._archive is not None and news_keys:
-                recent_from = today - timedelta(days=183)
+                archive, origin = self._archive, self._config.news_emergence_origin or None
+
+                async def fetch(keys: list[str], overlap: int, start: date, end: date, limit: int) -> list[tuple[str, date | None]]:
+                    return await archive.titles_matching(keys, overlap, start, end, limit, origin=origin)
+
                 lists.append(await self._emerging_from(
-                    self._archive, news_keys, recent_from, tomorrow, today - timedelta(days=550),
-                    self._config.news_emergence_sample, exclude, floor=2, share=0.001, state=state, corpus="news"))
+                    fetch, news_keys, today - timedelta(days=183), tomorrow, today - timedelta(days=550),
+                    self._config.news_emergence_sample, exclude, floor=2, share=0.001, state=state, corpus="news",
+                    min_rows=self._config.news_emergence_min_rows, boilerplate=True))
         except Exception as exc:  # noqa: BLE001 — корпус необязателен: без него остаются извлечённые и модель
             self._log.warning("collection.emerging_failed", collection_id=state.collection.collection_id, error=str(exc))
         result: dict[str, str] = {}
         for index in range(max((len(items) for items in lists), default=0)):
-            for items in lists:  # поочерёдно из корпуса работ и из архива новостей
+            for items in lists:  # поочерёдно из корпуса работ и из заголовков новостей
                 if index < len(items):
                     result.setdefault(items[index].lower(), items[index])
         return list(result.values())[: self._config.emerging_technologies]
 
-    async def _emerging_from(self, store: CorpusStore | NewsArchiveStore, keywords: list[str], recent_from: date,
-                             end: date, base_from: date, sample: int, exclude: tuple[str, ...], *, floor: int,
-                             share: float, state: _RunState, corpus: str) -> list[str]:
+    async def _emerging_from(self, fetch: Callable[..., Awaitable[list[tuple[str, date | None]]]], keywords: list[str],
+                             recent_from: date, end: date, base_from: date, sample: int, exclude: tuple[str, ...], *,
+                             floor: int, share: float, state: _RunState, corpus: str, min_rows: int = 0,
+                             boilerplate: bool = False) -> list[str]:
         """Выборка недавнего и базового периодов и оценка возникновения по ней."""
         keys = with_variants(keywords)
         overlap = min(2, len(keywords))
-        recent = await store.titles_matching(keys, overlap, recent_from, end, sample)
-        base = await store.titles_matching(keys, overlap, base_from, recent_from, sample)
+        recent = await fetch(keys, overlap, recent_from, end, sample)
+        if len(recent) < min_rows:
+            self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
+                           recent=len(recent), skipped=f"выборка меньше {min_rows}")
+            return []
+        base = await fetch(keys, overlap, base_from, recent_from, sample)
         min_recent = max(floor, round(len(recent) * share))
         found = emerging_terms(
             [*recent, *base], recent_from=recent_from, base_from=base_from, base_to=recent_from - timedelta(days=1),
             exclude=exclude, limit=self._config.emerging_technologies, min_recent=min_recent, max_share=0.15)
+        terms_found = [item.term for item in found if not (boilerplate and is_news_boilerplate(item.term))]
         self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
-                       keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent,
-                       terms=[item.term for item in found])
-        return [item.term for item in found]
+                       keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent, terms=terms_found)
+        return terms_found
 
     async def _prepare_runs(self, state: _RunState) -> dict[SourceKey, SourceAdapter]:
         """Отмечает недоступные адаптеры и переводит остальные в RUNNING."""

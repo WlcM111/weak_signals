@@ -14,11 +14,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import AsyncIterator, Sequence
-from datetime import UTC, date, datetime
+from datetime import date
 
 from collector.adapters.outbound.sources.base import BaseSourceAdapter
 from collector.application.ports import HttpClient, NewsArchiveStore, RateLimiter
-from collector.domain.archive import ArchiveEntry
+from collector.domain.archive import ArchiveEntry, archive_raw_document
 from collector.domain.entities import RawDocument
 from collector.domain.source_policy import SourcePolicy
 from collector.domain.technology_filters import with_variants
@@ -83,16 +83,5 @@ def min_match(words: Sequence[str]) -> int:
 
 
 def to_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:
-    """Запись архива → сырой документ; текст — заголовок и анонс (у статей из Wayback — слова адреса)."""
-    published = datetime(entry.published_on.year, entry.published_on.month, entry.published_on.day, tzinfo=UTC) \
-        if entry.published_on else None
-    return RawDocument(
-        url=entry.url,
-        title=entry.title,
-        text=" ".join(part for part in (entry.title, entry.summary) if part)[:4000],
-        matched_term=term,
-        published_at=published,
-        language_code=None,
-        doi=None,
-        raw_meta={"publisher": entry.publisher, "origin": entry.origin},
-    )
+    """Запись архива → сырой документ (общая функция домена, этап 4.5)."""
+    return archive_raw_document(entry, term)

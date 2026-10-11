@@ -39,7 +39,15 @@ _TITLES = f"""
 SELECT title, published_on
 FROM news_archive
 WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND published_on >= %s AND published_on < %s
+  AND (%s::text IS NULL OR origin = %s::text)
 ORDER BY published_on DESC
+LIMIT %s
+"""
+_EVENTS = f"""
+SELECT url, publisher, origin, published_on, captured_at, title, summary, tokens
+FROM news_archive
+WHERE tokens && %s::text[] AND tokens && %s::text[] AND {_MATCHED} >= %s AND published_on >= %s
+ORDER BY {_MATCHED} DESC, published_on DESC
 LIMIT %s
 """
 _PERIODS = "SELECT period, status FROM news_archive_harvest WHERE publisher = %s"
@@ -104,13 +112,23 @@ class PostgresNewsArchive:
                 for r in rows]
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
-                              limit: int) -> list[tuple[str, date | None]]:
+                              limit: int, origin: str | None = None) -> list[tuple[str, date | None]]:
         # Пул проекта отдаёт строки словарями (ws_common.db: row_factory = dict_row) — только обращение по имени
         # колонки (этап 4.3.1).
         keys = list(keywords)
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, limit))
+            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, origin, origin, limit))
             return [(row["title"], row["published_on"]) for row in await cur.fetchall()]
+
+    async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
+                               limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
+        words = list(vocabulary)
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(_EVENTS, (words, list(cues), words, min_overlap, since, words, limit))
+            rows = await cur.fetchall()
+        return [(ArchiveEntry(url=r["url"], publisher=r["publisher"], origin=r["origin"], title=r["title"],
+                              published_on=r["published_on"], captured_at=r["captured_at"], summary=r["summary"]),
+                 tuple(r["tokens"] or ())) for r in rows]
 
     async def harvested_periods(self, publisher: str) -> dict[str, str]:
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
