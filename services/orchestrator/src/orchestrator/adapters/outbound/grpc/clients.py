@@ -25,7 +25,7 @@ from orchestrator.application.dto import (
     NarrativeView,
     ScoreTextView,
 )
-from orchestrator.domain.errors import UpstreamUnavailable
+from orchestrator.domain.errors import TRANSIENT_GRPC_CODES, UpstreamUnavailable
 from ws_common.ids import current_correlation_id
 from ws_common.logging import get_logger
 
@@ -50,9 +50,9 @@ def _md() -> tuple[tuple[str, str], ...]:
 
 
 def _fail(rpc: str, error: grpc.aio.AioRpcError) -> UpstreamUnavailable:
-    """Переводит отказ gRPC в доменную ошибку без раскрытия внутренних деталей."""
-    log.warning("upstream.call", rpc=rpc, grpc_code=error.code().name)
-    return UpstreamUnavailable(f"{rpc}: {error.code().name}")
+    """Переводит отказ gRPC в доменную ошибку без раскрытия внутренних деталей (этап 5.0.2: временный или нет)."""
+    log.warning("upstream.call", rpc=rpc, grpc_code=error.code().name, details=(error.details() or "")[:300])
+    return UpstreamUnavailable(f"{rpc}: {error.code().name}", transient=error.code().name in TRANSIENT_GRPC_CODES)
 
 
 class GrpcCollectorClient:

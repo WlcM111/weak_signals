@@ -26,6 +26,7 @@ CANDIDATES_PAGE_SIZE = 50
 MAX_EVIDENCE = 8
 MAX_SNIPPET = 600
 MAX_SUMMARY = 400
+JUDGE_BATCH = 30  # этап 5.0.2: не больше MAX_ITEMS (40) insight за вызов
 _SENTENCE_END_RE = re.compile(r"[.!?…]\s")
 log = get_logger("orchestrator.stage.narrate")
 
@@ -328,11 +329,16 @@ async def _judge(
     if config.llm_allowed is not None and not config.llm_allowed():
         return {}
     pool = weak[: config.judge_pool]
-    try:
-        verdicts = await insight.judge_candidates(query_text, pool)
-    except (UpstreamUnavailable, StageFailed) as error:
-        log.warning("stage.narrate.judge_failed", error=str(error)[:200])
-        return {}
+    verdicts: dict[str, JudgeVerdictView] = {}
+    # Этап 5.0.2: insight оценивает не больше 40 кандидатов за вызов (MAX_ITEMS) и молча отбрасывает остальные —
+    # пул больше 40 делится на вызовы по JUDGE_BATCH; сбой одного вызова не отменяет вердикты остальных.
+    for start in range(0, len(pool), JUDGE_BATCH):
+        if config.llm_allowed is not None and not config.llm_allowed():
+            break
+        try:
+            verdicts.update(await insight.judge_candidates(query_text, pool[start:start + JUDGE_BATCH]))
+        except (UpstreamUnavailable, StageFailed) as error:
+            log.warning("stage.narrate.judge_failed", error=str(error)[:200], batch_start=start)
     log.info("stage.narrate.judged", pool=len(pool), judged=len(verdicts))
     return verdicts
 

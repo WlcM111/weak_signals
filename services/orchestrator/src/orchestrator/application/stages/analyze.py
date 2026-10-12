@@ -49,9 +49,7 @@ async def run_analyze(
             max_candidates=config.max_candidates,
         )
     except UpstreamUnavailable as error:
-        raise StageFailed(
-            JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"analyzer недоступен: {error.message}", True
-        ) from error
+        raise upstream_failure("analyzer", JobErrorCode.ANALYSIS_FAILED, error) from error
     if on_started is not None:
         await on_started(analysis_id)  # ссылка сохраняется до опроса — см. комментарий в collect
     deadline = clock.monotonic() + config.timeout_seconds
@@ -60,9 +58,7 @@ async def run_analyze(
         try:
             view = await analyzer.get_analysis(analysis_id)
         except UpstreamUnavailable as error:
-            raise StageFailed(
-                JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"analyzer недоступен: {error.message}", True
-            ) from error
+            raise upstream_failure("analyzer", JobErrorCode.ANALYSIS_FAILED, error) from error
         if view.is_terminal:
             break
         if clock.monotonic() >= deadline:
@@ -92,3 +88,10 @@ async def run_analyze(
 def analysis_timeout(config: AnalyzeConfig, documents_total: int) -> int:
     """Ожидание анализа с учётом объёма коллекции (этап 5.0, N04)."""
     return max(int(config.timeout_seconds), int(config.per_document_seconds * max(0, documents_total)))
+
+
+def upstream_failure(service: str, permanent_code: JobErrorCode, error: UpstreamUnavailable) -> StageFailed:
+    """Этап 5.0.2: временная недоступность — UPSTREAM_UNAVAILABLE с повтором; ошибка сервиса — код стадии без повтора."""
+    if getattr(error, "transient", True):
+        return StageFailed(JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"{service} недоступен: {error.message}", True)
+    return StageFailed(permanent_code.value, f"{service} вернул ошибку: {error.message}", False)

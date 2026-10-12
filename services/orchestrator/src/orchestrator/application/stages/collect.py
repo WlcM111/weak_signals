@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from orchestrator.application.dto import CollectionView, ExpansionView
 from orchestrator.application.ports import CollectorClient
 from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
+from orchestrator.application.stages.analyze import upstream_failure
 from orchestrator.domain.values import JobErrorCode
 from ws_common.clock import Clock
 from ws_common.logging import get_logger
@@ -53,9 +54,7 @@ async def run_collect(
             technologies=expansion.technologies,
         )
     except UpstreamUnavailable as error:
-        raise StageFailed(
-            JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"collector недоступен: {error.message}", True
-        ) from error
+        raise upstream_failure("collector", JobErrorCode.COLLECTION_FAILED, error) from error
     if on_started is not None:
         # идентификатор сохраняется до начала опроса: иначе отмена или падение воркера
         # оставили бы запущенный сбор без ссылки на него
@@ -66,9 +65,7 @@ async def run_collect(
         try:
             view = await collector.get_collection(collection_id)
         except UpstreamUnavailable as error:
-            raise StageFailed(
-                JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"collector недоступен: {error.message}", True
-            ) from error
+            raise upstream_failure("collector", JobErrorCode.COLLECTION_FAILED, error) from error
         if view.is_terminal:
             break
         if clock.monotonic() >= deadline:
@@ -105,7 +102,7 @@ async def _stop_collection(collector: CollectorClient, collection_id: str, clock
     try:
         await collector.cancel_collection(collection_id, "collect stage deadline")
     except UpstreamUnavailable as error:
-        raise StageFailed(JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"collector недоступен: {error.message}", True) from error
+        raise upstream_failure("collector", JobErrorCode.COLLECTION_FAILED, error) from error
     until = clock.monotonic() + STOP_WAIT_SECONDS
     while True:
         view = await collector.get_collection(collection_id)

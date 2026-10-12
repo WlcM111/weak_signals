@@ -68,10 +68,23 @@ class Unauthorized(AppError):
     error_code = "UNAUTHORIZED"
 
 
+# Этап 5.0.2: коды gRPC временной недоступности — повтор имеет смысл; остальные коды — ответ сервиса с ошибкой.
+TRANSIENT_GRPC_CODES = frozenset({"UNAVAILABLE", "DEADLINE_EXCEEDED", "RESOURCE_EXHAUSTED", "ABORTED"})
+
+
 class UpstreamUnavailable(UnavailableError):
-    """Вызываемый сервис недоступен (HTTP 502)."""
+    """Вызываемый сервис недоступен (HTTP 502) или отклонил вызов.
+
+    Этап 5.0.2: transient — временная недоступность (UNAVAILABLE, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED, ABORTED),
+    повтор имеет смысл; иначе сервис ответил ошибкой (UNKNOWN, INTERNAL, INVALID_ARGUMENT…) — повтор её не исправит, и
+    пользователь не должен видеть «сервис недоступен».
+    """
 
     error_code = "UPSTREAM_UNAVAILABLE"
+
+    def __init__(self, message: str, transient: bool = True) -> None:
+        super().__init__(message)
+        self.transient = transient
 
 
 class LeaseLost(AppError):
