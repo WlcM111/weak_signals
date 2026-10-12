@@ -110,6 +110,13 @@ def is_news_boilerplate(term: str) -> bool:
 _ENTITY = re.compile(
     r"\b(?P<name>[A-Z][\w&.'’-]*(?:\s+[A-Z0-9][\w&.'’-]*){0,3})\s+(?:raises|raised|launches|unveils|emerges|secures|"
     r"closes|debuts|introduces|announces|acquires|lands|nabs|bags|gets)\b")
+# Этап 5.0.1: «Город’s» перед названием и крупные действующие компании — не сущность нового сигнала (в 5.0 канал
+# сущностей тратил прицельные запросы на «AWS», «Binance», «Standard Chartered»).
+_POSSESSIVE = re.compile(r"^(?:[A-Z][\w.-]*\s+){0,2}[A-Z][\w.-]*[’']s\s+")
+_INCUMBENTS = frozenset("""aws amazon google alphabet microsoft apple meta nvidia intel amd ibm oracle openai anthropic binance
+standard chartered jpmorgan goldman sachs visa mastercard paypal samsung tesla siemens cisco salesforce""".split("\n")[0].split()) | frozenset(
+    {"standard chartered", "goldman sachs", "monte carlo capital"})
+
 # Этап 5.0 (аудит round2 F20): русские заголовки событий («РобоТех представила…»).
 _ENTITY_RU = re.compile(
     r"(?<![\w])(?P<name>[А-ЯЁ][\wЁё&.'’-]*(?:\s+[А-ЯЁA-Z0-9][\wЁё&.'’-]*){0,3})\s+(?:привлекла|привлек|запустила|"
@@ -128,7 +135,8 @@ def extract_entities(titles: Iterable[str], limit: int = 20) -> list[str]:
             continue  # этап 4.7: в заголовке прописными каждое слово похоже на название
         for match in [*_ENTITY.finditer(title or ""), *_ENTITY_RU.finditer(title or "")]:
             name = " ".join(match.group("name").split())
+            name = _POSSESSIVE.sub("", name)  # этап 5.0.1: «London’s Sava» → «Sava», «Zurich’s Klarent» → «Klarent»
             words = name.lower().split()
-            if words and words[0] not in _NOT_ENTITY and len(name) >= 3:
+            if words and words[0] not in _NOT_ENTITY and name.lower() not in _INCUMBENTS and len(name) >= 3:
                 counts[name] += 1
     return [name for name, _count in counts.most_common(limit)]

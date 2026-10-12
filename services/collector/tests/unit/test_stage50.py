@@ -155,5 +155,11 @@ class RefillAndSchedulerTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls, ["rss"])
 
 
+class Stage501Test(unittest.TestCase):
+    def test_entities_without_city_prefix_and_incumbents(self) -> None:
+        entities = extract_entities(["London’s Sava raises seed", "AWS launches new region", "Keycard raises $38M"])
+        self.assertEqual(sorted(entities), ["Keycard", "Sava"])
+
+
 if __name__ == "__main__":
     unittest.main()

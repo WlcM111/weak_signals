@@ -123,7 +123,7 @@ def temporal_eligible(urls: list[str], window_start: date) -> bool | None:
 def collection_limits() -> dict[str, int]:
     """Этап 4.7: время и лимит документов сбора — из окружения, как у orchestrator, а не заданы в замере."""
     return {"time_budget_seconds": int(os.environ.get("WS_COLLECT_TIME_BUDGET_SECONDS", "480")),
-            "max_total_documents": int(os.environ.get("WS_COLLECT_MAX_TOTAL_DOCUMENTS", "1450"))}
+            "max_total_documents": int(os.environ.get("WS_COLLECT_MAX_TOTAL_DOCUMENTS", "3000"))}
 
 
 def domain_of(topic: str) -> str:

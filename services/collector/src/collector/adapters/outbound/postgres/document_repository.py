@@ -35,8 +35,9 @@ ON CONFLICT (url_hash) DO UPDATE SET
                    ELSE documents.body_text END,
   content_hash = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.content_hash
                       ELSE documents.content_hash END,
-  text_quality = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.text_quality
-                      ELSE documents.text_quality END,
+  -- этап 5.0.1: документы, записанные до 5.0, получают качество при первом же повторном получении
+  text_quality = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) OR documents.text_quality = 'unknown'
+                      THEN EXCLUDED.text_quality ELSE documents.text_quality END,
   -- этап 5.0 (аудит round2 F16): дата из более достоверного происхождения заменяет прежнюю, неизвестная — не стирает
   published_at = CASE WHEN EXCLUDED.published_at IS NOT NULL AND (documents.published_at IS NULL
                       OR {_RANK_NEW} > {_RANK_OLD}) THEN EXCLUDED.published_at ELSE documents.published_at END,

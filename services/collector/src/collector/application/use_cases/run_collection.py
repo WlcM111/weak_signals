@@ -878,3 +878,4 @@ PATENT_SOURCES = frozenset({SourceKey.ROSPATENT, SourceKey.PATENTSVIEW})
 
 # Этап 5.0 (F21): локальные источники, которые умеют пропускать уже собранные адреса.
 LOCAL_SOURCES = frozenset({SourceKey.NEWS_ARCHIVE, SourceKey.CORPUS})
+

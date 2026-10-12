@@ -42,7 +42,9 @@ class OrchestratorSettings(BaseServiceSettings):
     collect_time_budget_seconds: int = Field(default=480, ge=10, le=1800)
     # Этап 4.4: 1200 (было 800) — в 4 темах из 6 сбор упирался в лимит и прицельный проход обрезался.
     # Этап 4.7: 1450 (было 1200) — +250 мест под канал событий 400 вместо 150, остальные источники не теснятся.
-    collect_max_total_documents: int = Field(default=1450, ge=10, le=5000)
+    # Этап 5.0.1: 3000 (было 1450) — в 5.0 лимит заканчивал сбор за ~110 с во всех 6 темах, архив занимал половину
+    # и вытеснял остальные источники; analyzer принимает до 3000 документов (WS_ANALYZER_MAX_DOCUMENTS).
+    collect_max_total_documents: int = Field(default=3000, ge=10, le=5000)
     min_documents: int = Field(default=20, ge=1, le=1000)
     # Этап 5.0 (N04): ожидание анализа растёт с числом документов — max(базы, документов × секунды на документ).
     analyze_timeout_seconds: int = Field(default=600, ge=30, le=7200)

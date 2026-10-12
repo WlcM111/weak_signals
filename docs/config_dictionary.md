@@ -49,7 +49,7 @@
 | WS_JOB_MAX_ATTEMPTS | 1–10 | 3 | | попытки после истечения аренды |
 | WS_STAGE_POLL_SECONDS | 1–30 | 3 | | опрос GetCollection/GetAnalysis |
 | WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 480 | | бюджет сбора: широкий и прицельный проходы (этап 4.7; было 240 — у всех 13 источников DEADLINE_REACHED); быстрый замер берёт его же |
-| WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 1450 | | лимит документов сбора (этап 4.7: +250 под канал событий 400; было 1200) |
+| WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 3000 | | лимит документов сбора (этап 5.0.1: было 1450 — лимит заканчивал сбор за ~110 с) |
 | WS_MIN_DOCUMENTS | 1–1000 | 20 | | меньше → FAILED TOO_FEW_DOCUMENTS |
 | WS_ANALYZE_TIMEOUT_SECONDS | 30–7200 | 600 | | ожидание анализа; итог — max(этого, документов × WS_ANALYZE_SECONDS_PER_DOCUMENT) (этап 5.0) |
 | WS_ANALYZE_SECONDS_PER_DOCUMENT | 0–10 | 0.5 | | секунд ожидания анализа на документ коллекции (этап 5.0) |
