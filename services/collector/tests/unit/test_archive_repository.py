@@ -88,15 +88,15 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
     async def test_event_candidates_query_and_rows(self) -> None:
         pool = _Pool([{"url": "https://techcrunch.com/2026/08/11/x/", "publisher": "techcrunch.com", "origin": "wayback",
                        "published_on": date(2026, 8, 11), "captured_at": None, "title": "Tetragen raises seed",
-                       "summary": "", "bases": ["welding", "robot"], "score": 4.2}])
+                       "summary": "", "matched": ["welding", "robots"]}])
         rows = await PostgresNewsArchive(pool).event_candidates(  # type: ignore[arg-type]
-            ["welding", "robots"], ["welding", "robot"], ["raises"], 2, date(2024, 10, 1), 400)
+            ["welding", "robots"], ["raises"], 2, date(2024, 10, 1), 30000)
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["welding", "robots"], ["welding", "robot"], ["welding", "robots"], ["raises"],
-                                  date(2024, 10, 1), 2, 400))
-        self.assertIn("ORDER BY score DESC", sql)  # этап 4.7: редкость считается в запросе по всем кандидатам
-        self.assertIn("ln((total.n + 1) / (df.df + 0.5))", sql)
-        self.assertEqual((rows[0][0].title, rows[0][1]), ("Tetragen raises seed", ("welding", "robot")))
+        self.assertEqual(params, (["welding", "robots"], ["welding", "robots"], ["raises"], ["welding", "robots"], 2,
+                                  date(2024, 10, 1), 30000))
+        self.assertNotIn("ORDER BY", sql)  # этап 4.7.1: без сортировки и CTE — ранжирует rank_events
+        self.assertNotIn("WITH", sql)
+        self.assertEqual((rows[0][0].title, rows[0][1]), ("Tetragen raises seed", ("welding", "robots")))
 
     async def test_archive_search_ranks_by_matched_words(self) -> None:
         pool = _Pool([{"url": "https://techcrunch.com/a/", "publisher": "techcrunch.com", "origin": "wayback",

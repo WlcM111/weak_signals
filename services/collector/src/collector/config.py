@@ -78,7 +78,7 @@ class CollectorSettings(BaseServiceSettings):
     # Этап 4.5: канал «события стартапов», Crossref по 1 документу на технологию, новости — только заголовки RSS.
     collector_event_channel_documents: int = Field(default=400, ge=0, le=2000)  # этап 4.7: было 150
     collector_event_min_overlap: int = Field(default=2, ge=1, le=5)
-    collector_event_pool: int = Field(default=8000, ge=100, le=50000)
+    collector_event_pool: int = Field(default=30000, ge=100, le=100000)  # этап 4.7.1: предел, а не усечение
     collector_crossref_per_term: int = Field(default=1, ge=1, le=10)
     collector_news_emergence_origin: str = Field(default="rss", pattern=r"^(rss|wayback|)$")
     collector_news_emergence_min_rows: int = Field(default=2000, ge=0, le=100000)

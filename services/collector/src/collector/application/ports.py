@@ -286,11 +286,10 @@ class NewsArchiveStore(Protocol):
         """Заголовки и даты записей с не меньше `min_overlap` ключевыми словами, опубликованных в [start, end);
         `origin` — только записи этого происхождения (этап 4.5: оценка возникновения — по настоящим заголовкам RSS)."""
 
-    async def event_candidates(self, vocabulary: Sequence[str], bases: Sequence[str], cues: Sequence[str],
-                               min_overlap: int, since: date, limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
-        """Этап 4.7: статьи с событием стартапа и не меньше `min_overlap` основами словаря, упорядоченные в запросе
-        по сумме редкости совпавших основ среди ВСЕХ кандидатов (без предварительного усечения), с их основами.
-        `bases[i]` — основа слова `vocabulary[i]`."""
+    async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
+                               limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
+        """Этап 4.7.1: все кандидаты канала событий — статьи с событием стартапа (слово из `cues`) и не меньше
+        `min_overlap` словами словаря в окне дат, с совпавшими словами; не больше `limit` (страховочный предел)."""
 
     async def entries_from_collections(self, limit: int) -> list[ArchiveEntry]:
         """Этап 4.7: записи архива только со словами адреса, попавшие в сборы, — сначала из последних сборов."""
