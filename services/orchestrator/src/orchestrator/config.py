@@ -44,25 +44,30 @@ class OrchestratorSettings(BaseServiceSettings):
     # Этап 4.7: 1450 (было 1200) — +250 мест под канал событий 400 вместо 150, остальные источники не теснятся.
     collect_max_total_documents: int = Field(default=1450, ge=10, le=5000)
     min_documents: int = Field(default=20, ge=1, le=1000)
-    analyze_timeout_seconds: int = Field(default=300, ge=30, le=3600)
+    # Этап 5.0 (N04): ожидание анализа растёт с числом документов — max(базы, документов × секунды на документ).
+    analyze_timeout_seconds: int = Field(default=600, ge=30, le=7200)
+    analyze_seconds_per_document: float = Field(default=0.5, ge=0.0, le=10.0)
+    # N02: сколько кандидатов запрашивать у analyzer в режиме legacy (в rubric — WS_RUBRIC_POOL).
+    analyzer_max_candidates: int = Field(default=150, ge=5, le=500)
     insight_concurrency: int = Field(default=1, ge=1, le=8)
     insight_timeout_seconds: int = Field(default=90, ge=10, le=300)
     # Включение сквозного срока задания: false — срок не проверяется, задание работает без ограничения по времени.
     job_deadline_enabled: bool = True
     # Сквозной срок одного задания от приёма до сохранённого результата (требование: не более 20 минут).
-    job_deadline_seconds: int = Field(default=1200, ge=60, le=7200)
+    # Этап 5.0: срок задания 3600 с — точность и полнота важнее 20 минут на ответ.
+    job_deadline_seconds: int = Field(default=3600, ge=60, le=14400)
     # Резерв до срока на запись результата и завершение задания.
     job_deadline_reserve_seconds: int = Field(default=120, ge=10, le=900)
     # Смысловая оценка кандидатов моделью перед нарративом и размер оцениваемого пула.
     candidate_judge_enabled: bool = True
-    candidate_judge_pool: int = Field(default=30, ge=5, le=40)
+    candidate_judge_pool: int = Field(default=60, ge=5, le=200)  # этап 5.0 (N13): было ≤ 40
     # ml — порядок выдачи задаёт локальная модель, смысловая оценка только исключает; llm — прежний порядок.
     candidate_judge_order: str = Field(default="ml", pattern="^(ml|llm)$")
     # Режим отбора выдачи: legacy — прежний (порог модели analyzer + смысловая оценка); rubric — рубричная оценка
     # LLM с полным контекстом источников, балл «стадия + тренд», пакетная доводка карточек. Откат — legacy.
     selection_mode: str = Field(default="legacy", pattern="^(legacy|rubric)$")
     # Пул рубричной оценки; в режиме rubric столько же кандидатов запрашивается у analyzer (v14: 40 → 80, до 100).
-    rubric_pool: int = Field(default=80, ge=5, le=100)
+    rubric_pool: int = Field(default=150, ge=5, le=500)  # этап 5.0 (N13): было ≤ 100
     finalize_enabled: bool = True
     rubric_legacy_fallback: bool = False
     rubric_fill_uncertain: bool = True

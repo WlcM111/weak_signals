@@ -25,7 +25,7 @@ COLLECTION_COLUMNS = (
 
 DOCUMENT_COLUMNS = (
     "document_id, url, title, body_text, language_code, published_at, source_key, source_type, "
-    "trust_level, doi, citation_count, engagement_count, fetched_at, origin_domain"
+    "trust_level, doi, citation_count, engagement_count, fetched_at, origin_domain, text_quality, published_source"
 )
 
 def qualify(columns: str, alias: str) -> str:
@@ -89,6 +89,8 @@ def row_to_document(row: dict[str, Any]) -> Document:
         doi=row["doi"],
         citation_count=row["citation_count"],
         engagement_count=row["engagement_count"],
+        text_quality=row.get("text_quality") or "unknown",
+        published_source=row.get("published_source") or "unknown",
     )
 
 

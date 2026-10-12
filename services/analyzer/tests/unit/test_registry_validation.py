@@ -248,7 +248,7 @@ class AnalysisParamsTest(unittest.TestCase):
 
     def test_defaults(self) -> None:
         params = AnalysisParams.from_request(0.62)
-        self.assertEqual((params.top_n, params.max_candidates), (15, 40))
+        self.assertEqual((params.top_n, params.max_candidates), (15, 150))
         self.assertEqual(params.min_evidence_documents, 2)
         self.assertEqual(params.weak_signal_threshold, 0.62)
 

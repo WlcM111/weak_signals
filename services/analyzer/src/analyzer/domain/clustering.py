@@ -34,8 +34,14 @@ def centroid(vectors: np.ndarray) -> np.ndarray:
     return mean if norm == 0.0 else mean / norm
 
 
+def center_rows(vectors: np.ndarray) -> np.ndarray:
+    """Векторы за вычетом среднего (этап 5.0, N01): убирает общую для всех текстов компоненту эмбеддера e5."""
+    array = np.asarray(vectors, dtype=np.float64)
+    return array - array.mean(axis=0) if array.shape[0] > 1 else array
+
+
 def near_dup_filter(
-    documents: Sequence[DocumentRef], vectors: np.ndarray, threshold: float
+    documents: Sequence[DocumentRef], vectors: np.ndarray, threshold: float, centered: bool = False
 ) -> tuple[list[int], list[int]]:
     """Удаляет near-дубликаты (косинус ≥ порога), оставляя более доверенный и более ранний документ.
 
@@ -43,7 +49,8 @@ def near_dup_filter(
     """
     if len(documents) == 0:
         return [], []
-    normalized = normalize_rows(np.asarray(vectors, dtype=np.float32))
+    base = center_rows(vectors) if centered else np.asarray(vectors, dtype=np.float32)
+    normalized = normalize_rows(np.asarray(base, dtype=np.float32))
     order = sorted(range(len(documents)), key=lambda index: _dedup_priority(documents[index]))
     kept: list[int] = []
     dropped: list[int] = []
@@ -66,14 +73,18 @@ def _dedup_priority(document: DocumentRef) -> tuple[int, int, int]:
     return (-document.trust_level.rank, published_order, document.relevance_rank)
 
 
-def cluster_documents(vectors: np.ndarray, distance_threshold: float) -> list[list[int]]:
-    """Агломеративная кластеризация; возвращает списки индексов документов по кластерам."""
+def cluster_documents(vectors: np.ndarray, distance_threshold: float, centered: bool = False) -> list[list[int]]:
+    """Агломеративная кластеризация (средняя связь, косинус); возвращает списки индексов документов по кластерам.
+
+    centered — по векторам за вычетом среднего коллекции (этап 5.0, N01).
+    """
     count = int(np.asarray(vectors).shape[0])
     if count == 0:
         return []
     if count == 1:
         return [[0]]
-    normalized = normalize_rows(np.asarray(vectors, dtype=np.float64))
+    base = center_rows(vectors) if centered else np.asarray(vectors, dtype=np.float64)
+    normalized = normalize_rows(np.asarray(base, dtype=np.float64))
     distances = pdist(normalized, metric="cosine")
     distances = np.clip(distances, 0.0, 2.0)
     labels = fcluster(linkage(distances, method="average"), t=distance_threshold, criterion="distance")

@@ -36,7 +36,15 @@ class AnalyzerSettings(BaseServiceSettings):
     analyzer_heartbeat_seconds: int = Field(default=20, ge=5, le=120)
     analyzer_max_documents: int = Field(default=3000, ge=10, le=20000)
     analyzer_stream_chunk_size: int = Field(default=200, ge=1, le=200)
-    min_doc_query_sim: float = Field(default=0.25, ge=0.0, le=1.0)
+    # Этап 5.0 (аудит раунда 3, N03): абсолютный порог на шкале e5 ничего не отсекал (сходство любых документов
+    # 0,74–0,92), поэтому по умолчанию выключен. Отсекаются только явные выбросы: релевантность (в центрированном
+    # пространстве) ниже медианы на `relevance_outlier_mad` медианных отклонений; 0 — без отсева.
+    min_doc_query_sim: float = Field(default=0.0, ge=0.0, le=1.0)
+    relevance_outlier_mad: float = Field(default=3.0, ge=0.0, le=10.0)
+    # N01/H01: кластеризация, near-dup и отбор по релевантности — по векторам за вычетом среднего коллекции
+    # (centered). Без этого косинусное сходство e5 сжато к 0,74–0,92 и порог 0,35 давал 1 кластер на 600 документов,
+    # а 0,15 — сгустки по 118 и 93 документа. raw — прежнее поведение (тогда порог кластеризации около 0,10).
+    vector_space: str = Field(default="centered", pattern="^(centered|raw)$")
     # Порог правила LOW_QUERY_RELEVANCE для кандидата; 0 — взять значение из rules.json модели.
     # Шкала e5 сжата к 0.8–0.95, поэтому значение модели 0.30 на практике ничего не отсекает.
     min_candidate_query_sim: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -46,13 +54,14 @@ class AnalyzerSettings(BaseServiceSettings):
     require_high_trust_source: bool = False
     # Абляция вклада локальной модели в живых прогонах (none | constant | shuffle); штатно none.
     ml_score_ablation: str = Field(default="none", pattern="^(none|constant|shuffle)$")
-    near_dup_threshold: float = Field(default=0.92, ge=0.5, le=1.0)
-    cluster_distance_threshold: float = Field(default=0.35, ge=0.05, le=1.0)
-    min_cluster_size: int = Field(default=2, ge=1, le=50)
+    # Этап 5.0: значения для centered-пространства; одиночные документы — тоже кандидаты (min_cluster_size 1).
+    near_dup_threshold: float = Field(default=0.90, ge=0.5, le=1.0)
+    cluster_distance_threshold: float = Field(default=0.60, ge=0.05, le=1.5)
+    min_cluster_size: int = Field(default=1, ge=1, le=50)
     keep_market_singletons: bool = False
     query_relevance_mode: str = Field(default="mean", pattern="^(mean|max)$")
     market_notes_separate: bool = False
-    market_reserved_candidates: int = Field(default=0, ge=0, le=40)
+    market_reserved_candidates: int = Field(default=0, ge=0, le=500)
     # Этап 4: одиночные документы, ближайшие к запросу, остаются кандидатами (не больше четверти пула).
     singleton_candidates: int = Field(default=0, ge=0, le=20)
     evidence_max: int = Field(default=8, ge=1, le=50)

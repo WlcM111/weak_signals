@@ -51,7 +51,9 @@
 | WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 480 | | бюджет сбора: широкий и прицельный проходы (этап 4.7; было 240 — у всех 13 источников DEADLINE_REACHED); быстрый замер берёт его же |
 | WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 1450 | | лимит документов сбора (этап 4.7: +250 под канал событий 400; было 1200) |
 | WS_MIN_DOCUMENTS | 1–1000 | 20 | | меньше → FAILED TOO_FEW_DOCUMENTS |
-| WS_ANALYZE_TIMEOUT_SECONDS | 30–1800 | 300 | | ожидание анализа |
+| WS_ANALYZE_TIMEOUT_SECONDS | 30–7200 | 600 | | ожидание анализа; итог — max(этого, документов × WS_ANALYZE_SECONDS_PER_DOCUMENT) (этап 5.0) |
+| WS_ANALYZE_SECONDS_PER_DOCUMENT | 0–10 | 0.5 | | секунд ожидания анализа на документ коллекции (этап 5.0) |
+| WS_ANALYZER_MAX_CANDIDATES | 5–500 | 150 | | кандидатов analyzer для модели в режиме legacy (этап 5.0; было 40) |
 | WS_INSIGHT_CONCURRENCY | 1–20 | 1 | | параллельных GenerateInsight на задание |
 | WS_INSIGHT_TIMEOUT_SECONDS | 10–300 | 90 | | deadline GenerateInsight |
 | WS_EVIDENCE_TEXT_MAX_CHARS | 200–2000 | 2000 | | усечение текста доказательств |
@@ -140,10 +142,12 @@
 | WS_ANALYZER_MAX_PENDING | 1–500 | 20 | | RESOURCE_EXHAUSTED |
 | WS_ANALYZER_LEASE_SECONDS | 15–600 | 60 | | |
 | WS_ANALYZER_MAX_DOCUMENTS | 100–5000 | 3000 | | усечение входа |
-| WS_MIN_DOC_QUERY_SIM | 0–1 | 0.25 | | отбрасывание нерелевантных документов |
-| WS_NEAR_DUP_THRESHOLD | 0.8–0.99 | 0.92 | | near-dup |
-| WS_CLUSTER_DISTANCE_THRESHOLD | 0.1–0.9 | 0.35 | | агломеративная кластеризация |
-| WS_MIN_CLUSTER_SIZE | 1–10 | 2 | | |
+| WS_MIN_DOC_QUERY_SIM | 0–1 | 0.0 | | абсолютный порог релевантности (шкала e5 сжата, по умолчанию выключен) |
+| WS_RELEVANCE_OUTLIER_MAD | 0–10 | 3.0 | | отсев только явных выбросов: релевантность ниже медианы на N MAD (этап 5.0) |
+| WS_VECTOR_SPACE | centered/raw | centered | | пространство для near-dup, отбора и кластеризации (этап 5.0) |
+| WS_NEAR_DUP_THRESHOLD | 0.5–1.0 | 0.90 | | near-dup в центрированном пространстве (этап 5.0) |
+| WS_CLUSTER_DISTANCE_THRESHOLD | 0.05–1.5 | 0.60 | | порог в центрированном пространстве; в raw прежний смысл (около 0.10) |
+| WS_MIN_CLUSTER_SIZE | 1–50 | 1 | | одиночный документ — тоже кандидат (этап 5.0) |
 | WS_EVIDENCE_MAX | 1–8 | 8 | | доказательств на кандидата |
 | WS_ENRICHMENT_TIMEOUT_SECONDS | 10–300 | 60 | | ScoreText with_enrichment |
 | HF_HOME | путь | /hf-cache | | кеш моделей HF |
@@ -202,3 +206,17 @@
 | WS_TRAIN_HOLDOUT_SHARE | 0.1–0.4 | 0.2 | тест |
 | WS_TRAIN_CV_REPEATS / WS_TRAIN_CV_FOLDS | 1–10 / 3–10 | 5 / 5 | протокол |
 | WS_TRAIN_MIN_PRECISION | 0–1 | 0.80 | ограничение при выборе порога |
+
+## Этап 5.0: расписание архивов и события темы
+
+| Переменная | Диапазон | По умолчанию | Секрет | Назначение |
+| --- | --- | --- | --- | --- |
+| WS_ARCHIVE_SCHEDULE_ENABLED | true/false | true | | фоновые загрузки архивов внутри collector |
+| WS_ARCHIVE_SCHEDULE_RSS_HOURS | 0–8760 | 24 | | интервал чтения лент (0 — выключено) |
+| WS_ARCHIVE_SCHEDULE_ARXIV_HOURS | 0–8760 | 24 | | инкремент корпуса arXiv |
+| WS_ARCHIVE_SCHEDULE_ENRICH_HOURS | 0–8760 | 6 | | текст статей: сначала из сборов, затем общий архив |
+| WS_ARCHIVE_SCHEDULE_SITEMAPS_HOURS | 0–8760 | 24 | | свежие статьи из карт сайтов ресурсов реестра |
+| WS_ARCHIVE_SCHEDULE_WAYBACK_HOURS | 0–8760 | 168 | | Wayback: новые и последние месяцы |
+| WS_ARCHIVE_SCHEDULE_DISCOVER_HOURS | 0–8760 | 720 | | поиск лент ресурсов реестра |
+| WS_ARCHIVE_SCHEDULE_ENRICH_BATCH | 1–20000 | 500 | | записей за один запуск обогащения |
+| WS_COLLECTOR_ENTITY_EVENT_DOCUMENTS | 0–2000 | 200 | | статьи о событиях по словам темы без словаря технологий |

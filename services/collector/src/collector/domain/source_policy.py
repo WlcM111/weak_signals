@@ -28,9 +28,13 @@ class SourcePolicy:
     # Этап 4.2: повтор после сетевого сбоя, таймаута или 5xx. Повторы делает только адаптер (через лимитер);
     # HTTP-клиент источников больше не повторяет сам (аудит API 07.10.2026, п. 2.1).
     transient_retries: int = 1
+    # Этап 5.0 (F05): пауза источника после 429 без суточного Retry-After (секунды; 0 — нет). Пауза ≥ 600 с
+    # означает отказ без ожидания до конца сбора и в следующих сборах до её окончания.
+    cooldown_seconds: float = 0.0
 
     def __post_init__(self) -> None:
-        if min(self.max_requests, self.rate_limit_retries, self.transient_retries) < 0 or self.rate_limit_pause < 0:
+        if min(self.max_requests, self.rate_limit_retries, self.transient_retries) < 0 or self.rate_limit_pause < 0 \
+                or not 0 <= self.cooldown_seconds <= 86400:
             raise ValueError("параметры политики источника не могут быть отрицательными")
         if self.rate_limit_retries > 5 or self.rate_limit_pause > 120 or self.transient_retries > 3:
             raise ValueError("rate_limit_retries ≤ 5, rate_limit_pause ≤ 120 с, transient_retries ≤ 3")
@@ -46,18 +50,19 @@ DEFAULT_POLICIES: dict[SourceKey, SourcePolicy] = {
     # этап 4.3: новые источники — до 2 фраз широкого прохода и до 40 технологий прицельного
     SourceKey.CROSSREF: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
     # этап 4.7: бюджет ключа OpenAlex — $1 в сутки = 1000 поисковых запросов; 40 на сбор → 240 на замер из 6 тем
-    SourceKey.OPENALEX: SourcePolicy(max_requests=40),
+    SourceKey.OPENALEX: SourcePolicy(max_requests=60),
     SourceKey.HUGGINGFACE: SourcePolicy(max_requests=60, rate_limit_retries=1, rate_limit_pause=10.0),
     SourceKey.NEWS_ARCHIVE: SourcePolicy(transient_retries=0),  # локальный архив, внешних запросов нет
     # этап 4: + до 40 прицельных запросов по технологиям
     SourceKey.SEMANTIC_SCHOLAR: SourcePolicy(max_requests=50, rate_limit_retries=2, rate_limit_pause=10.0),
-    SourceKey.GDELT: SourcePolicy(max_requests=8, transient_retries=0),  # повтор окна — в самом адаптере
+    # повтор окна — в самом адаптере; этап 5.0 (F05): после 429 — пауза 30 мин, следующие сборы не ждут впустую
+    SourceKey.GDELT: SourcePolicy(max_requests=8, transient_retries=0, cooldown_seconds=1800.0),
     # Hacker News: две фразы × девять окон за 24 месяца; ответ ~0,6 с, лимит 10 000 запросов в час с IP.
     # этап 4.5: 18 широкого прохода + 40 технологий + второй круг — 60 не хватало (BUDGET_EXHAUSTED во всех темах)
     SourceKey.HACKERNEWS: SourcePolicy(max_requests=80, rate_limit_retries=1, rate_limit_pause=10.0),
 }
 
-_FIELDS = {"requests": "max_requests", "retries": "rate_limit_retries", "pause": "rate_limit_pause", "transient": "transient_retries"}
+_FIELDS = {"requests": "max_requests", "retries": "rate_limit_retries", "pause": "rate_limit_pause", "transient": "transient_retries", "cooldown": "cooldown_seconds"}
 
 
 def parse_source_policies(text: str) -> dict[SourceKey, SourcePolicy]:
@@ -85,6 +90,7 @@ def parse_source_policies(text: str) -> dict[SourceKey, SourcePolicy]:
             rate_limit_retries=int(values.get("rate_limit_retries", base.rate_limit_retries)),
             rate_limit_pause=float(values.get("rate_limit_pause", base.rate_limit_pause)),
             transient_retries=int(values.get("transient_retries", base.transient_retries)),
+            cooldown_seconds=float(values.get("cooldown_seconds", base.cooldown_seconds)),
         )
     return policies
 

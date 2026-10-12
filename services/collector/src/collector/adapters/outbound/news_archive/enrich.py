@@ -13,6 +13,7 @@ import html
 import re
 from collections.abc import Callable, Sequence
 from datetime import date
+from urllib.parse import urlsplit
 
 from collector.application.ports import HttpClient, HttpStatusError, HttpTimeoutError, HttpTransportError, NewsArchiveStore
 from collector.domain.text_tokens import tokens_of
@@ -58,7 +59,7 @@ def extract_article(page: str) -> tuple[str, str, date | None]:
             paragraphs.append(text)
         if len(paragraphs) >= 4:
             break
-    summary = " ".join([description, *paragraphs]).strip()[:1500]
+    summary = _BANNER.sub(" ", " ".join([description, *paragraphs])).strip()[:1500]  # этап 5.0 (F11)
     published = None
     for candidate in (metas.get("article:published_time", "")[:10], metas.get("datepublished", "")[:10],
                       *(m.group(1) for m in [_LD_DATE.search(page), _TIME.search(page)] if m)):
@@ -81,29 +82,64 @@ class ArchiveEnricher:
     async def run(self, limit: int, from_collections: bool = False) -> tuple[int, int]:
         """Возвращает (сколько записей получили текст, сколько не удалось).
 
-        Этап 4.7: `from_collections` — сначала записи, которые попали в сборы (в 4.6 у 77 % документов архива в
-        сборе был только текст из слов адреса: обогащение шло по всему архиву, а не по отобранным статьям).
+        Этап 4.7: `from_collections` — сначала записи, которые попали в сборы.
+        Этап 5.0 (аудит round2 F11, F12): страница проверки «вы человек?», входа или подписки — статус blocked, а не
+        текст статьи; временный сбой (таймаут, сеть, 429, 5xx) — статус retry с нарастающей паузой (30 мин × 2^n, до
+        суток), после MAX_ATTEMPTS — failed. Записи из карт сайтов (origin sitemap) читаются с самого сайта.
         """
         done = failed = 0
         entries = (await self._store.entries_from_collections(limit) if from_collections
                    else await self._store.entries_to_enrich(self._cues, limit))
         for entry in entries:
-            stamp = entry.captured_at.strftime("%Y%m%d%H%M%S") if entry.captured_at else "2"
             await self._clock.sleep(self._pause)
+            if entry.origin == "sitemap":
+                url, hosts = entry.url, frozenset({(urlsplit(entry.url).hostname or "").lower()})
+            else:
+                stamp = entry.captured_at.strftime("%Y%m%d%H%M%S") if entry.captured_at else "2"
+                url, hosts = WAYBACK_RAW.format(stamp=stamp, url=entry.url), WAYBACK_HOSTS
+            page, transient, overloaded = "", False, False
             try:
-                page = await self._http.get_text(WAYBACK_RAW.format(stamp=stamp, url=entry.url), allowed_hosts=WAYBACK_HOSTS)
+                page = await self._http.get_text(url, allowed_hosts=hosts)
             except HttpStatusError as error:
-                if error.status == 429 or error.status >= 500:
-                    self._report(f"архив ответил {error.status} — остановка, продолжение повторным запуском")
-                    break
-                page = ""
+                transient = error.status == 429 or error.status >= 500
+                overloaded = transient and entry.origin != "sitemap"
             except (HttpTimeoutError, HttpTransportError):
-                page = ""
+                transient = True
+            if transient:
+                attempts = entry.enrich_attempts + 1
+                status = "retry" if attempts < MAX_ATTEMPTS else "failed"
+                retry = min(24 * 60, 30 * 2 ** entry.enrich_attempts) if status == "retry" else 0
+                await self._store.save_enrichment(entry.url, "", "", None, status, [], retry)
+                failed += 1
+                if overloaded:
+                    self._report("архив ответил отказом — остановка, продолжение повторным запуском")
+                    break
+                continue
             title, summary, published = extract_article(page) if page else ("", "", None)
-            status = "page" if summary else "failed"
-            await self._store.save_enrichment(entry.url, title, summary, published, status,
-                                              tokens_of(f"{title} {summary[:600]}"))
+            quality = page_quality(page, summary)
+            status = {"ok": "page", "blocked": "blocked", "empty": "failed"}[quality]
+            await self._store.save_enrichment(entry.url, title if quality == "ok" else "", summary if quality == "ok" else "",
+                                              published if quality == "ok" else None, status,
+                                              tokens_of(f"{title} {summary[:1500]}") if quality == "ok" else [])
             done, failed = (done + 1, failed) if status == "page" else (done, failed + 1)
             if (done + failed) % 50 == 0:
                 self._report(f"обработано {done + failed}: с текстом {done}, без текста {failed}")
         return done, failed
+
+
+MAX_ATTEMPTS = 5
+_BLOCKED = re.compile(
+    r"verify (that )?you are (a )?human|are you a robot|captcha|access denied|enable javascript|please sign in|"
+    r"subscribe to (continue|read)|log in to continue|checking your browser|attention required|request blocked|"
+    r"доступ запрещ|подтвердите, что вы не робот", re.I)
+_BANNER = re.compile(r"[^.]*\b(your browser (is )?(out of date|outdated|not supported)|unsupported browser|"
+                     r"update your browser|we use cookies)[^.]*\.?", re.I)
+
+
+def page_quality(page: str, summary: str) -> str:
+    """ok — текст статьи; blocked — страница проверки доступа, входа или подписки; empty — текста нет."""
+    if not summary:
+        return "blocked" if _BLOCKED.search(page or "") else "empty"
+    if _BLOCKED.search(summary) and len(summary) < 600:
+        return "blocked"
+    return "ok"

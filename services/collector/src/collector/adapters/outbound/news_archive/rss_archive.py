@@ -12,6 +12,8 @@ from collections.abc import Callable, Iterable, Sequence
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
+from ws_common.identity import without_tracking
+
 from collector.application.ports import HttpClient, NewsArchiveStore
 from collector.domain.archive import ArchiveEntry
 from collector.domain.errors import AdapterFailure
@@ -32,9 +34,9 @@ def archive_entries(feed_entries: Iterable[object], fetched_at: datetime) -> lis
         summary = " ".join(html.unescape(_TAG_RE.sub(" ", str(getattr(entry, "summary", "") or ""))).split())[:2000]
         published = getattr(entry, "published_at", None)
         published_on = published.astimezone(UTC).date() if published else None  # этап 4.6 (P09): без даты — неизвестна
-        tokens = tokens_of(f"{title} {summary[:300]}")
+        tokens = tokens_of(f"{title} {summary[:1500]}")  # этап 5.0 (F23): было 300 символов анонса
         if tokens:
-            result.append(ArchiveEntry(url=f"{parts.scheme}://{parts.hostname.lower()}{parts.path or '/'}",
+            result.append(ArchiveEntry(url=without_tracking(link),  # этап 5.0 (F13): ?id= не теряется
                                        publisher=parts.hostname.lower().removeprefix("www."), origin="rss",
                                        title=title[:512], published_on=published_on, captured_at=fetched_at,
                                        summary=summary, tokens=tuple(tokens),

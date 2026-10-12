@@ -23,7 +23,7 @@ _LINK = re.compile(r"<link\s+[^>]*>", re.I)
 _ATTR = re.compile(r'(\w[\w:-]*)\s*=\s*("([^"]*)"|\'([^\']*)\')', re.S)
 FEED_TYPES = ("application/rss+xml", "application/atom+xml", "application/rdf+xml")
 COMMON_PATHS = ("/feed", "/feed/", "/rss", "/rss.xml", "/feed.xml", "/atom.xml", "/index.xml", "/news/feed", "/blog/feed")
-MAX_CANDIDATES = 6
+MAX_FEEDS_PER_SOURCE = 3  # этап 5.0 (F08): несколько тематических лент одного издателя
 
 
 @dataclass(frozen=True)
@@ -86,25 +86,31 @@ class FeedDiscoverer:
                 page = ""
             root = f"{urlsplit(source.url).scheme}://{urlsplit(source.url).hostname}"
             candidates += [root + path for path in COMMON_PATHS if root + path not in candidates]
-            accepted = None
-            for feed in candidates[:MAX_CANDIDATES]:
+            accepted, reasons = [], []
+            # Этап 5.0 (аудит round2 F08): проверяются все объявленные и все запасные адреса (прежде — первые 6 из
+            # объявленных + 9 запасных), принимается до MAX_FEEDS_PER_SOURCE тематических лент, причины отказа сохраняются.
+            for feed in candidates:
+                if len(accepted) >= MAX_FEEDS_PER_SOURCE:
+                    break
                 feed_hosts = hosts | _site_hosts(feed)
                 try:
                     await self._clock.sleep(self._pause)
                     body = await self._http.get_text(feed, allowed_hosts=feed_hosts, headers=FEED_ACCEPT)
                     entries = parse_feed(body, feed)
-                except Exception:  # noqa: BLE001 — не лента или недоступна: следующий кандидат
+                except Exception as error:  # noqa: BLE001 — не лента или недоступна: следующий кандидат
+                    reasons.append(f"{feed}: {type(error).__name__}")
                     continue
                 if entries:
-                    accepted = (feed, len(entries), entries[0].feed_title if entries else "")
-                    break
+                    accepted.append((feed, len(entries), entries[0].feed_title or ""))
+                else:
+                    reasons.append(f"{feed}: лента без записей")
+            for feed, entries_count, title in accepted:
+                await self._store.save_feed(feed, source.source_id, source.url, title, "active", entries_count, "")
+                self._report(f"{source.source_id:6} {source.url[:60]:60} лента {feed} ({entries_count} записей)")
             if accepted:
-                await self._store.save_feed(accepted[0], source.source_id, source.url, accepted[2] or "", "active",
-                                            accepted[1], "")
                 found += 1
-                self._report(f"{source.source_id:6} {source.url[:60]:60} лента {accepted[0]} ({accepted[1]} записей)")
             else:
                 await self._store.save_feed(f"{source.url}#no-feed", source.source_id, source.url, "", "failed", 0,
-                                            "лента не найдена")
+                                            "; ".join(reasons)[-480:] or "лента не найдена")
                 failed += 1
         return found, failed

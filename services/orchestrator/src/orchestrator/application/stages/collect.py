@@ -72,7 +72,10 @@ async def run_collect(
         if view.is_terminal:
             break
         if clock.monotonic() >= deadline:
+            # Этап 5.0 (N07): сбор не уложился в срок — коллекция останавливается и дожидается фиксации набора,
+            # чтобы анализ не начался на ещё растущей коллекции; не остановилась — отказ стадии, а не молчаливый проход.
             log.warning("stage.collect", collection_id=collection_id, reason="poll_timeout")
+            view = await _stop_collection(collector, collection_id, clock, config.poll_seconds)
             break
         await clock.sleep(config.poll_seconds)
     log.info(
@@ -90,3 +93,25 @@ async def run_collect(
             f"собрано документов {view.documents_total}, требуется не менее {config.min_documents}",
         )
     return view
+
+
+
+STOP_WAIT_SECONDS = 60
+
+
+async def _stop_collection(collector: CollectorClient, collection_id: str, clock: Clock,
+                           poll_seconds: float) -> CollectionView:
+    """Останавливает коллекцию после срока сбора и ждёт терминального статуса не дольше STOP_WAIT_SECONDS."""
+    try:
+        await collector.cancel_collection(collection_id, "collect stage deadline")
+    except UpstreamUnavailable as error:
+        raise StageFailed(JobErrorCode.UPSTREAM_UNAVAILABLE.value, f"collector недоступен: {error.message}", True) from error
+    until = clock.monotonic() + STOP_WAIT_SECONDS
+    while True:
+        view = await collector.get_collection(collection_id)
+        if view.is_terminal:
+            return view
+        if clock.monotonic() >= until:
+            raise StageFailed(JobErrorCode.COLLECTION_FAILED.value,
+                              "сбор не завершился в срок и не остановился за 60 с после отмены")
+        await clock.sleep(poll_seconds)

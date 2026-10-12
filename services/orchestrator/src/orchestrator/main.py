@@ -148,9 +148,10 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
             ),
             analyze=AnalyzeConfig(
                 timeout_seconds=settings.analyze_timeout_seconds,
+                per_document_seconds=settings.analyze_seconds_per_document,
                 poll_seconds=settings.stage_poll_seconds,
-                # режим rubric: analyzer отдаёт столько кандидатов, сколько оценивает рубрика
-                max_candidates=settings.rubric_pool if settings.selection_mode == "rubric" else 0,
+                # режим rubric: analyzer отдаёт столько кандидатов, сколько оценивает рубрика; legacy — этап 5.0 (N02)
+                max_candidates=settings.rubric_pool if settings.selection_mode == "rubric" else settings.analyzer_max_candidates,
             ),
             narrate=NarrateConfig(
                 evidence_text_max_chars=settings.evidence_text_max_chars,

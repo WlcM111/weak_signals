@@ -48,6 +48,8 @@ def _parser(settings: CollectorSettings) -> argparse.ArgumentParser:
     discover = commands.add_parser("discover-feeds", help="ленты RSS/Atom ресурсов реестра (этап 4.6)")
     discover.add_argument("--priority", default="P1,P2")
     discover.add_argument("--limit", type=int, default=0)
+    commands.add_parser("sitemaps", help="свежие статьи из карт сайтов ресурсов реестра (этап 5.0)")
+    commands.add_parser("reindex", help="пересчёт слов корпуса и архива по тексту до 1500 символов (этап 5.0)")
     commands.add_parser("status", help="сводка архива и корпуса")
     return parser
 
@@ -96,6 +98,14 @@ async def _run(argv: list[str]) -> int:
             sources = sources[: args.limit] if args.limit > 0 else sources
             found, failed = await FeedDiscoverer(http, archive, clock, settings.archive_discover_pause_seconds).run(sources)
             print(f"ИТОГО ресурсов: {len(sources)}; лент найдено {found}, не найдено {failed}")
+        elif args.command == "sitemaps":
+            from collector.tools.archive_jobs import run_job
+
+            print("ИТОГО: " + await run_job("sitemaps", settings, http, archive, corpus, clock))
+        elif args.command == "reindex":
+            from collector.tools.archive_jobs import reindex
+
+            print("ИТОГО: " + await reindex(archive, corpus))
         else:
             print("== Архив новостей (издание, происхождение, записей, с, по)")
             for row in await archive.stats():

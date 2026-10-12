@@ -79,6 +79,8 @@ def to_proto_document(document: Document) -> common_pb2.Document:
         trust_level=to_proto_trust_level(document.trust_level),
         fetched_at=to_timestamp(document.fetched_at),
         origin_domain=document.origin_domain,
+        text_quality=document.text_quality,
+        published_source=document.published_source,
     )
     if document.published_at is not None:
         message.published_at.CopyFrom(to_timestamp(document.published_at))

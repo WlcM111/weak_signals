@@ -185,7 +185,7 @@ class GdeltTest(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(parse_seendate("2026-09-23"))
 
     def test_policy_default(self) -> None:
-        self.assertEqual(DEFAULT_POLICIES[SourceKey.GDELT], SourcePolicy(max_requests=8, transient_retries=0))
+        self.assertEqual(DEFAULT_POLICIES[SourceKey.GDELT], SourcePolicy(max_requests=8, transient_retries=0, cooldown_seconds=1800.0))
         self.assertEqual(GdeltAdapter.policy, DEFAULT_POLICIES[SourceKey.GDELT])  # этап 4.2: запросы GDELT прежние
         self.assertEqual(GdeltAdapter.key, SourceKey.GDELT)
 

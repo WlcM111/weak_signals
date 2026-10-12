@@ -158,7 +158,7 @@ class RssAndArxivTest(unittest.IsolatedAsyncioTestCase):
         ], NOW)
         self.assertEqual(len(entries), 1)
         self.assertEqual((entries[0].publisher, entries[0].url, entries[0].summary, entries[0].published_on),
-                         ("example.com", "https://www.example.com/a/b", "Pilot & funding", date(2026, 10, 1)))
+                         ("example.com", "https://www.example.com/a/b?x=1", "Pilot & funding", date(2026, 10, 1)))  # 5.0 F13
 
     def test_oai_page_filters_years_and_reads_token(self) -> None:
         body = """<?xml version="1.0"?><OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"><ListRecords>
@@ -212,7 +212,8 @@ class NewAdaptersTest(unittest.IsolatedAsyncioTestCase):
         targeted = [d async for d in adapter.search_targeted(["skill marketplace"], 5, date(2024, 10, 1), 10_000.0)]
         self.assertEqual((targeted[0].url, targeted[0].raw_meta["publisher"], targeted[0].raw_meta["origin"]),
                          (entry.url, "techcrunch.com", "wayback"))
-        self.assertEqual(store.searches[-1], (("skill", "skills", "marketplace", "marketplaces"), date(2024, 10, 1), 5, 2))
+        # этап 5.0 (F21): запрос с запасом ×3, затем добор до 5 новых
+        self.assertEqual(store.searches[-1], (("skill", "skills", "marketplace", "marketplaces"), date(2024, 10, 1), 15, 2))
 
     async def test_crossref_and_huggingface_requests_and_parsing(self) -> None:
         http = FakeHttpClient()
@@ -296,7 +297,7 @@ class SelectionOrderTest(unittest.IsolatedAsyncioTestCase):
         # этап 4.6 (аудит P14): квота гарантирует каналу модели долю (здесь 2), а свободные места дозаполняются
         self.assertEqual([t for t in first if t.startswith("model technology")][:2], ["model technology 0", "model technology 1"])
         self.assertLess(first.index("optical circuit switching"), first.index("model technology 0"))
-        self.assertNotIn("federated learning for factories", first)
+        self.assertIn("federated learning for factories", first)  # этап 5.0 (F18): новое применение, не зрелый метод
 
 
 class Stage44BudgetTest(unittest.TestCase):

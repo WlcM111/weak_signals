@@ -245,6 +245,12 @@ class BaseSourceAdapter:
             await self._limiter.penalize(self.key, pause)
             raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value,
                                  f"суточный лимит источника исчерпан; сброс через {pause / 60:.0f} мин", retryable=False)
+        if exc.status == 429 and self.policy.cooldown_seconds > 0:
+            # этап 5.0 (F05): источник с частыми 429 (GDELT) уходит на паузу для всех сборов процесса
+            pause = max(float(exc.retry_after or 0.0), self.policy.cooldown_seconds)
+            await self._limiter.penalize(self.key, pause)
+            raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value,
+                                 f"источник ограничил частоту; пауза {pause / 60:.0f} мин", retryable=False)
         if exc.status == 429 or quota_reset is not None:
             streak = self._bump_rate_limit()
             pause = exc.retry_after if exc.retry_after is not None else quota_reset

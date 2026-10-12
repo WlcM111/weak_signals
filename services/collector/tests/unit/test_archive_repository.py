@@ -80,7 +80,7 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await archive.titles_matching(["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1), 10),
                          [("Robot skill marketplace", date(2026, 9, 4))])
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["robot", "skill"], ["robot", "skill"], 2, date(2025, 1, 1), date(2026, 10, 1),
+        self.assertEqual(params, (["robot", "skill"], ["robot"], ["skill"], 2, date(2025, 1, 1), date(2026, 10, 1),
                                   None, None, None, None, 10))  # происхождение (4.5) и якоря темы (4.7): None — любые
         self.assertIn("tokens && %s::text[]", sql)  # этап 4.4: хотя бы одно слово через GIN, затем порог совпадений
         self.assertNotIn("@>", sql)
@@ -92,7 +92,7 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
         rows = await PostgresNewsArchive(pool).event_candidates(  # type: ignore[arg-type]
             ["welding", "robots"], ["raises"], 2, date(2024, 10, 1), 30000)
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["welding", "robots"], ["welding", "robots"], ["raises"], ["welding", "robots"], 2,
+        self.assertEqual(params, (["welding", "robots"], ["welding", "robots"], ["raises"], ["welding"], ["robots"], 2,
                                   date(2024, 10, 1), 30000))
         self.assertNotIn("ORDER BY", sql)  # этап 4.7.1: без сортировки и CTE — ранжирует rank_events
         self.assertNotIn("WITH", sql)
@@ -103,9 +103,10 @@ class ArchiveRepositoryRowsTest(unittest.IsolatedAsyncioTestCase):
                        "published_on": date(2025, 3, 1), "captured_at": None, "title": "A", "summary": ""}])
         entries = await PostgresNewsArchive(pool).search(["kv", "cache"], date(2024, 10, 1), 5, 2)  # type: ignore[arg-type]
         sql, params = pool.cursor.executed[0]
-        self.assertEqual(params, (["kv", "cache"], ["kv", "cache"], 2, date(2024, 10, 1), date(2024, 10, 1),
-                                  ["kv", "cache"], 5))  # этап 4.6 (P09): окно по дате публикации или сохранения
-        self.assertLess(sql.index("INTERSECT"), sql.index("published_on DESC"))  # сначала число совпавших слов
+        # этап 5.0 (F17): по понятию на группу форм — и в отборе, и в порядке
+        self.assertEqual(params, (["kv", "cache"], ["kv"], ["cache"], 2, date(2024, 10, 1), date(2024, 10, 1),
+                                  ["kv"], ["cache"], 5))  # этап 4.6 (P09): окно по дате публикации или сохранения
+        self.assertLess(sql.index("::int"), sql.index("published_on DESC"))  # сначала число совпавших понятий (5.0, F17)
         self.assertEqual(entries[0].url, "https://techcrunch.com/a/")
 
     async def test_corpus_reads_rows_by_column_name(self) -> None:

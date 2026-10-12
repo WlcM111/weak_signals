@@ -41,6 +41,9 @@ novel platform platforms solution solutions technology technologies approach met
 small open via for and the with of in on to для как на при или and или""".split())
 SECRET_MARKERS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "DSN", "CREDENTIAL")
 WAIT_POLLS, WAIT_SECONDS = 240, 5
+MIN_CONTEXT_WORDS = 2
+HOLDOUT_SHARE = 5  # каждый пятый сигнал (по хэшу row_id) — отложенная проверка (F28)
+E2E_TIMEOUT_SECONDS = 5400
 
 
 def normalize(text: str) -> str:
@@ -78,8 +81,10 @@ def match_document(title: str, text: str, rules: dict) -> tuple[str, str] | None
     words = {_base(w) for w in padded.split()}
 
     def has_context(fragment: str) -> bool:
+        # Этап 5.0 (аудит round2 F01): фрагмент или аббревиатура засчитываются только при двух и более разных словах
+        # контекста сигнала — одно слово («inference») не отличает новый кремний от программы про KV-cache.
         own = {_base(w) for w in normalize(fragment).split()}
-        return bool((rules["context"] - own) & words)
+        return len((rules["context"] - own) & words) >= MIN_CONTEXT_WORDS
 
     for alias in rules["aliases"]:
         if f" {alias} " in padded and has_context(alias):
@@ -134,16 +139,29 @@ def settings_snapshot() -> dict:
             if k.startswith("WS_") and not any(marker in k.upper() for marker in SECRET_MARKERS)}
 
 
+def split_of(row_id: str) -> str:
+    """dev или holdout по хэшу идентификатора (этап 5.0, F28): разбиение не зависит от результатов."""
+    return "holdout" if int(hashlib.sha1(row_id.encode("utf-8")).hexdigest(), 16) % HOLDOUT_SHARE == 0 else "dev"
+
+
 def evaluate(topics: list[dict], experts: list[dict], synonyms: dict, cutoff: date | None, as_of: date) -> dict:
     """Сопоставление документов тем с экспертами: строки CSV, доказательства, итоги."""
     window_start = as_of - timedelta(days=730)
     rows, evidence, by_source = [], [], {}
     found_total = url_total = experts_total = eligible_total = 0
+    text_total = future_total = 0
+    eligibility = {"в окне": 0, "раньше окна": 0, "даты нет": 0}
+    splits = {"dev": [0, 0], "holdout": [0, 0]}
+    all_keys: set[str] = set()
+    for topic in topics:
+        for document in topic.get("documents", []):
+            all_keys |= identity_keys(document["url"], document.get("doi"))
     for topic in topics:
         if topic.get("measurement_error"):
             continue
         docs = [d for d in topic["documents"]
                 if not (cutoff and d.get("published_at") and date.fromisoformat(d["published_at"][:10]) > cutoff)]
+        future_total += len(topic["documents"]) - len(docs)
         keyed = [(d, identity_keys(d["url"], d.get("doi"))) for d in docs]
         tag = domain_of(topic["topic"])
         found = 0
@@ -161,23 +179,32 @@ def evaluate(topics: list[dict], experts: list[dict], synonyms: dict, cutoff: da
             url_hit = any(rule == "organizer_url" for _, rule, _ in hits)
             sources = sorted({doc["source"] for doc, _, _ in hits})
             eligible = temporal_eligible(row["source_urls"], window_start)
+            label = {True: "в окне", False: "раньше окна", None: "даты нет"}[eligible]
             found += bool(hits)
             url_total += url_hit
-            eligible_total += eligible is not False
+            text_total += bool(hits) and not url_hit
+            eligible_total += eligible is True
+            eligibility[label] += 1
+            split = split_of(row["row_id"])
+            splits[split][0] += bool(hits)
+            splits[split][1] += 1
             for source in sources:
                 by_source[source] = by_source.get(source, 0) + 1
             for doc, rule, fragment in hits[:20]:
                 evidence.append([row["row_id"], topic["topic"], rule, fragment, doc["url"], doc["source"],
                                  doc.get("published_at") or ""])
             rows.append([topic["topic"], row["row_id"], row["title"], len(hits), int(url_hit), ";".join(sources),
-                         ";".join(sorted({rule for _, rule, _ in hits})),
-                         {True: "в окне", False: "раньше окна", None: "даты нет"}[eligible]])
+                         ";".join(sorted({rule for _, rule, _ in hits})), label, split])
         count = sum(1 for r in experts if r["domain_tag"] == tag)
         topic["found"], topic["experts"] = found, count
         found_total, experts_total = found_total + found, experts_total + count
+    union_url = sum(1 for row in experts if set().union(*(identity_keys(u) for u in row["source_urls"])) & all_keys)
     return {"rows": rows, "evidence": evidence,
             "totals": {"experts": experts_total, "found": found_total, "organizer_url": url_total,
-                       "by_source": dict(sorted(by_source.items())), "eligible_in_window": eligible_total,
+                       "text_candidates": text_total, "by_source": dict(sorted(by_source.items())),
+                       "eligible_in_window": eligible_total, "eligibility": eligibility,
+                       "future_dated_documents": future_total, "union_organizer_url": union_url,
+                       "split": {k: {"found": v[0], "experts": v[1]} for k, v in splits.items()},
                        "measurement_errors": [t["topic"] for t in topics if t.get("measurement_error")]}}
 
 
@@ -224,16 +251,17 @@ async def run_topic(index: int, topic: str, run_id: str) -> dict:
                     collection_id=started.collection_id, chunk_size=200, page_token=token), timeout=120, metadata=md):
                 for d in chunk.documents:
                     documents.append({
-                        "url": d.url, "title": d.title, "text": d.text[:3000],
+                        "document_id": d.document_id, "url": d.url, "title": d.title, "text": d.text[:3000],
                         "source": common_pb2.SourceKey.Name(d.source_key).removeprefix("SOURCE_KEY_").lower(),
                         "published_at": d.published_at.ToDatetime().date().isoformat() if d.HasField("published_at") else None,
-                        "doi": d.doi if d.HasField("doi") else None})
+                        "doi": d.doi if d.HasField("doi") else None,
+                        "text_quality": d.text_quality, "published_source": d.published_source})
                 token, last = chunk.next_page_token, chunk.last
             if last or not token:
                 break
     with psycopg.connect(settings.pg_dsn) as conn:
-        row = conn.execute("SELECT terms_technologies, technologies_mined, technologies_emerging FROM collector.collections "
-                           "WHERE collection_id = %s", (started.collection_id,)).fetchone()
+        row = conn.execute("SELECT terms_technologies, technologies_mined, technologies_emerging, selection_report "
+                           "FROM collector.collections WHERE collection_id = %s", (started.collection_id,)).fetchone()
     runs = {}
     for r in status.adapter_runs:
         state = common_pb2.OperationStatus.Name(r.status).removeprefix("OPERATION_STATUS_")
@@ -243,23 +271,134 @@ async def run_topic(index: int, topic: str, run_id: str) -> dict:
     return {"topic": topic, "collection_id": started.collection_id, "documents": documents,
             "expansion": {"ru": list(expansion.ru_terms), "en": list(expansion.en_terms),
                           "technologies": list(expansion.technologies)},
-            "model": list(row[0] or []), "mined": list(row[1] or []), "emerging": list(row[2] or []), "runs": runs}
+            "model": list(row[0] or []), "mined": list(row[1] or []), "emerging": list(row[2] or []), "runs": runs,
+            "selection_report": row[3] or {}}
 
 
 def write_outputs(out: Path, prefix: str, result: dict, topics: list[dict], manifest: dict) -> None:
     out.mkdir(parents=True, exist_ok=True)
-    report = {"totals": result["totals"], "topics": [{k: v for k, v in t.items() if k != "documents"} | {
-        "documents": len(t.get("documents", []))} for t in topics]}
+    report = {"totals": result["totals"], "topics": [{k: v for k, v in t.items() if k not in ("documents", "candidates", "shown")} | {
+        "documents": len(t.get("documents", [])), "candidates": len(t.get("candidates", [])),
+        "shown": len(t.get("shown", []))} for t in topics]}
     (out / f"{prefix}.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
     with open(out / f"{prefix}.csv", "w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["topic", "row_id", "title", "documents_matched", "organizer_url", "sources", "rules", "eligible"])
+        writer.writerow(["topic", "row_id", "title", "documents_matched", "organizer_url", "sources", "rules", "eligible",
+                         "split"])
         writer.writerows(result["rows"])
     with open(out / f"{prefix}_evidence.csv", "w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["row_id", "topic", "rule", "fragment", "url", "source", "published_at"])
         writer.writerows(result["evidence"])
     (out / f"{prefix}_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _http_json(method: str, url: str, body: dict | None = None, headers: dict | None = None) -> dict:
+    import urllib.request
+
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    request = urllib.request.Request(url, data=data, method=method,
+                                     headers={"Content-Type": "application/json", **(headers or {})})
+    with urllib.request.urlopen(request, timeout=120) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _walk(value, urls: list, texts: list) -> None:  # noqa: ANN001
+    """Все ссылки и строки ответа результатов — для сопоставления карточек и исключённых кандидатов."""
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key == "url" and isinstance(item, str):
+                urls.append(item)
+            else:
+                _walk(item, urls, texts)
+    elif isinstance(value, list):
+        for item in value:
+            _walk(item, urls, texts)
+    elif isinstance(value, str) and len(value) > 3:
+        texts.append(value)
+
+
+async def _collection_documents(collection_id: str) -> list[dict]:
+    import grpc
+
+    from collector.config import CollectorSettings
+    from weaksignals.collector.v1 import collector_pb2, collector_pb2_grpc
+    from weaksignals.common.v1 import common_pb2
+
+    settings = CollectorSettings()
+    md = (("x-correlation-id", str(uuid.uuid4())), ("x-caller", "strategy-check"))
+    documents, token = [], ""
+    address = os.environ.get("WS_COLLECTOR_SELF_ADDR", f"localhost:{settings.grpc_port}")
+    async with grpc.aio.insecure_channel(address) as channel:
+        stub = collector_pb2_grpc.CollectorServiceStub(channel)
+        while True:
+            last = False
+            async for chunk in stub.StreamDocuments(collector_pb2.StreamDocumentsRequest(
+                    collection_id=collection_id, chunk_size=200, page_token=token), timeout=120, metadata=md):
+                for d in chunk.documents:
+                    documents.append({
+                        "document_id": d.document_id, "url": d.url, "title": d.title, "text": d.text[:3000],
+                        "source": common_pb2.SourceKey.Name(d.source_key).removeprefix("SOURCE_KEY_").lower(),
+                        "published_at": d.published_at.ToDatetime().date().isoformat() if d.HasField("published_at") else None,
+                        "doi": d.doi if d.HasField("doi") else None,
+                        "text_quality": d.text_quality, "published_source": d.published_source})
+                token, last = chunk.next_page_token, chunk.last
+            if last or not token:
+                break
+    return documents
+
+
+def run_e2e_topic(index: int, topic: str, run_id: str) -> dict:
+    """Этап 5.0 (аудит round2 F02): полное задание через orchestrator — собранные документы, кандидаты
+    (показанные и исключённые) и показанные карточки отдельно."""
+    import psycopg
+
+    from collector.config import CollectorSettings
+
+    base = os.environ.get("WS_ORCHESTRATOR_URL", "http://orchestrator-api:8080")
+    accepted = _http_json("POST", f"{base}/api/v1/queries", {"query_text": topic, "top_n": 50},
+                          {"Idempotency-Key": f"strategy-e2e-{run_id}-{index}"})
+    job_id, until = accepted["job_id"], time.monotonic() + E2E_TIMEOUT_SECONDS
+    while True:
+        job = _http_json("GET", f"{base}/api/v1/jobs/{job_id}")
+        if job["status"] not in ("QUEUED", "COLLECTING", "ANALYZING", "NARRATING"):
+            break
+        if time.monotonic() > until:
+            return {"topic": topic, "job_id": job_id, "documents": [], "candidates": [], "shown": [],
+                    "measurement_error": "задание не завершилось за отведённое время"}
+        time.sleep(15)
+    results = (_http_json("GET", f"{base}/api/v1/jobs/{job_id}/results")
+               if job["status"] not in ("FAILED", "CANCELLED") else {"items": [], "excluded": []})
+    shown, candidates = [], []
+    for item in results.get("items", []):
+        item_id = item.get("item_id") or item.get("id")
+        detail = _http_json("GET", f"{base}/api/v1/results/items/{item_id}") if item_id else item
+        urls, texts = [], []
+        _walk(detail, urls, texts)
+        card = {"url": urls[0] if urls else "", "title": " ".join(texts[:2]), "text": " ".join(texts)[:6000],
+                "source": "card", "urls": urls}
+        shown.append(card)
+        candidates.append(card)
+    for item in results.get("excluded", []):
+        urls, texts = [], []
+        _walk(item, urls, texts)
+        candidates.append({"url": urls[0] if urls else "", "title": " ".join(texts[:2]), "text": " ".join(texts)[:6000],
+                           "source": "excluded", "urls": urls})
+    with psycopg.connect(CollectorSettings().pg_dsn) as conn:
+        row = conn.execute("SELECT collection_id FROM collector.collections WHERE idempotency_key = %s",
+                           (f"{job_id}:collect",)).fetchone()
+    documents = asyncio.run(_collection_documents(str(row[0]))) if row else []
+    return {"topic": topic, "job_id": job_id, "job_status": job["status"], "error": job.get("error"),
+            "documents": documents, "candidates": _expand_cards(candidates), "shown": _expand_cards(shown)}
+
+
+def _expand_cards(cards: list[dict]) -> list[dict]:
+    """Карточка с несколькими ссылками источников — по документу на ссылку (сверка идентичности)."""
+    expanded = []
+    for card in cards:
+        for url in card.get("urls") or [card["url"]]:
+            expanded.append({**{k: v for k, v in card.items() if k != "urls"}, "url": url})
+    return expanded
 
 
 def main() -> None:
@@ -270,7 +409,10 @@ def main() -> None:
     parser.add_argument("--out", default="/tmp")
     parser.add_argument("--rotate", type=int, default=0)
     parser.add_argument("--cutoff", type=date.fromisoformat, default=None)
+    parser.add_argument("--no-cutoff", action="store_true", help="без среза по дате (по умолчанию срез = дата замера)")
     parser.add_argument("--replay", default=None, help="каталог прошлого замера: пересчёт без сети")
+    parser.add_argument("--rescore", action="store_true", help="повтор с другими входами (новый manifest)")
+    parser.add_argument("--e2e", action="store_true", help="полные задания через orchestrator: сбор → кандидаты → выдача")
     args = parser.parse_args()
     import yaml
 
@@ -281,34 +423,46 @@ def main() -> None:
     if args.replay:
         source = Path(args.replay)
         manifest = json.loads((source / "strategy_check_manifest.json").read_text(encoding="utf-8"))
+        # Этап 5.0 (F26): повтор проверяет входы и наследует условия исходного замера.
+        inputs = manifest.get("inputs", {})
+        changed = [name for name, path in (("dataset", args.dataset), ("synonyms", args.synonyms))
+                   if inputs.get(name) and inputs[name] != sha256(path)]
+        if changed and not args.rescore:
+            raise SystemExit(f"входы изменились ({', '.join(changed)}): повтор невозможен, используйте --rescore")
         by_topic: dict[str, list[dict]] = {}
         for line in open(source / "strategy_check_documents.jsonl", encoding="utf-8"):
             record = json.loads(line)
             by_topic.setdefault(record.pop("topic"), []).append(record)
-        topics = [{"topic": t, "documents": by_topic.get(t, [])} for t in manifest["topic_order"]]
+        errors = {t["topic"]: t.get("measurement_error") for t in manifest.get("topics", []) if t.get("measurement_error")}
+        topics = [{"topic": t, "documents": by_topic.get(t, []), **({"measurement_error": errors[t]} if t in errors else {})}
+                  for t in manifest["topic_order"]]
         as_of = date.fromisoformat(manifest["as_of"][:10])
-        prefix = "strategy_check_replay"
+        cutoff = args.cutoff or (date.fromisoformat(manifest["cutoff"]) if manifest.get("cutoff") else None)
+        prefix = "strategy_check_rescore" if args.rescore else "strategy_check_replay"
     else:
         names = [l.strip() for l in open(args.topics, encoding="utf-8") if l.strip()]
         shift = args.rotate % len(names) if names else 0
         names = names[shift:] + names[:shift]
         run_id, as_of = time.strftime("%Y%m%d-%H%M%S"), datetime.now(UTC).date()
+        cutoff = None if args.no_cutoff else (args.cutoff or as_of)  # F24: по умолчанию срез = дата замера
         topics = []
         for index, name in enumerate(names):
-            topic = asyncio.run(run_topic(index, name, run_id))
+            topic = run_e2e_topic(index, name, run_id) if args.e2e else asyncio.run(run_topic(index, name, run_id))
             topics.append(topic)
             partial = {k: v["error_code"] for k, v in topic.get("runs", {}).items() if v["error_code"]}
             print(f"{name[:48]:48} | документов {len(topic['documents'])}"
+                  + (f" | кандидатов {len(topic.get('candidates', []))}, карточек {len(topic.get('shown', []))}" if args.e2e else "")
                   + (f" | ОШИБКА ИЗМЕРЕНИЯ: {topic['measurement_error']}" if topic.get("measurement_error") else "")
                   + (f" | неполные источники: {partial}" if partial else ""), flush=True)
-            print(f"    из корпусов ({len(topic.get('emerging', []))}): {topic.get('emerging', [])[:10]}", flush=True)
-            print(f"    извлечённые ({len(topic.get('mined', []))}): {topic.get('mined', [])[:8]}", flush=True)
+            if not args.e2e:
+                print(f"    из корпусов ({len(topic.get('emerging', []))}): {topic.get('emerging', [])[:10]}", flush=True)
+                print(f"    извлечённые ({len(topic.get('mined', []))}): {topic.get('mined', [])[:8]}", flush=True)
         manifest = {
-            "as_of": datetime.now(UTC).isoformat(), "cutoff": args.cutoff.isoformat() if args.cutoff else None,
-            "topic_order": names, "rotate": args.rotate, "limits": collection_limits(),
+            "as_of": datetime.now(UTC).isoformat(), "cutoff": cutoff.isoformat() if cutoff else None,
+            "topic_order": names, "rotate": args.rotate, "limits": collection_limits(), "mode": "e2e" if args.e2e else "collect",
             "inputs": {"tool": sha256(__file__), "dataset": sha256(args.dataset), "synonyms": sha256(args.synonyms)},
             "settings": settings_snapshot(),
-            "topics": [{k: v for k, v in t.items() if k != "documents"} for t in topics],
+            "topics": [{k: v for k, v in t.items() if k not in ("documents", "candidates", "shown")} for t in topics],
         }
         out = Path(args.out)
         out.mkdir(parents=True, exist_ok=True)
@@ -316,16 +470,27 @@ def main() -> None:
             for topic in topics:
                 for doc in topic["documents"]:
                     handle.write(json.dumps({"topic": topic["topic"], **doc}, ensure_ascii=False) + "\n")
-        prefix = "strategy_check"
-    result = evaluate(topics, experts, synonyms, args.cutoff, as_of)
+        prefix = "strategy_check_e2e" if args.e2e else "strategy_check"
+    result = evaluate(topics, experts, synonyms, cutoff, as_of)
+    stages = {}
+    if not args.replay and args.e2e:
+        for stage in ("candidates", "shown"):
+            staged = [{"topic": t["topic"], "documents": t.get(stage, []), "measurement_error": t.get("measurement_error")}
+                      for t in topics]
+            stages[stage] = evaluate(staged, experts, synonyms, None, as_of)["totals"]
+        result["totals"]["stages"] = {"collected": {k: result["totals"][k] for k in ("found", "organizer_url")},
+                                      **{k: {"found": v["found"], "organizer_url": v["organizer_url"]} for k, v in stages.items()}}
     for topic in topics:
         if not topic.get("measurement_error"):
             print(f"{topic['topic'][:48]:48} | эксперты {topic['found']}/{topic['experts']}", flush=True)
     write_outputs(Path(args.out), prefix, result, topics, manifest)
     totals = result["totals"]
-    print(f"\nИТОГО за {time.monotonic() - started:.0f} с: экспертных сигналов найдено {totals['found']}/{totals['experts']}; "
-          f"ссылок организаторов: {totals['organizer_url']}; по источникам: {totals['by_source']}; "
-          f"сигналов со ссылкой в окне поиска или без даты: {totals['eligible_in_window']}"
+    print(f"\nИТОГО за {time.monotonic() - started:.0f} с: экспертных сигналов найдено {totals['found']}/{totals['experts']} "
+          f"(по ссылкам организаторов {totals['organizer_url']}, только по тексту {totals['text_candidates']}); "
+          f"по источникам: {totals['by_source']}; dev {totals['split']['dev']}, holdout {totals['split']['holdout']}; "
+          f"ссылки организаторов в любой теме: {totals['union_organizer_url']}; дата эталона: {totals['eligibility']}; "
+          f"документов позже среза: {totals['future_dated_documents']}"
+          + (f"; по этапам: {totals['stages']}" if totals.get("stages") else "")
           + (f"; ОШИБКИ ИЗМЕРЕНИЯ: {totals['measurement_errors']}" if totals["measurement_errors"] else ""), flush=True)
 
 

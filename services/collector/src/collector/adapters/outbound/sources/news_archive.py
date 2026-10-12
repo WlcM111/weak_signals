@@ -67,14 +67,20 @@ class NewsArchiveAdapter(BaseSourceAdapter):
                     return
 
     async def search_targeted(self, technologies: Sequence[str], per_term: int, since: date,
-                              deadline: float) -> AsyncIterator[RawDocument]:
+                              deadline: float, exclude: frozenset[str] = frozenset()) -> AsyncIterator[RawDocument]:
         """Этап 4.3: по `per_term` новых статей на технологию."""
         for term in technologies:
             words = phrase_words(term)
             if not words or self.deadline_reached(deadline):
                 continue
-            for entry in await self._store.search(with_variants(words), since, per_term, min_match(words)):
+            taken = 0  # этап 5.0 (F21): запрос с запасом, уже собранные статьи пропускаются, добор до per_term новых
+            for entry in await self._store.search(with_variants(words), since, per_term * 3, min_match(words)):
+                if entry.url in exclude:
+                    continue
                 yield to_raw_document(entry, term)
+                taken += 1
+                if taken >= per_term:
+                    break
 
 
 def min_match(words: Sequence[str]) -> int:

@@ -140,6 +140,9 @@ class EncyclopediaProbe(Protocol):
 class CollectionRepository(Protocol):
     """Хранилище коллекций (таблица `collections`)."""
 
+    async def save_selection_report(self, collection_id: str, report: dict) -> None:
+        """Этап 5.0: отчёт об отборе технологий коллекции."""
+
     async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
         """Сохраняет технологии, извлечённые из документов широкого прохода (этап 4)."""
 
@@ -305,8 +308,8 @@ class NewsArchiveStore(Protocol):
         """Этап 4.6 (P08): записи Wayback только со словами адреса — сначала события стартапов, затем новые."""
 
     async def save_enrichment(self, url: str, title: str, summary: str, published_on: date | None,
-                              text_status: str, tokens: Sequence[str]) -> None:
-        """Сохраняет текст, извлечённый из архивной копии страницы."""
+                              text_status: str, tokens: Sequence[str], retry_minutes: int = 0) -> None:
+        """Сохраняет текст страницы; retry — повтор через retry_minutes (этап 5.0, F12)."""
 
     async def save_feed(self, feed_url: str, source_id: str, site_url: str, title: str, status: str, entries: int,
                         detail: str) -> None:

@@ -91,6 +91,17 @@ class CollectorSettings(BaseServiceSettings):
     collector_entity_quota: int = Field(default=6, ge=0, le=40)
     collector_emergence_min_growth: float = Field(default=1.5, ge=1.0, le=10.0)
     collector_emergence_min_base: int = Field(default=300, ge=0, le=100000)
+    # Этап 5.0 (N15): расписание фоновых загрузок внутри collector — интервалы в часах (0 — задача выключена).
+    archive_schedule_enabled: bool = True
+    archive_schedule_rss_hours: float = Field(default=24.0, ge=0.0, le=8760.0)
+    archive_schedule_arxiv_hours: float = Field(default=24.0, ge=0.0, le=8760.0)
+    archive_schedule_enrich_hours: float = Field(default=6.0, ge=0.0, le=8760.0)
+    archive_schedule_sitemaps_hours: float = Field(default=24.0, ge=0.0, le=8760.0)
+    archive_schedule_wayback_hours: float = Field(default=168.0, ge=0.0, le=8760.0)
+    archive_schedule_discover_hours: float = Field(default=720.0, ge=0.0, le=8760.0)
+    archive_schedule_enrich_batch: int = Field(default=500, ge=1, le=20000)
+    # Этап 5.0 (F22): статьи о событиях с хотя бы одним ключевым словом темы, без словаря технологий
+    collector_entity_event_documents: int = Field(default=200, ge=0, le=2000)
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)

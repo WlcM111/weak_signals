@@ -74,4 +74,15 @@ def build_document_draft(
             raw.engagement_count if raw.engagement_count is None or raw.engagement_count >= 0 else None
         ),
         raw_meta=sanitize_raw_meta(raw.raw_meta, raw_meta_keys),
+        text_quality=raw.text_quality if raw.text_quality != "unknown" else text_quality_of(title, text),
+        published_source=raw.published_source if raw.published_source != "unknown"
+        else ("api" if raw.published_at is not None else "unknown"),
     )
+
+
+def text_quality_of(title: str, text: str) -> str:
+    """Качество текста документа по его объёму (этап 5.0, F15): только заголовок, аннотация или статья."""
+    body = (text or "").strip()
+    if not body or body == (title or "").strip() or len(body) < len(title or "") + 40:
+        return "title"
+    return "article" if len(body) >= 1500 else "abstract"

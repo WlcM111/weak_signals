@@ -134,7 +134,11 @@ class Document(_message.Message):
     engagement_count: int
     fetched_at: _timestamp_pb2.Timestamp
     origin_domain: str
-    def __init__(self, document_id: _Optional[str] = ..., url: _Optional[str] = ..., title: _Optional[str] = ..., text: _Optional[str] = ..., language_code: _Optional[str] = ..., published_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., source_key: _Optional[_Union[SourceKey, str]] = ..., source_type: _Optional[_Union[SourceType, str]] = ..., trust_level: _Optional[_Union[TrustLevel, str]] = ..., doi: _Optional[str] = ..., citation_count: _Optional[int] = ..., engagement_count: _Optional[int] = ..., fetched_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., origin_domain: _Optional[str] = ...) -> None: ...
+    TEXT_QUALITY_FIELD_NUMBER: _ClassVar[int]
+    PUBLISHED_SOURCE_FIELD_NUMBER: _ClassVar[int]
+    text_quality: str
+    published_source: str
+    def __init__(self, document_id: _Optional[str] = ..., url: _Optional[str] = ..., title: _Optional[str] = ..., text: _Optional[str] = ..., language_code: _Optional[str] = ..., published_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., source_key: _Optional[_Union[SourceKey, str]] = ..., source_type: _Optional[_Union[SourceType, str]] = ..., trust_level: _Optional[_Union[TrustLevel, str]] = ..., doi: _Optional[str] = ..., citation_count: _Optional[int] = ..., engagement_count: _Optional[int] = ..., fetched_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., origin_domain: _Optional[str] = ..., text_quality: _Optional[str] = ..., published_source: _Optional[str] = ...) -> None: ...
 
 class PageRequest(_message.Message):
     __slots__ = ("page_size", "page_token")

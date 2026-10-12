@@ -115,6 +115,11 @@ class RunAnalysisConfig:
     near_dup_threshold: float = 0.92
     cluster_distance_threshold: float = 0.35
     min_cluster_size: int = 2
+    # Этап 5.0: пространство векторов для near-dup, отбора и кластеризации и отсев выбросов релевантности.
+    # Значения здесь — прежнее поведение для прямого создания конфигурации; рабочие значения задаёт main из
+    # настроек (centered, 3.0, порог 0.60, min_cluster_size 1, near-dup 0.90).
+    vector_space: str = "raw"
+    relevance_outlier_mad: float = 0.0
     # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
     keep_market_singletons: bool = False
     # Близость к запросу: mean — к среднему вектору запроса и его расширений (прежнее поведение); max — к ближайшей
@@ -261,7 +266,8 @@ class RunAnalysis:
         control.check()
 
         with self._step("near_dup"):
-            kept, dropped = near_dup_filter(documents, vectors, self._config.near_dup_threshold)
+            kept, dropped = near_dup_filter(documents, vectors, self._config.near_dup_threshold,
+                                            centered=self._config.vector_space == "centered")
             self._funnel(near_dup_dropped=[documents[index].document_id for index in dropped],
                          near_dup_threshold=self._config.near_dup_threshold)
             documents = [documents[index] for index in kept]
@@ -274,12 +280,15 @@ class RunAnalysis:
 
         with self._step("query_relevance"):
             query_vector, query_phrases = self._embed_query(analysis.query_text)
-            relevances = phrase_relevance(normalize_rows(vectors), query_vector, query_phrases,
-                                          self._config.query_relevance_mode)
+            raw_relevances = phrase_relevance(normalize_rows(vectors), query_vector, query_phrases,
+                                              self._config.query_relevance_mode)
+            relevances, relevance_floor = selection_relevance(
+                vectors, query_vector, query_phrases, self._config.query_relevance_mode,
+                self._config.vector_space == "centered", self._config.relevance_outlier_mad)
             relevant = [
                 index
                 for index, value in enumerate(relevances)
-                if float(value) >= self._config.min_doc_query_sim
+                if float(raw_relevances[index]) >= self._config.min_doc_query_sim and float(value) >= relevance_floor
             ]
             relevant_set = set(relevant)
             self._funnel(
@@ -287,6 +296,8 @@ class RunAnalysis:
                 relevance_dropped=[documents[index].document_id for index in range(len(documents))
                                    if index not in relevant_set],
                 min_doc_query_sim=self._config.min_doc_query_sim,
+                relevance_floor=round(float(relevance_floor), 6),
+                vector_space=self._config.vector_space,
                 query_relevance_mode=self._config.query_relevance_mode,
             )
             dropped_types = Counter(documents[index].source_type.value for index in range(len(documents))
@@ -301,7 +312,12 @@ class RunAnalysis:
         control.check()
 
         with self._step("clustering"):
-            clusters = cluster_documents(vectors, self._config.cluster_distance_threshold)
+            clusters = cluster_documents(vectors, self._config.cluster_distance_threshold,
+                                         centered=self._config.vector_space == "centered")
+            sizes = sorted((len(cluster) for cluster in clusters), reverse=True)
+            self._log.info("analysis.clusters", total=len(sizes), largest=sizes[:5],
+                           singletons=sum(1 for size in sizes if size == 1), documents=len(documents),
+                           threshold=self._config.cluster_distance_threshold, space=self._config.vector_space)
             if self._config.market_notes_separate:
                 clusters = split_market_glue(clusters, documents, vectors, MARKET_SINGLE_TYPES)
             clusters_total = len(clusters)
@@ -638,7 +654,9 @@ class RunAnalysis:
             )
             for view in views
         }
-        to_score = [view for view in views if rule_results[view.cluster_index] is None]
+        # Этап 5.0 (N14): модель оценивает всех кандидатов, правило лишь задаёт решение — исключённый кандидат
+        # сохраняет настоящую оценку модели, а не 0.
+        to_score = list(views)
         try:
             scores, contributions, stages, trends = score_rows(
                 bundle, [view.values for view in to_score]
@@ -652,9 +670,12 @@ class RunAnalysis:
         for view in views:
             rule = rule_results[view.cluster_index]
             if rule is not None:
-                features = build_contributions(bundle, view.values, None)
+                position = scored_index[view.cluster_index]
+                features = build_contributions(bundle, view.values, contributions[position])
                 candidate = self._make_candidate(
-                    view, 0.0, rule.decision, rule.reason, rule.explanation_ru, features, None, None
+                    view, float(scores[position]), rule.decision, rule.reason, rule.explanation_ru, features,
+                    stages[position] if position < len(stages) else None,
+                    trends[position] if position < len(trends) else None,
                 )
             else:
                 position = scored_index[view.cluster_index]
@@ -914,3 +935,28 @@ def _record_hits(owner: object, language: str, titles: list[str], hits, error: s
 def _text_encoder(owner: object):  # noqa: ANN202 - Embedder
     """Эмбеддер коротких текстов с записью для режима А; у объектов без записи (заглушки тестов) — исходный."""
     return getattr(owner, "_text_encoder", None) or owner._embedder  # type: ignore[attr-defined]
+
+
+def selection_relevance(vectors: np.ndarray, query_vector: np.ndarray, query_phrases: np.ndarray | None, mode: str,
+                        centered: bool, outlier_mad: float) -> tuple[np.ndarray, float]:
+    """Релевантность для отбора (этап 5.0, N03) и нижняя граница явных выбросов.
+
+    В centered-пространстве из векторов документов и запроса вычитается среднее коллекции: шкала e5 перестаёт быть
+    сжатой. Граница = медиана − outlier_mad × 1,4826 × MAD; отсекаются только явные выбросы.
+    """
+    if centered and len(vectors) > 1:
+        mean = np.asarray(vectors, dtype=np.float64).mean(axis=0)
+        rows = normalize_rows(np.asarray(vectors, dtype=np.float64) - mean)
+        query = np.asarray(query_vector, dtype=np.float64) - mean
+        norm = float(np.linalg.norm(query))
+        query = query / norm if norm > 0 else query
+        phrases = None if query_phrases is None else normalize_rows(np.asarray(query_phrases, dtype=np.float64) - mean)
+        values = phrase_relevance(rows, query, phrases, mode)
+    else:
+        values = phrase_relevance(normalize_rows(vectors), query_vector, query_phrases, mode)
+    values = np.asarray(values, dtype=np.float64)
+    if outlier_mad <= 0 or len(values) < 5:
+        return values, float("-inf")
+    median = float(np.median(values))
+    mad = float(np.median(np.abs(values - median))) * 1.4826
+    return values, (median - outlier_mad * mad) if mad > 0 else float("-inf")

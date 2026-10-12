@@ -24,6 +24,7 @@ class ArchiveEntry:
     # и чем является текст (slug — только слова адреса, rss — анонс ленты, page — извлечён со страницы).
     published_source: str = "unknown"
     text_status: str = "slug"
+    enrich_attempts: int = 0  # этап 5.0 (F12): попытки получить текст страницы
 
 
 @dataclass(frozen=True)
@@ -64,4 +65,6 @@ def archive_raw_document(entry: ArchiveEntry, term: str) -> RawDocument:
         doi=None,
         raw_meta={"publisher": entry.publisher, "origin": entry.origin, "text_status": entry.text_status,
                   "published_source": entry.published_source},
+        text_quality={"slug": "title", "rss": "abstract", "page": "article", "blocked": "blocked"}.get(entry.text_status, "title"),
+        published_source=entry.published_source if entry.published_on else "unknown",
     )

@@ -20,6 +20,8 @@ class AnalyzeConfig:
     """Параметры стадии анализа."""
 
     timeout_seconds: int = 300
+    # Этап 5.0 (N04): секунды на документ коллекции; итоговое ожидание — max(timeout_seconds, документов × это).
+    per_document_seconds: float = 0.0
     poll_seconds: float = 3.0
     # Сколько кандидатов запросить у analyzer (5..100); 0 — значение analyzer по умолчанию (40).
     max_candidates: int = 0
@@ -85,3 +87,8 @@ async def run_analyze(
             f"анализ завершился статусом {view.status}: {view.error_code or 'без кода'}",
         )
     return view
+
+
+def analysis_timeout(config: AnalyzeConfig, documents_total: int) -> int:
+    """Ожидание анализа с учётом объёма коллекции (этап 5.0, N04)."""
+    return max(int(config.timeout_seconds), int(config.per_document_seconds * max(0, documents_total)))

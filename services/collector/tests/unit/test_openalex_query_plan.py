@@ -60,10 +60,10 @@ class QueryPlanTest(unittest.IsolatedAsyncioTestCase):
             self.http.enqueue(load_json("openalex/works_empty.json"))
         await self.collect()
         queried = [(call[1]["params"]["search"], call[1]["params"]["filter"]) for call in self.http.calls]
+        # этап 5.0 (F20): препринт, вся база и русская фраза чередуются — срез плана не убирает русскую ветку
         self.assertEqual(queried, [
-            ("neuromorphic chips", ARXIV), ("spiking processors", ARXIV),
-            ("neuromorphic chips", ALL), ("spiking processors", ALL),
-            ("нейроморфные чипы", ALL),
+            ("neuromorphic chips", ARXIV), ("neuromorphic chips", ALL), ("нейроморфные чипы", ALL),
+            ("spiking processors", ARXIV), ("spiking processors", ALL),
         ])
 
     async def test_each_query_gets_equal_share(self) -> None:

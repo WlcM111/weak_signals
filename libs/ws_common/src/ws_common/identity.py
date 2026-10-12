@@ -73,3 +73,13 @@ def identity_keys(url: str, doi: str | None = None) -> set[str]:
     if doi:
         keys.add(f"doi:{doi.strip().lower()}")
     return {key for key in keys if key}
+
+
+def without_tracking(url: str) -> str:
+    """Исходная ссылка без фрагмента и известных параметров отслеживания; смысловые параметры (`?p=495626`,
+    `?id=101`) и схема сохраняются (этап 5.0, аудит round2 F13)."""
+    parts = urlsplit((url or "").strip())
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not _TRACKING.match(k)]
+    host = (parts.hostname or "").lower()
+    port = f":{parts.port}" if parts.port and parts.port not in (80, 443) else ""
+    return f"{parts.scheme}://{host}{port}{parts.path or '/'}" + (("?" + urlencode(query)) if query else "")

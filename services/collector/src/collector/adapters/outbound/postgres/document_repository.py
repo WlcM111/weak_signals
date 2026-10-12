@@ -17,12 +17,16 @@ from collector.domain.values import SourceKey
 
 _FIND_BY_DOI = "SELECT document_id FROM documents WHERE doi = %s LIMIT 1"
 
-_UPSERT_DOCUMENT = """
+_RANK_NEW = "(CASE EXCLUDED.published_source WHEN 'api' THEN 3 WHEN 'page' THEN 3 WHEN 'rss' THEN 3 " \
+            "WHEN 'sitemap' THEN 3 WHEN 'url' THEN 2 ELSE 1 END)"
+_RANK_OLD = "(CASE documents.published_source WHEN 'api' THEN 3 WHEN 'page' THEN 3 WHEN 'rss' THEN 3 " \
+            "WHEN 'sitemap' THEN 3 WHEN 'url' THEN 2 ELSE 1 END)"
+_UPSERT_DOCUMENT = f"""
 INSERT INTO documents (
   url_hash, url, canonical_url, origin_domain, title, body_text, content_hash, language_code,
   published_at, source_key, source_type, trust_level, doi, citation_count, engagement_count,
-  raw_meta, fetched_at
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+  raw_meta, fetched_at, text_quality, published_source
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (url_hash) DO UPDATE SET
   fetched_at = EXCLUDED.fetched_at,
   -- этап 4.6 (аудит P10): более полный текст заменяет бедную первую версию (например, слова адреса), пустой — нет
@@ -31,7 +35,13 @@ ON CONFLICT (url_hash) DO UPDATE SET
                    ELSE documents.body_text END,
   content_hash = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.content_hash
                       ELSE documents.content_hash END,
-  published_at = COALESCE(documents.published_at, EXCLUDED.published_at)
+  text_quality = CASE WHEN length(EXCLUDED.body_text) > length(documents.body_text) THEN EXCLUDED.text_quality
+                      ELSE documents.text_quality END,
+  -- этап 5.0 (аудит round2 F16): дата из более достоверного происхождения заменяет прежнюю, неизвестная — не стирает
+  published_at = CASE WHEN EXCLUDED.published_at IS NOT NULL AND (documents.published_at IS NULL
+                      OR {_RANK_NEW} > {_RANK_OLD}) THEN EXCLUDED.published_at ELSE documents.published_at END,
+  published_source = CASE WHEN EXCLUDED.published_at IS NOT NULL AND (documents.published_at IS NULL
+                      OR {_RANK_NEW} > {_RANK_OLD}) THEN EXCLUDED.published_source ELSE documents.published_source END
 RETURNING document_id, (xmax = 0) AS inserted
 """
 
@@ -183,6 +193,8 @@ class PostgresDocumentRepository:
                 draft.engagement_count,
                 Json(draft.raw_meta),
                 draft.fetched_at,
+                draft.text_quality,
+                draft.published_source,
             ),
         )
         row = await cur.fetchone()

@@ -23,11 +23,27 @@ const STATE_RU: Record<StageState, string> = {
 
 const ORDER = ["QUEUED", "COLLECTING", "ANALYZING", "NARRATING"];
 
+/** Этап 5.0 (аудит раунда 3, N05): на каком этапе упало задание — по коду ошибки, затем по тексту и счётчикам.
+ * Прежде ошибкой всегда помечался последний этап, и сбор с анализом показывались «выполненными». */
+export function failedStageIndex(job: Job): number {
+  const code = job.error?.code ?? "";
+  const message = (job.error?.message ?? "").toLowerCase();
+  if (code === "TOO_FEW_DOCUMENTS" || code === "COLLECTION_FAILED") return 1;
+  if (code === "ANALYSIS_FAILED") return 2;
+  if (/collector|сбор/.test(message)) return 1;
+  if (/analyzer|анализ/.test(message)) return 2;
+  if (/insight|нарратив|инсайт/.test(message)) return 3;
+  const progress = job.progress;
+  if (progress?.candidates_found) return 3;
+  if (progress?.documents_collected) return 2;
+  return 1;
+}
+
 function stateFor(index: number, job: Job): StageState {
   const current = ORDER.indexOf(job.status);
   if (job.status === "CANCELLED") return index === 0 ? "success" : "cancelled";
   if (job.status === "FAILED") {
-    const failedAt = Math.max(0, ORDER.length - 1);
+    const failedAt = failedStageIndex(job);
     if (index < failedAt) return "success";
     return index === failedAt ? "error" : "pending";
   }

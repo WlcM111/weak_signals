@@ -136,6 +136,8 @@ def serve(settings: AnalyzerSettings) -> int:
             trust_weighted_selection=settings.trust_weighted_selection,
             require_high_trust_source=settings.require_high_trust_source,
             near_dup_threshold=settings.near_dup_threshold,
+            vector_space=settings.vector_space,
+            relevance_outlier_mad=settings.relevance_outlier_mad,
             cluster_distance_threshold=settings.cluster_distance_threshold,
             min_cluster_size=settings.min_cluster_size,
             keep_market_singletons=settings.keep_market_singletons,

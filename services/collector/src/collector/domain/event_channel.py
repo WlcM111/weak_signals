@@ -110,7 +110,12 @@ def is_news_boilerplate(term: str) -> bool:
 _ENTITY = re.compile(
     r"\b(?P<name>[A-Z][\w&.'’-]*(?:\s+[A-Z0-9][\w&.'’-]*){0,3})\s+(?:raises|raised|launches|unveils|emerges|secures|"
     r"closes|debuts|introduces|announces|acquires|lands|nabs|bags|gets)\b")
+# Этап 5.0 (аудит round2 F20): русские заголовки событий («РобоТех представила…»).
+_ENTITY_RU = re.compile(
+    r"(?<![\w])(?P<name>[А-ЯЁ][\wЁё&.'’-]*(?:\s+[А-ЯЁA-Z0-9][\wЁё&.'’-]*){0,3})\s+(?:привлекла|привлек|запустила|"
+    r"запускает|представила|представил|получила|открыла|выпустила|анонсировала|объявила)(?![\w])")
 _NOT_ENTITY = frozenset("""the a an new this startup startups company report exclusive breaking update ai why how what
+компания стартап новая новый""".split()) | frozenset("""the a an new this startup startups company report exclusive breaking update ai why how what
 week today""".split())
 
 
@@ -121,7 +126,7 @@ def extract_entities(titles: Iterable[str], limit: int = 20) -> list[str]:
     for title in titles:
         if is_all_caps(title):
             continue  # этап 4.7: в заголовке прописными каждое слово похоже на название
-        for match in _ENTITY.finditer(title or ""):
+        for match in [*_ENTITY.finditer(title or ""), *_ENTITY_RU.finditer(title or "")]:
             name = " ".join(match.group("name").split())
             words = name.lower().split()
             if words and words[0] not in _NOT_ENTITY and len(name) >= 3:

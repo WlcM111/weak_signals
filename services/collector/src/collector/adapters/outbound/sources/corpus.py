@@ -61,13 +61,19 @@ class CorpusAdapter(BaseSourceAdapter):
                     return
 
     async def search_targeted(self, technologies: Sequence[str], per_term: int, since: date,
-                              deadline: float) -> AsyncIterator[RawDocument]:
+                              deadline: float, exclude: frozenset[str] = frozenset()) -> AsyncIterator[RawDocument]:
         for term in technologies:
             words = phrase_words(term)
             if not words or self.deadline_reached(deadline):
                 continue
-            for paper in await self._store.search(with_variants(words), since, per_term, min_match(words)):
+            taken = 0  # этап 5.0 (F21): запрос с запасом, уже собранные работы пропускаются, добор до per_term новых
+            for paper in await self._store.search(with_variants(words), since, per_term * 3, min_match(words)):
+                if f"https://arxiv.org/abs/{paper.paper_id}" in exclude:
+                    continue
                 yield to_raw_document(paper, term)
+                taken += 1
+                if taken >= per_term:
+                    break
 
 
 def to_raw_document(paper: CorpusPaper, term: str) -> RawDocument:

@@ -69,6 +69,8 @@ message Document {
   optional int32 engagement_count = 12;              // GitHub stars / голоса; ≥ 0
   google.protobuf.Timestamp fetched_at = 13;         // обязателен
   string origin_domain = 14;                         // хост URL без www, ≤ 255
+  string text_quality = 15;      // этап 5.0: title | abstract | article | blocked | unknown
+  string published_source = 16;  // этап 5.0: api | page | rss | sitemap | url | capture | unknown
 }
 
 // Стандартная пагинация (cursor-based). page_size: 1..500, по умолчанию 100.

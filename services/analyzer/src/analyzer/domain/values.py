@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import StrEnum
 
 DEFAULT_TOP_N = 15
-DEFAULT_MAX_CANDIDATES = 40
+DEFAULT_MAX_CANDIDATES = 150  # этап 5.0 (N02): было 40 — классификатор видел малую часть кластеров
 DEFAULT_MIN_EVIDENCE_DOCUMENTS = 2
 CONFIDENT_SCORE = 0.75
 
@@ -120,7 +120,7 @@ class AnalysisParams:
 
     RANGES = {  # noqa: RUF012 - неизменяемый справочник диапазонов из proto/DDL
         "top_n": (1, 50),
-        "max_candidates": (5, 100),
+        "max_candidates": (5, 500),
         "min_evidence_documents": (1, 1000),
     }
 

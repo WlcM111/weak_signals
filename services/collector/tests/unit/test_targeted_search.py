@@ -44,7 +44,7 @@ class MiningTest(unittest.TestCase):
         # этап 4.7: аббревиатура — только внутри словосочетания
         found_mcp = candidate_phrases("MCP servers get a security scanner")
         self.assertIn("mcp servers", found_mcp)
-        self.assertNotIn("mcp", found_mcp)
+        self.assertIn("mcp", found_mcp)  # этап 5.0 (F19): аббревиатура — кандидат (повтор проверяет извлечение)
         found = candidate_phrases("Optical circuit switching for AI clusters: a survey")
         self.assertIn("optical circuit switching", found)
         self.assertNotIn("switching for", found)

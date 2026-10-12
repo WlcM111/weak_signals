@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from psycopg import AsyncConnection
@@ -37,45 +37,37 @@ ON CONFLICT (url) DO UPDATE SET
 # Этап 4.4: число совпавших слов — пересечение массива слов записи с запросом; индекс GIN отбирает записи хотя бы
 # с одним словом (`&&`), порядок — по числу совпавших слов, затем по дате.
 _MATCHED = "cardinality(ARRAY(SELECT unnest(tokens) INTERSECT SELECT unnest(%s::text[])))"
-_SEARCH = f"""
-SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status
-FROM news_archive
-WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND COALESCE(published_on, captured_at::date, %s) >= %s
-ORDER BY {_MATCHED} DESC, published_on DESC NULLS LAST, url
-LIMIT %s
-"""
-_TITLES = f"""
-SELECT title, published_on
-FROM news_archive
-WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND published_on >= %s AND published_on < %s
-  AND (%s::text IS NULL OR origin = %s::text)
-  AND (%s::text[] IS NULL OR tokens && %s::text[])
-ORDER BY md5(url)
-LIMIT %s
-"""
+
+
+def concept_groups(words: Sequence[str]) -> list[list[str]]:
+    """Этап 5.0 (аудит round2 F17): формы одного слова (robot, robots) — одно понятие. Порог «двух совпадений»
+    считает понятия, поэтому текст «robot robots» больше не проходит запрос из двух понятий."""
+    from collector.domain.event_channel import base_form
+
+    groups: dict[str, list[str]] = {}
+    for word in words:
+        groups.setdefault(base_form(word), []).append(word)
+    return list(groups.values())
+
+
+def _count_sql(groups: Sequence[Sequence[str]]) -> str:
+    return "(" + " + ".join(["(tokens && %s::text[])::int"] * len(groups)) + ")" if groups else "0"
+
 # Этап 4.7.1: запрос канала событий только отбирает кандидатов (событие, не меньше двух слов словаря, окно дат) и
 # возвращает совпавшие слова — без сортировки и без тяжёлых вычислений на строку. Ранжирование по редкости
 # совпавших основ среди ВСЕХ кандидатов делает rank_events (тот же расчёт, что в диагностике 11.10.2026: 0,5–1,2 с
 # на 4–19 тыс. кандидатов). Ранжирование в CTE (4.7) не укладывалось в таймаут запроса.
-_EVENTS = """
-SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status,
-       ARRAY(SELECT unnest(tokens) INTERSECT SELECT unnest(%s::text[])) AS matched
-FROM news_archive
-WHERE tokens && %s::text[] AND tokens && %s::text[]
-  AND cardinality(ARRAY(SELECT unnest(tokens) INTERSECT SELECT unnest(%s::text[]))) >= %s
-  AND COALESCE(published_on, captured_at::date) >= %s
-LIMIT %s
-"""
 _FROM_COLLECTIONS = """
 SELECT a.url, a.publisher, a.origin, a.published_on, a.captured_at, a.title, a.summary, a.published_source,
-       a.text_status, max(c.created_at) AS last_seen
+       a.text_status, a.enrich_attempts, max(c.created_at) AS last_seen
 FROM news_archive a
 JOIN documents d ON d.url = a.url
 JOIN collection_documents cd ON cd.document_id = d.document_id
 JOIN collections c ON c.collection_id = cd.collection_id
-WHERE a.text_status = 'slug' AND a.origin = 'wayback'
+WHERE (a.text_status = 'slug' OR (a.text_status = 'retry' AND a.next_retry_at <= now()))
+  AND a.origin IN ('wayback', 'sitemap')
 GROUP BY a.url, a.publisher, a.origin, a.published_on, a.captured_at, a.title, a.summary, a.published_source,
-         a.text_status
+         a.text_status, a.enrich_attempts
 ORDER BY last_seen DESC
 LIMIT %s
 """
@@ -87,10 +79,11 @@ ON CONFLICT (publisher, period) DO UPDATE SET
   status = EXCLUDED.status, rows = news_archive_harvest.rows + EXCLUDED.rows, detail = EXCLUDED.detail,
   resume = EXCLUDED.resume, finished_at = now()
 """
-_TO_ENRICH = """
-SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status
+_DUE = "(text_status = 'slug' OR (text_status = 'retry' AND next_retry_at <= now()))"
+_TO_ENRICH = f"""
+SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status, enrich_attempts
 FROM news_archive
-WHERE text_status = 'slug' AND origin = 'wayback'
+WHERE {_DUE} AND origin IN ('wayback', 'sitemap')
 ORDER BY (tokens && %s::text[]) DESC, COALESCE(published_on, captured_at::date) DESC NULLS LAST
 LIMIT %s
 """
@@ -101,7 +94,9 @@ UPDATE news_archive SET
   text_status = %s,
   published_on = CASE WHEN %s::date IS NOT NULL THEN %s::date ELSE published_on END,
   published_source = CASE WHEN %s::date IS NOT NULL THEN 'page' ELSE published_source END,
-  tokens = ARRAY(SELECT DISTINCT unnest(tokens || %s::text[]))
+  tokens = ARRAY(SELECT DISTINCT unnest(tokens || %s::text[])),
+  enrich_attempts = enrich_attempts + 1,
+  next_retry_at = CASE WHEN %s > 0 THEN now() + make_interval(mins => %s) ELSE NULL END
 WHERE url = %s
 """
 _SAVE_FEED = """
@@ -113,13 +108,6 @@ ON CONFLICT (feed_url) DO UPDATE SET
   last_success = COALESCE(EXCLUDED.last_success, feed_registry.last_success)
 """
 _ACTIVE_FEEDS = "SELECT feed_url FROM feed_registry WHERE status = 'active' ORDER BY feed_url"
-_CORPUS_SEARCH = f"""
-SELECT paper_id, title, abstract, created_on, categories
-FROM corpus_papers
-WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND created_on >= %s
-ORDER BY {_MATCHED} DESC, created_on DESC
-LIMIT %s
-"""
 _ARCHIVE_STATS = """
 SELECT publisher, origin, count(*) AS entries, min(published_on) AS first_on, max(published_on) AS last_on
 FROM news_archive GROUP BY publisher, origin ORDER BY publisher, origin
@@ -129,14 +117,6 @@ INSERT INTO corpus_papers (paper_id, title, abstract, created_on, categories, to
 VALUES (%s, %s, %s, %s, %s::text[], %s::text[])
 ON CONFLICT (paper_id) DO UPDATE SET
   title = EXCLUDED.title, abstract = EXCLUDED.abstract, categories = EXCLUDED.categories, tokens = EXCLUDED.tokens
-"""
-_PAPER_TITLES = f"""
-SELECT title, created_on
-FROM corpus_papers
-WHERE tokens && %s::text[] AND {_MATCHED} >= %s AND created_on >= %s AND created_on < %s
-  AND (%s::text[] IS NULL OR tokens && %s::text[])
-ORDER BY md5(paper_id)
-LIMIT %s
 """
 _HARVEST_STATE = """
 SELECT set_spec, resumption_token, records, kept, status, watermark FROM corpus_harvest WHERE set_spec = %s
@@ -169,9 +149,14 @@ class PostgresNewsArchive:
         return len(rows)
 
     async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[ArchiveEntry]:
-        keys = list(words)
+        keys, groups = list(words), concept_groups(words)
+        count = _count_sql(groups)
+        sql = (f"SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status "
+               f"FROM news_archive WHERE tokens && %s::text[] AND {count} >= %s "
+               f"AND COALESCE(published_on, captured_at::date, %s) >= %s "
+               f"ORDER BY {count} DESC, published_on DESC NULLS LAST, url LIMIT %s")
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_SEARCH, (keys, keys, min_match, since, since, keys, limit))
+            await cur.execute(sql, (keys, *groups, min_match, since, since, *groups, limit))
             rows = await cur.fetchall()
         return [_entry(r) for r in rows]
 
@@ -180,16 +165,23 @@ class PostgresNewsArchive:
                               anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
         # Пул проекта отдаёт строки словарями (ws_common.db: row_factory = dict_row) — только обращение по имени
         # колонки (этап 4.3.1).
-        keys, anchor = list(keywords), (list(anchors) if anchors else None)
+        keys, anchor, groups = list(keywords), (list(anchors) if anchors else None), concept_groups(keywords)
+        sql = (f"SELECT title, published_on FROM news_archive WHERE tokens && %s::text[] AND {_count_sql(groups)} >= %s "
+               f"AND published_on >= %s AND published_on < %s AND (%s::text IS NULL OR origin = %s::text) "
+               f"AND (%s::text[] IS NULL OR tokens && %s::text[]) ORDER BY md5(url) LIMIT %s")
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_TITLES, (keys, keys, min_overlap, start, end, origin, origin, anchor, anchor, limit))
+            await cur.execute(sql, (keys, *groups, min_overlap, start, end, origin, origin, anchor, anchor, limit))
             return [(row["title"], row["published_on"]) for row in await cur.fetchall()]
 
     async def event_candidates(self, vocabulary: Sequence[str], cues: Sequence[str], min_overlap: int, since: date,
                                limit: int) -> list[tuple[ArchiveEntry, tuple[str, ...]]]:
-        words = list(vocabulary)
+        words, groups = list(vocabulary), concept_groups(vocabulary)
+        sql = ("SELECT url, publisher, origin, published_on, captured_at, title, summary, published_source, text_status, "
+               "ARRAY(SELECT unnest(tokens) INTERSECT SELECT unnest(%s::text[])) AS matched FROM news_archive "
+               f"WHERE tokens && %s::text[] AND tokens && %s::text[] AND {_count_sql(groups)} >= %s "
+               "AND COALESCE(published_on, captured_at::date) >= %s LIMIT %s")
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_EVENTS, (words, words, list(cues), words, min_overlap, since, limit))
+            await cur.execute(sql, (words, words, list(cues), *groups, min_overlap, since, limit))
             rows = await cur.fetchall()
         return [(_entry(r), tuple(r["matched"] or ())) for r in rows]
 
@@ -214,15 +206,42 @@ class PostgresNewsArchive:
             return [_entry(r) for r in await cur.fetchall()]
 
     async def save_enrichment(self, url: str, title: str, summary: str, published_on: date | None,
-                              text_status: str, tokens: Sequence[str]) -> None:
+                              text_status: str, tokens: Sequence[str], retry_minutes: int = 0) -> None:
         async with self._pool.connection() as conn, conn.cursor() as cur:
             await cur.execute(_ENRICH, (title[:512], title[:512], summary[:2000], summary[:2000], text_status,
-                                        published_on, published_on, published_on, list(tokens), url))
+                                        published_on, published_on, published_on, list(tokens), retry_minutes,
+                                        retry_minutes, url))
+
+    async def reindex_batch(self, after_url: str, limit: int) -> tuple[list[tuple[str, str, str]], str]:
+        """Этап 5.0 (F23): записи для пересчёта слов по заголовку и тексту (до 1500 символов)."""
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute("SELECT url, title, summary FROM news_archive WHERE url > %s ORDER BY url LIMIT %s",
+                              (after_url, limit))
+            rows = await cur.fetchall()
+        return [(r["url"], r["title"], r["summary"]) for r in rows], (rows[-1]["url"] if rows else "")
+
+    async def add_tokens(self, rows: Sequence[tuple[str, Sequence[str]]]) -> None:
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.executemany("UPDATE news_archive SET tokens = ARRAY(SELECT DISTINCT unnest(tokens || %s::text[])) "
+                                  "WHERE url = %s", [(list(tokens), url) for url, tokens in rows])
 
     async def save_feed(self, feed_url: str, source_id: str, site_url: str, title: str, status: str, entries: int,
                         detail: str) -> None:
         async with self._pool.connection() as conn, conn.cursor() as cur:
             await cur.execute(_SAVE_FEED, (feed_url, source_id, site_url, title[:300], status, entries, detail[:500], status))
+
+    async def last_job_run(self, job: str) -> datetime | None:
+        """Этап 5.0 (N15): момент последнего запуска фоновой задачи."""
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute("SELECT last_run FROM archive_schedule WHERE job = %s", (job,))
+            row = await cur.fetchone()
+        return row["last_run"] if row else None
+
+    async def mark_job_run(self, job: str, status: str, detail: str) -> None:
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.execute("INSERT INTO archive_schedule (job, last_run, last_status, detail) VALUES (%s, now(), %s, %s) "
+                              "ON CONFLICT (job) DO UPDATE SET last_run = now(), last_status = EXCLUDED.last_status, "
+                              "detail = EXCLUDED.detail", (job, status, detail[:500]))
 
     async def active_feeds(self) -> list[str]:
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
@@ -251,9 +270,12 @@ class PostgresCorpus:
 
     async def titles_matching(self, keywords: Sequence[str], min_overlap: int, start: date, end: date,
                               limit: int, anchors: Sequence[str] | None = None) -> list[tuple[str, date | None]]:
-        keys, anchor = list(keywords), (list(anchors) if anchors else None)
+        keys, anchor, groups = list(keywords), (list(anchors) if anchors else None), concept_groups(keywords)
+        sql = (f"SELECT title, created_on FROM corpus_papers WHERE tokens && %s::text[] AND {_count_sql(groups)} >= %s "
+               f"AND created_on >= %s AND created_on < %s AND (%s::text[] IS NULL OR tokens && %s::text[]) "
+               f"ORDER BY md5(paper_id) LIMIT %s")
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_PAPER_TITLES, (keys, keys, min_overlap, start, end, anchor, anchor, limit))
+            await cur.execute(sql, (keys, *groups, min_overlap, start, end, anchor, anchor, limit))
             return [(row["title"], row["created_on"]) for row in await cur.fetchall()]
 
     async def harvest_state(self, set_spec: str) -> CorpusHarvestState | None:
@@ -270,10 +292,27 @@ class PostgresCorpus:
             await cur.execute(_SAVE_HARVEST, (state.set_spec, state.resumption_token, state.records, state.kept,
                                               state.status, detail[:500], state.watermark))
 
-    async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[CorpusPaper]:
-        keys = list(words)
+    async def reindex_batch(self, after_id: str, limit: int) -> tuple[list[tuple[str, str, str]], str]:
+        """Этап 5.0 (F23): работы для пересчёта слов по заголовку и аннотации (до 1500 символов)."""
         async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(_CORPUS_SEARCH, (keys, keys, min_match, since, keys, limit))
+            await cur.execute("SELECT paper_id, title, abstract FROM corpus_papers WHERE paper_id > %s "
+                              "ORDER BY paper_id LIMIT %s", (after_id, limit))
+            rows = await cur.fetchall()
+        return [(r["paper_id"], r["title"], r["abstract"]) for r in rows], (rows[-1]["paper_id"] if rows else "")
+
+    async def set_tokens(self, rows: Sequence[tuple[str, Sequence[str]]]) -> None:
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.executemany("UPDATE corpus_papers SET tokens = %s::text[] WHERE paper_id = %s",
+                                  [(list(tokens), paper_id) for paper_id, tokens in rows])
+
+    async def search(self, words: Sequence[str], since: date, limit: int, min_match: int) -> list[CorpusPaper]:
+        keys, groups = list(words), concept_groups(words)
+        count = _count_sql(groups)
+        sql = (f"SELECT paper_id, title, abstract, created_on, categories FROM corpus_papers "
+               f"WHERE tokens && %s::text[] AND {count} >= %s AND created_on >= %s "
+               f"ORDER BY {count} DESC, created_on DESC LIMIT %s")
+        async with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(sql, (keys, *groups, min_match, since, *groups, limit))
             rows = await cur.fetchall()
         return [CorpusPaper(paper_id=r["paper_id"], title=r["title"], created_on=r["created_on"],
                             abstract=r["abstract"], categories=tuple(r["categories"] or ())) for r in rows]
@@ -287,4 +326,5 @@ class PostgresCorpus:
 def _entry(row: dict[str, Any]) -> ArchiveEntry:
     return ArchiveEntry(url=row["url"], publisher=row["publisher"], origin=row["origin"], title=row["title"],
                         published_on=row["published_on"], captured_at=row["captured_at"], summary=row["summary"],
-                        published_source=row.get("published_source", "unknown"), text_status=row.get("text_status", "slug"))
+                        published_source=row.get("published_source", "unknown"), text_status=row.get("text_status", "slug"),
+                        enrich_attempts=int(row.get("enrich_attempts") or 0))

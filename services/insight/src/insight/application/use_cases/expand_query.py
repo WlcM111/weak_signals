@@ -131,9 +131,9 @@ MARKETING_PREFIXES = ("ai-powered", "ai-driven", "ai-based", "ai-enabled", "inte
 
 _KEY_SPLIT = (" for ", " in ", " on ", " with ", " using ", " via ", " based ", " of ")
 _KEY_WORDS = frozenset({"for", "in", "on", "with", "using", "via", "based", "of", "and", "the"})
-_GENERIC_QUALIFIERS = frozenset("""systems system applications application industry industries business businesses
-enterprises enterprise organizations data operations solutions platforms factories factory production processes
-manufacturing distributed decisions decision operational""".split())
+# Этап 5.0 (F18): отраслевые уточнения — конкретное применение, не общее слово.
+_GENERIC_QUALIFIERS = frozenset("""systems system applications application business businesses enterprises enterprise
+organizations data operations solutions platforms decisions decision""".split())
 
 
 def mature_key(term: str) -> str:

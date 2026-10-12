@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Sequence
 from datetime import date
+from itertools import zip_longest
 from typing import Any
 
 from collector.adapters.outbound.sources.base import PAGE_SIZE, BaseSourceAdapter, parse_datetime
@@ -21,7 +22,7 @@ API_URL = "https://api.openalex.org/works"
 SELECT_FIELDS = "id,doi,title,display_name,abstract_inverted_index,publication_date,cited_by_count,language,primary_location"
 MAX_PAGES = 10
 # Этап 4.7: широкий проход — не больше 8 запросов из бюджета сбора (40), остальное — прицельному поиску.
-MAX_BROAD_QUERIES = 8
+MAX_BROAD_QUERIES = 6  # этап 5.0 (F04): 6 широких + 40 технологий + 14 второго круга = 60 запросов
 # arXiv (Cornell University) как источник в OpenAlex: 3,2 млн работ; найдено запросом
 # /sources?search=arxiv 23.09.2026. Препринты arXiv берутся через OpenAlex, не нагружая API arXiv.
 ARXIV_SOURCE_ID = "S4306400194"
@@ -124,11 +125,11 @@ def _query_plan(terms: SearchTerms, since_year: int) -> list[tuple[str, str]]:
     pairs = terms.pairs()
     english = [term for term, language in pairs if language == "en"]
     other = [term for term, language in pairs if language != "en"]
-    return (
-        [(term, f"primary_location.source.id:{ARXIV_SOURCE_ID},{year}") for term in english]
-        + [(term, year) for term in english]
-        + [(term, year) for term in other]
-    )
+    # Этап 5.0 (F20): запросы чередуются — препринт, вся база, русская фраза, — чтобы срез до MAX_BROAD_QUERIES
+    # не убирал русскую ветку целиком (прежде при 5 EN и 1 RU первые 8 запросов были без RU).
+    groups = ([(term, f"primary_location.source.id:{ARXIV_SOURCE_ID},{year}") for term in english],
+              [(term, year) for term in english], [(term, year) for term in other])
+    return [query for row in zip_longest(*groups) for query in row if query is not None]
 
 
 def _results(payload: Any) -> list[dict[str, Any]]:

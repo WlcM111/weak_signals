@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from psycopg import AsyncConnection
+from psycopg.types.json import Json
 from psycopg_pool import AsyncConnectionPool
 
 from collector.adapters.outbound.postgres.mappers import COLLECTION_COLUMNS, qualify, row_to_collection
@@ -37,7 +38,8 @@ _CLAIM_NEXT = f"""
 WITH candidate AS (
   SELECT collection_id FROM collections
   WHERE status = 'PENDING' AND cancel_requested = false
-  ORDER BY created_at
+  -- этап 5.0 (аудит раунда 3, N08): сборы быстрого замера не задерживают пользовательские
+  ORDER BY (idempotency_key LIKE 'strategy-check:%%' OR idempotency_key LIKE 'strategy-e2e-%%'), created_at
   FOR UPDATE SKIP LOCKED
   LIMIT 1
 )
@@ -97,6 +99,12 @@ class PostgresCollectionRepository:
         """Технологии из корпусов по оценке возникновения (этап 4.3)."""
         async with self._pool.connection() as conn, conn.cursor() as cur:
             await cur.execute(_SAVE_EMERGING, (list(technologies), collection_id))
+
+    async def save_selection_report(self, collection_id: str, report: dict) -> None:
+        """Этап 5.0 (F06, F27): каналы технологий, отброшенные и состояние оценки возникновения."""
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.execute("UPDATE collections SET selection_report = %s WHERE collection_id = %s",
+                              (Json(report), collection_id))
 
     async def save_mined_technologies(self, collection_id: str, technologies: Sequence[str]) -> None:
         """Технологии, извлечённые из документов широкого прохода (этап 4)."""

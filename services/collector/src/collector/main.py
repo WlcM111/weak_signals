@@ -182,6 +182,7 @@ async def serve(settings: CollectorSettings) -> int:
             emerging_quota=settings.collector_emerging_quota,
             mined_quota=settings.collector_mined_quota,
             entity_quota=settings.collector_entity_quota,
+            entity_event_documents=settings.collector_entity_event_documents,
             emergence_min_growth=settings.collector_emergence_min_growth,
             emergence_min_base=settings.collector_emergence_min_base,
         ),
@@ -224,6 +225,20 @@ async def serve(settings: CollectorSettings) -> int:
     ]
     tasks = [asyncio.create_task(worker.run_forever(stop)) for worker in workers]
     tasks.append(asyncio.create_task(MaintenanceWorker(collections, purge).run_forever(stop)))
+    if settings.archive_schedule_enabled:
+        # Этап 5.0 (аудит раунда 3, N15): фоновые загрузки архивов по расписанию внутри сервиса
+        from collector.adapters.outbound.news_archive.scheduler import ArchiveScheduler
+        from collector.tools.archive_jobs import run_job
+
+        async def run_archive_job(job: str) -> str:
+            return await run_job(job, settings, http_client, archive, corpus, clock, report=lambda line: None)
+
+        scheduler = ArchiveScheduler(run_archive_job, {
+            "rss": settings.archive_schedule_rss_hours, "arxiv": settings.archive_schedule_arxiv_hours,
+            "enrich": settings.archive_schedule_enrich_hours, "sitemaps": settings.archive_schedule_sitemaps_hours,
+            "wayback": settings.archive_schedule_wayback_hours, "discover-feeds": settings.archive_schedule_discover_hours,
+        }, archive, clock, log)
+        tasks.append(asyncio.create_task(scheduler.run_forever()))
     log.info("service.started", grpc_port=settings.grpc_port, http_port=settings.http_port,
              openssl=ssl.OPENSSL_VERSION)
 

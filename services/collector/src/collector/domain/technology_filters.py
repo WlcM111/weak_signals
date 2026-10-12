@@ -94,9 +94,10 @@ def is_mature(phrase: str) -> bool:
 
 
 # Уточнения, которые не делают применение зрелого метода конкретным (те же, что в insight.expand_query).
-GENERIC_QUALIFIERS = frozenset("""systems system applications application industry industries business businesses
-enterprises enterprise organizations data operations solutions platforms factories factory production processes
-manufacturing distributed decisions decision operational""".split())
+# Этап 5.0 (аудит round2 F18): отраслевые уточнения (factories, production, manufacturing, distributed, industry…)
+# убраны — «federated learning for distributed factories» (pos-0082) — новое применение, а не зрелый метод.
+GENERIC_QUALIFIERS = frozenset("""systems system applications application business businesses enterprises enterprise
+organizations data operations solutions platforms decisions decision""".split())
 
 
 def is_verbish(words: list[str]) -> bool:

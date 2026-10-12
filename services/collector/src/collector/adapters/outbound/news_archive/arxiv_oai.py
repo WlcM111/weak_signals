@@ -66,7 +66,7 @@ def parse_page(body: str, since_year: int) -> tuple[list[CorpusPaper], int, str 
             continue
         categories = tuple(text_of(meta.find("ax:categories", NS)).split())
         papers.append(CorpusPaper(paper_id=paper_id, title=title, created_on=created_on, abstract=abstract[:1500],
-                                  categories=categories, tokens=tuple(tokens_of(f"{title} {abstract[:300]}"))))
+                                  categories=categories, tokens=tuple(tokens_of(f"{title} {abstract[:1500]}"))))
     token_element = root.find(".//oai:resumptionToken", NS)
     token = (token_element.text or "").strip() if token_element is not None else ""
     return papers, len(records), token or None, False

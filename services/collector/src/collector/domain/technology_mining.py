@@ -136,9 +136,23 @@ def candidate_phrases(title: str) -> set[str]:
                 if phrase in GENERIC_PHRASES or is_mature(phrase):
                     continue
                 found.add(phrase)
-    # Этап 4.7: одиночная аббревиатура больше не кандидат (в 4.6 дали 26 из 150 технологий «llm», «vlm», «rag»…
-    # и «and», «system» из заголовков прописными) — аббревиатура остаётся только внутри словосочетания («mcp server»).
+    # Этап 5.0 (аудит round2 F19): аббревиатура снова кандидат (MCP, OCS, HASEL), но не общая (LLM, RAG, GPU — в
+    # GENERIC_TOKENS) и не из заголовка прописными (патенты: «SYSTEM AND METHOD»). Извлечение требует её повтора в
+    # независимых свидетельствах (MIN_SOURCES), поэтому одиночное упоминание технологией не станет.
+    if not _all_caps(title):
+        for acronym in _ACRONYM_RE.findall(_HN_PREFIX_RE.sub("", title or "")):
+            key = acronym.lower()
+            if key not in GENERIC_TOKENS and key not in STOP and not key.isdigit():
+                found.add(key)
     return found
+
+
+_ACRONYM_RE = re.compile(r"\b[A-Z][A-Z0-9]{1,5}\b")
+
+
+def _all_caps(title: str) -> bool:
+    letters = [ch for ch in title or "" if ch.isalpha()]
+    return len(letters) >= 8 and sum(ch.isupper() for ch in letters) / len(letters) > 0.8
 
 
 def mine_technologies(

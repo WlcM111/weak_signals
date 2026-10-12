@@ -96,7 +96,7 @@ class GdeltAdapter(BaseSourceAdapter):
 
     key = SourceKey.GDELT
     # Этап 4.2: запросы GDELT не менялись; повтор после таймаута — только собственный повтор окна адаптера.
-    policy = SourcePolicy(max_requests=8, transient_retries=0)
+    policy = SourcePolicy(max_requests=8, transient_retries=0, cooldown_seconds=1800.0)  # этап 5.0 (F05)
     raw_meta_keys = frozenset({"domain", "source_country"})
     allowed_hosts = frozenset({"api.gdeltproject.org"})
 

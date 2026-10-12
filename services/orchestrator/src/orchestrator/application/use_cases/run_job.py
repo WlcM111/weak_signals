@@ -24,7 +24,7 @@ from orchestrator.application.ports import (
     NullMetrics,
     ResultRepository,
 )
-from orchestrator.application.stages.analyze import AnalyzeConfig, run_analyze
+from orchestrator.application.stages.analyze import AnalyzeConfig, analysis_timeout, run_analyze
 from orchestrator.application.stages.collect import CollectConfig, run_collect
 from orchestrator.application.stages.expand import Glossary, fallback_expansion, run_expand
 from orchestrator.application.stages.finalize import build_stats, decide_final_status
@@ -184,6 +184,8 @@ class RunJob:
                 ),
             )
             await self._trace(job.job_id, "collect", plain(collection))
+            # Этап 5.0 (N06): счётчики сбора видны сразу, а не только после успешного завершения задания.
+            await self._save_progress(job.job_id, collection, None, expansion, durations)
             await control.check()
 
             await self._jobs.transition(job, JobStatus.ANALYZING, worker_id)
@@ -206,18 +208,20 @@ class RunJob:
                     replace(
                         self._config.analyze,
                         timeout_seconds=deadline.cap(
-                            self._clock.now(), self._config.analyze.timeout_seconds, floor=30,
-                            keep_for_later=NARRATE_MIN_SECONDS,
+                            self._clock.now(), analysis_timeout(self._config.analyze, collection.documents_total),
+                            floor=30, keep_for_later=NARRATE_MIN_SECONDS,
                         ),
                     )
                     if deadline is not None
-                    else self._config.analyze,
+                    else replace(self._config.analyze,
+                                 timeout_seconds=analysis_timeout(self._config.analyze, collection.documents_total)),
                     self._clock,
                     control.check,
                     job.analysis_id,
                     remember_analysis,
                 ),
             )
+            await self._save_progress(job.job_id, collection, analysis, expansion, durations)
             await self._trace(job.job_id, "analyze", plain(analysis) | {"query_text": analysis_query(job.query_text, expansion)})
             await control.check()
 
@@ -295,6 +299,16 @@ class RunJob:
             await self._results.save_trace(job_id, stage, payload)
         except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
             self._log.error("job.trace_failed", job_id=job_id, stage=stage, error=str(error)[:300])
+
+    async def _save_progress(self, job_id: str, collection, analysis, expansion, durations) -> None:  # noqa: ANN001
+        """Промежуточная статистика задания (этап 5.0, N06): сбор и число кандидатов анализа."""
+        try:
+            stats = build_stats(collection, analysis, NarrateOutcome(), expansion, durations)
+            if analysis is not None:
+                stats = replace(stats, candidates_found=int(getattr(analysis, "candidates_scored", 0) or 0))
+            await self._results.set_stats(job_id, stats)
+        except Exception as error:  # noqa: BLE001 — статистика не должна срывать задание
+            self._log.warning("job.progress_save_failed", job_id=job_id, error=str(error)[:200])
 
     async def _timed(self, stage: str, durations: dict[str, int], awaitable):  # noqa: ANN001, ANN202
         """Выполняет стадию с замером длительности."""

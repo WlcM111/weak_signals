@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import inspect
 import asyncio
 import dataclasses
 from datetime import date, timedelta
@@ -124,6 +125,7 @@ class RunCollectionConfig:
     emergence_min_base: int = 300  # этап 4.6 (P18): меньше документов в базовом периоде — рост неизвестен
     # этап 4.7: 400 (было 150) — по диагностике 11.10.2026 экспертные статьи стояли на местах 125, 236, 237, 393
     event_channel_documents: int = 400
+    entity_event_documents: int = 200  # этап 5.0 (F22): события по словам темы без словаря технологий
     event_min_overlap: int = 2
     # этап 4.7.1: страховочный предел кандидатов канала — выше наибольшего числа кандидатов темы (18 858 в диагностике
     # 11.10.2026), чтобы ранжирование по редкости шло по всем кандидатам, а не по произвольной части
@@ -301,6 +303,13 @@ class RunCollection:
         technologies, report = select_by_quota(channels, self._config.max_technologies)
         self._log.info("collection.technologies", collection_id=state.collection.collection_id, total=len(technologies),
                        **report)
+        try:  # этап 5.0 (F06, F27): почему выбраны именно эти технологии — в самой коллекции
+            await self._collections.save_selection_report(state.collection.collection_id, {
+                "channels": report, "emergence": state.emergence_report, "entities": entities[:20],
+                "technologies": list(technologies)})
+        except Exception as exc:  # noqa: BLE001
+            self._log.warning("collection.selection_report_failed", collection_id=state.collection.collection_id,
+                              error=str(exc))
         return tuple(technologies)
 
     async def _targeted_documents(
@@ -310,7 +319,13 @@ class RunCollection:
         if key is SourceKey.NEWS_ARCHIVE and self._archive is not None and self._config.event_channel_documents > 0:
             async for document in self._event_channel(technologies, since, state):
                 yield document
-        async for document in adapter.search_targeted(technologies, self._per_term(key), since, state.deadline):
+        if key in LOCAL_SOURCES and "exclude" in inspect.signature(adapter.search_targeted).parameters:
+            # этап 5.0 (аудит round2 F21): локальный источник пропускает уже собранные адреса и добирает новые
+            search = adapter.search_targeted(technologies, self._per_term(key), since, state.deadline,  # type: ignore[call-arg]
+                                             exclude=frozenset(state.seen_urls))
+        else:
+            search = adapter.search_targeted(technologies, self._per_term(key), since, state.deadline)
+        async for document in search:
             yield document
 
     async def _event_channel(self, technologies: tuple[str, ...], since: date, state: _RunState) -> AsyncIterator[RawDocument]:
@@ -330,6 +345,24 @@ class RunCollection:
                        pool_full=len(candidates) >= self._config.event_pool)
         for entry, matched in selected:
             yield archive_raw_document(entry, " ".join(matched[:3]))
+        if self._config.entity_event_documents <= 0:
+            return
+        # Этап 5.0 (аудит round2 F22): событие с новым именем компании и без слов технологий тоже попадает — по событию и
+        # хотя бы одному ключевому слову темы, свежие первыми; тематическую близость затем проверяет analyzer.
+        taken = {entry.url for entry, _ in selected}
+        keywords = with_variants(topic_keywords((*terms.en, *terms.ru)))
+        try:
+            fresh = await self._archive.event_candidates(  # type: ignore[union-attr]
+                keywords, EVENT_CUES, 1, since, self._config.event_pool)
+        except Exception as exc:  # noqa: BLE001
+            self._log.warning("collection.entity_events_failed", collection_id=state.collection.collection_id, error=str(exc))
+            return
+        fresh = sorted((pair for pair in fresh if pair[0].url not in taken),
+                       key=lambda pair: (pair[0].published_on or (pair[0].captured_at.date() if pair[0].captured_at else date.min)),
+                       reverse=True)[: self._config.entity_event_documents]
+        self._log.info("collection.entity_events", collection_id=state.collection.collection_id, selected=len(fresh))
+        for entry, matched in fresh:
+            yield archive_raw_document(entry, " ".join(matched[:2]) or "событие темы")
 
     async def _emerging(self, state: _RunState) -> list[str]:
         """Оценка возникновения (этапы 4.4–4.5): работы корпуса arXiv и настоящие заголовки RSS, где есть хотя бы 2
@@ -387,6 +420,7 @@ class RunCollection:
         if len(recent) < min_rows:
             self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
                            recent=len(recent), skipped=f"выборка меньше {min_rows}")
+            state.emergence_report[corpus] = {"status": "недостаточно данных", "recent": len(recent), "min_rows": min_rows}
             return []
         base = await fetch(keys, overlap, base_from, recent_from, sample)
         min_recent = max(floor, round(len(recent) * share))
@@ -397,6 +431,8 @@ class RunCollection:
         terms_found = [item.term for item in found if not (boilerplate and is_news_boilerplate(item.term))]
         self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
                        keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent, terms=terms_found)
+        state.emergence_report[corpus] = {"status": "ok" if terms_found else "роста не найдено", "recent": len(recent),
+                                          "base": len(base), "terms": len(terms_found)}
         return terms_found
 
     async def _prepare_runs(self, state: _RunState) -> dict[SourceKey, SourceAdapter]:
@@ -579,6 +615,19 @@ class RunCollection:
             _note(state, source_key, raw, DocumentEvent.REJECTED, detail=str(exc))
             return
         duplicate_of = state.dedup.register_if_new(draft.url_hash, draft.content_hash, draft.doi)
+        if duplicate_of is not None and len(draft.text) > state.text_len.get(draft.url_hash, 10**9) + 50:
+            # Этап 5.0 (аудит round2 F14): тот же адрес с более полным текстом — улучшенная версия, а не дубль:
+            # заменяет первую в партии или обновляется upsert-ом (более длинный текст побеждает), квоту не занимает.
+            state.text_len[draft.url_hash] = len(draft.text)
+            for position, item in enumerate(batch):
+                if item.draft.url_hash == draft.url_hash:
+                    batch[position] = BatchItem(draft=draft, relevance_rank=item.relevance_rank)
+                    break
+            else:
+                batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
+            _note(state, source_key, raw, DocumentEvent.DEDUP, url_hash=draft.url_hash, doi=draft.doi,
+                  detail="улучшенная версия документа")
+            return
         if duplicate_of is not None:
             self._log.debug("dedup.hit", source=source_key.value, url_hash=draft.url_hash[:12])
             _note(state, source_key, raw, DocumentEvent.DEDUP, url_hash=draft.url_hash, doi=draft.doi,
@@ -593,6 +642,8 @@ class RunCollection:
         else:
             state.targeted_titles.append((draft.title, independence_key(source_key, draft.url)))
         state.pending_new.add(draft.url_hash)
+        state.text_len[draft.url_hash] = len(draft.text)
+        state.seen_urls.add(draft.url)
         batch.append(BatchItem(draft=draft, relevance_rank=state.rank))
         _note(state, source_key, raw, DocumentEvent.ACCEPTED, url_hash=draft.url_hash, doi=draft.doi,
               detail=f"relevance_rank={state.rank}")
@@ -739,6 +790,10 @@ class _RunState:
     def __post_init__(self) -> None:
         self.rank = self.documents_total  # продолжение нумерации при повторном запуске
         self.total_cap = self.total_cap or self.collection.limits.max_total_documents
+    # этап 5.0: длина текста принятых документов (F14), их адреса (F21), отчёт оценки возникновения (F06)
+    text_len: dict[str, int] = field(default_factory=dict)
+    seen_urls: set[str] = field(default_factory=set)
+    emergence_report: dict[str, dict] = field(default_factory=dict)
 
 
 def _note(
@@ -819,3 +874,7 @@ def select_by_quota(channels: list[tuple[str, list[str], int]], limit: int) -> t
 
 # Этап 4.7: источники патентов — их заголовки не участвуют в извлечении технологий.
 PATENT_SOURCES = frozenset({SourceKey.ROSPATENT, SourceKey.PATENTSVIEW})
+
+
+# Этап 5.0 (F21): локальные источники, которые умеют пропускать уже собранные адреса.
+LOCAL_SOURCES = frozenset({SourceKey.NEWS_ARCHIVE, SourceKey.CORPUS})

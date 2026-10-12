@@ -59,6 +59,10 @@ class RawDocument:
     citation_count: int | None = None
     engagement_count: int | None = None
     raw_meta: dict[str, Any] = field(default_factory=dict)
+    # Этап 5.0 (аудит round2 F15, раунд 3 N11): качество текста (title|abstract|article|blocked|unknown) и откуда дата
+    # публикации (api|page|rss|sitemap|url|capture|unknown) — типизированные поля, а не произвольный raw_meta.
+    text_quality: str = "unknown"
+    published_source: str = "unknown"
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +87,10 @@ class DocumentDraft:
     citation_count: int | None = None
     engagement_count: int | None = None
     raw_meta: dict[str, Any] = field(default_factory=dict)
+    # Этап 5.0 (аудит round2 F15, раунд 3 N11): качество текста (title|abstract|article|blocked|unknown) и откуда дата
+    # публикации (api|page|rss|sitemap|url|capture|unknown) — типизированные поля, а не произвольный raw_meta.
+    text_quality: str = "unknown"
+    published_source: str = "unknown"
 
     def __post_init__(self) -> None:
         _check_document_invariants(
@@ -114,6 +122,8 @@ class Document:
     doi: str | None = None
     citation_count: int | None = None
     engagement_count: int | None = None
+    text_quality: str = "unknown"
+    published_source: str = "unknown"
 
     def __post_init__(self) -> None:
         if len(self.document_id) != 36:
