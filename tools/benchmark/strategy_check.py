@@ -43,7 +43,7 @@ SECRET_MARKERS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "DSN", "CREDENTIAL")
 WAIT_POLLS, WAIT_SECONDS = 240, 5
 MIN_CONTEXT_WORDS = 2
 HOLDOUT_SHARE = 5  # каждый пятый сигнал (по хэшу row_id) — отложенная проверка (F28)
-E2E_TIMEOUT_SECONDS = 5400
+E2E_TIMEOUT_SECONDS = 7800
 
 
 def normalize(text: str) -> str:

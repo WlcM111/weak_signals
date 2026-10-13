@@ -19,7 +19,7 @@ from ws_common.logging import get_logger
 
 GET_COLLECTION_DEADLINE = 5.0
 STREAM_DEADLINE = 120.0
-ENCYCLOPEDIA_DEADLINE = 20.0
+ENCYCLOPEDIA_DEADLINE = 60.0  # этап 5.0.3: 10 названий по ~2 запроса при 2 запросах в секунду — с запасом
 START_COLLECTION_DEADLINE = 5.0
 STREAM_RESUME_ATTEMPTS = 2
 

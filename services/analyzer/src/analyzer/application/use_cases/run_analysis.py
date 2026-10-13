@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import re
 import hashlib
 import threading
 import time
@@ -77,10 +78,13 @@ from ws_common.logging import get_logger
 
 PASSAGE_PREFIX = "passage: "
 QUERY_PREFIX = "query: "
-MAX_ENCYCLOPEDIA_TITLES = 20
+# Этап 5.0.3: пачка 10 названий (≈20 запросов к Wikipedia при её лимите 2 в секунду) укладывается в срок вызова;
+# пачка 20 не укладывалась в прежние 20 с, и после двух таймаутов проверка зрелости прекращалась для всех кандидатов.
+MAX_ENCYCLOPEDIA_TITLES = 10
 ENCYCLOPEDIA_TITLES_PER_CANDIDATE = 2
 ENCYCLOPEDIA_MIN_WORDS = 2
-MAX_ENCYCLOPEDIA_FAILURES = 2
+MAX_ENCYCLOPEDIA_FAILURES = 3
+_CYRILLIC = re.compile(r"[а-яё]", re.IGNORECASE)
 
 
 # Типы одиночных документов, которые остаются кандидатами при keep_market_singletons (рыночные сигналы).
@@ -542,8 +546,11 @@ class RunAnalysis:
         best: dict[int, EncyclopediaSignal] = {}
         failures = 0
         for language in self._config.encyclopedia_languages:
-            for start in range(0, len(requests), MAX_ENCYCLOPEDIA_TITLES):
-                batch = requests[start : start + MAX_ENCYCLOPEDIA_TITLES]
+            # Этап 5.0.3: название проверяется в Wikipedia на языке своего письма — английское в en, русское в ru.
+            # Прежде каждое название проверялось в обеих: вдвое больше запросов при лимите Wikipedia 2 в секунду.
+            in_language = [item for item in requests if (language == "ru") == bool(_CYRILLIC.search(item[1]))]
+            for start in range(0, len(in_language), MAX_ENCYCLOPEDIA_TITLES):
+                batch = in_language[start : start + MAX_ENCYCLOPEDIA_TITLES]
                 control.check()
                 try:
                     hits = self._collector.check_encyclopedia([title for _, title in batch], language)

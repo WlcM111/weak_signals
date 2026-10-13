@@ -51,7 +51,7 @@
 | WS_COLLECT_TIME_BUDGET_SECONDS | 10–600 | 480 | | бюджет сбора: широкий и прицельный проходы (этап 4.7; было 240 — у всех 13 источников DEADLINE_REACHED); быстрый замер берёт его же |
 | WS_COLLECT_MAX_TOTAL_DOCUMENTS | 1–3000 | 3000 | | лимит документов сбора (этап 5.0.1: было 1450 — лимит заканчивал сбор за ~110 с) |
 | WS_MIN_DOCUMENTS | 1–1000 | 20 | | меньше → FAILED TOO_FEW_DOCUMENTS |
-| WS_ANALYZE_TIMEOUT_SECONDS | 30–7200 | 600 | | ожидание анализа; итог — max(этого, документов × WS_ANALYZE_SECONDS_PER_DOCUMENT) (этап 5.0) |
+| WS_ANALYZE_TIMEOUT_SECONDS | 0–14400 | 0 | | ожидание анализа; 0 — без отдельного лимита, только срок задания (этап 5.0.3); иначе max(этого, документов × WS_ANALYZE_SECONDS_PER_DOCUMENT) |
 | WS_ANALYZE_SECONDS_PER_DOCUMENT | 0–10 | 0.5 | | секунд ожидания анализа на документ коллекции (этап 5.0) |
 | WS_ANALYZER_MAX_CANDIDATES | 5–500 | 150 | | кандидатов analyzer для модели в режиме legacy (этап 5.0; было 40) |
 | WS_INSIGHT_CONCURRENCY | 1–20 | 1 | | параллельных GenerateInsight на задание |

@@ -149,6 +149,7 @@ class EncyclopediaSignalsTest(unittest.TestCase):
 
     def test_one_failed_batch_does_not_cancel_the_rest(self) -> None:
         collector = _Collector(fail_batches=1)
-        views = [_view(index, f"novel method {index}", ()) for index in range(25)]  # две пачки по 20 и 5
+        views = [_view(index, f"novel method {index}", ()) for index in range(25)]  # этап 5.0.3: пачки по 10, 10 и 5
         signals = self._run(collector, views)
-        self.assertEqual(len(signals), 5)  # первая пачка отказала, вторая обработана
+        self.assertEqual(len(signals), 15)  # первая пачка отказала, остальные обработаны
+        self.assertEqual(collector.calls, 3)  # английские названия — только в en (прежде ещё и в ru)

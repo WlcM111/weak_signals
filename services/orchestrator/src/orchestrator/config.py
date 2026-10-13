@@ -47,7 +47,9 @@ class OrchestratorSettings(BaseServiceSettings):
     collect_max_total_documents: int = Field(default=3000, ge=10, le=5000)
     min_documents: int = Field(default=20, ge=1, le=1000)
     # Этап 5.0 (N04): ожидание анализа растёт с числом документов — max(базы, документов × секунды на документ).
-    analyze_timeout_seconds: int = Field(default=600, ge=30, le=7200)
+    # Этап 5.0.3: 0 — отдельного лимита анализа нет, анализ ограничен только сроком задания (за вычетом резерва на
+    # карточки). Фиксированное ожидание (300 → 728 с) обрывало анализ, который шёл и успевал в срок задания.
+    analyze_timeout_seconds: int = Field(default=0, ge=0, le=14400)
     analyze_seconds_per_document: float = Field(default=0.5, ge=0.0, le=10.0)
     # N02: сколько кандидатов запрашивать у analyzer в режиме legacy (в rubric — WS_RUBRIC_POOL).
     analyzer_max_candidates: int = Field(default=150, ge=5, le=500)
@@ -57,7 +59,7 @@ class OrchestratorSettings(BaseServiceSettings):
     job_deadline_enabled: bool = True
     # Сквозной срок одного задания от приёма до сохранённого результата (требование: не более 20 минут).
     # Этап 5.0: срок задания 3600 с — точность и полнота важнее 20 минут на ответ.
-    job_deadline_seconds: int = Field(default=3600, ge=60, le=14400)
+    job_deadline_seconds: int = Field(default=7200, ge=60, le=28800)  # этап 5.0.3: 2 часа на задание
     # Резерв до срока на запись результата и завершение задания.
     job_deadline_reserve_seconds: int = Field(default=120, ge=10, le=900)
     # Смысловая оценка кандидатов моделью перед нарративом и размер оцениваемого пула.

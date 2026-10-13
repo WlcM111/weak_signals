@@ -85,8 +85,13 @@ async def run_analyze(
     return view
 
 
+UNBOUNDED_ANALYSIS_SECONDS = 28800
+
+
 def analysis_timeout(config: AnalyzeConfig, documents_total: int) -> int:
-    """Ожидание анализа с учётом объёма коллекции (этап 5.0, N04)."""
+    """Ожидание анализа (этап 5.0, N04; 5.0.3): 0 — без отдельного лимита, итог задаёт срок задания."""
+    if config.timeout_seconds <= 0:
+        return UNBOUNDED_ANALYSIS_SECONDS
     return max(int(config.timeout_seconds), int(config.per_document_seconds * max(0, documents_total)))
 
 
