@@ -225,13 +225,20 @@ async def serve(settings: CollectorSettings) -> int:
     ]
     tasks = [asyncio.create_task(worker.run_forever(stop)) for worker in workers]
     tasks.append(asyncio.create_task(MaintenanceWorker(collections, purge).run_forever(stop)))
+    closers: list[HttpxClient] = []
     if settings.archive_schedule_enabled:
         # Этап 5.0 (аудит раунда 3, N15): фоновые загрузки архивов по расписанию внутри сервиса
         from collector.adapters.outbound.news_archive.scheduler import ArchiveScheduler
         from collector.tools.archive_jobs import run_job
 
+        # Этап 5.0.4: тот же HTTP-клиент, что у команд archive (ответ до 64 МБ, чтение до 180 с): страницы OAI-PMH и CDX
+        # больше лимитов клиента источников, и расписание падало бы там, где ручная команда работает.
+        archive_http = HttpxClient(contact_email=settings.contact_email, read_timeout_seconds=180,
+                                   max_bytes=max(settings.http_max_bytes, 64 * 1024 * 1024), retries=0)
+        closers.append(archive_http)
+
         async def run_archive_job(job: str) -> str:
-            return await run_job(job, settings, http_client, archive, corpus, clock, report=lambda line: None)
+            return await run_job(job, settings, archive_http, archive, corpus, clock, report=lambda line: None)
 
         scheduler = ArchiveScheduler(run_archive_job, {
             "rss": settings.archive_schedule_rss_hours, "arxiv": settings.archive_schedule_arxiv_hours,
@@ -253,6 +260,8 @@ async def serve(settings: CollectorSettings) -> int:
     await http_client.aclose()
     await arxiv_http_client.aclose()
     await gdelt_http_client.aclose()
+    for client in closers:
+        await client.aclose()
     released = await collections.release_expired_leases()
     log.info("service.stopped", leases_released=released)
     await pool.close()

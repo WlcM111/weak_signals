@@ -297,8 +297,10 @@ def _http_json(method: str, url: str, body: dict | None = None, headers: dict | 
     import urllib.request
 
     data = json.dumps(body).encode("utf-8") if body is not None else None
+    # Этап 5.0.4: API orchestrator требует X-API-Key (UI подставляет его в nginx); прежде замер получал 401.
+    auth = {"X-API-Key": os.environ["WS_API_KEY"]} if os.environ.get("WS_API_KEY") else {}
     request = urllib.request.Request(url, data=data, method=method,
-                                     headers={"Content-Type": "application/json", **(headers or {})})
+                                     headers={"Content-Type": "application/json", **auth, **(headers or {})})
     with urllib.request.urlopen(request, timeout=120) as response:
         return json.loads(response.read().decode("utf-8"))
 
@@ -348,6 +350,18 @@ async def _collection_documents(collection_id: str) -> list[dict]:
     return documents
 
 
+def check_api() -> None:
+    """Этап 5.0.4: до шести многочасовых заданий — проверка, что API принимает ключ из WS_API_KEY."""
+    import urllib.error
+
+    base = os.environ.get("WS_ORCHESTRATOR_URL", "http://orchestrator-api:8080")
+    try:
+        _http_json("GET", f"{base}/api/v1/jobs?limit=1")
+    except urllib.error.HTTPError as error:
+        hint = "нет WS_API_KEY в окружении collector или ключ неверен" if error.code == 401 else "API недоступен"
+        raise SystemExit(f"orchestrator ответил {error.code}: {hint}") from error
+
+
 def run_e2e_topic(index: int, topic: str, run_id: str) -> dict:
     """Этап 5.0 (аудит round2 F02): полное задание через orchestrator — собранные документы, кандидаты
     (показанные и исключённые) и показанные карточки отдельно."""
@@ -355,9 +369,15 @@ def run_e2e_topic(index: int, topic: str, run_id: str) -> dict:
 
     from collector.config import CollectorSettings
 
+    import urllib.error
+
     base = os.environ.get("WS_ORCHESTRATOR_URL", "http://orchestrator-api:8080")
-    accepted = _http_json("POST", f"{base}/api/v1/queries", {"query_text": topic, "top_n": 50},
-                          {"Idempotency-Key": f"strategy-e2e-{run_id}-{index}"})
+    try:
+        accepted = _http_json("POST", f"{base}/api/v1/queries", {"query_text": topic, "top_n": 50},
+                              {"Idempotency-Key": f"strategy-e2e-{run_id}-{index}"})
+    except urllib.error.HTTPError as error:  # этап 5.0.4: отказ API — ошибка измерения темы, а не падение замера
+        return {"topic": topic, "documents": [], "candidates": [], "shown": [],
+                "measurement_error": f"orchestrator ответил {error.code}: {error.read()[:200].decode('utf-8', 'replace')}"}
     job_id, until = accepted["job_id"], time.monotonic() + E2E_TIMEOUT_SECONDS
     while True:
         job = _http_json("GET", f"{base}/api/v1/jobs/{job_id}")
@@ -444,6 +464,8 @@ def main() -> None:
         shift = args.rotate % len(names) if names else 0
         names = names[shift:] + names[:shift]
         run_id, as_of = time.strftime("%Y%m%d-%H%M%S"), datetime.now(UTC).date()
+        if args.e2e:
+            check_api()
         cutoff = None if args.no_cutoff else (args.cutoff or as_of)  # F24: по умолчанию срез = дата замера
         topics = []
         for index, name in enumerate(names):

@@ -300,7 +300,8 @@ class RunAnalysis:
                 relevance_dropped=[documents[index].document_id for index in range(len(documents))
                                    if index not in relevant_set],
                 min_doc_query_sim=self._config.min_doc_query_sim,
-                relevance_floor=round(float(relevance_floor), 6),
+                # этап 5.0.4: -inf (отсева нет) — не число JSON; запись анализа (jsonb) падала бы при сохранении
+                relevance_floor=round(float(relevance_floor), 6) if np.isfinite(relevance_floor) else None,
                 vector_space=self._config.vector_space,
                 query_relevance_mode=self._config.query_relevance_mode,
             )

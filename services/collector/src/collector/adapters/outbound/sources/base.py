@@ -12,7 +12,7 @@ import time
 from collections.abc import AsyncIterator, Mapping, Sequence
 from datetime import UTC, date, datetime, timedelta
 from email.utils import parsedate_to_datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from collector.application.ports import (
     HttpClient,
@@ -22,6 +22,9 @@ from collector.application.ports import (
     HttpTransportError,
     RateLimiter,
 )
+
+if TYPE_CHECKING:
+    from collector.domain.entities import RawDocument
 from collector.application.request_accounting import current_request_accounting
 from collector.application.trace_recording import current_collection_trace
 from collector.domain.source_policy import SourcePolicy
