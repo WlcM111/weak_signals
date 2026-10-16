@@ -53,6 +53,7 @@ def build_classification_config(
         government_domains=tuple(trust_rules.get("government_domains") or ()),
         government_suffixes=tuple(trust_rules.get("government_suffixes") or ()),
         press_release_domains=tuple(trust_rules.get("press_release_domains") or ()),
+        low_quality_domains=tuple(trust_rules.get("low_quality_domains") or ()),
         press_release_title_markers=tuple(
             str(marker).lower() for marker in trust_rules.get("press_release_title_markers") or ()
         ),

@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -61,8 +62,11 @@ def apply_exclusion_rules(
     documents: Sequence[DocumentRef],
     thresholds: RuleThresholds,
     min_evidence_documents: int = 2,
+    titles: Sequence[str] = (),
 ) -> RuleResult | None:
-    """Первое сработавшее правило из восьми либо None, если решение принимает модель.
+    """Первое сработавшее правило либо None, если решение принимает модель.
+
+    Этап 5.1: `titles` — название кандидата и его главные ключевые фразы для правила известной зрелой области.
 
     `min_evidence_documents` обобщает правило 3: при значении по умолчанию 2 оно срабатывает ровно
     на единственном источнике, как в §12.6 ТЗ, но параметр анализа может потребовать больше.
@@ -73,6 +77,7 @@ def apply_exclusion_rules(
         _rule_encyclopedia_mature,
         _rule_market_leaders,
         _rule_maturity_lexicon,
+        _rule_mature_field,
         _rule_marketing_dominant,
         _rule_hype_lexicon,
     ):
@@ -87,7 +92,7 @@ def apply_exclusion_rules(
             if result is not None:
                 return result
             continue
-        result = rule(features, documents, thresholds)
+        result = _rule_mature_field(titles) if rule is _rule_mature_field else rule(features, documents, thresholds)
         if result is not None:
             return result
     return None
@@ -324,3 +329,60 @@ def _number(value: float) -> str:
 def _signed(value: float) -> str:
     """Вклад со знаком."""
     return f"{value:+.2f}"
+
+
+# Этап 5.1 (ревью e2e 5.0.4, проблема 5): известные зрелые области. Название кандидата, которое состоит из такой области
+# и только общих уточнений («AI-Powered Predictive Maintenance», «Industrial Defect Detection», «Robo Advising»),
+# описывает область целиком, а не новую технологию. Конкретное применение («federated learning for distributed
+# factories») — не зрелая область: в уточнении есть специфичное слово. Список взят из 63 зрелых карточек ревью;
+# федеративное обучение в него не входит — его применения в промышленности есть в эталоне (pos-0019, pos-0082).
+MATURE_FIELDS: tuple[tuple[str, ...], ...] = tuple(tuple(phrase.split()) for phrase in (
+    "predictive maintenance", "digital twin", "robo advisor", "robo advising", "robo advice",
+    "retrieval augmented generation", "adversarial attack", "adversarial machine learning", "adversarial robustness",
+    "soft robotic", "soft robot", "secure multi party computation", "multi party computation",
+    "process analytical technology", "rfid", "genetic algorithm", "defect detection", "anomaly detection",
+    "sentiment analysis", "fraud detection", "biometric authentication", "behavioral biometric", "cognitive robotic",
+    "shape memory alloy", "digital assistant", "prompt injection", "cognitive mapping", "production scheduling",
+    "heterogeneous computing", "optical interconnect", "modular data center", "modular datacenter",
+    "предиктивное обслуживание", "цифровой двойник", "робоэдвайзинг",
+))
+_GENERIC_QUALIFIERS = frozenset("""ai artificial intelligence powered driven based enabled assisted ml machine learning deep
+smart intelligent industrial automated automatic advanced real time realtime system framework approach method model
+technique platform application solution for in of with the and on via using to a an new novel modern efficient
+banking bank financial finance manufacturing industry production factory medicine medical healthcare insurance
+wealth management mobile online enterprise iot ии на основе для в с и""".split())
+_TOKEN = re.compile(r"[a-zа-яё0-9]+")
+
+
+def _singular(word: str) -> str:
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")):
+        return word[:-1]
+    return word
+
+
+def mature_field(title: str) -> str | None:
+    """Зрелая область, которую называет заголовок целиком (с общими уточнениями), иначе None."""
+    words = [_singular(word) for word in _TOKEN.findall((title or "").lower().replace("ё", "е"))]
+    for field in MATURE_FIELDS:
+        size = len(field)
+        for start in range(len(words) - size + 1):
+            if tuple(words[start:start + size]) == field:
+                rest = words[:start] + words[start + size:]
+                if all(word in _GENERIC_QUALIFIERS or word.isdigit() for word in rest):
+                    return " ".join(field)
+    return None
+
+
+def _rule_mature_field(titles: Sequence[str]) -> RuleResult | None:
+    """6б. Название кандидата — известная зрелая область без конкретного применения (этап 5.1)."""
+    for title in titles:
+        field = mature_field(title)
+        if field is not None:
+            return RuleResult(
+                Decision.MATURE,
+                DecisionReason.MATURITY_LEXICON,
+                f"«{title[:80]}» — известная зрелая область ({field}) без конкретного нового применения.",
+            )
+    return None

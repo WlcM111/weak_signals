@@ -97,6 +97,7 @@ def item_summary_to_json(item: ResultItem) -> dict[str, Any]:
         "decision_explanation_ru": item.decision_explanation_ru,
         "narrative_status": item.narrative_status.value,
         "source_count": len(item.sources),
+        "evidence_kind": item.evidence_kind,
     }
 
 

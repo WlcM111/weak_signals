@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlsplit
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -244,8 +245,32 @@ class ResultItem:
 
     @property
     def confidence_band(self) -> ConfidenceBand:
-        """Полоса уверенности для интерфейса."""
-        return ConfidenceBand.of(self.score)
+        """Полоса уверенности для интерфейса.
+
+        Этап 5.1 (ревью e2e 5.0.4, проблема 7): при одном независимом источнике — не выше средней: в робототехнике 13
+        из 15 карточек с одним источником были помечены высокой уверенностью.
+        """
+        band = ConfidenceBand.of(self.score)
+        if band is ConfidenceBand.HIGH and self.independent_sources < 2:
+            return ConfidenceBand.MEDIUM
+        return band
+
+    @property
+    def independent_sources(self) -> int:
+        """Число независимых источников — разных сайтов (без www) среди источников карточки."""
+        hosts = {(urlsplit(source.url).hostname or source.url).lower().removeprefix("www.") for source in self.sources}
+        return len(hosts)
+
+    @property
+    def evidence_kind(self) -> str:
+        """Этап 5.1: на чём держится сигнал — market (новость, пресс-релиз, отраслевое СМИ, аналитика), patent (только
+        патенты) или research (научные работы, код). Ранние исследования — тоже слабые сигналы: это пометка, не фильтр."""
+        types = {source.source_type for source in self.sources}
+        if types & MARKET_SOURCE_TYPES:
+            return "market"
+        if types and types <= {"PATENT"}:
+            return "patent"
+        return "research"
 
     @property
     def key_predictors(self) -> tuple[FeatureRow, ...]:
@@ -292,3 +317,8 @@ def check_ranks(items: Sequence[ResultItem]) -> None:
     ranks = sorted(item.rank for item in items)
     if ranks != list(range(1, len(ranks) + 1)):
         raise InvariantViolation(f"ранги снимка должны быть 1..{len(ranks)} без пропусков: {ranks}")
+
+
+# Типы источников, которые показывают событие вне науки (запуск, раунд, пилот, контракт).
+MARKET_SOURCE_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT", "CORPORATE_BLOG",
+                                 "GOVERNMENT"})

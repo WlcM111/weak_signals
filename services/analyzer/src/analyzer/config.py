@@ -45,6 +45,20 @@ class AnalyzerSettings(BaseServiceSettings):
     # (centered). Без этого косинусное сходство e5 сжато к 0,74–0,92 и порог 0,35 давал 1 кластер на 600 документов,
     # а 0,15 — сгустки по 118 и 93 документа. raw — прежнее поведение (тогда порог кластеризации около 0,10).
     vector_space: str = Field(default="centered", pattern="^(centered|raw)$")
+    # Этап 5.1 (ревью e2e 5.0.4, проблема 2): фиксированный порог 0,60 дробил тему — 76–80 % одиночных кластеров.
+    # adaptive: порог = квантиль расстояний до ближайшего соседа в этой коллекции (в границах min..max): примерно
+    # (1 − квантиль) документов остаются одиночными. fixed — прежний WS_CLUSTER_DISTANCE_THRESHOLD.
+    cluster_threshold_mode: str = Field(default="adaptive", pattern="^(adaptive|fixed)$")
+    cluster_nn_quantile: float = Field(default=0.6, ge=0.1, le=0.95)
+    cluster_threshold_min: float = Field(default=0.30, ge=0.05, le=1.5)
+    cluster_threshold_max: float = Field(default=0.85, ge=0.05, le=1.5)
+    # Проблема 1: из 1149–1393 кластеров модель видела 150, отобранных по близости к запросу. Теперь предварительная
+    # оценка модели (без проверки Wikipedia) идёт по всем кластерам, и кандидатами становятся лучшие по ней.
+    preselect_by_model: bool = True
+    # Проблема 3: правило «слабо связан с запросом» — только выбросы: близость ниже медианы на N MAD по всем
+    # кластерам анализа (0 — прежний абсолютный порог WS_MIN_CANDIDATE_QUERY_SIM). Абсолютный 0,88 на шкале e5
+    # (0,77–0,94) помечал 89 % кандидатов, и правила зрелости, стоящие за ним, не срабатывали.
+    candidate_relevance_outlier_mad: float = Field(default=3.0, ge=0.0, le=10.0)
     # Порог правила LOW_QUERY_RELEVANCE для кандидата; 0 — взять значение из rules.json модели.
     # Шкала e5 сжата к 0.8–0.95, поэтому значение модели 0.30 на практике ничего не отсекает.
     min_candidate_query_sim: float = Field(default=0.0, ge=0.0, le=1.0)

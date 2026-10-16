@@ -79,7 +79,7 @@
 | WS_COLLECTOR_HTTP_RETRIES | 0–5 | 3 | | с этапа 4.2 HTTP-клиент источников не повторяет запросы: повторы делает адаптер через лимитер (политика источника, `transient`) |
 | WS_ENCYCLOPEDIA_CACHE_DAYS | 1–90 | 7 | | TTL кеша Wikipedia |
 | WS_DOCUMENT_RETENTION_DAYS | 7–3650 | 90 | | удаление «осиротевших» документов |
-| WS_SOURCE_ENABLED_OVERRIDE | `openalex=true,hh=false,…` | пусто | | переопределение флагов `source_catalog.enabled` без миграции |
+| WS_SOURCE_ENABLED_OVERRIDE | `openalex=true,hh=false,…` | gdelt=false (этап 5.1) | | переопределение флагов `source_catalog.enabled` без миграции |
 | WS_COLLECTOR_TRACE_ENABLED | bool | true | | трасса сбора для режима А: сырые ответы источников без ключей и события документов (`raw_responses`, `document_events`) |
 | WS_GDELT_HISTORY_MONTHS | 3–120 | 24 | | глубина истории новостей GDELT: окна по 90 дней, не раньше `published_since_year` |
 | WS_GDELT_CONNECT_TIMEOUT_SECONDS | 3–60 | 20 | | таймаут соединения с GDELT (остальные источники — 5 с) |
@@ -220,3 +220,15 @@
 | WS_ARCHIVE_SCHEDULE_DISCOVER_HOURS | 0–8760 | 720 | | поиск лент ресурсов реестра |
 | WS_ARCHIVE_SCHEDULE_ENRICH_BATCH | 1–20000 | 500 | | записей за один запуск обогащения |
 | WS_COLLECTOR_ENTITY_EVENT_DOCUMENTS | 0–2000 | 200 | | статьи о событиях по словам темы без словаря технологий |
+
+## Этап 5.1: отбор кандидатов
+
+| Переменная | Диапазон | По умолчанию | Секрет | Назначение |
+| --- | --- | --- | --- | --- |
+| WS_CLUSTER_THRESHOLD_MODE | adaptive/fixed | adaptive | | порог кластеризации: по расстояниям до ближайшего соседа в коллекции или фиксированный WS_CLUSTER_DISTANCE_THRESHOLD |
+| WS_CLUSTER_NN_QUANTILE | 0.1–0.95 | 0.6 | | квантиль расстояний до ближайшего соседа; одиночных кластеров — около (1 − квантиль) |
+| WS_CLUSTER_THRESHOLD_MIN | 0.05–1.5 | 0.30 | | нижняя граница адаптивного порога |
+| WS_CLUSTER_THRESHOLD_MAX | 0.05–1.5 | 0.85 | | верхняя граница адаптивного порога |
+| WS_PRESELECT_BY_MODEL | true/false | true | | предварительная оценка моделью всех кластеров; кандидаты — лучшие по ней |
+| WS_CANDIDATE_RELEVANCE_OUTLIER_MAD | 0–10 | 3.0 | | «слабо связан с запросом» — только близость ниже медианы на N MAD; 0 — абсолютный WS_MIN_CANDIDATE_QUERY_SIM |
+| WS_MIN_CANDIDATE_QUERY_SIM | 0–1 | 0 | | абсолютный порог близости кандидата к запросу; при относительном правиле не используется |

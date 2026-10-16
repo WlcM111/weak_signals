@@ -51,6 +51,9 @@ government_domains: [europa.eu, bis.org, cbr.ru, oecd.org, un.org, imf.org, who.
 government_suffixes: ['.gov', '.gov.ru', '.int', '.gov.uk']
 
 # Пресс-релизы и рекламные публикации.
+# Этап 5.1 (ревью e2e 5.0.4, проблема 8): журналы и форумы, на которых держались карточки-шум; доверенность LOW.
+# Кандидат только на таких источниках не проходит правило независимого доверенного источника.
+low_quality_domains: [wjftcse.org, ijerst.org, eccsubmit.com, jistm.info, erlangforums.com]
 press_release_domains: [prnewswire.com, businesswire.com, globenewswire.com, newswire.ca, interfax.ru/pressreleases]
 press_release_title_markers: ['press release', 'пресс-релиз', 'пресс релиз']
 

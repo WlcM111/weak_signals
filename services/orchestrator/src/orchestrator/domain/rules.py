@@ -31,9 +31,10 @@ def decide_completion(
     Причины собираются в детерминированном порядке и включают только присутствующие части,
     чтобы сообщение можно было разобрать программно и показать в интерфейсе.
     """
+    # Этап 5.1 (ревью e2e 5.0.4, проблема 9): карточек меньше запрошенного — не неполнота результата: слабых сигналов
+    # по теме может быть меньше, чем запрошено; все шесть заданий e2e были PARTIAL только из-за этого и отказа GDELT.
     complete = (
-        items_written >= requested_top_n
-        and narratives_fallback == 0
+        narratives_fallback == 0
         and collection_status == COLLECTION_COMPLETED
         and not failed_adapters
         and not deadline_reached

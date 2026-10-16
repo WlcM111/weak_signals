@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import asyncio
 import csv
 import hashlib
@@ -277,7 +278,8 @@ async def run_topic(index: int, topic: str, run_id: str) -> dict:
 
 def write_outputs(out: Path, prefix: str, result: dict, topics: list[dict], manifest: dict) -> None:
     out.mkdir(parents=True, exist_ok=True)
-    report = {"totals": result["totals"], "topics": [{k: v for k, v in t.items() if k not in ("documents", "candidates", "shown")} | {
+    report = {"totals": result["totals"], "topics": [{k: v for k, v in t.items()
+                                                    if k not in ("documents", "candidates", "shown", "cards", "excluded_rows")} | {
         "documents": len(t.get("documents", [])), "candidates": len(t.get("candidates", [])),
         "shown": len(t.get("shown", []))} for t in topics]}
     (out / f"{prefix}.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -389,10 +391,17 @@ def run_e2e_topic(index: int, topic: str, run_id: str) -> dict:
         time.sleep(15)
     results = (_http_json("GET", f"{base}/api/v1/jobs/{job_id}/results")
                if job["status"] not in ("FAILED", "CANCELLED") else {"items": [], "excluded": []})
-    shown, candidates = [], []
+    shown, candidates, cards = [], [], []
     for item in results.get("items", []):
         item_id = item.get("item_id") or item.get("id")
         detail = _http_json("GET", f"{base}/api/v1/results/items/{item_id}") if item_id else item
+        # Этап 5.1 (ревью e2e 5.0.4, проблема 10): карточка целиком — для ручной разметки и доли слабых сигналов
+        cards.append({"rank": item.get("rank"), "title_ru": item.get("title_ru"), "title_auto": detail.get("title_auto"),
+                      "score": item.get("score"), "confidence_band": item.get("confidence_band"),
+                      "evidence_kind": item.get("evidence_kind"), "predicted_stage": detail.get("predicted_stage"),
+                      "predicted_trend": detail.get("predicted_trend"), "description_ru": detail.get("description_ru"),
+                      "sources": [{"title": s.get("title"), "url": s.get("url"), "source_type": s.get("source_type")}
+                                  for s in detail.get("sources", [])]})
         urls, texts = [], []
         _walk(detail, urls, texts)
         card = {"url": urls[0] if urls else "", "title": " ".join(texts[:2]), "text": " ".join(texts)[:6000],
@@ -409,7 +418,8 @@ def run_e2e_topic(index: int, topic: str, run_id: str) -> dict:
                            (f"{job_id}:collect",)).fetchone()
     documents = asyncio.run(_collection_documents(str(row[0]))) if row else []
     return {"topic": topic, "job_id": job_id, "job_status": job["status"], "error": job.get("error"),
-            "documents": documents, "candidates": _expand_cards(candidates), "shown": _expand_cards(shown)}
+            "documents": documents, "candidates": _expand_cards(candidates), "shown": _expand_cards(shown),
+            "cards": cards, "excluded_rows": results.get("excluded", [])}
 
 
 def _expand_cards(cards: list[dict]) -> list[dict]:
@@ -419,6 +429,48 @@ def _expand_cards(cards: list[dict]) -> list[dict]:
         for url in card.get("urls") or [card["url"]]:
             expanded.append({**{k: v for k, v in card.items() if k != "urls"}, "url": url})
     return expanded
+
+
+WEAK_VERDICTS = frozenset({"слабый сигнал", "ранний"})  # этап 5.1: ранние исследования — тоже слабые сигналы
+
+
+def _title_key(text: str) -> str:
+    return " ".join(normalize(text or "").split())
+
+
+def card_precision(cards: list[dict], verdicts_path: str) -> dict:
+    """Доля слабых сигналов (вердикты «слабый сигнал» и «ранний») среди размеченных карточек, по темам и всего."""
+    marks = {}
+    for row in csv.DictReader(open(verdicts_path, encoding="utf-8-sig")):
+        marks[(row["topic"].strip(), _title_key(row["title_ru"]))] = row["verdict"].strip().lower()
+    by_topic: dict[str, list[int]] = {}
+    for card in cards:
+        verdict = marks.get((card["topic"].strip(), _title_key(card["title_ru"])))
+        counts = by_topic.setdefault(card["topic"], [0, 0, 0])
+        counts[2] += 1
+        if verdict is not None:
+            counts[1] += 1
+            counts[0] += verdict in WEAK_VERDICTS
+    total = [sum(v[i] for v in by_topic.values()) for i in range(3)]
+    share = lambda v: round(v[0] / v[1], 3) if v[1] else None  # noqa: E731
+    return {"weak_share": share(total), "weak": total[0], "labeled": total[1], "cards": total[2],
+            "by_topic": {topic: {"weak_share": share(v), "weak": v[0], "labeled": v[1], "cards": v[2]}
+                         for topic, v in by_topic.items()}}
+
+
+def write_cards(out: Path, prefix: str, topics: list[dict]) -> list[dict]:
+    """Карточки замера: JSONL целиком и CSV с пустым столбцом вердикта для ручной разметки."""
+    cards = [{"topic": topic["topic"], **card} for topic in topics for card in topic.get("cards", [])]
+    with open(out / f"{prefix}_cards.jsonl", "w", encoding="utf-8") as handle:
+        for card in cards:
+            handle.write(json.dumps(card, ensure_ascii=False) + "\n")
+    with open(out / f"{prefix}_cards.csv", "w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["topic", "rank", "title_ru", "evidence_kind", "score", "verdict"])
+        for card in cards:
+            writer.writerow([card["topic"], card["rank"], card["title_ru"], card.get("evidence_kind") or "",
+                             card.get("score"), ""])
+    return cards
 
 
 def main() -> None:
@@ -433,7 +485,15 @@ def main() -> None:
     parser.add_argument("--replay", default=None, help="каталог прошлого замера: пересчёт без сети")
     parser.add_argument("--rescore", action="store_true", help="повтор с другими входами (новый manifest)")
     parser.add_argument("--e2e", action="store_true", help="полные задания через orchestrator: сбор → кандидаты → выдача")
+    parser.add_argument("--verdicts", default=None, help="CSV ручной разметки карточек: topic, rank, title_ru, verdict")
+    parser.add_argument("--score-cards", default=None, help="JSONL карточек прошлого e2e: доля слабых сигналов по --verdicts")
     args = parser.parse_args()
+    if args.score_cards:
+        if not args.verdicts:
+            raise SystemExit("для --score-cards нужен --verdicts")
+        cards = [json.loads(line) for line in open(args.score_cards, encoding="utf-8") if line.strip()]
+        print(json.dumps(card_precision(cards, args.verdicts), ensure_ascii=False, indent=1))
+        return
     import yaml
 
     experts = [r for r in (json.loads(l) for l in open(args.dataset, encoding="utf-8") if l.strip())
@@ -484,7 +544,8 @@ def main() -> None:
             "topic_order": names, "rotate": args.rotate, "limits": collection_limits(), "mode": "e2e" if args.e2e else "collect",
             "inputs": {"tool": sha256(__file__), "dataset": sha256(args.dataset), "synonyms": sha256(args.synonyms)},
             "settings": settings_snapshot(),
-            "topics": [{k: v for k, v in t.items() if k not in ("documents", "candidates", "shown")} for t in topics],
+            "topics": [{k: v for k, v in t.items() if k not in ("documents", "candidates", "shown", "cards", "excluded_rows")}
+                       for t in topics],
         }
         out = Path(args.out)
         out.mkdir(parents=True, exist_ok=True)
@@ -502,6 +563,15 @@ def main() -> None:
             stages[stage] = evaluate(staged, experts, synonyms, None, as_of)["totals"]
         result["totals"]["stages"] = {"collected": {k: result["totals"][k] for k in ("found", "organizer_url")},
                                       **{k: {"found": v["found"], "organizer_url": v["organizer_url"]} for k, v in stages.items()}}
+    if not args.replay and args.e2e:
+        cards = write_cards(Path(args.out), prefix, topics)
+        result["totals"]["cards"] = len(cards)
+        result["totals"]["evidence_kind"] = dict(sorted(Counter(c.get("evidence_kind") or "?" for c in cards).items()))
+        # гипотеза ревью: стадия и тренд почти у всех карточек 2–3 — распределение для проверки
+        result["totals"]["stage_trend"] = {f"{s}/{tr}": n for (s, tr), n in sorted(
+            Counter((c.get("predicted_stage"), c.get("predicted_trend")) for c in cards).items(), key=str)}
+        if args.verdicts:
+            result["totals"]["weak_share"] = card_precision(cards, args.verdicts)
     for topic in topics:
         if not topic.get("measurement_error"):
             print(f"{topic['topic'][:48]:48} | эксперты {topic['found']}/{topic['experts']}", flush=True)
@@ -513,6 +583,10 @@ def main() -> None:
           f"ссылки организаторов в любой теме: {totals['union_organizer_url']}; дата эталона: {totals['eligibility']}; "
           f"документов позже среза: {totals['future_dated_documents']}"
           + (f"; по этапам: {totals['stages']}" if totals.get("stages") else "")
+          + (f"; карточек {totals['cards']}, основания {totals['evidence_kind']}, стадия/тренд {totals['stage_trend']}"
+             if totals.get("cards") is not None else "")
+          + (f"; доля слабых сигналов {totals['weak_share']['weak_share']} ({totals['weak_share']['weak']} из "
+             f"{totals['weak_share']['labeled']} размеченных)" if totals.get("weak_share") else "")
           + (f"; ОШИБКИ ИЗМЕРЕНИЯ: {totals['measurement_errors']}" if totals["measurement_errors"] else ""), flush=True)
 
 

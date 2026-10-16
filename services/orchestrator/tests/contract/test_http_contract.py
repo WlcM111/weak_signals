@@ -245,7 +245,7 @@ class ResultsTest(HandlersHarness):
             set(item),
             {
                 "item_id", "rank", "title_ru", "score", "confidence_band", "key_predictors",
-                "decision_explanation_ru", "narrative_status", "source_count",
+                "decision_explanation_ru", "narrative_status", "source_count", "evidence_kind",
             },
         )
         detail = await self.handlers.get_result_item(item["item_id"], self.request())

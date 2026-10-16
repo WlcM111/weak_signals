@@ -117,6 +117,7 @@ class ResultItemSummarySchema(BaseModel):
     decision_explanation_ru: str
     narrative_status: Literal["GENERATED", "FALLBACK_EXTRACTIVE"]
     source_count: int
+    evidence_kind: Literal["market", "research", "patent"] = "research"  # этап 5.1
 
 
 class ProvenanceSchema(BaseModel):

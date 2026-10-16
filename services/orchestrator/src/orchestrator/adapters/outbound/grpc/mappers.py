@@ -62,10 +62,11 @@ def trust_level(value: int) -> TrustLevel:
 
 def to_collection_view(response: Any) -> CollectionView:
     """`GetCollectionResponse` → состояние коллекции."""
+    # Этап 5.1: источник, отключённый настройкой или без ключа (DISABLED, AUTH_MISSING), — не отказ этого сбора
     failed = tuple(
         source_key_name(run.source_key)
         for run in getattr(response, "adapter_runs", ())
-        if status_name(run.status) == "FAILED"
+        if status_name(run.status) == "FAILED" and getattr(run, "error_code", "") not in CONFIGURATION_CODES
     )
     completed = sum(
         1 for run in getattr(response, "adapter_runs", ()) if status_name(run.status) == "COMPLETED"
@@ -382,3 +383,6 @@ def narrative_view(response: Any, prompt_version: str) -> NarrativeView:
             for summary in response.source_summaries
         },
     )
+
+
+CONFIGURATION_CODES = frozenset({"DISABLED", "AUTH_MISSING"})

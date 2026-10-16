@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
-import type {
-  ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source,
-} from "../api/types";
+import type { EvidenceKind, ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source } from "../api/types";
 import {
   CONFIDENCE_BAND_RU, CONFIDENT_SCORE, DECISION_REASON_RU, DECISION_RU, DIRECTION_RU,
   JOB_STATUS_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_HINT_RU, TRUST_LEVEL_RU,
@@ -202,6 +200,13 @@ export function PredictorChart({ features }: { features: Feature[] }) {
   );
 }
 
+/** Этап 5.1: ранние исследования — тоже слабые сигналы; пометка показывает, на чём держится сигнал. */
+const EVIDENCE_KIND_RU: Record<EvidenceKind, string> = {
+  market: "Рынок и практика",
+  research: "Исследование",
+  patent: "Патент",
+};
+
 function SignalDetail({ item, jobId, total }: { item: ResultItemSummary; jobId: string; total: number }) {
   return (
     <article className="detail">
@@ -221,6 +226,7 @@ function SignalDetail({ item, jobId, total }: { item: ResultItemSummary; jobId: 
             {translate(NARRATIVE_STATUS_RU, item.narrative_status)}
           </span>
           <span className="chip">Источников: {item.source_count}</span>
+          {item.evidence_kind ? <span className="chip">{EVIDENCE_KIND_RU[item.evidence_kind]}</span> : null}
         </div>
       </div>
       <section className="detail__section">
@@ -333,6 +339,7 @@ export function SignalExplorer({ items, jobId, selectedId, onSelect }: {
                   </span>
                   <span>{item.narrative_status === "GENERATED" ? "инсайт сгенерирован" : "инсайт экстрактивный"}</span>
                   <span>источников: {item.source_count}</span>
+                  {item.evidence_kind ? <span>{EVIDENCE_KIND_RU[item.evidence_kind].toLowerCase()}</span> : null}
                 </span>
                 {split ? null : (
                   <span className="signal-row__chevron" aria-hidden="true">

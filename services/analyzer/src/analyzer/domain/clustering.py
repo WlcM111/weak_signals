@@ -209,3 +209,20 @@ def pick_singletons(
     count = min(max(limit, 0), max_candidates // 4)
     ranked = sorted(misc, key=lambda index: (-relevances[index], document_ids[index]))
     return [[index] for index in ranked[:count]]
+
+
+def adaptive_threshold(vectors: np.ndarray, centered: bool, quantile: float, lower: float, upper: float) -> float:
+    """Порог кластеризации для этой коллекции (этап 5.1): квантиль косинусных расстояний до ближайшего соседа.
+
+    При пороге, равном квантилю q, у доли q документов есть сосед ближе порога, поэтому одиночных кластеров —
+    около (1 − q). Границы не дают порогу выйти за разумный диапазон на вырожденных коллекциях.
+    """
+    array = np.asarray(vectors, dtype=np.float32)
+    if array.shape[0] < 3:
+        return float(upper)
+    base = center_rows(array) if centered else array
+    normalized = normalize_rows(np.asarray(base, dtype=np.float32))
+    similarities = normalized @ normalized.T
+    np.fill_diagonal(similarities, -np.inf)
+    nearest = 1.0 - similarities.max(axis=1)
+    return float(np.clip(np.quantile(nearest, quantile), lower, upper))

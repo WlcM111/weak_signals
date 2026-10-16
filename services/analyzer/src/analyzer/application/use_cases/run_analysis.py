@@ -34,6 +34,7 @@ from analyzer.application.ports import (
 )
 from analyzer.application.scoring import build_contributions, merge_feature_values, score_rows
 from analyzer.domain.clustering import (
+    adaptive_threshold,
     centroid,
     cluster_documents,
     near_dup_filter,
@@ -124,6 +125,14 @@ class RunAnalysisConfig:
     # настроек (centered, 3.0, порог 0.60, min_cluster_size 1, near-dup 0.90).
     vector_space: str = "raw"
     relevance_outlier_mad: float = 0.0
+    # Этап 5.1: здесь — прежнее поведение; рабочие значения задаёт main из настроек (adaptive, предотбор моделью,
+    # относительное правило близости к запросу).
+    cluster_threshold_mode: str = "fixed"
+    cluster_nn_quantile: float = 0.6
+    cluster_threshold_min: float = 0.30
+    cluster_threshold_max: float = 0.85
+    preselect_by_model: bool = False
+    candidate_relevance_outlier_mad: float = 0.0
     # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
     keep_market_singletons: bool = False
     # Близость к запросу: mean — к среднему вектору запроса и его расширений (прежнее поведение); max — к ближайшей
@@ -317,12 +326,17 @@ class RunAnalysis:
         control.check()
 
         with self._step("clustering"):
-            clusters = cluster_documents(vectors, self._config.cluster_distance_threshold,
-                                         centered=self._config.vector_space == "centered")
+            centered = self._config.vector_space == "centered"
+            threshold = self._config.cluster_distance_threshold
+            if self._config.cluster_threshold_mode == "adaptive":
+                threshold = adaptive_threshold(vectors, centered, self._config.cluster_nn_quantile,
+                                               self._config.cluster_threshold_min, self._config.cluster_threshold_max)
+            clusters = cluster_documents(vectors, threshold, centered=centered)
             sizes = sorted((len(cluster) for cluster in clusters), reverse=True)
             self._log.info("analysis.clusters", total=len(sizes), largest=sizes[:5],
                            singletons=sum(1 for size in sizes if size == 1), documents=len(documents),
-                           threshold=self._config.cluster_distance_threshold, space=self._config.vector_space)
+                           threshold=round(threshold, 4), mode=self._config.cluster_threshold_mode,
+                           space=self._config.vector_space)
             if self._config.market_notes_separate:
                 clusters = split_market_glue(clusters, documents, vectors, MARKET_SINGLE_TYPES)
             clusters_total = len(clusters)
@@ -332,17 +346,22 @@ class RunAnalysis:
             )
             self._funnel(
                 clusters_total=clusters_total,
-                cluster_distance_threshold=self._config.cluster_distance_threshold,
+                cluster_distance_threshold=round(threshold, 4),
                 small_cluster_documents=[documents[index].document_id for index in misc],
                 clusters_scored=[[documents[index].document_id for index in cluster] for cluster in scored_clusters],
             )
             self._log.info("analysis.funnel", step="clustering",
                            kept=_types([documents[i] for cluster in scored_clusters for i in cluster]),
                            misc=_types([documents[i] for i in misc]))
-            singles = pick_singletons(misc, [float(value) for value in relevances],
-                                      [document.document_id for document in documents],
-                                      self._config.singleton_candidates, analysis.params.max_candidates)
-            scored_clusters = select_top_clusters(
+            preselect = (self._config.preselect_by_model
+                         and len(scored_clusters) + len(misc) > analysis.params.max_candidates)
+            if preselect:
+                # Этап 5.1 (проблема 1): кандидатов выберет модель по предварительной оценке всех кластеров
+                scored_clusters = scored_clusters + [[index] for index in misc]
+            singles = [] if preselect else pick_singletons(
+                misc, [float(value) for value in relevances], [document.document_id for document in documents],
+                self._config.singleton_candidates, analysis.params.max_candidates)
+            scored_clusters = scored_clusters if preselect else select_top_clusters(
                 scored_clusters,
                 [float(value) for value in relevances],
                 analysis.params.max_candidates - len(singles),
@@ -372,6 +391,13 @@ class RunAnalysis:
                 control.check()  # эмбеддинги фраз десятков кластеров на CPU идут дольше аренды
         control.check()
 
+        relevance_values = [view.values.get("emb_sim_query", view.query_relevance) for view in views]
+        if preselect:
+            with self._step("preselect"):
+                views, relevance_values = self._preselect(views, bundle, analysis, documents)
+            self._funnel(clusters_selected=[[d.document_id for d in view.documents] for view in views])
+        control.check()
+
         with self._step("features"):
             signals = self._encyclopedia_signals(views, control)
             now = self._clock.now()
@@ -384,7 +410,7 @@ class RunAnalysis:
         control.check()
 
         with self._step("scoring"):
-            candidates = self._decide(views, bundle, analysis, control)
+            candidates = self._decide(views, bundle, analysis, control, relevance_values)
         control.check()
 
         ranked = rank_weak_signals(candidates)
@@ -639,16 +665,48 @@ class RunAnalysis:
         seed = int(hashlib.sha256(key.encode("utf-8")).hexdigest()[:8], 16)
         return scores[np.random.default_rng(seed).permutation(scores.size)]
 
+    def _preselect(self, views: list[_ClusterView], bundle: ModelBundle, analysis,  # noqa: ANN001
+                   documents: Sequence[DocumentRef]) -> tuple[list[_ClusterView], list[float]]:
+        """Этап 5.1 (проблема 1): предварительная оценка модели по всем кластерам, без проверки Wikipedia (её
+        признаки нулевые у всех, поэтому порядок между кластерами не искажают); кандидаты — лучшие по ней, с
+        резервом под заметки СМИ. Возвращает выбранные представления и близость к запросу всех кластеров."""
+        now = self._clock.now()
+        for view in views:
+            view.values = self._feature_values(view, None, bundle, now)
+        if bundle.feature_schema == "v2":
+            self._add_v2_features(views, analysis.query_text, bundle, now.year)
+        try:
+            scores = score_rows(bundle, [view.values for view in views])[0]
+        except Exception as error:  # noqa: BLE001 - отказ модели завершает анализ кодом MODEL_ERROR
+            raise _ModelFailed(f"модель не смогла оценить кластеры: {error}") from error
+        market = [any(document.source_type in MARKET_SINGLE_TYPES for document in view.documents) for view in views]
+        chosen = select_by_score([float(score) for score in scores], analysis.params.max_candidates, market,
+                                 self._config.market_reserved_candidates)
+        relevance = [view.values.get("emb_sim_query", view.query_relevance) for view in views]
+        self._log.info("analysis.preselect", clusters=len(views), chosen=len(chosen),
+                       best=round(float(max(scores)), 4) if len(scores) else None)
+        return [views[position] for position in chosen], relevance
+
     def _decide(
         self,
         views: Sequence[_ClusterView],
         bundle: ModelBundle,
         analysis,  # noqa: ANN001 - сущность Analysis
         control: _LeaseControl,
+        relevance_values: Sequence[float] | None = None,
     ) -> list[Candidate]:
         """Применяет правила исключения, затем модель, и собирает кандидатов."""
         thresholds = bundle.thresholds
-        if self._config.min_candidate_query_sim > 0.0:
+        floor = relevance_floor([view.values.get("emb_sim_query", view.query_relevance) for view in views]
+                                if relevance_values is None else relevance_values,
+                                self._config.candidate_relevance_outlier_mad)
+        if floor is not None:
+            # Этап 5.1 (проблема 3): «слабо связан с запросом» — только выброс среди кластеров этого анализа
+            thresholds = replace(thresholds, min_query_similarity=floor)
+            if self._config.min_candidate_query_sim > 0.0:
+                self._log.warning("analysis.absolute_query_threshold_ignored",
+                                  configured=self._config.min_candidate_query_sim, relative=round(floor, 4))
+        elif self._config.min_candidate_query_sim > 0.0:
             # Порог релевантности задаётся окружением: он зависит от шкалы эмбеддера, а не от модели.
             thresholds = replace(thresholds, min_query_similarity=self._config.min_candidate_query_sim)
         if self._config.require_high_trust_source:
@@ -659,6 +717,7 @@ class RunAnalysis:
                 view.documents,
                 thresholds,
                 analysis.params.min_evidence_documents,
+                titles=(view.title_auto, *view.keyphrases[:2]),
             )
             for view in views
         }
@@ -968,3 +1027,23 @@ def selection_relevance(vectors: np.ndarray, query_vector: np.ndarray, query_phr
     median = float(np.median(values))
     mad = float(np.median(np.abs(values - median))) * 1.4826
     return values, (median - outlier_mad * mad) if mad > 0 else float("-inf")
+
+
+def select_by_score(scores: Sequence[float], limit: int, market: Sequence[bool], reserved: int) -> list[int]:
+    """Позиции лучших по оценке модели: сначала до `reserved` лучших с заметками СМИ, затем остальные по оценке."""
+    order = sorted(range(len(scores)), key=lambda position: -scores[position])
+    picked = [position for position in order if market[position]][: max(0, min(reserved, limit))]
+    taken = set(picked)
+    picked += [position for position in order if position not in taken][: max(0, limit - len(picked))]
+    return sorted(picked)
+
+
+def relevance_floor(values: Sequence[float], outlier_mad: float) -> float | None:
+    """Этап 5.1 (проблема 3): нижняя граница близости к запросу — медиана − outlier_mad × 1,4826 × MAD; None — без
+    относительного правила."""
+    if outlier_mad <= 0 or len(values) < 5:
+        return None
+    array = np.asarray(values, dtype=np.float64)
+    median = float(np.median(array))
+    mad = float(np.median(np.abs(array - median))) * 1.4826
+    return median - outlier_mad * mad if mad > 0 else None

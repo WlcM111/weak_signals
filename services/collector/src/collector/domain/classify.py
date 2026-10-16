@@ -23,6 +23,8 @@ class ClassificationConfig:
     government_domains: tuple[str, ...] = ()
     government_suffixes: tuple[str, ...] = ()
     press_release_domains: tuple[str, ...] = ()
+    # Этап 5.1 (ревью e2e 5.0.4, проблема 8): журналы и форумы низкого качества — доверенность LOW при любом типе
+    low_quality_domains: tuple[str, ...] = ()
     press_release_title_markers: tuple[str, ...] = ()
     domain_categories: dict[str, SourceType] = field(default_factory=dict)
     # Потолок доверенности документов источника независимо от их типа: препринт с платформы без
@@ -66,6 +68,8 @@ def classify(
     ceiling = config.source_trust_ceiling.get(source_key)
     if ceiling is not None:
         trust = trust.capped_at(ceiling)
+    if any(domain_matches(origin_domain, pattern) for pattern in config.low_quality_domains):
+        trust = trust.capped_at(TrustLevel.LOW)
     if not has_published_at:
         trust = trust.capped_at(NO_DATE_TRUST_CEILING)
     return source_type, trust

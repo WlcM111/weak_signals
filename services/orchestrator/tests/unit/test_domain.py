@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from orchestrator.application.validation import (
@@ -50,6 +51,13 @@ NOW = datetime(2026, 9, 16, 12, 0, tzinfo=UTC)
 def make_job(status: JobStatus = JobStatus.QUEUED, attempt: int = 0) -> Job:
     """Задание в нужном статусе."""
     return Job(job_id=new_id(1), query_id=new_id(2), status=status, attempt=attempt, created_at=NOW)
+
+
+def _source(position: int, url: str, source_type: str = "SCIENTIFIC_PUBLICATION") -> SourceRow:
+    return SourceRow(position=position, document_id=f"00000000-0000-0000-0000-00000000000{position}", title="Источник",
+                     url=url, source_type=source_type, source_key="arxiv", language_code="en",
+                     trust_level=TrustLevel.HIGH, summary_ru="Кратко", summary_kind=list(SummaryKind)[0],
+                     snippet="Фрагмент", similarity=0.9)
 
 
 def make_item(rank: int, candidate_index: int = 1, score: float = 0.9) -> ResultItem:
@@ -205,7 +213,17 @@ class SnapshotInvariantTest(unittest.TestCase):
             make_item(1, score=1.5)
 
     def test_confidence_band(self) -> None:
-        self.assertIs(make_item(1, score=0.9).confidence_band, ConfidenceBand.HIGH)
+        two = replace(make_item(1, score=0.9), sources=(_source(1, "https://arxiv.org/abs/2601.00001"),
+                                                        _source(2, "https://www.techcrunch.com/2026/01/01/x/", "NEWS")))
+        self.assertIs(two.confidence_band, ConfidenceBand.HIGH)
+        # этап 5.1 (проблема 7): один независимый источник — не выше средней уверенности
+        self.assertIs(make_item(1, score=0.9).confidence_band, ConfidenceBand.MEDIUM)
+        one_site = replace(two, sources=(_source(1, "https://arxiv.org/abs/2601.00001"),
+                                         _source(2, "https://arxiv.org/abs/2601.00002")))
+        self.assertIs(one_site.confidence_band, ConfidenceBand.MEDIUM)
+        self.assertEqual((two.evidence_kind, one_site.evidence_kind), ("market", "research"))
+        patent = replace(two, sources=(_source(1, "https://searchplatform.rospatent.gov.ru/x", "PATENT"),))
+        self.assertEqual(patent.evidence_kind, "patent")
         self.assertIs(make_item(1, score=0.6).confidence_band, ConfidenceBand.MEDIUM)
         self.assertIs(make_item(1, score=0.2).confidence_band, ConfidenceBand.LOW)
 
@@ -257,10 +275,13 @@ class CompletionTest(unittest.TestCase):
         self.assertIs(result.status, JobStatus.COMPLETED)
         self.assertEqual(result.error_message, "")
 
-    def test_partial_when_not_enough_items(self) -> None:
+    def test_fewer_items_than_requested_is_complete(self) -> None:
+        # этап 5.1 (ревью e2e 5.0.4, проблема 9): слабых сигналов может быть меньше запрошенного — это не неполнота
         result = decide_completion(9, 15, 0, "COMPLETED")
-        self.assertIs(result.status, JobStatus.PARTIAL)
-        self.assertIn("found=9<15", result.error_message)
+        self.assertIs(result.status, JobStatus.COMPLETED)
+        partial = decide_completion(9, 15, 1, "COMPLETED")
+        self.assertIs(partial.status, JobStatus.PARTIAL)
+        self.assertIn("found=9<15", partial.error_message)
 
     def test_partial_on_fallback_narratives(self) -> None:
         result = decide_completion(15, 15, 2, "COMPLETED")
@@ -272,7 +293,7 @@ class CompletionTest(unittest.TestCase):
         self.assertIn("collection=PARTIAL", result.error_message)
 
     def test_message_starts_with_prefix(self) -> None:
-        self.assertTrue(decide_completion(1, 15, 0, "COMPLETED").error_message.startswith("PARTIAL:"))
+        self.assertTrue(decide_completion(1, 15, 1, "COMPLETED").error_message.startswith("PARTIAL:"))
 
 
 class ValidationTest(unittest.TestCase):

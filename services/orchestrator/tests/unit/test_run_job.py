@@ -140,12 +140,12 @@ class PartialPathTest(RunJobHarness):
         self.assertIs(status, JobStatus.PARTIAL)
         self.assertIn("fallback_narratives=2", stored.error_message)
 
-    async def test_partial_when_fewer_items_than_requested(self) -> None:
+    async def test_completed_when_fewer_items_than_requested(self) -> None:
+        # этап 5.1 (ревью e2e 5.0.4, проблема 9): карточек меньше запрошенного при полном прохождении — COMPLETED
         run_job, job, query = self.build(top_n=10)
         stored = await self.jobs.insert(query, job, "key-0003:submit", "hash", self.clock.now())
         status = await run_job.execute(stored, "worker-1")
-        self.assertIs(status, JobStatus.PARTIAL)
-        self.assertIn("found=2<10", stored.error_message)
+        self.assertIs(status, JobStatus.COMPLETED)
 
 
 class FailurePathTest(RunJobHarness):

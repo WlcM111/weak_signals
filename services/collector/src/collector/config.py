@@ -105,7 +105,9 @@ class CollectorSettings(BaseServiceSettings):
     collector_source_policy: str = ""
     encyclopedia_cache_days: int = Field(default=7, ge=1, le=90)
     document_retention_days: int = Field(default=90, ge=7, le=3650)
-    source_enabled_override: str = ""
+    # Этап 5.1 (ревью e2e 5.0.4, проблема 9): GDELT отвечал 429 во всех сборах и делал каждое задание PARTIAL —
+    # выключен по умолчанию до настройки маршрута; включить: WS_SOURCE_ENABLED_OVERRIDE=gdelt=true.
+    source_enabled_override: str = "gdelt=false"
     grpc_max_concurrent_rpcs: int = Field(default=64, ge=1, le=512)
 
     migrations_dir: Path = SERVICE_ROOT / "migrations"

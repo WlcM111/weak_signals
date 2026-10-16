@@ -81,7 +81,11 @@ export interface ResultItemSummary {
   decision_explanation_ru: string;
   narrative_status: NarrativeStatus;
   source_count: number;
+  /** Этап 5.1: на чём держится сигнал — рынок (новости, пресс-релизы, отраслевые СМИ), исследование или патент. */
+  evidence_kind?: EvidenceKind;
 }
+
+export type EvidenceKind = "market" | "research" | "patent";
 
 export interface Provenance {
   llm_provider: string;

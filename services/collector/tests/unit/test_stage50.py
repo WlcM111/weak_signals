@@ -163,3 +163,19 @@ class Stage501Test(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Stage51CollectorTest(unittest.TestCase):
+    def test_low_quality_domains_are_low_trust_and_gdelt_override_parses(self) -> None:
+        from collector.config_parsing import parse_source_override
+        from collector.domain.classify import ClassificationConfig, classify
+        from collector.domain.values import SourceKey, SourceType, TrustLevel
+
+        config = ClassificationConfig(
+            source_defaults={SourceKey.CROSSREF: (SourceType.SCIENTIFIC_PUBLICATION, TrustLevel.HIGH)},
+            type_trust={SourceType.SCIENTIFIC_PUBLICATION: TrustLevel.HIGH}, low_quality_domains=("wjftcse.org",))
+        _, trust = classify(config, SourceKey.CROSSREF, "wjftcse.org", "Self-reconfiguring robots", has_published_at=True)
+        self.assertIs(trust, TrustLevel.LOW)
+        _, normal = classify(config, SourceKey.CROSSREF, "nature.com", "Robots", has_published_at=True)
+        self.assertIs(normal, TrustLevel.HIGH)
+        self.assertEqual(parse_source_override("gdelt=false"), {SourceKey.GDELT: False})
