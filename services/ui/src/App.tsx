@@ -1,12 +1,13 @@
 /** Корневой компонент: оболочка приложения, навигация, баннер доступности API, маршруты. */
 
 import { useEffect, useState } from "react";
-import type { ComponentType } from "react";
+import type { ComponentType, MouseEvent } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { api } from "./api/client";
 import { Banner } from "./components/ui";
 import { Logo } from "./components/Logo";
-import { IconBook, IconModel, IconSearch, IconSignal } from "./components/icons";
+import { IconBook, IconModel, IconPause, IconPlay, IconSearch, IconSignal } from "./components/icons";
+import { useMotionPause } from "./lib/motion";
 import { cssVars } from "./lib/style";
 import WelcomePage from "./pages/WelcomePage";
 import QueryPage from "./pages/QueryPage";
@@ -29,10 +30,17 @@ function activeIndex(pathname: string): number {
   return NAV.findIndex((entry) => entry.prefixes.some((prefix) => pathname.startsWith(prefix)));
 }
 
+/** «К содержанию»: фокус в main без смены адреса. */
+function skipToMain(event: MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault();
+  document.getElementById("main")?.focus();
+}
+
 export default function App() {
   const [apiReady, setApiReady] = useState(true);
   const location = useLocation();
   const current = activeIndex(location.pathname);
+  const [motionPaused, toggleMotion] = useMotionPause();
 
   useEffect(() => {
     let active = true;
@@ -54,6 +62,9 @@ export default function App() {
 
   return (
     <div className="app">
+      <a className="skip-link" href="#main" onClick={skipToMain}>
+        К содержанию
+      </a>
       <header className="chrome">
         <Link className="brand" to="/" aria-label="Слабые сигналы — на главную">
           <span className="brand__mark">
@@ -80,18 +91,34 @@ export default function App() {
           ))}
         </nav>
 
-        <div className={`api-state ${apiReady ? "api-state--ok" : "api-state--down"}`} role="status">
-          <span className="api-state__dot" aria-hidden="true" />
-          <span className="api-state__text">{apiReady ? "API на связи" : "API недоступен"}</span>
+        <div className="chrome__tools">
+          <div className={`api-state ${apiReady ? "api-state--ok" : "api-state--down"}`} role="status">
+            <span className="api-state__dot" aria-hidden="true" />
+            <span className="api-state__text">{apiReady ? "API на связи" : "API недоступен"}</span>
+          </div>
+          <button
+            type="button"
+            className="motion-toggle"
+            aria-pressed={motionPaused}
+            title={motionPaused ? "Включить анимацию" : "Остановить анимацию"}
+            onClick={toggleMotion}
+          >
+            {motionPaused ? <IconPlay size={16} /> : <IconPause size={16} />}
+            <span className="motion-toggle__text">Пауза анимации</span>
+          </button>
         </div>
       </header>
 
-      <main className="main" id="main">
+      <main className="main" id="main" tabIndex={-1}>
         {!apiReady ? (
           <div className="main__banner">
             <Banner kind="error" title="API недоступен">
-              Сервис orchestrator-api не отвечает. Проверьте, что контейнеры запущены
-              (<code>docker compose ps</code>). Страница продолжит проверять доступность каждые 5 секунд.
+              Поиск и результаты временно не работают. Связь проверяется автоматически каждые 5 секунд —
+              обновлять страницу не нужно.
+              <span className="banner__tech">
+                Для администратора: не отвечает сервис orchestrator-api, проверьте контейнеры командой{" "}
+                <code>docker compose ps</code>.
+              </span>
             </Banner>
           </div>
         ) : null}

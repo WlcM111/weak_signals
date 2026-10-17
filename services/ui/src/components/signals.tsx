@@ -1,14 +1,16 @@
 /** Компоненты выдачи: ход задания, сводка, обозреватель сигналов, исключённые, признаки, источники. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
-import type { EvidenceKind, ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source } from "../api/types";
+import type {
+  Decision, EvidenceKind, ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source,
+} from "../api/types";
 import {
   CONFIDENCE_BAND_RU, CONFIDENT_SCORE, DECISION_REASON_RU, DECISION_RU, DIRECTION_RU,
   JOB_STATUS_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_HINT_RU, TRUST_LEVEL_RU,
   confidenceChipClass, formatDate, formatNumber, isSafeLink, jobProgressShare, linkHost,
-  narrativeChipClass, percent, summaryMark, translate, trustChipClass,
+  narrativeChipClass, percent, splitTitle, summaryMark, translate, trustChipClass,
 } from "../lib/format";
 import { cssVars } from "../lib/style";
 import { rootFontSize, useSize } from "../lib/useSize";
@@ -17,15 +19,42 @@ import { Progress, ScoreDial, Stat } from "./ui";
 
 const SPLIT_MIN_REM = 40;
 
+/** Пояснение шкалы индекса уверенности. */
+export const SCORE_HINT =
+  "Индекс уверенности — шкала признанных сигналов; 75 % и выше — высокая уверенность. Подробнее — в «Методологии».";
+
 function signed(value: number, digits = 2): string {
   const text = Math.abs(value).toFixed(digits).replace(".", ",");
-  return value < 0 ? `\u2212${text}` : `+${text}`;
+  return value < 0 ? `−${text}` : `+${text}`;
 }
 
 function toneOf(direction: string): "signal" | "mature" | "neutral" {
   if (direction === "supports_weak_signal") return "signal";
   if (direction === "supports_mature") return "mature";
   return "neutral";
+}
+
+/** lang для нерусского текста. */
+export function langOf(code?: string | null): string | undefined {
+  return code && code !== "ru" ? code : undefined;
+}
+
+/** lang для латинского названия без кода языка. */
+export function nameLang(text: string): string | undefined {
+  return /[A-Za-z]/.test(text) && !/[А-Яа-яЁё]/.test(text) ? "en" : undefined;
+}
+
+/** Короткая подпись признака; полная — в подсказке. */
+export function readableFeature(feature: Feature): { label: string; hint: string } {
+  if (feature.feature_name.startsWith("sc_")) {
+    const stem = feature.feature_name.slice(3);
+    return { label: `«${stem}…»`, hint: `Основа слова в профиле технологии (${feature.feature_name})` };
+  }
+  const short = feature.label_ru
+    .replace(/\s*\([^()]*\)\s*$/u, "")
+    .replace(/:\s*\d\s*—.*$/u, "")
+    .trim();
+  return { label: short || feature.label_ru, hint: feature.label_ru };
 }
 
 /* ---------- ход задания ---------- */
@@ -65,7 +94,7 @@ function ScoreSpectrum({ items, activeId, onPick }: {
   const threshold = `${CONFIDENT_SCORE * 100}%`;
   return (
     <figure className="spectrum">
-      <figcaption className="spectrum__caption">Оценки модели по рангу</figcaption>
+      <figcaption className="spectrum__caption">Индекс уверенности по рангу</figcaption>
       <div className="spectrum__plot" style={cssVars({ "--threshold": threshold })}>
         <span className="spectrum__line" aria-hidden="true">
           <span className="spectrum__line-label">75 %</span>
@@ -109,7 +138,7 @@ export function StatsRow({ stats, items = [], activeId, onShowExcluded, onPick }
         <Stat
           label="Кандидатов на слабый сигнал"
           value={formatNumber(stats.candidates_found)}
-          hint={`Из них признаны слабыми сигналами: ${formatNumber(stats.weak_signals_total)}`}
+          hint={`признаны: ${formatNumber(stats.weak_signals_total)}, в выдаче после проверки: ${formatNumber(items.length)}`}
           action={
             onShowExcluded ? (
               <button type="button" className="link-button" onClick={onShowExcluded}>
@@ -121,8 +150,8 @@ export function StatsRow({ stats, items = [], activeId, onShowExcluded, onPick }
         />
         <Stat
           label="Обработано источников"
-          value={formatNumber(stats.http_requests_total)}
-          hint={`запросов к ${formatNumber(stats.sources_processed)} источникам, документов: ${formatNumber(stats.documents_collected)}`}
+          value={formatNumber(stats.sources_processed)}
+          hint={`${formatNumber(stats.http_requests_total)} запросов, ${formatNumber(stats.documents_collected)} документов`}
         />
         <Stat
           label="Уверенность модели выше 75 %"
@@ -170,24 +199,28 @@ export function PredictorChart({ features }: { features: Feature[] }) {
   return (
     <div className="predictors">
       <ul className="predictors__list">
-        {features.map((feature) => (
-          <li
-            key={feature.feature_name}
-            className={`predictor predictor--${toneOf(feature.direction)} ${
-              feature.contribution < 0 ? "predictor--minus" : "predictor--plus"
-            }`}
-            style={cssVars({ "--share": (Math.abs(feature.contribution) / scale).toFixed(3) })}
-          >
-            <span className="predictor__label">{feature.label_ru}</span>
-            <span className="predictor__track" aria-hidden="true">
-              <span className="predictor__bar" />
-            </span>
-            <span className="predictor__value">
-              {signed(feature.contribution)}
-              <span className="visually-hidden">, {translate(DIRECTION_RU, feature.direction)}</span>
-            </span>
-          </li>
-        ))}
+        {features.map((feature) => {
+          const text = readableFeature(feature);
+          return (
+            <li
+              key={feature.feature_name}
+              className={`predictor predictor--${toneOf(feature.direction)} ${
+                feature.contribution < 0 ? "predictor--minus" : "predictor--plus"
+              }`}
+              style={cssVars({ "--share": (Math.abs(feature.contribution) / scale).toFixed(3) })}
+              title={text.hint}
+            >
+              <span className="predictor__label">{text.label}</span>
+              <span className="predictor__track" aria-hidden="true">
+                <span className="predictor__bar" />
+              </span>
+              <span className="predictor__value">
+                {signed(feature.contribution)}
+                <span className="visually-hidden">, {translate(DIRECTION_RU, feature.direction)}</span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <ul className="legend" aria-hidden="true">
         {directions.map((direction) => (
@@ -208,23 +241,33 @@ const EVIDENCE_KIND_RU: Record<EvidenceKind, string> = {
 };
 
 function SignalDetail({ item, jobId, total }: { item: ResultItemSummary; jobId: string; total: number }) {
+  const [title, original] = splitTitle(item.title_ru);
   return (
     <article className="detail">
       <header className="detail__head">
-        <span className="detail__rank">
-          Ранг {item.rank} из {total}
-        </span>
-        <h2 className="detail__title">{item.title_ru}</h2>
+        <div className="detail__heading">
+          <span className="detail__rank">
+            Ранг {item.rank} из {total}
+          </span>
+          <h2 className="detail__title">{title}</h2>
+          {original ? <span className="detail__orig" lang="en">{original}</span> : null}
+        </div>
+        <Link className="btn btn--primary detail__cta" to={`/insight/${item.item_id}?job=${jobId}`}>
+          Открыть инсайт
+          <IconArrowRight size={18} />
+        </Link>
       </header>
       <div className="detail__score">
-        <ScoreDial value={item.score} />
+        <ScoreDial value={item.score} caption="индекс уверенности" hint={SCORE_HINT} />
         <div className="detail__chips">
           <span className={confidenceChipClass(item.confidence_band)}>
             {translate(CONFIDENCE_BAND_RU, item.confidence_band)}
           </span>
-          <span className={narrativeChipClass(item.narrative_status)}>
-            {translate(NARRATIVE_STATUS_RU, item.narrative_status)}
-          </span>
+          {item.narrative_status === "GENERATED" ? null : (
+            <span className={narrativeChipClass(item.narrative_status)}>
+              {translate(NARRATIVE_STATUS_RU, item.narrative_status)}
+            </span>
+          )}
           <span className="chip">Источников: {item.source_count}</span>
           {item.evidence_kind ? <span className="chip">{EVIDENCE_KIND_RU[item.evidence_kind]}</span> : null}
         </div>
@@ -237,12 +280,6 @@ function SignalDetail({ item, jobId, total }: { item: ResultItemSummary; jobId: 
         <h3 className="detail__label">Объяснение решения</h3>
         <p className="detail__text">{item.decision_explanation_ru}</p>
       </section>
-      <div className="detail__actions">
-        <Link className="btn btn--primary" to={`/insight/${item.item_id}?job=${jobId}`}>
-          Открыть инсайт
-          <IconArrowRight size={18} />
-        </Link>
-      </div>
     </article>
   );
 }
@@ -315,6 +352,7 @@ export function SignalExplorer({ items, jobId, selectedId, onSelect }: {
         {items.map((item) => {
           const active = item.item_id === selected.item_id;
           const expanded = !split && active && open;
+          const [title, original] = splitTitle(item.title_ru);
           return (
             <li key={item.item_id} className={`explorer__entry ${expanded ? "explorer__entry--open" : ""}`}>
               <button
@@ -330,14 +368,17 @@ export function SignalExplorer({ items, jobId, selectedId, onSelect }: {
                 onClick={() => choose(item.item_id, false)}
               >
                 <span className="signal-row__rank">{item.rank}</span>
-                <span className="signal-row__title">{item.title_ru}</span>
+                <span className="signal-row__title">{title}</span>
+                {original ? <span className="signal-row__orig" lang="en">{original}</span> : null}
                 <span className="signal-row__score">{percent(item.score)}</span>
                 <ScoreBar score={item.score} />
                 <span className="signal-row__meta">
                   <span className={`signal-row__band signal-row__band--${item.confidence_band.toLowerCase()}`}>
                     {translate(CONFIDENCE_BAND_RU, item.confidence_band)}
                   </span>
-                  <span>{item.narrative_status === "GENERATED" ? "инсайт сгенерирован" : "инсайт экстрактивный"}</span>
+                  {item.narrative_status === "GENERATED" ? null : (
+                    <span className="signal-row__flag">инсайт экстрактивный</span>
+                  )}
                   <span>источников: {item.source_count}</span>
                   {item.evidence_kind ? <span>{EVIDENCE_KIND_RU[item.evidence_kind].toLowerCase()}</span> : null}
                 </span>
@@ -367,49 +408,88 @@ export function SignalExplorer({ items, jobId, selectedId, onSelect }: {
 
 /* ---------- исключённые кандидаты ---------- */
 
+const DECISION_ORDER: Decision[] = ["OFF_TOPIC", "MATURE", "HYPE_OR_NOISE", "INSUFFICIENT_EVIDENCE"];
+
+/** Исключённые: фильтр по решению и список. */
 export function ExcludedPanel({ excluded }: { excluded: ExcludedCandidate[] }) {
+  const counts = useMemo(() => {
+    const byDecision = new Map<string, number>();
+    excluded.forEach((candidate) => byDecision.set(candidate.decision, (byDecision.get(candidate.decision) ?? 0) + 1));
+    return [...byDecision.entries()].sort(
+      ([a], [b]) => DECISION_ORDER.indexOf(a as Decision) - DECISION_ORDER.indexOf(b as Decision),
+    );
+  }, [excluded]);
+  const [filter, setFilter] = useState<string>("ALL");
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  if (excluded.length === 0) {
+    return (
+      <div className="excluded">
+        <p className="note">Ни один кандидат не был исключён.</p>
+      </div>
+    );
+  }
+  const shown = filter === "ALL" ? excluded : excluded.filter((candidate) => candidate.decision === filter);
+
   return (
     <div className="excluded">
       <p className="excluded__intro">
-        Технологии, которые не попали в выдачу: зрелые решения со сформированным рынком,
-        маркетинговый хайп, информационный шум и кандидаты не по теме запроса.
+        Кандидаты, которые не попали в выдачу: зрелые решения, хайп, шум и темы не по запросу. Нажмите на
+        строку, чтобы прочитать объяснение.
       </p>
-      {excluded.length === 0 ? (
-        <p className="note">Ни один кандидат не был исключён.</p>
-      ) : (
-        <div className="table-scroll">
-          <table className="xtable">
-            <thead>
-              <tr>
-                <th>Технология</th>
-                <th>Решение</th>
-                <th>Причина</th>
-                <th className="num">Скоринг</th>
-                <th className="num">Документов</th>
-                <th>Объяснение</th>
-              </tr>
-            </thead>
-            <tbody>
-              {excluded.map((candidate) => (
-                <tr key={candidate.candidate_id}>
-                  <td className="xtable__name" data-label="Технология">{candidate.title_auto}</td>
-                  <td data-label="Решение">
-                    <span className={`verdict verdict--${candidate.decision.toLowerCase()}`}>
-                      {translate(DECISION_RU, candidate.decision)}
-                    </span>
-                  </td>
-                  <td className="xtable__reason" data-label="Причина">
-                    {translate(DECISION_REASON_RU, candidate.decision_reason)}
-                  </td>
-                  <td className="num" data-label="Скоринг">{percent(candidate.score)}</td>
-                  <td className="num" data-label="Документов">{candidate.document_count}</td>
-                  <td className="xtable__why" data-label="Объяснение">{candidate.decision_explanation_ru}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="excluded__filters" role="group" aria-label="Фильтр по решению">
+        <button
+          type="button"
+          className={`fchip ${filter === "ALL" ? "fchip--on" : ""}`}
+          aria-pressed={filter === "ALL"}
+          onClick={() => setFilter("ALL")}
+        >
+          Все <span className="fchip__count">{excluded.length}</span>
+        </button>
+        {counts.map(([decision, count]) => (
+          <button
+            key={decision}
+            type="button"
+            className={`fchip ${filter === decision ? "fchip--on" : ""}`}
+            aria-pressed={filter === decision}
+            onClick={() => setFilter(decision)}
+          >
+            {translate(DECISION_RU, decision)} <span className="fchip__count">{count}</span>
+          </button>
+        ))}
+      </div>
+      <ul className="xlist">
+        {shown.map((candidate) => {
+          const open = openId === candidate.candidate_id;
+          return (
+            <li key={candidate.candidate_id} className={`xlist__item ${open ? "xlist__item--open" : ""}`}>
+              <button
+                type="button"
+                className="xlist__row"
+                aria-expanded={open}
+                onClick={() => setOpenId(open ? null : candidate.candidate_id)}
+              >
+                <span className="xlist__name" lang={nameLang(candidate.title_auto)}>
+                  {candidate.title_auto}
+                </span>
+                <span className={`verdict verdict--${candidate.decision.toLowerCase()}`}>
+                  {translate(DECISION_RU, candidate.decision)}
+                </span>
+                <span className="xlist__reason">{translate(DECISION_REASON_RU, candidate.decision_reason)}</span>
+                <span className="xlist__score">
+                  <span className="visually-hidden">Скоринг: </span>
+                  {percent(candidate.score)}
+                </span>
+                <span className="xlist__docs">{candidate.document_count} док.</span>
+                <span className="xlist__chevron" aria-hidden="true">
+                  <IconChevron size={16} />
+                </span>
+              </button>
+              {open ? <p className="xlist__why">{candidate.decision_explanation_ru}</p> : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -478,6 +558,7 @@ export function SourceList({ sources, caseDocumentId }: {
     <ol className="sources">
       {sources.map((source, index) => {
         const isCase = source.document_id === caseDocumentId;
+        const lang = langOf(source.language_code);
         return (
           <li
             key={source.document_id}
@@ -486,7 +567,7 @@ export function SourceList({ sources, caseDocumentId }: {
           >
             <span className="source__index" aria-hidden="true">{index + 1}</span>
             <div className="source__body">
-              <h4 className="source__title">
+              <h3 className="source__title" lang={lang}>
                 {isSafeLink(source.url) ? (
                   <a href={source.url} target="_blank" rel="noreferrer noopener">
                     {source.title}
@@ -495,7 +576,7 @@ export function SourceList({ sources, caseDocumentId }: {
                 ) : (
                   <span>{source.title}</span>
                 )}
-              </h4>
+              </h3>
               {linkHost(source.url) ? <span className="source__host">{linkHost(source.url)}</span> : null}
               <div className="source__meta">
                 <span className="chip">{translate(SOURCE_TYPE_RU, source.source_type)}</span>
@@ -510,7 +591,12 @@ export function SourceList({ sources, caseDocumentId }: {
                 {source.summary_ru}{" "}
                 <span className="source__mark">({summaryMark(source.summary_kind)})</span>
               </p>
-              {source.snippet ? <p className="source__snippet">{source.snippet}</p> : null}
+              {source.snippet ? (
+                <details className="source__more">
+                  <summary>Фрагмент оригинала</summary>
+                  <p className="source__snippet" lang={lang}>{source.snippet}</p>
+                </details>
+              ) : null}
             </div>
           </li>
         );

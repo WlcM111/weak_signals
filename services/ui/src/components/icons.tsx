@@ -112,6 +112,22 @@ export function IconStop({ size }: { size?: number }) {
   );
 }
 
+export function IconPause({ size }: { size?: number }) {
+  return (
+    <Svg size={size}>
+      <path d="M9 6.5v11M15 6.5v11" />
+    </Svg>
+  );
+}
+
+export function IconPlay({ size }: { size?: number }) {
+  return (
+    <Svg size={size}>
+      <path d="M8.5 6.2v11.6L18 12 8.5 6.2Z" />
+    </Svg>
+  );
+}
+
 export function IconPlus({ size }: { size?: number }) {
   return (
     <Svg size={size}>

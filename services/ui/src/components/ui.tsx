@@ -128,10 +128,12 @@ export function StatusPill({ status }: { status: string }) {
   );
 }
 
-export function ScoreDial({ value, caption = "скоринг модели", size = "md" }: {
+export function ScoreDial({ value, caption = "скоринг модели", size = "md", hint }: {
   value: number;
   caption?: string;
   size?: "sm" | "md" | "lg";
+  /** Пояснение шкалы: подсказка и скрытый текст. */
+  hint?: string;
 }) {
   const share = Math.max(0, Math.min(1, value));
   const circumference = 2 * Math.PI * 42;
@@ -140,6 +142,7 @@ export function ScoreDial({ value, caption = "скоринг модели", size
     <div
       className={`dial dial--${size} ${share >= CONFIDENT_SCORE ? "dial--high" : ""}`}
       style={cssVars({ "--dial-length": circumference.toFixed(2), "--dial-offset": offset.toFixed(2) })}
+      title={hint}
     >
       <div className="dial__face">
         <svg className="dial__ring" viewBox="0 0 100 100" aria-hidden="true">
@@ -163,7 +166,11 @@ export function ScoreDial({ value, caption = "скоринг модели", size
         </svg>
         <span className="dial__number">{percent(value)}</span>
       </div>
-      <span className="dial__caption">{caption}</span>
+      <span className="dial__caption">
+        {caption}
+        {hint ? <span className="dial__info" aria-hidden="true">i</span> : null}
+        {hint ? <span className="visually-hidden">. {hint}</span> : null}
+      </span>
     </div>
   );
 }

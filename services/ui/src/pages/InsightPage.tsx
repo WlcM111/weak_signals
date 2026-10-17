@@ -7,24 +7,24 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ApiCallError, api } from "../api/client";
 import {
   CONFIDENCE_BAND_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_ORDINAL_RU, TREND_ORDINAL_RU,
-  confidenceChipClass, narrativeChipClass, translate,
+  cleanRefs, confidenceChipClass, narrativeChipClass, splitTitle, translate,
 } from "../lib/format";
 import { buildInsightReport, reportFileName } from "../lib/report";
 import { Banner, ScoreDial, SkeletonList } from "../components/ui";
-import { FeatureTable, PredictorChart, SourceList } from "../components/signals";
-import { IconArrowLeft, IconDownload } from "../components/icons";
+import { FeatureTable, PredictorChart, SCORE_HINT, SourceList, langOf, nameLang } from "../components/signals";
+import { IconArrowLeft, IconChevron, IconDownload } from "../components/icons";
 import { scrollBehavior } from "../lib/style";
 
 const ANALYTICAL_TYPES = new Set(["ANALYTICAL_REPORT", "GOVERNMENT", "STANDARD"]);
 
 const SECTIONS = [
-  { id: "insight-description", title: "Описание технологии" },
-  { id: "insight-advantage", title: "Потенциальное преимущество" },
-  { id: "insight-case", title: "Кейс-пример" },
-  { id: "insight-analytics", title: "Оценки в аналитических отчётах" },
-  { id: "insight-why", title: "Почему это слабый сигнал" },
-  { id: "insight-sources", title: "Источники" },
-  { id: "insight-provenance", title: "Происхождение" },
+  { id: "insight-description", title: "Описание технологии", short: "Описание" },
+  { id: "insight-advantage", title: "Потенциальное преимущество", short: "Преимущество" },
+  { id: "insight-case", title: "Кейс-пример", short: "Кейс" },
+  { id: "insight-analytics", title: "Оценки в аналитических отчётах", short: "Оценки" },
+  { id: "insight-why", title: "Почему это слабый сигнал", short: "Почему сигнал" },
+  { id: "insight-sources", title: "Источники", short: "Источники" },
+  { id: "insight-provenance", title: "Происхождение", short: "Происхождение" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -44,6 +44,67 @@ function scrollerOf(node: HTMLElement | null): Element {
 function isOnScreen(id: string): boolean {
   const rect = document.getElementById(id)?.getBoundingClientRect();
   return Boolean(rect && rect.bottom > 0 && rect.top < window.innerHeight);
+}
+
+function closeMenu(menu: HTMLDetailsElement | null, returnFocus: boolean) {
+  if (!menu?.open) return;
+  menu.open = false;
+  if (returnFocus) menu.querySelector("summary")?.focus();
+}
+
+/** Меню «Экспорт»: закрывается по Escape и щелчку снаружи. */
+function ExportMenu({ onMarkdown }: { onMarkdown: () => void }) {
+  const ref = useRef<HTMLDetailsElement | null>(null);
+
+  // состояние берётся из элемента — без гонки с событием toggle
+  useEffect(() => {
+    const onPointer = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) closeMenu(ref.current, false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu(ref.current, true);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  return (
+    <details ref={ref} className="menu">
+      <summary className="btn btn--ghost menu__button">
+        <IconDownload size={18} />
+        Экспорт
+        <IconChevron size={16} />
+      </summary>
+      <div className="menu__list">
+        <button
+          type="button"
+          className="menu__item"
+          onClick={() => {
+            closeMenu(ref.current, true);
+            window.print();
+          }}
+        >
+          Печать или PDF
+          <span className="menu__hint">документ без меню и кнопок</span>
+        </button>
+        <button
+          type="button"
+          className="menu__item"
+          onClick={() => {
+            closeMenu(ref.current, true);
+            onMarkdown();
+          }}
+        >
+          Markdown (.md)
+          <span className="menu__hint">для правки в редакторе</span>
+        </button>
+      </div>
+    </details>
+  );
 }
 
 export default function InsightPage() {
@@ -131,6 +192,7 @@ export default function InsightPage() {
   // карточки (научные публикации, патенты, отраслевые СМИ) — их русскоязычные резюме.
   const analytical = reports.length > 0 ? reports : data.sources.filter((source) => source.summary_ru);
   const caseSource = data.sources.find((source) => source.document_id === data.case_document_id);
+  const [titleRu, titleOrig] = splitTitle(data.title_ru);
 
   function downloadReport() {
     const blob = new Blob([buildInsightReport(data)], { type: "text/markdown;charset=utf-8" });
@@ -165,44 +227,61 @@ export default function InsightPage() {
             К запросу
           </Link>
         )}
-        <button type="button" className="btn btn--primary" onClick={downloadReport}>
-          <IconDownload size={18} />
-          Скачать отчёт (Markdown)
-        </button>
+        <ExportMenu onMarkdown={downloadReport} />
       </div>
 
-      <aside className="insight__summary">
+      <header className="insight__summary">
         <div className="insight__card">
           <p className="insight__context">
             <span>Запрос: {data.query_text}</span>
-            {data.title_auto && data.title_auto !== data.title_ru ? (
-              <span>Исходное название кандидата: {data.title_auto}</span>
+            {data.title_auto && data.title_auto !== data.title_ru && !titleOrig ? (
+              <span>
+                Исходное название кандидата: <span lang={nameLang(data.title_auto)}>{data.title_auto}</span>
+              </span>
             ) : null}
           </p>
-          <h1 className="insight__title">{data.title_ru}</h1>
+          <div className="insight__heading">
+            <h1 className="insight__title">{titleRu}</h1>
+            {titleOrig ? (
+              <span className="insight__orig" lang="en">
+                {titleOrig}
+              </span>
+            ) : null}
+          </div>
           <div className="insight__score">
-            <ScoreDial value={data.score} size="lg" />
+            <ScoreDial value={data.score} size="lg" caption="индекс уверенности" hint={SCORE_HINT} />
             <div className="insight__chips">
               <span className="chip chip--accent">Слабый сигнал, ранг {data.rank}</span>
               <span className={confidenceChipClass(data.confidence_band)}>
                 {translate(CONFIDENCE_BAND_RU, data.confidence_band)}
               </span>
-              <span className={narrativeChipClass(data.narrative_status)}>
-                {translate(NARRATIVE_STATUS_RU, data.narrative_status)}
-              </span>
-              {data.predicted_stage ? (
-                <span className="chip">
-                  Стадия: {STAGE_ORDINAL_RU[data.predicted_stage] ?? data.predicted_stage}
+              {data.narrative_status === "GENERATED" ? null : (
+                <span className={narrativeChipClass(data.narrative_status)}>
+                  {translate(NARRATIVE_STATUS_RU, data.narrative_status)}
                 </span>
-              ) : null}
-              {data.predicted_trend ? (
-                <span className="chip">
-                  Тренд упоминаний: {TREND_ORDINAL_RU[data.predicted_trend] ?? data.predicted_trend}
-                </span>
-              ) : null}
+              )}
             </div>
+            {data.predicted_stage || data.predicted_trend ? (
+              <dl className="insight__facts">
+                {data.predicted_stage ? (
+                  <div>
+                    <dt>Стадия</dt>
+                    <dd>{STAGE_ORDINAL_RU[data.predicted_stage] ?? data.predicted_stage}</dd>
+                  </div>
+                ) : null}
+                {data.predicted_trend ? (
+                  <div>
+                    <dt>Тренд упоминаний</dt>
+                    <dd>{TREND_ORDINAL_RU[data.predicted_trend] ?? data.predicted_trend}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : null}
           </div>
         </div>
+      </header>
+
+      <div className="insight__main">
         <nav className="toc" aria-label="Разделы инсайта">
           <ol className="toc__list">
             {SECTIONS.map((section) => (
@@ -210,36 +289,38 @@ export default function InsightPage() {
                 <a
                   className={`toc__link ${active === section.id ? "toc__link--active" : ""}`}
                   href={`#${section.id}`}
+                  title={section.title}
                   aria-current={active === section.id ? "location" : undefined}
                   onClick={(event) => jumpTo(event, section.id)}
                 >
-                  {section.title}
+                  {section.short}
                   {section.id === "insight-sources" ? <span className="toc__count">{data.sources.length}</span> : null}
                 </a>
               </li>
             ))}
           </ol>
         </nav>
-      </aside>
 
-      <div className="insight__main">
         <div className="insight__pair">
           <section className="doc-section doc-section--lead" id="insight-description">
             <h2 className="doc-section__title">Описание технологии</h2>
-            <p className="doc-lead">{data.description_ru || "—"}</p>
+            <p className="doc-lead">{cleanRefs(data.description_ru) || "—"}</p>
           </section>
           <section className="doc-section doc-section--lead" id="insight-advantage">
             <h2 className="doc-section__title">Потенциальное преимущество</h2>
-            <p className="doc-lead">{data.advantage_ru || "—"}</p>
+            <p className="doc-lead">{cleanRefs(data.advantage_ru) || "—"}</p>
           </section>
         </div>
 
         <section className="doc-section" id="insight-case">
           <h2 className="doc-section__title">Кейс-пример</h2>
-          <p>{data.case_example_ru || "—"}</p>
+          <p>{cleanRefs(data.case_example_ru) || "—"}</p>
           {caseSource ? (
             <p className="doc-note">
-              Источник кейс-примера: <a href={`#source-${caseSource.document_id}`}>{caseSource.title}</a>
+              Источник кейс-примера:{" "}
+              <a href={`#source-${caseSource.document_id}`} lang={langOf(caseSource.language_code)}>
+                {caseSource.title}
+              </a>
             </p>
           ) : null}
         </section>
@@ -250,28 +331,30 @@ export default function InsightPage() {
             <p className="doc-note">Аналитические отчёты по теме среди найденных источников отсутствуют.</p>
           ) : (
             <>
-            {reports.length === 0 ? (
-              <p className="doc-note">
-                Аналитических отчётов среди источников нет — ниже оценки по научным публикациям, патентам и
-                отраслевым источникам карточки.
-              </p>
-            ) : null}
-            <ul className="analytics">
-              {analytical.map((source) => (
-                <li key={source.document_id} className="analytics__item">
-                  <a href={`#source-${source.document_id}`}>{source.title}</a>{" "}
-                  <span className="analytics__type">({translate(SOURCE_TYPE_RU, source.source_type)})</span>
-                  <p className="analytics__summary">{source.summary_ru}</p>
-                </li>
-              ))}
-            </ul>
+              {reports.length === 0 ? (
+                <p className="doc-note">
+                  Аналитических отчётов среди источников нет — ниже оценки по научным публикациям, патентам и
+                  отраслевым источникам карточки.
+                </p>
+              ) : null}
+              <ul className="analytics">
+                {analytical.map((source) => (
+                  <li key={source.document_id} className="analytics__item">
+                    <a href={`#source-${source.document_id}`} lang={langOf(source.language_code)}>
+                      {source.title}
+                    </a>{" "}
+                    <span className="analytics__type">({translate(SOURCE_TYPE_RU, source.source_type)})</span>
+                    <p className="analytics__summary">{source.summary_ru}</p>
+                  </li>
+                ))}
+              </ul>
             </>
           )}
         </section>
 
         <section className="doc-section" id="insight-why">
           <h2 className="doc-section__title">Почему это слабый сигнал</h2>
-          <p>{data.explanation_ru || "—"}</p>
+          <p>{cleanRefs(data.explanation_ru) || "—"}</p>
           {data.decision_explanation_ru && data.decision_explanation_ru !== data.explanation_ru ? (
             <p className="doc-note">{data.decision_explanation_ru}</p>
           ) : null}

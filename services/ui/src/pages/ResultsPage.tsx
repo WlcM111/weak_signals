@@ -6,10 +6,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { ApiCallError, api } from "../api/client";
 import type { Results } from "../api/types";
-import { JOB_STATUS_RU, isTerminal, jobErrorText, partialReasons, translate } from "../lib/format";
+import {
+  JOB_STATUS_RU, formatDate, formatNumber, isTerminal, jobErrorText, partialReasons, translate,
+} from "../lib/format";
 import { Banner, EmptyState, SkeletonList, StatusPill } from "../components/ui";
 import { ExcludedPanel, JobProgressPanel, SignalExplorer, StatsRow } from "../components/signals";
-import { RunTimeline } from "../components/timeline";
+import { RunTimeline, duration } from "../components/timeline";
 import { SignalField } from "../components/SignalField";
 import { IconPlus, IconStop } from "../components/icons";
 import { scrollBehavior } from "../lib/style";
@@ -18,6 +20,18 @@ const POLL_MS = 3000;
 const RESULTS_READY_STATUSES = new Set(["NARRATING", "COMPLETED", "PARTIAL", "CANCELLED"]);
 
 type Tab = "signals" | "excluded";
+
+/** Подпись вкладки: полная и короткая для телефона. */
+function TabLabel({ long, short }: { long: string; short: string }) {
+  return (
+    <>
+      <span className="tabs__long">{long}</span>
+      <span className="tabs__short" aria-hidden="true">
+        {short}
+      </span>
+    </>
+  );
+}
 
 export default function ResultsPage() {
   const { jobId = "" } = useParams();
@@ -106,6 +120,13 @@ export default function ResultsPage() {
   const items = results.data?.items ?? [];
   const excluded = results.data?.excluded ?? [];
   const activeId = items.find((item) => item.item_id === selectedId)?.item_id ?? items[0]?.item_id;
+  const took = duration(data.started_at, data.finished_at);
+  const facts = [
+    data.created_at ? formatDate(data.created_at, true) : "",
+    took ?? "",
+    results.data ? `${formatNumber(items.length)} в выдаче` : "",
+    results.data ? `${formatNumber(results.data.stats.candidates_found)} кандидатов` : "",
+  ].filter(Boolean);
 
   return (
     <div className={`page results ${terminal ? "results--done" : "results--running"}`}>
@@ -116,8 +137,10 @@ export default function ResultsPage() {
             {data.query_text}
           </h1>
           <div className="results__meta">
-            <StatusPill status={data.status} />
+            {/* пока идёт задание, статус — в полосе хода */}
+            {terminal ? <StatusPill status={data.status} /> : null}
             {data.attempt > 0 ? <span className="chip">попытка № {data.attempt + 1}</span> : null}
+            {facts.length > 0 ? <span className="results__facts">{facts.join(" · ")}</span> : null}
           </div>
         </div>
         <div className="results__actions">
@@ -148,44 +171,7 @@ export default function ResultsPage() {
         ) : null}
       </header>
 
-      <aside className="results__run" aria-label="Сводка по заданию">
-        <div className="run">
-          {results.data ? (
-            <StatsRow
-              stats={results.data.stats}
-              items={items}
-              activeId={activeId}
-              onShowExcluded={() => openTab("excluded", true)}
-              onPick={pickSignal}
-            />
-          ) : null}
-
-          {data.status === "FAILED" ? (
-            <Banner kind="error" title="Задание завершилось ошибкой">
-              {jobErrorText(data.error)}
-            </Banner>
-          ) : null}
-
-          {data.status === "PARTIAL" && partial.length > 0 ? (
-            <Banner kind="warn" title="Результат неполный">
-              <ul className="banner__list">
-                {partial.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
-            </Banner>
-          ) : null}
-
-          <details className="run__log" open={!terminal || !results.data || items.length === 0}>
-            <summary className="run__summary">
-              Ход задания
-              <span className="run__summary-state">{translate(JOB_STATUS_RU, data.status)}</span>
-            </summary>
-            <RunTimeline job={data} stats={results.data?.stats} />
-          </details>
-        </div>
-      </aside>
-
+      {/* выдача раньше сводки: на телефоне сигналы сразу */}
       <section className="results__body" aria-label="Выдача">
         <div className="tabs" role="tablist" aria-label="Выдача по заданию" ref={tabsRef} onKeyDown={onTabsKey}>
           <button
@@ -201,7 +187,7 @@ export default function ResultsPage() {
             className="tabs__tab"
             onClick={() => openTab("signals")}
           >
-            Найденные слабые сигналы
+            <TabLabel long="Найденные слабые сигналы" short="Сигналы" />
             {results.data ? <span className="tabs__count">{items.length}</span> : null}
           </button>
           <button
@@ -218,7 +204,7 @@ export default function ResultsPage() {
             disabled={!results.data}
             onClick={() => openTab("excluded")}
           >
-            Исключённые кандидаты
+            <TabLabel long="Исключённые кандидаты" short="Исключённые" />
             {results.data ? <span className="tabs__count">{excluded.length}</span> : null}
           </button>
         </div>
@@ -257,14 +243,14 @@ export default function ResultsPage() {
             <SkeletonList rows={4} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Слабых сигналов пока нет"
+              title={terminal ? "Слабые сигналы не найдены" : "Слабых сигналов пока нет"}
               hint={
-                isTerminal(data.status)
+                terminal
                   ? "По этому запросу ни один кандидат не прошёл отбор. Причины — на вкладке исключённых кандидатов."
                   : "Инсайты ещё формируются — сигналы появятся здесь по мере готовности"
               }
               action={
-                isTerminal(data.status) && excluded.length > 0 ? (
+                terminal && excluded.length > 0 ? (
                   <button type="button" className="btn btn--ghost" onClick={() => openTab("excluded")}>
                     Показать исключённых
                   </button>
@@ -286,6 +272,44 @@ export default function ResultsPage() {
           {results.data ? <ExcludedPanel excluded={excluded} /> : null}
         </div>
       </section>
+
+      <aside className="results__run" aria-label="Сводка по заданию">
+        <div className="run">
+          {results.data ? (
+            <StatsRow
+              stats={results.data.stats}
+              items={items}
+              activeId={activeId}
+              onShowExcluded={() => openTab("excluded", true)}
+              onPick={pickSignal}
+            />
+          ) : null}
+
+          {data.status === "FAILED" ? (
+            <Banner kind="error" title="Задание завершилось ошибкой">
+              {jobErrorText(data.error)}
+            </Banner>
+          ) : null}
+
+          {data.status === "PARTIAL" && partial.length > 0 ? (
+            <Banner kind="warn" title="Результат неполный">
+              <ul className="banner__list">
+                {partial.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </Banner>
+          ) : null}
+
+          <details className="run__log" open={!terminal || !results.data || items.length === 0}>
+            <summary className="run__summary">
+              Ход задания
+              {terminal ? <span className="run__summary-state">{translate(JOB_STATUS_RU, data.status)}</span> : null}
+            </summary>
+            <RunTimeline job={data} stats={results.data?.stats} />
+          </details>
+        </div>
+      </aside>
     </div>
   );
 }

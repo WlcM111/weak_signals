@@ -3,7 +3,7 @@
 import type { ResultItem } from "../api/types";
 import {
   DIRECTION_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_ORDINAL_RU,
-  TREND_ORDINAL_RU, TRUST_LEVEL_RU, formatDate, percent, summaryMark, translate,
+  TREND_ORDINAL_RU, TRUST_LEVEL_RU, cleanRefs, formatDate, percent, summaryMark, translate,
 } from "./format";
 
 /** Markdown-отчёт с теми же разделами, что и страница инсайта. */
@@ -25,19 +25,19 @@ export function buildInsightReport(item: ResultItem): string {
     "",
     "## Описание технологии",
     "",
-    item.description_ru || "—",
+    cleanRefs(item.description_ru) || "—",
     "",
     "## Потенциальное преимущество",
     "",
-    item.advantage_ru || "—",
+    cleanRefs(item.advantage_ru) || "—",
     "",
     "## Кейс-пример",
     "",
-    item.case_example_ru || "—",
+    cleanRefs(item.case_example_ru) || "—",
     "",
     "## Почему это слабый сигнал",
     "",
-    item.explanation_ru || "—",
+    cleanRefs(item.explanation_ru) || "—",
     "",
     item.decision_explanation_ru || "",
     "",
@@ -93,12 +93,20 @@ export function buildInsightReport(item: ResultItem): string {
   return lines.join("\n");
 }
 
+const TRANSLIT: Record<string, string> = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i", й: "y", к: "k", л: "l",
+  м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "kh", ц: "ts", ч: "ch", ш: "sh",
+  щ: "shch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu", я: "ya",
+};
+
 /** Имя файла отчёта: латиница и цифры, чтобы не зависеть от кодировки файловой системы. */
 export function reportFileName(item: ResultItem): string {
-  const slug = item.title_ru
-    .toLowerCase()
-    .replace(/[^a-z0-9а-яё]+/gi, "-")
+  const slug = [...item.title_ru.toLowerCase()]
+    .map((char) => TRANSLIT[char] ?? char)
+    .join("")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
+    .slice(0, 48)
+    .replace(/-+$/g, "");
   return `insight-${item.rank}-${slug || item.item_id.slice(0, 8)}.md`;
 }

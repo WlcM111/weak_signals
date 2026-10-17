@@ -54,7 +54,7 @@ function stateFor(index: number, job: Job): StageState {
   return "pending";
 }
 
-function duration(from?: string | null, to?: string | null): string | null {
+export function duration(from?: string | null, to?: string | null): string | null {
   if (!from || !to) return null;
   const ms = new Date(to).getTime() - new Date(from).getTime();
   if (!Number.isFinite(ms) || ms < 0) return null;

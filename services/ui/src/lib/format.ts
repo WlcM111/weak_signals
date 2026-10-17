@@ -170,6 +170,22 @@ export function linkHost(url?: string | null): string {
   }
 }
 
+/** «Название (Original)» → [название, оригинал]. */
+export function splitTitle(title: string): [string, string] {
+  const match = title.match(/^(.*\S)\s*\(([^()]*[A-Za-z][^()]*)\)\s*$/u);
+  if (!match || !/[А-Яа-яЁё]/u.test(match[1])) return [title, ""];
+  return [match[1], match[2]];
+}
+
+/** Убирает служебные ссылки «(документ d5)», «[doc:2]». */
+export function cleanRefs(text?: string | null): string {
+  if (!text) return "";
+  return text
+    .replace(/\s*\((?:документ|doc)\s*:?\s*d?\d+\)/giu, "")
+    .replace(/\s*\[doc:\s*\d+\]/giu, "")
+    .replace(/\s+([.,;:])/gu, "$1");
+}
+
 /** Подпись ключевого предиктора: направление, русское название, вклад. */
 export function predictorLabel(feature: Feature): string {
   const sign = DIRECTION_SIGN[feature.direction as Direction] ?? "•";
@@ -178,18 +194,23 @@ export function predictorLabel(feature: Feature): string {
   return `${sign} ${feature.label_ru} (${signedContribution})`;
 }
 
+/** Метка уровня: 3 — высокий, 2 — средний, 1 — низкий. */
+function levelChipClass(level: 1 | 2 | 3): string {
+  return `chip chip--level chip--level-${level}`;
+}
+
 /** Класс чипа по уверенности модели. */
 export function confidenceChipClass(band: ConfidenceBand | string): string {
-  if (band === "High") return "chip chip--green";
-  if (band === "Medium") return "chip chip--amber";
-  return "chip";
+  if (band === "High") return levelChipClass(3);
+  if (band === "Medium") return levelChipClass(2);
+  return levelChipClass(1);
 }
 
 /** Класс чипа по уровню доверенности источника. */
 export function trustChipClass(trust: TrustLevel | string): string {
-  if (trust === "HIGH") return "chip chip--green";
-  if (trust === "MEDIUM") return "chip chip--cyan";
-  return "chip chip--amber";
+  if (trust === "HIGH") return levelChipClass(3);
+  if (trust === "MEDIUM") return levelChipClass(2);
+  return levelChipClass(1);
 }
 
 /** Класс чипа по статусу нарратива. */
