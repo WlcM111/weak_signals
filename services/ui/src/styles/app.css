@@ -4296,9 +4296,15 @@ button.spectrum__bar:hover {
       overflow: auto;
     }
 
-    .results__panel--excluded > .excluded {
+    /* прокручивается вкладка, список — по высоте содержимого */
+    .results__panel--excluded {
       padding-right: 0.4rem;
-      overflow: auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .results__panel--excluded > .excluded {
+      flex: none;
     }
 
     .waiting {
