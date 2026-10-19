@@ -58,6 +58,17 @@ class ResultsView:
 
 
 @dataclass(frozen=True, slots=True)
+class TraceView:
+    """Трасса стадии задания для `GET /api/v1/jobs/{job_id}/trace` (WS_TRACE_API)."""
+
+    job_id: str
+    stage: str
+    payload: dict[str, object]
+    updated_at: datetime | None = None
+    stages: tuple[str, ...] = ()  # все записанные стадии задания, прошлые прогоны — stage@N
+
+
+@dataclass(frozen=True, slots=True)
 class CollectionView:
     """Состояние коллекции collector-а."""
 

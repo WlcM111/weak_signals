@@ -6,6 +6,12 @@ import type {
 
 export const CONFIDENT_SCORE = 0.75;
 
+/** Высокая уверенность — по тому же целому проценту, что показывает `percent()`: «75 %» всегда высокая. */
+export function isConfident(score?: number | null): boolean {
+  if (score === undefined || score === null || Number.isNaN(score)) return false;
+  return Number((score * 100).toFixed(0)) >= CONFIDENT_SCORE * 100;
+}
+
 export const JOB_STATUS_RU: Record<string, string> = {
   QUEUED: "В очереди",
   COLLECTING: "Сбор источников",
@@ -33,6 +39,14 @@ export const DECISION_RU: Record<string, string> = {
 };
 
 export const DECISION_REASON_RU: Record<string, string> = {
+  RUBRIC_NO_INDEPENDENT_SOURCE: "Нет независимого доверенного источника",
+  RUBRIC_NO_SOURCES: "Нет доступных источников для проверки",
+  RUBRIC_DOCS_UNAVAILABLE: "Документы кандидата не удалось загрузить",
+  RUBRIC_REVIEWS: "Источники — только обзоры",
+  RUBRIC_POOL_LIMIT: "Не вошёл в пул рубричной оценки",
+  RUBRIC_UNJUDGED: "Рубричная оценка не получена",
+  RUBRIC_TEXT_FAILED: "Карточку не удалось заполнить по источникам",
+  RUBRIC_MODEL: "Решение рубрики и локальной модели",
   MODEL_SCORE: "Решение калиброванной модели",
   SEMANTIC_JUDGE: "Смысловая оценка кандидата моделью",
   LOW_QUERY_RELEVANCE: "Низкая релевантность запросу",
@@ -245,6 +259,34 @@ export function jobProgressShare(status: string | undefined, done: number, total
   }
 }
 
+/** Коды вердикта рубрики в суффиксах причин (`RUBRIC_BELOW_TOP_N_<код>`, `RUBRIC_FINAL_<код>`). */
+const RUBRIC_CODE_RU: Record<string, string> = {
+  R: "релевантный слабый сигнал",
+  U: "требует проверки",
+  N: "не слабый сигнал",
+  M: "зрелая технология",
+  H: "хайп или шум",
+  O: "не по теме запроса",
+};
+
+/** Текст причины исключения: перевод кода; длинные служебные коды не выводятся как одна строка без пробелов. */
+export function decisionReasonText(code?: string | null): string {
+  if (!code) return "—";
+  if (DECISION_REASON_RU[code]) return DECISION_REASON_RU[code];
+  const below = /^RUBRIC_BELOW_TOP_N_([A-Z]+)$/.exec(code);
+  if (below) return `Вне первых карточек выдачи (рубрика: ${RUBRIC_CODE_RU[below[1]] ?? below[1]})`;
+  const final = /^RUBRIC_FINAL_([A-Z]+)$/.exec(code);
+  if (final) return `Отклонён финальной проверкой (${RUBRIC_CODE_RU[final[1]] ?? final[1]})`;
+  return code.replace(/_/g, " ").toLowerCase();
+}
+
+const COLLECTION_STATUS_RU: Record<string, string> = {
+  COMPLETED: "завершён полностью",
+  PARTIAL: "завершён частично — часть источников не ответила",
+  FAILED: "завершён с ошибкой",
+  CANCELLED: "отменён",
+};
+
 /** Понятные строки из `PARTIAL:found=9<15;fallback_narratives=2` (§7 HANDOFF_UI). */
 export function partialReasons(message?: string | null): string[] {
   if (!message) return [];
@@ -265,7 +307,8 @@ export function partialReasons(message?: string | null): string[] {
         return `Источники, ответившие ошибкой: ${part.slice("adapters_failed=".length).replace(/,/g, ", ")}`;
       }
       if (part.startsWith("collection=")) {
-        return `Статус сбора источников: ${part.slice("collection=".length)}`;
+        const status = part.slice("collection=".length);
+        return `Сбор источников ${COLLECTION_STATUS_RU[status] ?? status}`;
       }
       if (part === "deadline_reached") {
         return "Достигнут срок обработки запроса: часть инсайтов собрана из найденных источников без генеративной модели";

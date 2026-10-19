@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "maturity_terms_v1: ключевая технология и задача карточки на английском (этап 5.3, опыт R-022b/R-102)",
+  "type": "object",
+  "required": ["items"],
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["id", "core_en", "task_en"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "minLength": 1, "maxLength": 64},
+          "core_en": {"type": "string", "minLength": 2, "maxLength": 80},
+          "task_en": {"type": "string", "minLength": 2, "maxLength": 80}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+              topic               |       decision        |   decision_reason   | candidates | with_evidence_note 
+----------------------------------+-----------------------+---------------------+------------+--------------------
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         67 |                  0
+ edge-вычисления и периферийный и | WEAK_SIGNAL           | MODEL_SCORE         |         45 |                  0
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         24 |                  0
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         11 |                  0
+ edge-вычисления и периферийный и | MATURE                | MATURITY_LEXICON    |          1 |                  1
+ edge-вычисления и периферийный и | MATURE                | MODEL_SCORE         |          1 |                  0
+ edge-вычисления и периферийный и | MATURE                | MARKET_LEADERS      |          1 |                  1
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         81 |                  0
+ защита и безопасность систем иск | WEAK_SIGNAL           | MODEL_SCORE         |         31 |                  0
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         18 |                  0
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         12 |                  0
+ защита и безопасность систем иск | MATURE                | MATURITY_LEXICON    |          4 |                  0
+ защита и безопасность систем иск | MATURE                | ENCYCLOPEDIA_MATURE |          2 |                  0
+ защита и безопасность систем иск | MATURE                | MARKET_LEADERS      |          1 |                  1
+ защита и безопасность систем иск | MATURE                | MODEL_SCORE         |          1 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         74 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         29 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         23 |                  0
+ индустриальный искусственный инт | WEAK_SIGNAL           | MODEL_SCORE         |         21 |                  0
+ индустриальный искусственный инт | MATURE                | MATURITY_LEXICON    |          3 |                  2
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         76 |                  0
+ инфраструктура для искусственног | WEAK_SIGNAL           | MODEL_SCORE         |         31 |                  0
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         26 |                  0
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         16 |                  0
+ инфраструктура для искусственног | MATURE                | MODEL_SCORE         |          1 |                  0
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         58 |                  0
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         34 |                  0
+ перспективные решения в финтехе  | WEAK_SIGNAL           | MODEL_SCORE         |         28 |                  0
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         13 |                  0
+ перспективные решения в финтехе  | MATURE                | MODEL_SCORE         |          8 |                  0
+ перспективные решения в финтехе  | MATURE                | MATURITY_LEXICON    |          6 |                  1
+ перспективные решения в финтехе  | MATURE                | ENCYCLOPEDIA_MATURE |          2 |                  1
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | MODEL_SCORE         |          1 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |         82 |                  0
+ робототехника и физический искус | WEAK_SIGNAL           | MODEL_SCORE         |         38 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         19 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         11 |                  0
+(37 rows)
+

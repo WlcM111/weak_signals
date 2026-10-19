@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -9,6 +10,18 @@ from enum import StrEnum
 MAX_ATTEMPTS = 3
 MAX_POSTPONEMENTS = 10
 CONFIDENT_SCORE = 0.75
+
+
+def confidence_percent(score: float) -> int:
+    """Целый процент, как его показывает интерфейс (округление половины вверх, как `Number.toFixed(0)`)."""
+    if score != score:  # NaN
+        return 0
+    return int(math.floor(min(max(score, 0.0), 1.0) * 100 + 0.5))
+
+
+def is_confident(score: float) -> bool:
+    """Индекс уверенности не ниже 75 % в отображаемом виде."""
+    return confidence_percent(score) >= round(CONFIDENT_SCORE * 100)
 DEFAULT_TOP_N = 15
 MIN_TOP_N = 1
 MAX_TOP_N = 50
@@ -103,10 +116,15 @@ class ConfidenceBand(StrEnum):
 
     @staticmethod
     def of(score: float) -> ConfidenceBand:
-        """Полоса по значению скоринга: ≥ 0.75 High, ≥ 0.5 Medium, иначе Low."""
-        if score >= CONFIDENT_SCORE:
+        """Полоса по отображаемому индексу: ≥ 75 % High, ≥ 50 % Medium, иначе Low.
+
+        Граница сравнивается с тем же целым процентом, что показывает интерфейс (`percent()`: `toFixed(0)`), поэтому
+        карточка «75 %» всегда «высокая уверенность», а «74 %» — нет; число источников полосу не меняет.
+        """
+        shown = confidence_percent(score)
+        if shown >= round(CONFIDENT_SCORE * 100):
             return ConfidenceBand.HIGH
-        if score >= 0.5:
+        if shown >= 50:
             return ConfidenceBand.MEDIUM
         return ConfidenceBand.LOW
 

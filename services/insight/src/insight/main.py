@@ -109,7 +109,7 @@ async def serve(settings: InsightSettings) -> int:
     applied = await apply_migrations(pool, SCHEMA, settings.migrations_dir)
     log.info("migrations.applied", versions=applied)
 
-    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir)
+    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version)
     await RegisterPrompts(PostgresPromptRegistry(pool), prompts).execute()
     providers = build_providers(settings)
     chain = ProviderChain(
@@ -137,6 +137,7 @@ async def serve(settings: InsightSettings) -> int:
             PostgresExpansionRepository(pool, settings.expand_cache_ttl_hours, settings.expand_cache_model),
             Glossary.load(settings.glossary_path),
             metrics,
+            fallback_strict=settings.query_fallback_strict,
         ),
         generate_insight=GenerateInsight(
             chain,

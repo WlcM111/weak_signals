@@ -15,6 +15,7 @@ from orchestrator.adapters.outbound.postgres.mappers import (
     row_to_item,
     row_to_stats,
 )
+from orchestrator.application.dto import TraceView
 from orchestrator.domain.entities import ExcludedCandidate, ResultItem
 from orchestrator.domain.values import JobProgress, JobStats, JobStatus
 
@@ -283,14 +284,51 @@ class PostgresResultRepository:
             narratives_total=stats.weak_signals_total,
         )
 
-    async def save_trace(self, job_id: str, stage: str, payload: dict[str, object]) -> None:
-        """Трасса стадии задания: одна строка на стадию, повтор стадии перезаписывает её."""
+    async def save_trace(
+        self, job_id: str, stage: str, payload: dict[str, object], keep_previous: bool = False
+    ) -> None:
+        """Трасса стадии задания: одна строка на стадию, повтор стадии перезаписывает её.
+
+        keep_previous: прежняя строка стадии в той же инструкции копируется в `stage@N` (N — номер прошлого
+        прогона, 1 — первый; updated_at сохраняется) — без смены схемы, stage ≤ 32 символов (0003_job_traces.sql).
+        """
         async with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
-            await cur.execute(_UPSERT_TRACE, (job_id, stage, Json(json_safe(payload))))
+            if keep_previous:
+                await cur.execute(_UPSERT_TRACE_KEEP, (job_id, stage, job_id, stage, Json(json_safe(payload))))
+            else:
+                await cur.execute(_UPSERT_TRACE, (job_id, stage, Json(json_safe(payload))))
+
+    async def get_trace(self, job_id: str, stage: str) -> TraceView | None:
+        """Трасса стадии (или прошлого прогона `stage@N`) и список записанных стадий задания."""
+        async with self._pool.connection() as conn, conn.cursor() as cur:
+            await cur.execute(_SELECT_TRACE, (job_id, job_id, stage))
+            row = await cur.fetchone()
+        if row is None:
+            return None
+        return TraceView(job_id=job_id, stage=stage, payload=row["payload"], updated_at=row["updated_at"],
+                         stages=tuple(row["stages"]))
 
 
 _UPSERT_TRACE = """
 INSERT INTO job_traces (job_id, stage, payload)
 VALUES (%s, %s, %s)
 ON CONFLICT (job_id, stage) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+"""
+_UPSERT_TRACE_KEEP = """
+WITH previous AS (
+  INSERT INTO job_traces (job_id, stage, payload, updated_at)
+  SELECT t.job_id, t.stage || '@' || (SELECT count(*) + 1 FROM job_traces a
+                                      WHERE a.job_id = t.job_id AND starts_with(a.stage, t.stage || '@')),
+         t.payload, t.updated_at
+  FROM job_traces t WHERE t.job_id = %s AND t.stage = %s
+  ON CONFLICT (job_id, stage) DO NOTHING
+)
+INSERT INTO job_traces (job_id, stage, payload)
+VALUES (%s, %s, %s)
+ON CONFLICT (job_id, stage) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+"""
+_SELECT_TRACE = """
+SELECT payload, updated_at,
+       ARRAY(SELECT s.stage FROM job_traces s WHERE s.job_id = %s ORDER BY s.stage) AS stages
+FROM job_traces WHERE job_id = %s AND stage = %s
 """

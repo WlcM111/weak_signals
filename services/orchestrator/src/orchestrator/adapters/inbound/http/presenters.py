@@ -14,8 +14,10 @@ from orchestrator.application.dto import (
     ModelInfoView,
     ResultsView,
     ScoreTextView,
+    TraceView,
 )
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem, SourceRow
+from orchestrator.domain.values import JobStatus
 
 
 def _moment(value: datetime | None) -> str | None:
@@ -49,6 +51,15 @@ def job_to_json(view: JobView) -> dict[str, Any]:
     if job.error_code:
         payload["error"] = {
             "code": job.error_code,
+            "message": job.error_message,
+            "request_id": "",
+            "retryable": False,
+        }
+    elif job.status is JobStatus.PARTIAL and job.error_message:
+        # Причина неполноты (`PARTIAL:found=…;adapters_failed=…;collection=…`) хранится без кода ошибки; прежде API её не
+        # отдавал, и интерфейс показывал «Завершено частично» без объяснения (U-06, R-073).
+        payload["error"] = {
+            "code": "PARTIAL_RESULT",
             "message": job.error_message,
             "request_id": "",
             "retryable": False,
@@ -168,6 +179,12 @@ def results_to_json(view: ResultsView) -> dict[str, Any]:
             "expand_used_fallback": stats.expand_used_fallback,
         },
     }
+
+
+def trace_to_json(view: TraceView) -> dict[str, Any]:
+    """Трасса стадии задания (служебный путь WS_TRACE_API, в нормативный OpenAPI не входит)."""
+    return {"job_id": view.job_id, "stage": view.stage, "updated_at": _moment(view.updated_at),
+            "stages": list(view.stages), "payload": view.payload}
 
 
 def model_info_to_json(view: ModelInfoView) -> dict[str, Any]:

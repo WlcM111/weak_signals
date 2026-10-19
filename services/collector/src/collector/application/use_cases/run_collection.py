@@ -12,7 +12,7 @@ import asyncio
 import dataclasses
 from datetime import date, timedelta
 from urllib.parse import urlsplit
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from typing import Any
@@ -96,8 +96,11 @@ class RunCollectionConfig:
         default_factory=lambda: {SourceKey.NEWS_ARCHIVE: 5, SourceKey.CROSSREF: 1})
     snowball_reserve_documents: int = 200
     mined_technologies: int = 15
+    tech_filter_word_level: bool = False  # R-043: фильтр отбора технологий по словам, а не по подстрокам
     max_technologies: int = 40
     targeted_window_months: int = 24
+    # R-040: прицельный поиск — по одной технологии за вызов адаптера; отказ технологии не обрывает источник
+    targeted_per_tech_errors: bool = False
     # Этап 4.3: технологии прицельного прохода — сначала по оценке возникновения из корпусов (arXiv и архив
     # новостей), затем извлечённые из широкого прохода, затем от модели (вспомогательно, не больше `llm_technologies`).
     # Второй круг: названия из документов прицельного прохода ищутся ещё раз (`targeted_rounds = 2`), ему
@@ -113,6 +116,9 @@ class RunCollectionConfig:
     snowball_technologies: int = 15
     targeted_rounds: int = 2
     snowball_time_share: float = 0.25
+    # R-042: временный отказ широкого прохода не исключает источник из прицельного; повтор — после паузы
+    broad_failure_keeps_targeted: bool = False
+    broad_retry_pause_seconds: float = 2.0
     corpus_since_year: int = 2021
     # Этап 4.4: выборка для оценки возникновения — работы и статьи, где есть хотя бы 2 ключевых слова темы,
     # по каждому периоду (недавний и базовый) — до `emergence_sample` / `news_emergence_sample` записей.
@@ -241,9 +247,11 @@ class RunCollection:
         if not targeted or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
             return
         technologies = await self._technologies(state)
+        retried = self._broad_retry(state, active)
         sources = {
             key: adapter for key, adapter in active.items()
-            if getattr(adapter, "supports_targeted", False) and not state.runs[key].status.is_terminal
+            if getattr(adapter, "supports_targeted", False)
+            and (not state.runs[key].status.is_terminal or key in retried)
         }
         if not technologies or not sources or self._clock.monotonic() >= final_deadline:
             return
@@ -257,16 +265,21 @@ class RunCollection:
         since = targeted_since(self._clock.now(), self._config.targeted_window_months, limits.published_since_year)
         self._log.info("collection.targeted", collection_id=state.collection.collection_id,
                        technologies=len(technologies), sources=[key.value for key in sources], since=since.isoformat())
+        if retried:  # R-042: отказ широкого прохода остаётся в запуске источника, источник повторяется
+            self._log.info("collection.broad_failure_retry", collection_id=state.collection.collection_id,
+                           sources={key.value: state.runs[key].error_code for key in retried})
         await self._collect(
             state, sources, owner,
-            lambda key, adapter: self._targeted_documents(key, adapter, technologies, since, state),
+            lambda key, adapter: self._targeted_documents(key, adapter, technologies, since, state,
+                                                          retry=key in retried),
         )
         if not snowball or state.stop_reason is StopReason.CANCELLED or state.lease_lost:
             return
         terms = state.collection.terms
         extra = [item for item in mine_technologies(state.targeted_titles,
                                                     exclude=(*terms.en, *terms.ru, *technologies),
-                                                    limit=self._config.snowball_technologies)
+                                                    limit=self._config.snowball_technologies,
+                                                    word_level=self._config.tech_filter_word_level)
                  if not is_mature(item)]
         if not extra or self._clock.monotonic() >= final_deadline:
             return
@@ -280,7 +293,7 @@ class RunCollection:
             self._log.warning("collection.mined_save_failed", collection_id=state.collection.collection_id, error=str(exc))
         await self._collect(
             state, sources, owner,
-            lambda key, adapter: adapter.search_targeted(extra, self._per_term(key), since, state.deadline),
+            lambda key, adapter: self._search_targeted(key, adapter, extra, since, state),
         )
 
     async def _technologies(self, state: _RunState) -> tuple[str, ...]:
@@ -288,7 +301,7 @@ class RunCollection:
         terms = state.collection.terms
         emerging = await self._emerging(state)
         mined = mine_technologies(state.titles, exclude=(*terms.en, *terms.ru, *terms.technologies, *emerging),
-                                  limit=self._config.mined_technologies)
+                                  limit=self._config.mined_technologies, word_level=self._config.tech_filter_word_level)
         entities = extract_entities(title for title, _key in state.titles)
         state.mined = tuple(mined)
         try:
@@ -312,10 +325,26 @@ class RunCollection:
                               error=str(exc))
         return tuple(technologies)
 
+    def _broad_retry(self, state: _RunState, active: Mapping[SourceKey, SourceAdapter]) -> frozenset[SourceKey]:
+        """R-042: прицельные источники с временным отказом широкого прохода (сеть, таймаут, 5xx) — при флаге."""
+        if not self._config.broad_failure_keeps_targeted:
+            return frozenset()
+        return frozenset(
+            key for key, adapter in active.items()
+            if getattr(adapter, "supports_targeted", False) and state.runs[key].is_failed
+            and state.runs[key].error_code in TRANSIENT_FAILURES
+        )
+
     async def _targeted_documents(
-        self, key: SourceKey, adapter: SourceAdapter, technologies: tuple[str, ...], since: date, state: _RunState
+        self, key: SourceKey, adapter: SourceAdapter, technologies: tuple[str, ...], since: date, state: _RunState,
+        retry: bool = False,
     ) -> AsyncIterator[RawDocument]:
         """Документы прицельного прохода источника; у архива новостей сначала — канал «события стартапов» (этап 4.5)."""
+        if retry:  # R-042: повтор после временного отказа — не раньше паузы после него
+            failed_at = state.runs[key].finished_at or self._clock.now()
+            pause = self._config.broad_retry_pause_seconds - (self._clock.now() - failed_at).total_seconds()
+            if pause > 0:
+                await self._clock.sleep(pause)
         if key is SourceKey.NEWS_ARCHIVE and self._archive is not None and self._config.event_channel_documents > 0:
             async for document in self._event_channel(technologies, since, state):
                 yield document
@@ -324,9 +353,39 @@ class RunCollection:
             search = adapter.search_targeted(technologies, self._per_term(key), since, state.deadline,  # type: ignore[call-arg]
                                              exclude=frozenset(state.seen_urls))
         else:
-            search = adapter.search_targeted(technologies, self._per_term(key), since, state.deadline)
+            search = self._search_targeted(key, adapter, technologies, since, state)
         async for document in search:
             yield document
+
+    def _search_targeted(
+        self, key: SourceKey, adapter: SourceAdapter, technologies: Sequence[str], since: date, state: _RunState
+    ) -> AsyncIterator[RawDocument]:
+        """Прицельный поиск источника; R-040: с флагом — по одной технологии за вызов адаптера."""
+        if not self._config.targeted_per_tech_errors:
+            return adapter.search_targeted(technologies, self._per_term(key), since, state.deadline)
+        return self._per_technology(key, adapter, technologies, since, state)
+
+    async def _per_technology(
+        self, key: SourceKey, adapter: SourceAdapter, technologies: Sequence[str], since: date, state: _RunState
+    ) -> AsyncIterator[RawDocument]:
+        """R-040: отказ технологии — в журнал и к следующей; блокирующий отказ останавливает источник, как прежде.
+        Отказы технологий в конце — один отказ запуска со счётом (как окна Hacker News и GDELT)."""
+        terms = list(technologies)[: getattr(adapter, "max_targeted_terms", 0) or None]
+        failures: list[tuple[str, AdapterFailure]] = []
+        for term in terms:
+            try:
+                async for document in adapter.search_targeted((term,), self._per_term(key), since, state.deadline):
+                    yield document
+            except AdapterFailure as failure:
+                if blocks_source(failure):
+                    raise
+                failures.append((term, failure))
+                self._log.warning("adapter.targeted_term_failed", collection_id=state.collection.collection_id,
+                                  source=key.value, technology=term, code=failure.code, detail=failure.message[:200])
+        if failures:
+            term, first = failures[0]
+            raise AdapterFailure(first.code, f"прицельный поиск: не удалось {len(failures)} из {len(terms)} "
+                                             f"технологий; первая «{term}»: {first.message}")
 
     async def _event_channel(self, technologies: tuple[str, ...], since: date, state: _RunState) -> AsyncIterator[RawDocument]:
         """Статьи архива с событием стартапа по словам темы и отобранных технологий, по редкости совпавших слов."""
@@ -427,7 +486,8 @@ class RunCollection:
         found = emerging_terms(
             [*recent, *base], recent_from=recent_from, base_from=base_from, base_to=recent_from - timedelta(days=1),
             exclude=exclude, limit=self._config.emerging_technologies, min_recent=min_recent, max_share=0.15,
-            min_growth=self._config.emergence_min_growth, min_base_total=self._config.emergence_min_base)
+            min_growth=self._config.emergence_min_growth, min_base_total=self._config.emergence_min_base,
+            word_level=self._config.tech_filter_word_level)
         terms_found = [item.term for item in found if not (boilerplate and is_news_boilerplate(item.term))]
         self._log.info("collection.emerging", collection_id=state.collection.collection_id, corpus=corpus,
                        keywords=keywords, recent=len(recent), base=len(base), min_recent=min_recent, terms=terms_found)
@@ -878,4 +938,22 @@ PATENT_SOURCES = frozenset({SourceKey.ROSPATENT, SourceKey.PATENTSVIEW})
 
 # Этап 5.0 (F21): локальные источники, которые умеют пропускать уже собранные адреса.
 LOCAL_SOURCES = frozenset({SourceKey.NEWS_ARCHIVE, SourceKey.CORPUS})
+
+
+# R-040: отказы одной технологии прицельного поиска; прочие коды (RATE_LIMITED — 429 с паузой, BUDGET_EXHAUSTED,
+# AUTH_MISSING, DISABLED) и ответы 401/403 останавливают источник, как прежде.
+TERM_FAILURE_CODES = frozenset({AdapterErrorCode.HTTP_4XX.value, AdapterErrorCode.HTTP_5XX.value,
+                                AdapterErrorCode.TIMEOUT.value, AdapterErrorCode.NETWORK_ERROR.value,
+                                AdapterErrorCode.PARSE_ERROR.value})
+ACCESS_DENIED_STATUSES = frozenset({401, 403})
+
+
+def blocks_source(failure: AdapterFailure) -> bool:
+    """R-040: отказ останавливает прицельный поиск всего источника, а не одной технологии."""
+    return failure.code not in TERM_FAILURE_CODES or failure.http_status in ACCESS_DENIED_STATUSES
+
+
+# R-042: временные отказы (как TRANSIENT_CODES адаптеров); прочие коды по-прежнему исключают источник.
+TRANSIENT_FAILURES = frozenset({AdapterErrorCode.TIMEOUT.value, AdapterErrorCode.HTTP_5XX.value,
+                                AdapterErrorCode.NETWORK_ERROR.value})
 

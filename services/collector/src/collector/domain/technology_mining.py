@@ -82,6 +82,12 @@ def _singular(word: str) -> str:
     return word
 
 
+def words_within(inner: str, outer: str) -> bool:
+    """Фраза inner — непрерывная последовательность слов outer (сравнение по словам, а не по символам)."""
+    a, b = inner.split(), outer.split()
+    return any(b[i:i + len(a)] == a for i in range(len(b) - len(a) + 1))
+
+
 def phrase_key(phrase: str) -> str:
     """Ключ склейки: последнее слово — в единственном числе."""
     words = phrase.split()
@@ -156,7 +162,7 @@ def _all_caps(title: str) -> bool:
 
 
 def mine_technologies(
-    titles: Iterable[tuple[str, str]], exclude: Sequence[str] = (), limit: int = 15
+    titles: Iterable[tuple[str, str]], exclude: Sequence[str] = (), limit: int = 15, word_level: bool = False
 ) -> list[str]:
     """Технологии из заголовков `(заголовок, источник)` широкого прохода, по убыванию оценки, не больше `limit`."""
     rows, seen_titles = [], set()
@@ -175,21 +181,27 @@ def mine_technologies(
             sources[key].add(source)
             surfaces[key][phrase] += 1
     total = max(1, len(rows))
-    blocked = {phrase_key(" ".join(item.lower().split())) for item in exclude if item.strip()} | GENERIC
+    topic = {phrase_key(" ".join(item.lower().split())) for item in exclude if item.strip()}
+    blocked = topic | GENERIC
+    # R-043 (word_level): фразы темы блокируют по словам; GENERIC — только точное совпадение
+    contains = words_within if word_level else (lambda inner, outer: inner in outer)
+    wide = topic if word_level else blocked
     scored = []
     for key, ids in docs.items():
         if len(ids) < MIN_DOCS or len(sources[key]) < MIN_SOURCES or len(ids) / total > MAX_SHARE:
             continue
-        if key in blocked or any(key in other or other in key for other in blocked if " " in other):
+        if key in blocked or any(contains(key, other) or contains(other, key) for other in wide if " " in other):
             continue
         score = len(ids) * (1 + 0.5 * (len(sources[key]) - 1)) * math.log2(len(key.split()) + 1)
         scored.append((score, key))
     scored.sort(key=lambda item: (-item[0], item[1]))
     chosen: list[str] = []
     for _score, key in scored:
-        if any(key in other and len(docs[key]) <= len(docs[other]) for other in chosen):
+        # R-043 (продолжение, CONTINUE №1): поглощение вложенных фраз — тем же сравнением, что и блокировка: по словам
+        # при word_level («rag pipelines» не поглощается «graphrag pipelines»), по подстрокам — прежнее поведение.
+        if any(contains(key, other) and len(docs[key]) <= len(docs[other]) for other in chosen):
             continue  # вложенный вариант не чаще длинного — поглощён
-        chosen = [other for other in chosen if not (other in key and len(docs[other]) <= len(docs[key]))]
+        chosen = [other for other in chosen if not (contains(other, key) and len(docs[other]) <= len(docs[key]))]
         chosen.append(key)
         if len(chosen) >= limit:
             break

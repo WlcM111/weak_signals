@@ -59,3 +59,19 @@ terms:
   стартапы: startups
   патенты: patents
   исследования: research
+# R-049: статьи только для строгого резервного перевода (WS_QUERY_FALLBACK_STRICT=true) — темы кейса,
+# тот же раздел, что в словаре insight. Без флага раздел не используется, и прежний вывод не меняется.
+strict_terms:
+  индустриальный: industrial
+  физический: physical
+  инфраструктура: infrastructure
+  дата-центры: data centers
+  инференс: inference
+  периферийный: edge
+  интернет вещей: internet of things
+  защита: protection
+  системы: systems
+  медиа: media
+  развлечения: entertainment
+  платформы: platforms
+  агротех: agritech

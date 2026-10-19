@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from orchestrator.application.dto import ResultsView
+from orchestrator.application.dto import ResultsView, TraceView
 from orchestrator.application.ports import JobRepository, ResultRepository
 from orchestrator.domain.entities import ResultItem
 from orchestrator.domain.errors import NotFoundError, PreconditionFailedError
@@ -54,3 +54,20 @@ class GetResultItem:
             raise NotFoundError(f"элемент {item_id} не найден")
         job = await self._jobs.get(item.job_id)
         return item, (job.query_text if job else "")
+
+
+class GetTrace:
+    """Трасса стадии задания (job_traces) для разбора судьбы кандидатов — служебный путь WS_TRACE_API."""
+
+    def __init__(self, jobs: JobRepository, results: ResultRepository) -> None:
+        self._jobs = jobs
+        self._results = results
+
+    async def execute(self, job_id: str, stage: str) -> TraceView:
+        """Трасса стадии или её прошлого прогона (`stage@N`); NOT_FOUND, если нет задания или трассы."""
+        if await self._jobs.get(job_id) is None:
+            raise NotFoundError(f"задание {job_id} не найдено")
+        view = await self._results.get_trace(job_id, stage)
+        if view is None:
+            raise NotFoundError(f"трассы стадии {stage} у задания {job_id} нет")
+        return view

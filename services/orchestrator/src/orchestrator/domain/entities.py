@@ -245,21 +245,8 @@ class ResultItem:
 
     @property
     def confidence_band(self) -> ConfidenceBand:
-        """Полоса уверенности для интерфейса.
-
-        Этап 5.1 (ревью e2e 5.0.4, проблема 7): при одном независимом источнике — не выше средней: в робототехнике 13
-        из 15 карточек с одним источником были помечены высокой уверенностью.
-        """
-        band = ConfidenceBand.of(self.score)
-        if band is ConfidenceBand.HIGH and self.independent_sources < 2:
-            return ConfidenceBand.MEDIUM
-        return band
-
-    @property
-    def independent_sources(self) -> int:
-        """Число независимых источников — разных сайтов (без www) среди источников карточки."""
-        hosts = {(urlsplit(source.url).hostname or source.url).lower().removeprefix("www.") for source in self.sources}
-        return len(hosts)
+        """Полоса уверенности для интерфейса: по отображаемому индексу (≥ 75 % — высокая)."""
+        return ConfidenceBand.of(self.score)
 
     @property
     def evidence_kind(self) -> str:

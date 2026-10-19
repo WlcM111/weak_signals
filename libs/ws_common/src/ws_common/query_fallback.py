@@ -13,6 +13,10 @@ from collections.abc import Mapping
 
 MAX_FALLBACK_TERMS = 6
 MIN_STEM_WORD = 5
+# R-049, строгий режим: у статьи за общей основой только окончание (до трёх букв); у слова длиннее —
+# только производное от основы не короче шести букв («финансовые» ← «финансы»)
+MAX_ENDING = 3
+MIN_DERIVED_STEM = 6
 _WORD_RE = re.compile(r"[\w-]+", re.UNICODE)
 _CYRILLIC_RE = re.compile(r"[а-яё]", re.IGNORECASE)
 
@@ -41,13 +45,33 @@ def _common_prefix(first: str, second: str) -> int:
     return length
 
 
-def _same_lexeme(word: str, key: str) -> bool:
-    """Одна ли это лексема с точностью до окончания: «финтехе» ~ «финтех», «квантовых» ~ «квантовые»."""
+def _same_lexeme(word: str, key: str, strict: bool = False) -> bool:
+    """Одна ли это лексема с точностью до окончания: «финтехе» ~ «финтех», «квантовых» ~ «квантовые».
+
+    strict (R-049): основа статьи целиком входит в слово, длинное продолжение слова — только от длинной
+    основы: «медицинские» ~ «медицина», но «медиа» ≁ «медицина» и «медицина» ≁ «медиа».
+    """
     if word == key:
         return True
     if len(word) < MIN_STEM_WORD or len(key) < MIN_STEM_WORD:
         return False
-    return _common_prefix(word, key) >= max(4, min(len(word), len(key)) - 2)
+    common = _common_prefix(word, key)
+    if strict and (
+        len(key) - common > MAX_ENDING or (len(word) - common > MAX_ENDING and common < MIN_DERIVED_STEM)
+    ):
+        return False
+    return common >= max(4, min(len(word), len(key)) - 2)
+
+
+def _split_hyphenated(words: list[str]) -> list[str]:
+    """Строгий режим: слово с дефисом и кириллицей — по частям («edge-вычисления» → edge, вычисления)."""
+    parts: list[str] = []
+    for word in words:
+        if "-" in word and _CYRILLIC_RE.search(word):
+            parts.extend(part for part in word.split("-") if part)
+        else:
+            parts.append(word)
+    return parts
 
 
 def content_segments(query_text: str) -> list[list[str]]:
@@ -69,8 +93,15 @@ def content_segments(query_text: str) -> list[list[str]]:
     return segments
 
 
-def _translate_segment(words: list[str], terms: Mapping[str, str]) -> list[str]:
-    """Перевод группы слов: сначала многословные статьи глоссария, затем отдельные слова."""
+def _translate_segment(
+    words: list[str], terms: Mapping[str, str], strict: bool = False, missed: list[str] | None = None
+) -> list[str]:
+    """Перевод группы слов: сначала многословные статьи глоссария, затем отдельные слова.
+
+    В `missed` (если передан) складываются кириллические слова без перевода.
+    """
+    if strict:
+        words = _split_hyphenated(words)
     phrase_keys = [key.split() for key in terms if " " in key]
     single_keys = [key for key in terms if " " not in key]
     result: list[str] = []
@@ -80,7 +111,7 @@ def _translate_segment(words: list[str], terms: Mapping[str, str]) -> list[str]:
         for key_words in sorted(phrase_keys, key=len, reverse=True):
             window = words[position : position + len(key_words)]
             if len(window) == len(key_words) and all(
-                _same_lexeme(word, key) for word, key in zip(window, key_words, strict=True)
+                _same_lexeme(word, key, strict=strict) for word, key in zip(window, key_words, strict=True)
             ):
                 result.append(terms[" ".join(key_words)])
                 position += len(key_words)
@@ -93,12 +124,21 @@ def _translate_segment(words: list[str], terms: Mapping[str, str]) -> list[str]:
         if not _CYRILLIC_RE.search(word):
             result.append(word)  # латиница и аббревиатуры (edge, llm, iot) остаются как есть
             continue
-        candidates = [key for key in single_keys if _same_lexeme(word, key)]
+        candidates = [key for key in single_keys if _same_lexeme(word, key, strict=strict)]
         if candidates:
             best = max(candidates, key=lambda key: (_common_prefix(word, key), -abs(len(key) - len(word))))
             result.append(terms[best])
+        elif missed is not None:
+            missed.append(word)
         # кириллическое слово без перевода в английскую фразу не попадает
     return result
+
+
+def _lowered(terms: Mapping[str, str], strict: bool) -> dict[str, str]:
+    """Ключи словаря в нижнем регистре; в строгом режиме статьи с дефисом делятся, как слова запроса."""
+    if strict:
+        return {" ".join(_split_hyphenated(key.lower().split())): value for key, value in terms.items()}
+    return {key.lower(): value for key, value in terms.items()}
 
 
 def _unique(items: list[str], limit: int) -> tuple[str, ...]:
@@ -111,22 +151,36 @@ def _unique(items: list[str], limit: int) -> tuple[str, ...]:
     return tuple(list(seen.values())[:limit])
 
 
-def fallback_terms(query_text: str, terms: Mapping[str, str]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def fallback_terms(
+    query_text: str, terms: Mapping[str, str], strict: bool = False
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Русские и английские поисковые фразы для запроса без обращения к LLM.
 
     Возвращает `(ru_terms, en_terms)`; каждая сторона непуста: когда перевести нечего,
     английской фразой остаётся сам запрос (прежнее поведение).
+    strict (R-049, WS_QUERY_FALLBACK_STRICT): строгое совпадение основы, слова с дефисом — по частям;
+    русские фразы от режима не зависят.
     """
-    lowered = {key.lower(): value for key, value in terms.items()}
+    lowered = _lowered(terms, strict)
     segments = content_segments(query_text)
     ru_candidates = [" ".join(segment) for segment in segments]
-    translated = [_translate_segment(segment, lowered) for segment in segments]
+    translated = [_translate_segment(segment, lowered, strict) for segment in segments]
     en_segments = [" ".join(words) for words in translated if words]
     combined_en = " ".join(en_segments)
     combined_ru = " ".join(ru_candidates)
     ru_terms = _unique([combined_ru, *_specific(ru_candidates), query_text], MAX_FALLBACK_TERMS)
     en_terms = _unique([combined_en, *_specific(en_segments)], MAX_FALLBACK_TERMS)
     return ru_terms or (query_text,), en_terms or (query_text,)
+
+
+def untranslated_words(query_text: str, terms: Mapping[str, str], strict: bool = False) -> tuple[str, ...]:
+    """Содержательные кириллические слова запроса без статьи словаря — в английские фразы они не попали;
+    вызывающий пишет их в журнал, чтобы обеднение темы было видно (R-049)."""
+    lowered = _lowered(terms, strict)
+    missed: list[str] = []
+    for segment in content_segments(query_text):
+        _translate_segment(segment, lowered, strict, missed)
+    return tuple(dict.fromkeys(missed))
 
 
 def _specific(segments: list[str]) -> list[str]:

@@ -7,7 +7,7 @@ import type {
   Decision, EvidenceKind, ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source,
 } from "../api/types";
 import {
-  CONFIDENCE_BAND_RU, CONFIDENT_SCORE, DECISION_REASON_RU, DECISION_RU, DIRECTION_RU,
+  CONFIDENCE_BAND_RU, CONFIDENT_SCORE, DECISION_RU, DIRECTION_RU, decisionReasonText, isConfident,
   JOB_STATUS_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_HINT_RU, TRUST_LEVEL_RU,
   confidenceChipClass, formatDate, formatNumber, isSafeLink, jobProgressShare, linkHost,
   narrativeChipClass, percent, splitTitle, summaryMark, translate, trustChipClass,
@@ -100,7 +100,7 @@ function ScoreSpectrum({ items, activeId, onPick }: {
           <span className="spectrum__line-label">75 %</span>
         </span>
         {items.map((item) => {
-          const className = `spectrum__bar ${item.score >= CONFIDENT_SCORE ? "spectrum__bar--high" : ""} ${
+          const className = `spectrum__bar ${isConfident(item.score) ? "spectrum__bar--high" : ""} ${
             item.item_id === activeId ? "spectrum__bar--active" : ""
           }`;
           const style = cssVars({ "--h": Math.max(0.03, Math.min(1, item.score)).toFixed(3) });
@@ -180,7 +180,7 @@ export function StatsRow({ stats, items = [], activeId, onShowExcluded, onPick }
 function ScoreBar({ score }: { score: number }) {
   return (
     <span
-      className={`score-bar ${score >= CONFIDENT_SCORE ? "score-bar--high" : ""}`}
+      className={`score-bar ${isConfident(score) ? "score-bar--high" : ""}`}
       style={cssVars({ "--score": Math.max(0, Math.min(1, score)).toFixed(3) })}
       aria-hidden="true"
     >
@@ -475,7 +475,7 @@ export function ExcludedPanel({ excluded }: { excluded: ExcludedCandidate[] }) {
                 <span className={`verdict verdict--${candidate.decision.toLowerCase()}`}>
                   {translate(DECISION_RU, candidate.decision)}
                 </span>
-                <span className="xlist__reason">{translate(DECISION_REASON_RU, candidate.decision_reason)}</span>
+                <span className="xlist__reason">{decisionReasonText(candidate.decision_reason)}</span>
                 <span className="xlist__score">
                   <span className="visually-hidden">Скоринг: </span>
                   {percent(candidate.score)}

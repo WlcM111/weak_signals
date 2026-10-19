@@ -34,6 +34,19 @@ def candidate_phrases(titles: Sequence[str], stopwords: frozenset[str]) -> list[
     return [display[key] for key, _ in ordered[:MAX_CANDIDATE_PHRASES]]
 
 
+def without_nested(phrases: Sequence[str]) -> list[str]:
+    """Фразы без вложенных n-грамм: отбрасывается фраза, слова которой подряд входят в более длинную фразу списка."""
+    words = [tuple(word.lower() for word in _WORD_RE.findall(phrase)) for phrase in phrases]
+    return [phrase for phrase, inner in zip(phrases, words, strict=True)
+            if not any(_contains(outer, inner) for outer in words)]
+
+
+def _contains(outer: tuple[str, ...], inner: tuple[str, ...]) -> bool:
+    """Слова inner подряд входят в более длинную фразу outer."""
+    size = len(inner)
+    return 0 < size < len(outer) and any(outer[start : start + size] == inner for start in range(len(outer) - size + 1))
+
+
 def _is_acceptable(words: Sequence[str], key: str, stopwords: frozenset[str]) -> bool:
     """Фраза годится, если не начинается и не кончается стоп-словом и содержит значащее слово."""
     if len(key) > MAX_PHRASE_LENGTH or len(key) < 3:

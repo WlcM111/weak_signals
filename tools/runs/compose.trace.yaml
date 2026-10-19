@@ -1,0 +1,9 @@
+# Переопределение для прогонов шести тем (RUN_6_TOPICS.md): трасса кандидатов R-003 включена только на время прогона,
+# без изменения .env. Запуск: docker compose -f compose.yaml -f tools/runs/compose.trace.yaml up -d orchestrator-api orchestrator-worker
+services:
+  orchestrator-api:
+    environment:
+      WS_TRACE_API: "true"
+  orchestrator-worker:
+    environment:
+      WS_NARRATE_TRACE_EVIDENCE: "true"

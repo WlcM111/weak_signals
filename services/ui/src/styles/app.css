@@ -4054,6 +4054,8 @@ button.spectrum__bar:hover {
 
 .xlist__reason {
   grid-area: reason;
+  min-width: 0; /* длинная причина переносится в своей колонке, а не наезжает на «Скоринг» */
+  overflow-wrap: anywhere;
   color: var(--ink-2);
   font-size: max(13px, 0.8125rem);
   line-height: 1.35;

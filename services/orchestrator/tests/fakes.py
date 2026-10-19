@@ -259,11 +259,23 @@ class InMemoryResultRepository:
         )
 
 
-    async def save_trace(self, job_id: str, stage: str, payload: dict) -> None:
-        """Трасса стадии задания (этап 2): последняя запись по стадии."""
+    async def save_trace(self, job_id: str, stage: str, payload: dict, keep_previous: bool = False) -> None:
+        """Трасса стадии задания (этап 2): последняя запись по стадии; keep_previous — прежняя остаётся как stage@N."""
         if not hasattr(self, "traces"):
             self.traces = {}
-        self.traces.setdefault(job_id, {})[stage] = payload
+        traces = self.traces.setdefault(job_id, {})
+        if keep_previous and stage in traces:
+            traces[f"{stage}@{sum(1 for key in traces if key.startswith(stage + '@')) + 1}"] = traces[stage]
+        traces[stage] = payload
+
+    async def get_trace(self, job_id: str, stage: str):  # noqa: ANN201 - TraceView | None
+        """Трасса стадии и список записанных стадий задания."""
+        from orchestrator.application.dto import TraceView  # noqa: PLC0415
+
+        traces = getattr(self, "traces", {}).get(job_id, {})
+        if stage not in traces:
+            return None
+        return TraceView(job_id=job_id, stage=stage, payload=traces[stage], stages=tuple(sorted(traces)))
 
 
 class InMemoryIdempotencyRepository:
@@ -454,6 +466,7 @@ class FakeInsight:
     rubric_calls: list[int] = field(default_factory=list)
     rubric_modes: list[bool] = field(default_factory=list)
     finalize_calls: list[int] = field(default_factory=list)
+    fail_final_check: bool = False  # финальная проверка (final_check=True) недоступна
 
     async def judge_rubric(  # noqa: ANN001
         self, query_text: str, items, final_check: bool = False
@@ -461,6 +474,8 @@ class FakeInsight:
         """Рубричная оценка по правилу теста."""
         self.rubric_calls.append(len(items))
         self.rubric_modes.append(final_check)
+        if final_check and self.fail_final_check:
+            raise UpstreamUnavailable("JudgeCandidates: UNAVAILABLE")
         if self.rubric_rule is None:
             return {}
         verdicts = {}

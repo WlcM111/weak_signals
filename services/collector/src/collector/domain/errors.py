@@ -41,9 +41,11 @@ class LeaseLost(AppError):
 class AdapterFailure(Exception):
     """Отказ адаптера источника с кодом из единого списка (§10.7). Наружу не выходит: пишется в adapter_runs."""
 
-    def __init__(self, code: str, message: str, retryable: bool = False) -> None:
+    def __init__(self, code: str, message: str, retryable: bool = False, http_status: int | None = None) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         # Можно ли повторить запрос по политике источника (B2-b): одиночный 429 — да, серия 429 и прочие отказы — нет.
         self.retryable = retryable
+        # R-040: HTTP-код ответа у HTTP_4XX/HTTP_5XX (401/403 — отказ доступа, а не одной технологии)
+        self.http_status = http_status

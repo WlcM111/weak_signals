@@ -19,19 +19,29 @@ const EXAMPLES = [
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
+/** Ключ идемпотентности (UUID v4): crypto.randomUUID есть только в защищённом контексте (https, localhost). */
+function newIdempotencyKey(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 export function QueryForm({ running = 0 }: { running?: number }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
   const [topN, setTopN] = useState(15);
-  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey);
   const [tried, setTried] = useState(false);
   const input = useRef<HTMLTextAreaElement | null>(null);
 
   const submit = useMutation({
     mutationFn: () => api.createQuery(text.trim(), topN, idempotencyKey),
     onSuccess: (accepted) => {
-      setIdempotencyKey(crypto.randomUUID());
+      setIdempotencyKey(newIdempotencyKey());
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       navigate(`/results/${accepted.job_id}`);
     },

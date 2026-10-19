@@ -35,8 +35,8 @@ def build_request(request: FastApiRequest, body: dict[str, Any] | None = None) -
     )
 
 
-def create_app(handlers: ApiHandlers, lifespan: Any = None) -> FastAPI:
-    """Создаёт приложение со всеми путями нормативного OpenAPI."""
+def create_app(handlers: ApiHandlers, lifespan: Any = None, trace_api: bool = False) -> FastAPI:
+    """Создаёт приложение со всеми путями нормативного OpenAPI (и служебным путём трассы при `trace_api`)."""
     app = FastAPI(
         title="Weak Signals Orchestrator API",
         version="1.0.0",
@@ -112,6 +112,13 @@ def create_app(handlers: ApiHandlers, lifespan: Any = None) -> FastAPI:
     async def get_results(job_id: str, request: FastApiRequest) -> Any:
         """Снимок результата задания."""
         return respond(await handlers.get_results(job_id, build_request(request)))
+
+    if trace_api:  # WS_TRACE_API: без флага маршрута нет (404)
+
+        @app.get("/api/v1/jobs/{job_id}/trace")
+        async def get_trace(job_id: str, request: FastApiRequest) -> Any:
+            """Трасса стадии задания (?stage=narrate, прошлые прогоны — narrate@N)."""
+            return respond(await handlers.get_trace(job_id, build_request(request)))
 
     @app.get("/api/v1/results/items/{item_id}", response_model=schemas.ResultItemSchema)
     async def get_result_item(item_id: str, request: FastApiRequest) -> Any:

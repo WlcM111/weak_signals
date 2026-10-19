@@ -267,7 +267,8 @@ class BaseSourceAdapter:
                 )
             raise AdapterFailure(AdapterErrorCode.RATE_LIMITED.value, "источник ответил 429", retryable=True)
         code = AdapterErrorCode.HTTP_4XX if exc.status < 500 else AdapterErrorCode.HTTP_5XX
-        raise AdapterFailure(code.value, f"источник ответил кодом {exc.status}", retryable=exc.status >= 500)
+        raise AdapterFailure(code.value, f"источник ответил кодом {exc.status}", retryable=exc.status >= 500,
+                             http_status=exc.status)
 
     def _bump_rate_limit(self) -> int:
         """Серия ответов 429 подряд: в пределах текущего сбора, вне сбора — экземпляра адаптера."""

@@ -61,6 +61,17 @@ class PoolAndRankTest(unittest.TestCase):
         self.assertEqual([c.candidate_id for c in pool], [weak[1].candidate_id, weak[0].candidate_id, by_model.candidate_id])
         self.assertEqual(rest, [by_rule])
 
+    def test_model_mature_and_hype_leave_pool_only_when_flag_is_on(self) -> None:
+        weak = [cand(1, [doc(1)], rank=1)]
+        low = cand(2, [doc(2)], Decision.INSUFFICIENT_EVIDENCE, "MODEL_SCORE", score=0.3)
+        mature = cand(3, [doc(3)], Decision.MATURE, "MODEL_SCORE", score=0.2)
+        hype = cand(4, [doc(4)], Decision.HYPE_OR_NOISE, "MODEL_SCORE", score=0.1)
+        pool, rest = rubric.pool_candidates(weak, [low, mature, hype], limit=40)
+        self.assertIn(mature.candidate_id, [c.candidate_id for c in pool])  # прежнее поведение по умолчанию
+        pool, rest = rubric.pool_candidates(weak, [low, mature, hype], limit=40, exclude_model_mature=True)
+        self.assertEqual([c.candidate_id for c in pool], [weak[0].candidate_id, low.candidate_id])
+        self.assertEqual({c.candidate_id for c in rest}, {mature.candidate_id, hype.candidate_id})
+
     def test_rank_by_stage_plus_trend_then_confidence(self) -> None:
         from orchestrator.application.dto import JudgeVerdictView
         a, b, c = cand(1, [doc(1)]), cand(2, [doc(2)]), cand(3, [doc(3)])
@@ -227,6 +238,103 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(outcome.items_written, 0)
         reasons = [e.decision_reason for e in self.results.excluded["job-1"]]
         self.assertEqual(reasons.count("RUBRIC_FINAL_N-GEN"), 3)
+
+    # R-025: сбой финальной проверки или её пропуск не оставляют карточку принятой R
+    UNCHECKED = "финальная проверка карточки не дала вердикта, требует экспертной проверки"
+
+    def final_check_skips(self, skipped: set[str]) -> None:
+        """Финальная проверка (название карточки после доводки) не возвращает вердикт для skipped."""
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id in skipped:
+                return None
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+
+    async def test_final_check_failure_marks_cards_for_review_when_flag_on(self) -> None:
+        self.insight.fail_final_check = True
+        outcome = await self.narrate(final_check_enabled=True, confidence_calibration=True,
+                                     final_check_fail_as_uncertain=True)
+        shown = {i.candidate_id: i for i in self.results.items["job-1"]}
+        self.assertEqual(set(shown), {self.good_a.candidate_id, self.good_b.candidate_id, self.market.candidate_id})
+        for item in shown.values():  # как U: пометка в объяснении и уверенность ниже 50 %
+            self.assertIn(self.UNCHECKED, item.decision_explanation_ru)
+            self.assertLess(item.score, 0.5)
+        self.assertEqual(outcome.weak_signals_confident, 0)
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_unchecked"], sorted(shown))
+        self.assertEqual({row[3] for row in narrate["shown"]}, {"U"})
+
+    async def test_card_without_final_verdict_is_marked_and_checked_cards_stay(self) -> None:
+        self.final_check_skips({self.good_b.candidate_id})
+        await self.narrate(final_check_enabled=True, confidence_calibration=True, final_check_fail_as_uncertain=True)
+        shown = {i.candidate_id: i for i in self.results.items["job-1"]}
+        self.assertIn(self.UNCHECKED, shown[self.good_b.candidate_id].decision_explanation_ru)
+        self.assertLess(shown[self.good_b.candidate_id].score, 0.5)
+        for cid in (self.good_a.candidate_id, self.market.candidate_id):  # вердикт «прошла» — принятый R
+            self.assertNotIn("требует экспертной проверки", shown[cid].decision_explanation_ru)
+            self.assertGreaterEqual(shown[cid].score, 0.5)
+        self.assertEqual(self.results.traces["job-1"]["narrate"]["final_unchecked"], [self.good_b.candidate_id])
+
+    async def test_final_check_gaps_keep_cards_accepted_when_flag_off(self) -> None:
+        self.final_check_skips({self.good_b.candidate_id})
+        await self.narrate(final_check_enabled=True, confidence_calibration=True)
+        card = {i.candidate_id: i for i in self.results.items["job-1"]}[self.good_b.candidate_id]
+        self.assertNotIn("требует экспертной проверки", card.decision_explanation_ru)  # прежнее поведение
+        self.assertGreaterEqual(card.score, 0.5)
+        self.assertNotIn("final_unchecked", self.results.traces["job-1"]["narrate"])
+        self.insight.fail_final_check = True
+        self.results = InMemoryResultRepository()
+        await self.narrate(final_check_enabled=True, confidence_calibration=True)
+        items = self.results.items["job-1"]
+        self.assertEqual(len(items), 3)
+        self.assertTrue(all("требует" not in i.decision_explanation_ru and i.score >= 0.5 for i in items))
+
+    async def test_fallback_cards_pass_final_check_when_flag_on(self) -> None:
+        self.finalizable = set()  # доводка не вернула карточек — резервная ветка
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto.endswith("(нарратив)"):  # финальная проверка резервной карточки
+                if candidate.candidate_id == self.good_a.candidate_id:
+                    return dict(code="N-MAT", stage=4, trend=1, confidence=0.9)
+                if candidate.candidate_id == self.good_b.candidate_id:
+                    return None
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        outcome = await self.narrate(final_check_enabled=True, confidence_calibration=True,
+                                     final_check_fail_as_uncertain=True)
+        items = sorted(self.results.items["job-1"], key=lambda i: i.rank)
+        self.assertEqual({i.candidate_id for i in items}, {self.good_b.candidate_id, self.market.candidate_id})
+        self.assertEqual([i.rank for i in items], [1, 2])
+        self.assertEqual(outcome.items_written, 2)
+        by_id = {i.candidate_id: i for i in items}
+        self.assertIn(self.UNCHECKED, by_id[self.good_b.candidate_id].decision_explanation_ru)
+        self.assertNotIn("требует экспертной проверки", by_id[self.market.candidate_id].decision_explanation_ru)
+        excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
+        self.assertEqual(excluded[self.good_a.candidate_id], "RUBRIC_FINAL_N-MAT")
+        self.assertEqual(self.insight.rubric_modes, [False, True])
+        self.assertTrue(self.results.traces["job-1"]["narrate"]["fallback"])
+
+    async def test_fallback_without_time_for_final_check_is_marked(self) -> None:
+        calls: list[int] = []
+
+        def allowed() -> bool:
+            calls.append(1)
+            return len(calls) == 1  # срок кончился до первого раунда доводки
+
+        await self.narrate(final_check_enabled=True, final_check_fail_as_uncertain=True, llm_allowed=allowed)
+        items = self.results.items["job-1"]
+        self.assertEqual(len(items), 3)
+        self.assertTrue(all(self.UNCHECKED in i.decision_explanation_ru for i in items))
+        self.assertNotIn(True, self.insight.rubric_modes)  # вызова LLM после срока нет
+
+    async def test_fallback_skips_final_check_when_flag_off(self) -> None:
+        self.finalizable = set()
+        await self.narrate(final_check_enabled=True)
+        self.assertEqual(len(self.results.items["job-1"]), 3)  # прежнее поведение
+        self.assertEqual(self.insight.rubric_modes, [False])
 
     async def test_card_built_mostly_on_reviews_is_not_shown(self) -> None:
         # v12: карточке «AI-Driven Predictive Maintenance» доводка оставила из её источников три обзора

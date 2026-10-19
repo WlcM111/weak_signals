@@ -18,7 +18,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
 
-from collector.domain.technology_mining import candidate_phrases, phrase_key
+from collector.domain.technology_mining import candidate_phrases, phrase_key, words_within
 
 
 @dataclass(frozen=True)
@@ -43,6 +43,7 @@ def emerging_terms(
     max_share: float = 0.2,
     min_growth: float = 1.5,
     min_base_total: int = 0,
+    word_level: bool = False,
 ) -> list[EmergingTerm]:
     """Кандидаты по убыванию оценки возникновения, не больше `limit`."""
     recent: Counter[str] = Counter()
@@ -71,12 +72,13 @@ def emerging_terms(
     if total_recent == 0 or total_base < min_base_total:
         return []
     blocked = {phrase_key(" ".join(item.lower().split())) for item in exclude if item.strip()}
+    contains = words_within if word_level else (lambda inner, outer: inner in outer)  # R-043
     smoothing = 1.0 / max(1, total_recent + total_base)
     scored: list[EmergingTerm] = []
     for key, count in recent.items():
         if count < min_recent or count / total_recent > max_share or key in blocked:
             continue
-        if any(key in other or other in key for other in blocked if " " in other):
+        if any(contains(key, other) or contains(other, key) for other in blocked if " " in other):
             continue
         rate_recent = count / total_recent
         rate_base = base[key] / total_base if total_base else 0.0
@@ -88,9 +90,10 @@ def emerging_terms(
     scored.sort(key=lambda item: (-item.score, -len(item.term.split()), item.term))
     chosen: list[EmergingTerm] = []
     for item in scored:
-        if any(item.term in other.term and other.recent >= item.recent for other in chosen):
+        # R-043 (продолжение): поглощение вложенных терминов — по словам при word_level, иначе по подстрокам
+        if any(contains(item.term, other.term) and other.recent >= item.recent for other in chosen):
             continue  # вложенный вариант не чаще длинного — поглощён
-        chosen = [other for other in chosen if not (other.term in item.term and other.recent <= item.recent)]
+        chosen = [other for other in chosen if not (contains(other.term, item.term) and other.recent <= item.recent)]
         chosen.append(item)
         if len(chosen) >= limit:
             break

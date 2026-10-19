@@ -1,5 +1,5 @@
 .PHONY: up down logs ps test lint proto build-dataset train seq-validate-b seq-experiments db-roles clean-junk ui-dev ui-build
-PYTHONPATH_LOCAL = ml/src:services/insight/src:services/orchestrator/src:services/analyzer/src:services/collector/src:libs/ws_common/src
+PYTHONPATH_LOCAL = ml/src:services/insight/src:services/orchestrator/src:services/analyzer/src:services/collector/src:libs/ws_common/src:libs/ws_contracts/src
 up:            ; docker compose up -d --build
 down:          ; docker compose down
 logs:          ; docker compose logs -f

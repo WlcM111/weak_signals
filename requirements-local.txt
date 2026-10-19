@@ -10,3 +10,5 @@ lxml>=5.3
 Jinja2>=3.1
 matplotlib>=3.9
 openpyxl>=3.1
+# Стабы gRPC-контрактов (libs/ws_contracts) нужны тестам insight и ml.
+protobuf>=5.28,<6

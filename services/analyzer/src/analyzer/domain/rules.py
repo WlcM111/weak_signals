@@ -71,28 +71,36 @@ def apply_exclusion_rules(
     `min_evidence_documents` обобщает правило 3: при значении по умолчанию 2 оно срабатывает ровно
     на единственном источнике, как в §12.6 ТЗ, но параметр анализа может потребовать больше.
     """
-    for rule in (
-        _rule_off_topic,
-        _rule_no_trusted_source,
-        _rule_encyclopedia_mature,
-        _rule_market_leaders,
-        _rule_maturity_lexicon,
-        _rule_mature_field,
-        _rule_marketing_dominant,
-        _rule_hype_lexicon,
-    ):
-        if rule is _rule_no_trusted_source:
-            result = rule(features, documents, thresholds)
-            if result is not None:
-                return result
-            result = _rule_single_source(features, documents, thresholds, min_evidence_documents)
-            if result is not None:
-                return result
-            result = _rule_no_high_trust_source(features, documents, thresholds)
-            if result is not None:
-                return result
-            continue
+    # U-03: правила зрелости проверяются раньше правил числа и доверенности источников. В e2e51 правило «один
+    # источник» срабатывало первым у 661 из 900 кандидатов, и решение MATURE получил 1 кандидат: зрелость одиночного
+    # кандидата не учитывалась. Причина про источники при этом сохраняется в объяснении (без двойного счёта решения).
+    result = _rule_off_topic(features, documents, thresholds)
+    if result is not None:
+        return result
+    for rule in (_rule_encyclopedia_mature, _rule_market_leaders, _rule_maturity_lexicon, _rule_mature_field):
         result = _rule_mature_field(titles) if rule is _rule_mature_field else rule(features, documents, thresholds)
+        if result is not None:
+            evidence = _evidence_rule(features, documents, thresholds, min_evidence_documents)
+            if evidence is not None:
+                return RuleResult(result.decision, result.reason,
+                                  f"{result.explanation_ru} Также: {evidence.explanation_ru}"[:500])
+            return result
+    result = _evidence_rule(features, documents, thresholds, min_evidence_documents)
+    if result is not None:
+        return result
+    for rule in (_rule_marketing_dominant, _rule_hype_lexicon):
+        result = rule(features, documents, thresholds)
+        if result is not None:
+            return result
+    return None
+
+
+def _evidence_rule(features: dict[str, float], documents: Sequence[DocumentRef], thresholds: RuleThresholds,
+                   min_evidence_documents: int) -> RuleResult | None:
+    """Правила достаточности свидетельств: нет доверенного источника, один источник, нет источника высокого доверия."""
+    for result in (_rule_no_trusted_source(features, documents, thresholds),
+                   _rule_single_source(features, documents, thresholds, min_evidence_documents),
+                   _rule_no_high_trust_source(features, documents, thresholds)):
         if result is not None:
             return result
     return None
@@ -350,7 +358,11 @@ _GENERIC_QUALIFIERS = frozenset("""ai artificial intelligence powered driven bas
 smart intelligent industrial automated automatic advanced real time realtime system framework approach method model
 technique platform application solution for in of with the and on via using to a an new novel modern efficient
 banking bank financial finance manufacturing industry production factory medicine medical healthcare insurance
-wealth management mobile online enterprise iot ии на основе для в с и""".split())
+wealth management mobile online enterprise iot ии на основе для в с и
+attack defense defence detection protection prevention mitigation""".split())
+# U-03: «Prompt Injection Attacks», «… detection», «… protection» называют ту же зрелую область целиком; конкретный
+# новый механизм («CaMeL capability-based defense against prompt injection») остаётся кандидатом — в нём есть
+# специфичные слова помимо области и общих уточнений.
 _TOKEN = re.compile(r"[a-zа-яё0-9]+")
 
 

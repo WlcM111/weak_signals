@@ -213,20 +213,21 @@ class SnapshotInvariantTest(unittest.TestCase):
             make_item(1, score=1.5)
 
     def test_confidence_band(self) -> None:
+        # Требование владельца (17.10.2026): индекс ≥ 75 % в отображаемом виде — всегда «высокая уверенность»,
+        # независимо от числа источников; граница — тот же целый процент, что показывает интерфейс.
+        self.assertIs(make_item(1, score=0.9).confidence_band, ConfidenceBand.HIGH)
+        self.assertIs(make_item(1, score=0.79).confidence_band, ConfidenceBand.HIGH)  # один источник — тоже высокая
+        self.assertIs(make_item(1, score=0.7451).confidence_band, ConfidenceBand.HIGH)  # показывается «75 %»
+        self.assertIs(make_item(1, score=0.7449).confidence_band, ConfidenceBand.MEDIUM)  # показывается «74 %»
+        self.assertIs(make_item(1, score=0.6).confidence_band, ConfidenceBand.MEDIUM)
+        self.assertIs(make_item(1, score=0.2).confidence_band, ConfidenceBand.LOW)
         two = replace(make_item(1, score=0.9), sources=(_source(1, "https://arxiv.org/abs/2601.00001"),
                                                         _source(2, "https://www.techcrunch.com/2026/01/01/x/", "NEWS")))
-        self.assertIs(two.confidence_band, ConfidenceBand.HIGH)
-        # этап 5.1 (проблема 7): один независимый источник — не выше средней уверенности
-        self.assertIs(make_item(1, score=0.9).confidence_band, ConfidenceBand.MEDIUM)
         one_site = replace(two, sources=(_source(1, "https://arxiv.org/abs/2601.00001"),
                                          _source(2, "https://arxiv.org/abs/2601.00002")))
-        self.assertIs(one_site.confidence_band, ConfidenceBand.MEDIUM)
         self.assertEqual((two.evidence_kind, one_site.evidence_kind), ("market", "research"))
         patent = replace(two, sources=(_source(1, "https://searchplatform.rospatent.gov.ru/x", "PATENT"),))
         self.assertEqual(patent.evidence_kind, "patent")
-        self.assertIs(make_item(1, score=0.6).confidence_band, ConfidenceBand.MEDIUM)
-        self.assertIs(make_item(1, score=0.2).confidence_band, ConfidenceBand.LOW)
-
     def test_key_predictors_limited_and_ordered(self) -> None:
         features = tuple(
             FeatureRow(f"f{index}", f"Признак {index}", 0.5, 0.1, FeatureDirection.NEUTRAL, index)

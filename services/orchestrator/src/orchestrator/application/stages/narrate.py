@@ -49,7 +49,17 @@ class NarrateConfig:
     # контекстом источников, балл «стадия + тренд» и пакетная доводка карточек (narrate_rubric.py).
     selection_mode: str = "legacy"
     rubric_pool: int = 80
+    # rubric: не брать в пул MATURE/HYPE, решённые моделью analyzer (причина MODEL_SCORE)
+    rubric_pool_exclude_model_mature: bool = False
+    # rubric: одиночные научные работы, препринты и патенты идут в пул, как одиночные заметки СМИ (U-02)
+    rubric_pool_research_singles: bool = False
+    # rubric: доля кандидатов с лучшей оценкой модели analyzer, которые ставятся в выдаче первыми (этап 5.3; 0 — выкл.)
+    rank_model_first_share: float = 0.0
+    # rubric: пачки GetDocuments ≤ 50 с одним повтором; сбой загрузки — не «нет источников» (R-027)
+    rubric_docs_retry: bool = False
     finalize_enabled: bool = True
+    # rubric: сбой RPC доводки — повтор частями ≤ 5, без карточки — в очередь следующего раунда; ≤ 30 за вызов
+    rubric_finalize_retry_small: bool = False
     # rubric: при недоступной рубрике — прежняя стадия (с английскими экстрактивными карточками) или пустая выдача.
     rubric_legacy_fallback: bool = False
     # rubric: если R меньше ТОП-N, добираются кандидаты с кодом U (помечены «требует проверки»).
@@ -68,8 +78,12 @@ class NarrateConfig:
     profile_model_path: str = ""
     # Финальная проверка конкретности готовых карточек рубрикой (общее/зрелое/не по теме заменяется следующим).
     final_check_enabled: bool = False
+    # R-025: карточка без вердикта финальной проверки помечается «требует проверки» (как U); резервные — через неё же.
+    final_check_fail_as_uncertain: bool = False
     # Уверенность принятого рубрикой сигнала ≥ 50 %: 0,5 + 0,5 × вероятность модели; прочих — 0,5 × вероятность.
     confidence_calibration: bool = False
+    # R-003: в трассе narrate — документы (URL) и итог каждого кандидата; прошлый прогон стадии — narrate@N.
+    narrate_trace_evidence: bool = False
 
 
 @dataclass(slots=True)

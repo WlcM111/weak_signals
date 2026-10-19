@@ -16,7 +16,7 @@ from orchestrator.adapters.inbound.http.deps import ApiKeyGuard, RateLimiter, ch
 from orchestrator.application.dto import SubmitQueryCommand
 from orchestrator.application.use_cases.cancel_job import CancelJob
 from orchestrator.application.use_cases.get_job import GetJob, ListJobs
-from orchestrator.application.use_cases.get_results import GetResultItem, GetResults
+from orchestrator.application.use_cases.get_results import GetResultItem, GetResults, GetTrace
 from orchestrator.application.use_cases.proxy import GetModelInfo, ScoreText
 from orchestrator.application.use_cases.submit_query import SubmitQuery
 from orchestrator.application.validation import (
@@ -29,6 +29,7 @@ from orchestrator.application.validation import (
     validate_score_request,
     validate_status_filter,
     validate_top_n,
+    validate_trace_stage,
     validate_uuid,
 )
 from orchestrator.domain.errors import (
@@ -98,6 +99,7 @@ class ApiHandlers:
         rate_limiter: RateLimiter,
         ip_salt: str = "",
         readiness: Any = None,
+        get_trace: GetTrace | None = None,
     ) -> None:
         self._submit_query = submit_query
         self._get_job = get_job
@@ -111,6 +113,7 @@ class ApiHandlers:
         self._rate_limiter = rate_limiter
         self._ip_salt = ip_salt
         self._readiness = readiness
+        self._get_trace = get_trace  # None — WS_TRACE_API выключен
         self._log = get_logger("orchestrator.http")
 
     async def create_query(self, request: Request) -> Response:
@@ -204,6 +207,18 @@ class ApiHandlers:
         except AppError:
             pass
         return Response(200, presenters.item_to_json(item, query_text, model_version_id))
+
+    async def get_trace(self, job_id: str, request: Request) -> Response:
+        """`GET /api/v1/jobs/{job_id}/trace?stage=narrate` — трасса стадии задания (WS_TRACE_API, вне OpenAPI)."""
+        try:
+            self._guard.check(request.api_key)
+            if self._get_trace is None:
+                raise NotFoundError("трасса задания через API не включена")
+            view = await self._get_trace.execute(validate_uuid(job_id, "job_id"),
+                                                 validate_trace_stage((request.query or {}).get("stage")))
+        except AppError as error:
+            return self._error(error, request.correlation_id)
+        return Response(200, presenters.trace_to_json(view))
 
     async def get_model(self, request: Request) -> Response:
         """`GET /api/v1/model` — сведения об активной модели."""

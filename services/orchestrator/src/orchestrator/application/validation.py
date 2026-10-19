@@ -73,6 +73,17 @@ def validate_uuid(value: str, field: str) -> str:
     return value
 
 
+_TRACE_STAGE_RE = re.compile(r"^[a-z_]{1,24}(@[0-9]{1,6})?$")
+
+
+def validate_trace_stage(value: str | None) -> str:
+    """Стадия трассы задания: по умолчанию narrate; прошлый прогон стадии — stage@N."""
+    stage = value or "narrate"
+    if not _TRACE_STAGE_RE.match(stage):
+        raise ValidationError("stage: имя стадии трассы, например narrate или narrate@1", "VALIDATION_ERROR")
+    return stage
+
+
 def validate_page_size(value: int | str | None) -> int:
     """Размер страницы списка заданий: 1..100, по умолчанию 20."""
     if value in (None, "", 0, "0"):

@@ -15,7 +15,7 @@ from insight.application.prompt_builder import EXPAND_PROMPT_VERSION, PromptBuil
 from insight.application.provider_chain import ProviderChain
 from insight.domain.entities import QueryExpansion
 from insight.domain.errors import ProviderError
-from ws_common.query_fallback import fallback_terms
+from ws_common.query_fallback import fallback_terms, untranslated_words
 from insight.domain.values import (
     DOMAIN_TAGS,
     MAX_DOMAIN_TAGS,
@@ -42,8 +42,12 @@ def normalize(query_text: str) -> str:
 class Glossary:
     """Словарь ru→en и ключевые слова областей для резервного расширения без LLM."""
 
-    def __init__(self, terms: dict[str, str], domain_keywords: dict[str, list[str]]) -> None:
+    def __init__(
+        self, terms: dict[str, str], domain_keywords: dict[str, list[str]], strict_terms: dict[str, str] | None = None
+    ) -> None:
         self._terms = {key.lower(): value for key, value in terms.items()}
+        # R-049: дополнение строгого резервного перевода (WS_QUERY_FALLBACK_STRICT), без флага не используется
+        self._strict_terms = {key.lower(): value for key, value in (strict_terms or {}).items()}
         self._domains = {
             domain: [word.lower() for word in words] for domain, words in domain_keywords.items()
         }
@@ -56,12 +60,21 @@ class Glossary:
             log.warning("glossary.missing", path=str(file))
             return Glossary({}, {})
         payload = yaml.safe_load(file.read_text(encoding="utf-8")) or {}
-        return Glossary(payload.get("terms", {}) or {}, payload.get("domain_keywords", {}) or {})
+        return Glossary(
+            payload.get("terms", {}) or {},
+            payload.get("domain_keywords", {}) or {},
+            payload.get("strict_terms", {}) or {},
+        )
 
     @property
     def terms(self) -> dict[str, str]:
         """Словарь ru→en (ключи в нижнем регистре)."""
         return dict(self._terms)
+
+    @property
+    def strict_terms(self) -> dict[str, str]:
+        """Словарь строгого резервного перевода: основной и раздел `strict_terms` файла (R-049)."""
+        return {**self._terms, **self._strict_terms}
 
     def matches(self, query_norm: str) -> list[str]:
         """Термины глоссария, встречающиеся в запросе (для русских фраз)."""
@@ -219,12 +232,14 @@ class ExpandQuery:
         expansions: ExpansionRepository,
         glossary: Glossary,
         metrics: MetricsSink | None = None,
+        fallback_strict: bool = False,
     ) -> None:
         self._chain = chain
         self._prompts = prompts
         self._expansions = expansions
         self._glossary = glossary
         self._metrics: MetricsSink = metrics or NullMetrics()
+        self._fallback_strict = fallback_strict  # R-049: WS_QUERY_FALLBACK_STRICT
 
     async def execute(self, query_text: str) -> QueryExpansion:
         """Кеш → LLM → резерв; ответ всегда содержит хотя бы по одной фразе на язык."""
@@ -305,7 +320,11 @@ class ExpandQuery:
         """Резерв без LLM: сам запрос, совпадения глоссария и его перевод."""
         # содержательные слова запроса без «рамки» («слабые сигналы в области …»), перевод с учётом
         # словоформ; непереведённая кириллица в английские фразы не попадает
-        ru_base, en_base = fallback_terms(query_text, self._glossary.terms)
+        strict = self._fallback_strict
+        terms = self._glossary.strict_terms if strict else self._glossary.terms
+        ru_base, en_base = fallback_terms(query_text, terms, strict=strict)
+        if strict and (missed := untranslated_words(query_text, terms, strict=True)):
+            log.warning("expand.fallback_untranslated", words=list(missed))  # R-049: не теряются молча
         ru_terms = clean_terms([*ru_base, *self._glossary.matches(query_norm)])
         en_terms = clean_terms(en_base) or (query_text,)
         return QueryExpansion(

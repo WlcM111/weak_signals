@@ -25,7 +25,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from insight.application.prompt_builder import RUBRIC_PROMPT_VERSION
 from insight.application.use_cases.rubric_judge import MAX_ITEMS, RubricItem, RubricSource, RubricVerdict
 
 SCIENCE = ("arxiv.org", "nature.com", "sciencedirect.com", "springer.com", "ieee.org", "acm.org", "doi.org",
@@ -262,7 +261,7 @@ async def run(args: argparse.Namespace) -> int:
     pool = build_pool(settings.pg_dsn, min_size=1, max_size=2, statement_timeout_ms=settings.pg_statement_timeout_ms,
                       application_name=f"{settings.service_name}-eval")
     await pool.open(wait=True, timeout=30)
-    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir)
+    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version)
     await RegisterPrompts(PostgresPromptRegistry(pool), prompts).execute()
     chain = ProviderChain(build_providers(settings), PostgresLLMCallLog(pool), SystemClock(), ChainConfig(
         timeout_seconds=settings.llm_timeout_seconds, temperature=settings.llm_temperature,
@@ -282,7 +281,7 @@ async def run(args: argparse.Namespace) -> int:
     await pool.close()
     verdicts = calibrated(verdicts, args.stage_calibration, args.trend_calibration)
     metrics, predictions = summarize(args.dataset, rows, verdicts)
-    metrics.update({"provider": provider, "model": model, "prompt_version": RUBRIC_PROMPT_VERSION, "label": args.label})
+    metrics.update({"provider": provider, "model": model, "prompt_version": prompts.rubric_version, "label": args.label})
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     stem = f"rubric_{args.dataset}_{args.label}"

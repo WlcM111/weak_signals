@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections import Counter
 from collections.abc import Sequence
@@ -32,6 +33,7 @@ NON_INDEPENDENT_TYPES = frozenset(
     {"CODE_REPOSITORY", "PRESS_RELEASE", "CORPORATE_BLOG", "SOCIAL_MEDIA", "OTHER", "VACANCY", "ENCYCLOPEDIA"}
 )
 MARKET_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT"})
+RESEARCH_TYPES = frozenset({"SCIENTIFIC_PUBLICATION", "PREPRINT", "PATENT"})
 # Доля обзоров, с которой карточка не показывается: «не меньше половины» — в этом виде правило проверено на B v2.
 REVIEW_SHARE_LIMIT = 0.5
 REVIEW_RE = re.compile(
@@ -164,7 +166,8 @@ def parse_calibration(spec: str, low: int, high: int) -> dict[int, int]:
 
 
 def pool_candidates(
-    weak: Sequence[CandidateView], excluded: Sequence[CandidateView], limit: int
+    weak: Sequence[CandidateView], excluded: Sequence[CandidateView], limit: int, exclude_model_mature: bool = False,
+    research_singles: bool = False,
 ) -> tuple[list[CandidateView], list[CandidateView]]:
     """Пул для рубричной оценки: слабые сигналы analyzer и отсеянные только порогом его модели.
 
@@ -172,11 +175,20 @@ def pool_candidates(
     (ROC-AUC 0,495), а все карточки с RSS отсекались до выдачи. Кандидаты, исключённые правилами analyzer,
     в пул не входят. Возвращает (пул, остальные).
     """
-    by_model = sorted((item for item in excluded if item.decision_reason == "MODEL_SCORE"), key=lambda item: -item.score)
+    # exclude_model_mature: MATURE/HYPE, решённые моделью analyzer, не получают второй шанс в рубрике (R-022)
+    blocked = (Decision.MATURE, Decision.HYPE_OR_NOISE) if exclude_model_mature else ()
+    by_model = sorted((item for item in excluded if item.decision_reason == "MODEL_SCORE" and item.decision not in blocked),
+                      key=lambda item: -item.score)
     # Одиночная заметка СМИ (раунд, пилот, продукт) исключается правилом SINGLE_SOURCE analyzer до любой оценки;
     # такие кандидаты идут в пул раньше исключённых порогом модели — решают рубрика и локальная модель.
+    # U-02: одиночная научная работа, препринт или патент — ранний исследовательский сигнал (решение владельца:
+    # ранние исследования — слабые сигналы). Прежде в пул шли только одиночные заметки СМИ, и в e2e51 научных карточек
+    # было 10 против 112 в e2e 5.0.4. Одиночные обоих видов идут одной группой по оценке модели; рубрика и
+    # предфильтр (независимый доверенный источник) решают дальше.
+    single_types = MARKET_TYPES | RESEARCH_TYPES if research_singles else MARKET_TYPES
     market = sorted((item for item in excluded if item.decision_reason == "SINGLE_SOURCE"
-                     and any(e.source_type in MARKET_TYPES for e in item.evidence)), key=lambda item: -item.score)
+                     and any(e.source_type in single_types for e in item.evidence)),
+                    key=lambda item: (-item.score, item.candidate_id))
     # Режим rubric: NO_TRUSTED_SOURCE и LOW_QUERY_RELEVANCE analyzer не решают судьбу кандидата. 27.09 по темам кейса
     # они исключили 98 и 58 кандидатов из 240 до любой оценки: заметки отраслевых СМИ (средняя доверенность; ТЗ
     # считает их доверенными) и ниши поднаправлений. Правило ТЗ о независимом источнике проверяет предфильтр,
@@ -193,6 +205,19 @@ def pool_candidates(
 def priority(verdict: JudgeVerdictView) -> int:
     """Балл как у организаторов: стадия + тренд (2…7)."""
     return verdict.stage + verdict.trend
+
+
+def model_preferred(candidates: Sequence[CandidateView], share: float) -> set[str]:
+    """Кандидаты, которых выше всех оценила локальная модель analyzer: верхние ceil(N × share) по её оценке.
+
+    Этап 5.3: в прогоне 18.10 карточки этой части дали 28 слабых сигналов из 30 (93 %), остальные — 61 из 115
+    (53 %); все 35 зрелых тем пришли из второй части. В выдаче такие карточки ставятся выше — ничего не удаляется,
+    меняется только порядок и то, кто попадает в первые top_n. share = 0 — прежний порядок.
+    """
+    if share <= 0 or not candidates:
+        return set()
+    ordered = sorted(candidates, key=lambda c: (-c.score, c.candidate_id))
+    return {c.candidate_id for c in ordered[: math.ceil(len(ordered) * min(share, 1.0))]}
 
 
 def rank_selected(

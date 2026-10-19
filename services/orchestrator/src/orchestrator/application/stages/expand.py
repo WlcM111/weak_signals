@@ -14,7 +14,7 @@ import yaml
 from orchestrator.application.dto import ExpansionView
 from orchestrator.application.ports import InsightClient
 from ws_common.logging import get_logger
-from ws_common.query_fallback import fallback_terms
+from ws_common.query_fallback import fallback_terms, untranslated_words
 
 MAX_TERMS = 8
 MAX_TECHNOLOGIES = 40
@@ -25,8 +25,10 @@ log = get_logger("orchestrator.stage.expand")
 class Glossary:
     """Словарь ru → en для резервного перевода запроса без обращения к LLM."""
 
-    def __init__(self, mapping: dict[str, str]) -> None:
+    def __init__(self, mapping: dict[str, str], strict_mapping: dict[str, str] | None = None) -> None:
         self._mapping = {key.lower(): value for key, value in mapping.items()}
+        # R-049: дополнение строгого резервного перевода (WS_QUERY_FALLBACK_STRICT), без флага не используется
+        self._strict_mapping = {key.lower(): value for key, value in (strict_mapping or {}).items()}
 
     @staticmethod
     def load(path: Path) -> Glossary:
@@ -37,12 +39,21 @@ class Glossary:
             return Glossary({})
         payload = yaml.safe_load(file.read_text(encoding="utf-8")) or {}
         terms = payload.get("terms", payload)
-        return Glossary({str(key): str(value) for key, value in terms.items()})
+        strict = payload.get("strict_terms") or {}
+        return Glossary(
+            {str(key): str(value) for key, value in terms.items()},
+            {str(key): str(value) for key, value in strict.items()},
+        )
 
     @property
     def mapping(self) -> dict[str, str]:
         """Словарь ru→en (ключи в нижнем регистре)."""
         return dict(self._mapping)
+
+    @property
+    def strict_mapping(self) -> dict[str, str]:
+        """Словарь строгого резервного перевода: основной и раздел `strict_terms` файла (R-049)."""
+        return {**self._mapping, **self._strict_mapping}
 
     def translate(self, text: str) -> str:
         """Пословный перевод по словарю; непереведённые слова остаются как есть."""
@@ -56,9 +67,16 @@ class Glossary:
         return " ".join(translated)
 
 
-def fallback_expansion(query_text: str, glossary: Glossary) -> ExpansionView:
-    """Резервные термины: сам запрос на русском и его перевод по словарю на английском."""
-    ru_terms, en_terms = fallback_terms(query_text, glossary.mapping)
+def fallback_expansion(query_text: str, glossary: Glossary, strict: bool = False) -> ExpansionView:
+    """Резервные термины: сам запрос на русском и его перевод по словарю на английском.
+
+    strict (R-049, WS_QUERY_FALLBACK_STRICT): строгий перевод по словарю с разделом `strict_terms`,
+    непереведённые слова — в журнал.
+    """
+    mapping = glossary.strict_mapping if strict else glossary.mapping
+    ru_terms, en_terms = fallback_terms(query_text, mapping, strict=strict)
+    if strict and (missed := untranslated_words(query_text, mapping, strict=True)):
+        log.warning("stage.expand_untranslated", words=list(missed))
     return ExpansionView(
         ru_terms=ru_terms[:MAX_TERMS],
         en_terms=en_terms[:MAX_TERMS],
@@ -67,16 +85,18 @@ def fallback_expansion(query_text: str, glossary: Glossary) -> ExpansionView:
     )
 
 
-async def run_expand(insight: InsightClient | None, query_text: str, glossary: Glossary) -> ExpansionView:
+async def run_expand(
+    insight: InsightClient | None, query_text: str, glossary: Glossary, strict: bool = False
+) -> ExpansionView:
     """Вызывает `ExpandQuery`; при любой ошибке возвращает резервные термины."""
     if insight is None:
         log.info("stage.expand", used_fallback=True, reason="insight_disabled")
-        return fallback_expansion(query_text, glossary)
+        return fallback_expansion(query_text, glossary, strict)
     try:
         expansion = await insight.expand_query(query_text)
     except Exception as error:  # noqa: BLE001 - расширение не критично для выполнения задания
         log.warning("stage.expand", used_fallback=True, error=str(error))
-        return fallback_expansion(query_text, glossary)
+        return fallback_expansion(query_text, glossary, strict)
     ru_terms = tuple(expansion.ru_terms[:MAX_TERMS]) or (query_text,)
     en_terms = tuple(expansion.en_terms[:MAX_TERMS]) or (glossary.translate(query_text),)
     technologies = tuple(dict.fromkeys(t.strip() for t in expansion.technologies if 2 <= len(t.strip()) <= 80))[:MAX_TECHNOLOGIES]

@@ -35,6 +35,7 @@ class GithubAdapter(BaseSourceAdapter):
         self._token = token
 
     supports_targeted = True
+    max_targeted_terms = MAX_TARGETED_TERMS  # R-040: предел и при вызовах по одной технологии
 
     def _headers(self) -> dict[str, str]:
         headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}

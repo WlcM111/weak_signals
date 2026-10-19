@@ -19,6 +19,7 @@ from orchestrator.application.dto import (
     ModelInfoView,
     NarrativeView,
     ScoreTextView,
+    TraceView,
 )
 from orchestrator.domain.entities import ExcludedCandidate, Job, Query, ResultItem
 from orchestrator.domain.values import JobProgress, JobStats, JobStatus
@@ -90,8 +91,12 @@ class ResultRepository(Protocol):
     async def progress(self, job_id: str) -> JobProgress | None:
         """Прогресс задания по записанным данным."""
 
-    async def save_trace(self, job_id: str, stage: str, payload: dict[str, object]) -> None:
-        """Трасса стадии задания (аудит A3): что вошло, что выбыло и почему; повтор стадии перезаписывает её."""
+    async def save_trace(self, job_id: str, stage: str, payload: dict[str, object], keep_previous: bool = False) -> None:
+        """Трасса стадии задания (аудит A3): что вошло, что выбыло и почему; повтор стадии перезаписывает её,
+        а при `keep_previous` прежняя запись остаётся как `stage@N`."""
+
+    async def get_trace(self, job_id: str, stage: str) -> TraceView | None:
+        """Трасса стадии (или прошлого прогона `stage@N`) и список записанных стадий задания."""
 
 
 class IdempotencyRepository(Protocol):

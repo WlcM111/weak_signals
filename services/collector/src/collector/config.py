@@ -53,7 +53,13 @@ class CollectorSettings(BaseServiceSettings):
     collector_targeted_reserve_documents: int = Field(default=600, ge=0, le=2000)  # этап 4.4: было 300
     collector_broad_max_documents_per_source: int = Field(default=60, ge=10, le=500)
     collector_mined_technologies: int = Field(default=15, ge=0, le=40)
+    # R-043: сравнение фраз технологий по словам (карточка R-043, поле 15: «Внедрять»). Подстрочное сравнение блокировало
+    # и поглощало «rag pipelines» из-за «graphrag pipelines»; WS_COLLECTOR_TECH_FILTER_WORD_LEVEL=false — прежнее поведение.
+    collector_tech_filter_word_level: bool = True
     collector_targeted_window_months: int = Field(default=24, ge=3, le=120)
+    # R-040: отказ по одной технологии не обрывает прицельный поиск источника (false — прежнее поведение)
+    collector_targeted_per_tech_errors: bool = False
+    collector_broad_failure_keeps_targeted: bool = False  # R-042: по умолчанию прежнее поведение
     # Этап 4.3: локальные архивы, корпус arXiv и отбор технологий.
     news_publishers_path: Path = SERVICE_ROOT / "config" / "news_publishers.yaml"
     archive_wayback_pause_seconds: float = Field(default=3.0, ge=1.0, le=60.0)

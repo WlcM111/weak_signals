@@ -21,7 +21,7 @@ from orchestrator.application.stages.expand import Glossary
 from orchestrator.application.stages.narrate import NarrateConfig
 from orchestrator.application.use_cases.cancel_job import CancelJob
 from orchestrator.application.use_cases.get_job import GetJob, ListJobs
-from orchestrator.application.use_cases.get_results import GetResultItem, GetResults
+from orchestrator.application.use_cases.get_results import GetResultItem, GetResults, GetTrace
 from orchestrator.application.use_cases.proxy import GetModelInfo, ScoreText
 from orchestrator.application.use_cases.run_job import RunJob, RunJobConfig
 from orchestrator.application.use_cases.submit_query import SubmitQuery
@@ -120,6 +120,7 @@ def build_handlers(context: dict[str, Any], settings: OrchestratorSettings) -> A
         rate_limiter=RateLimiter(settings.rate_limit_post_per_min),
         ip_salt=settings.ip_hash_salt,
         readiness=readiness,
+        get_trace=GetTrace(jobs, results) if settings.trace_api else None,
     )
 
 
@@ -140,6 +141,7 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
             deadline_seconds=settings.job_deadline_seconds,
             deadline_reserve_seconds=settings.job_deadline_reserve_seconds,
             insight_call_seconds=settings.insight_timeout_seconds,
+            query_fallback_strict=settings.query_fallback_strict,
             collect=CollectConfig(
                 time_budget_seconds=settings.collect_time_budget_seconds,
                 max_total_documents=settings.collect_max_total_documents,
@@ -161,7 +163,12 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 judge_order=settings.candidate_judge_order,
                 selection_mode=settings.selection_mode,
                 rubric_pool=settings.rubric_pool,
+                rubric_pool_exclude_model_mature=settings.rubric_pool_exclude_model_mature,
+                rubric_pool_research_singles=settings.rubric_pool_research_singles,
+                rank_model_first_share=settings.rank_model_first_share,
+                rubric_docs_retry=settings.rubric_docs_retry,
                 finalize_enabled=settings.finalize_enabled,
+                rubric_finalize_retry_small=settings.rubric_finalize_retry_small,
                 rubric_legacy_fallback=settings.rubric_legacy_fallback,
                 rubric_fill_uncertain=settings.rubric_fill_uncertain,
                 stage_calibration=settings.stage_calibration,
@@ -172,7 +179,9 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 signal_model_path=settings.signal_model_path,
                 profile_model_path=settings.profile_model_path,
                 final_check_enabled=settings.final_specificity_check,
+                final_check_fail_as_uncertain=settings.final_check_fail_as_uncertain,
                 confidence_calibration=settings.confidence_calibration,
+                narrate_trace_evidence=settings.narrate_trace_evidence,
             ),
         ),
         metrics=context["metrics"],
@@ -186,7 +195,7 @@ async def run_api(settings: OrchestratorSettings) -> int:
     from orchestrator.adapters.inbound.http.app import create_app  # noqa: PLC0415
 
     context = await _build_context(settings)
-    app = create_app(build_handlers(context, settings))
+    app = create_app(build_handlers(context, settings), trace_api=settings.trace_api)
     config = uvicorn.Config(
         app,
         host=settings.api_bind,

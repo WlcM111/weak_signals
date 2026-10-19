@@ -21,13 +21,16 @@ from pathlib import Path
 from orchestrator.application.dto import (
     CandidateView,
     DocumentView,
+    EvidenceView,
     FinalizedCardView,
     FinalizeRequestCard,
     JudgeVerdictView,
+    NarrativeView,
     RubricRequestItem,
 )
 from orchestrator.application.ports import AnalyzerClient, CollectorClient, InsightClient, ResultRepository
 from orchestrator.application.stages import rubric
+from orchestrator.application.stages.analyze import upstream_failure
 from orchestrator.application.stages.narrate import (
     MAX_EVIDENCE,
     NarrateConfig,
@@ -39,14 +42,22 @@ from orchestrator.application.stages.narrate import (
 )
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem
 from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
-from orchestrator.domain.values import Decision, FeatureDirection, NarrativeStatus
+from orchestrator.domain.values import Decision, FeatureDirection, JobErrorCode, NarrativeStatus, is_confident
 from ws_common import rubric_model, signal_classifier
 from ws_common.logging import get_logger
 
 DOCUMENTS_BATCH = 150
+# WS_RUBRIC_DOCS_RETRY (R-027): пачка меньше — меньше ответ gRPC с полными текстами; упавшая пачка повторяется один раз.
+DOCUMENTS_RETRY_BATCH = 50
+DOCS_UNAVAILABLE = (Decision.INSUFFICIENT_EVIDENCE, "RUBRIC_DOCS_UNAVAILABLE",
+                    "Документы кандидата не загрузились из collector и при повторе: оценка не проводилась.")
 # Три раунда замены: отказ доводки заменяется следующим кандидатом R (стенд 29.09: 45 R → 24 карточки).
 FINALIZE_ROUNDS = 3
 FINALIZE_SOURCES = 5
+# R-026: insight доводит не больше 30 карточек за вызов (MAX_CARDS), остальные молча терялись; после сбоя
+# вызова пакет повторяется частями по 5.
+FINALIZE_MAX_CARDS = 30
+FINALIZE_RETRY_CARDS = 5
 # Рубрика — вызовами по 20 кандидатов (5 вызовов LLM по 4): пул 60–100 кандидатов одним вызовом RPC — это 15–25
 # вызовов LLM, на GigaChat-2-Max он не укладывается в срок RPC 660 с, а обрыв по сроку увёл бы задание в прежнюю ветку.
 RUBRIC_CHUNK = 20
@@ -94,7 +105,8 @@ async def run_narrate_rubric(
     llm_ok = insight is not None and (config.llm_allowed is None or config.llm_allowed())
     if not llm_ok:
         await _save_trace(results, job_id, {"path": "legacy", "config": config_dict(config),
-                                            "reason": "insight_disabled" if insight is None else "deadline"})
+                                            "reason": "insight_disabled" if insight is None else "deadline"},
+                          config.narrate_trace_evidence)
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
@@ -104,22 +116,43 @@ async def run_narrate_rubric(
         classifier = signal_classifier.load(config.signal_model_path)
     weak, excluded = await collect_candidates(analyzer, analysis_id, check)
     outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
-    pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool)
-    documents = await _load_all(collector, pool, check)
+    pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool, config.rubric_pool_exclude_model_mature,
+                                        config.rubric_pool_research_singles)
+    documents, unavailable, load_error = await _load_all(collector, pool, check, config.rubric_docs_retry)
     compositions = {c.candidate_id: rubric.composition_of(_docs(c, documents)) for c in pool}
     prefiltered: list[tuple[CandidateView, tuple[Decision, str, str]]] = []
     judged_pool: list[CandidateView] = []
+    lost = set(unavailable)
     for candidate in pool:
         verdict = rubric.prefilter(compositions[candidate.candidate_id])
+        if not compositions[candidate.candidate_id].total and lost.intersection(
+                e.document_id for e in candidate.evidence[:MAX_EVIDENCE]):
+            verdict = DOCS_UNAVAILABLE  # источники есть, но не загрузились: не «нет источников»
         (prefiltered.append((candidate, verdict)) if verdict else judged_pool.append(candidate))
+    docs_trace = {"documents_unavailable": unavailable} if config.rubric_docs_retry else {}
+    if load_error is not None and not judged_pool:
+        # Сбой загрузки не уводит в прежнюю ветку с карточками без источников: отказ стадии, задание повторяется.
+        log.warning("stage.narrate_rubric.documents_unavailable", pool=len(pool), unavailable=len(unavailable))
+        await _save_trace(results, job_id, {
+            "path": "stage_failed", "reason": "documents_unavailable", "config": config_dict(config),
+            "candidates": {"weak": [c.candidate_id for c in weak], "excluded": [c.candidate_id for c in excluded]},
+            "pool": [c.candidate_id for c in pool], "rest": [_reason_row(c) for c in rest],
+            "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered]} | docs_trace,
+            config.narrate_trace_evidence)
+        raise upstream_failure("collector", JobErrorCode.UPSTREAM_UNAVAILABLE, load_error)
     raw = await _judge(insight, query_text, judged_pool, documents, compositions, config.llm_allowed)
     if not raw:
         log.warning("stage.narrate_rubric.judge_unavailable", pool=len(judged_pool))
+        evidence = await _evidence(collector, weak + excluded, rest, documents, check) if config.narrate_trace_evidence else None
         await _save_trace(results, job_id, {
             "path": "legacy", "reason": "rubric_unavailable", "config": config_dict(config),
             "candidates": {"weak": [c.candidate_id for c in weak], "excluded": [c.candidate_id for c in excluded]},
             "pool": [c.candidate_id for c in pool], "rest": [_reason_row(c) for c in rest],
-            "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered]})
+            "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered],
+            # судьбу решает legacy-ветка (трасса narrate_legacy): здесь — решение analyzer на входе
+            **({"evidence": evidence, "outcome": {c.candidate_id: ["legacy", c.decision_reason, c.decision.value,
+                                                                   round(c.score, 4), 0] for c in weak + excluded}}
+               if evidence is not None else {})} | docs_trace, config.narrate_trace_evidence)
         return await run_narrate(analyzer=analyzer, collector=collector, insight=insight, results=results,
                                  job_id=job_id, query_text=query_text, analysis_id=analysis_id, config=legacy,
                                  check=check)
@@ -132,8 +165,11 @@ async def run_narrate_rubric(
     scored = {c.candidate_id: probability(model, verdicts[c.candidate_id], c, _docs(c, documents), classifier)
               for c in judged}
     order = {c.candidate_id: i for i, c in enumerate(judged)}
-    ranked = sorted(judged, key=lambda c: (-scored[c.candidate_id][0], -rubric.priority(verdicts[c.candidate_id]),
-                                           order[c.candidate_id]))
+    # Этап 5.3: сначала кандидаты, которых выше всех оценила модель analyzer (их точность 93 % против 53 %), затем
+    # прежний порядок — вероятность локальной модели рубрики, приоритет стадии и тренда.
+    preferred = rubric.model_preferred([*weak, *excluded], config.rank_model_first_share)
+    ranked = sorted(judged, key=lambda c: (c.candidate_id not in preferred, -scored[c.candidate_id][0],
+                                           -rubric.priority(verdicts[c.candidate_id]), order[c.candidate_id]))
     # Решение о показе — рубрика (R), порядок внутри R — локальная модель. 27.09 порог модели скрыл 15 кандидатов R
     # и показал общие. Если R меньше минимума — добираются лучшие по модели кандидаты U, затем прочие (с пометкой).
     accepted = [c for c in ranked if verdicts[c.candidate_id].code == "R"]
@@ -146,11 +182,13 @@ async def run_narrate_rubric(
     ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
     final_dropped: dict[str, JudgeVerdictView] = {}
+    final_unchecked: set[str] = set()
     review_dropped: dict[str, tuple[Decision, str, str]] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
     rounds: list[dict[str, object]] = []
     deadline_cut = False
+    requeued: set[str] = set()  # R-026: возвращены в очередь после сбоя RPC (не больше одного раза)
     for _ in range(FINALIZE_ROUNDS):
         need = config.top_n - len(finalized)
         if need <= 0 or not queue:
@@ -159,8 +197,18 @@ async def run_narrate_rubric(
             deadline_cut = True  # повтор режима А с этим заданием не сравним: доводку остановил срок
             break
         batch, queue = queue[:need], queue[need:]
-        tried.extend(batch)
-        produced = await _finalize(insight, query_text, batch, documents, verdicts, config)
+        extra: dict[str, object] = {}
+        if config.rubric_finalize_retry_small:
+            produced, failed = await _finalize_parts(insight, query_text, batch, documents, verdicts, config)
+            # без карточки из-за сбоя RPC — в начало очереди следующего раунда, а не сразу в RUBRIC_TEXT_FAILED
+            again = [c for c in batch if c.candidate_id in failed and c.candidate_id not in requeued]
+            requeued.update(c.candidate_id for c in again)
+            queue = again + queue
+            tried.extend(c for c in batch if c not in again)
+            extra = {"finalize_failed": sorted(failed), "requeued": [c.candidate_id for c in again]}
+        else:
+            tried.extend(batch)
+            produced = await _finalize(insight, query_text, batch, documents, verdicts, config)
         finalized.update(produced)
         # Правило обзоров — и по источникам готовой карточки: доводка оставляет источники, которые описывают
         # технологию, и в выдаче v12 ими оказывались обзоры («AI-Driven Predictive Maintenance» — три обзора).
@@ -170,12 +218,17 @@ async def run_narrate_rubric(
             finalized.pop(candidate_id, None)
         checked: dict[str, JudgeVerdictView] = {}
         if config.final_check_enabled:
-            checked = await _final_check(insight, query_text, batch, finalized, documents)
+            checked, unchecked = await _final_check(insight, query_text, batch, finalized, documents)
             final_dropped.update(checked)
             for candidate_id in final_dropped:
                 finalized.pop(candidate_id, None)
+            if config.final_check_fail_as_uncertain:  # без вердикта — «требует проверки», не принятый R (R-025)
+                final_unchecked.update(unchecked)
         rounds.append({"batch": [c.candidate_id for c in batch], "finalized": sorted(produced),
-                       "review_dropped": sorted(reviews), "final_dropped": sorted(checked)})
+                       "review_dropped": sorted(reviews), "final_dropped": sorted(checked)} | extra)
+    if config.rubric_finalize_retry_small:  # повтор не состоялся (раунды или срок кончились) — RUBRIC_TEXT_FAILED
+        tried.extend(c for c in queue if c.candidate_id in requeued)
+        queue = [c for c in queue if c.candidate_id not in requeued]
     rejected = final_dropped.keys() | review_dropped.keys()
     rank_of = {c.candidate_id: i for i, c in enumerate(ranked)}
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
@@ -189,17 +242,46 @@ async def run_narrate_rubric(
     if fallback:  # пустой выдачи при допустимых кандидатах не бывает: прежний генератор карточек
         shown, text_failed = allowed[: config.top_n], []
         queue = allowed[config.top_n :]
+    narratives: dict[str, NarrativeView] = {}
+    if fallback and config.final_check_enabled and config.final_check_fail_as_uncertain:
+        # R-025: резервные карточки — через ту же финальную проверку по тексту построенной карточки
+        for candidate in shown:
+            await check()
+            narratives[candidate.candidate_id] = await _fallback_narrative(insight, job_id, query_text, candidate,
+                                                                           documents, config, outcome)
+        requests = [_final_item(c, narratives[c.candidate_id].title_ru or c.title_auto,
+                                narratives[c.candidate_id].description_ru, _docs(c, documents)) for c in shown]
+        if config.llm_allowed is None or config.llm_allowed():
+            dropped, unchecked = await _judge_final(insight, query_text, requests)
+        else:  # срок не позволяет вызов LLM: карточки остаются непроверенными
+            dropped, unchecked = {}, {c.candidate_id for c in shown}
+        final_dropped.update(dropped)
+        final_unchecked.update(unchecked)
+        dropped_final += [c for c in shown if c.candidate_id in dropped]
+        shown = [c for c in shown if c.candidate_id not in dropped]
+    # Код показа: карточка без вердикта финальной проверки показывается как U — «требует проверки» (R-025).
+    shown_code = {c.candidate_id: "U" if c.candidate_id in final_unchecked else verdicts[c.candidate_id].code
+                  for c in shown}
     outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
     # «Уверены более чем на 75 %» — по той же уверенности, что показана в карточках (с калибровкой, если включена).
     # Считаются только показанные карточки: счётчик стоит рядом со списком «Найденные слабые сигналы», и число
     # должно совпадать с тем, что видно в карточках (стенд 29.09: «1 из 9» при четырёх карточках 67–71 %).
     outcome.weak_signals_confident = sum(
-        1 for c in shown if verdicts[c.candidate_id].code == "R"
-        and display_score(scored[c.candidate_id][0], "R", config.confidence_calibration) >= CONFIDENT)
+        1 for c in shown if shown_code[c.candidate_id] == "R"
+        and is_confident(display_score(scored[c.candidate_id][0], "R", config.confidence_calibration)))
     outcome.judge_rejected = len(prefiltered)
-    outcome.excluded_written = await results.add_excluded(job_id, _excluded_rows(
-        rest, prefiltered + dropped_reviews, unjudged, queue + below, text_failed, verdicts, scored, dropped_final,
-        final_dropped))
+    evidence = await _evidence(collector, weak + excluded, rest, documents, check) if config.narrate_trace_evidence else None
+    rows = _excluded_rows(rest, prefiltered + dropped_reviews, unjudged, queue + below, text_failed, verdicts, scored,
+                          dropped_final, final_dropped)
+    outcome.excluded_written = await results.add_excluded(job_id, rows)
+    extra: dict[str, object] = {}
+    if evidence is not None:
+        displayed = {c.candidate_id: display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
+                                                   config.confidence_calibration) for c in shown}
+        extra = {"evidence": evidence, "outcome": _outcomes(rows, (
+            ("not_in_pool", rest), ("prefilter", [c for c, _ in prefiltered]), ("unjudged", unjudged),
+            ("rubric", below), ("not_tried", queue), ("text_failed", text_failed),
+            ("card_review", [c for c, _ in dropped_reviews]), ("final_check", dropped_final)), shown, displayed)}
     await _save_trace(results, job_id, {
         "path": "rubric",
         "config": config_dict(config),
@@ -225,16 +307,19 @@ async def run_narrate_rubric(
         "text_failed": [c.candidate_id for c in text_failed],
         "review_dropped": {cid: [decision.value, reason] for cid, (decision, reason, _) in review_dropped.items()},
         "final_dropped": {cid: {"code": v.code, "reason_ru": v.reason_ru} for cid, v in final_dropped.items()},
+        **({"final_unchecked": sorted(final_unchecked)} if config.final_check_fail_as_uncertain else {}),
         "fallback": fallback,
-        "shown": [[position, c.candidate_id, display_score(scored[c.candidate_id][0], verdicts[c.candidate_id].code,
+        "shown": [[position, c.candidate_id, display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
                                                            config.confidence_calibration),
-                   verdicts[c.candidate_id].code, c.candidate_id in finalized] for position, c in enumerate(shown, 1)],
-    })
+                   shown_code[c.candidate_id], c.candidate_id in finalized] for position, c in enumerate(shown, 1)],
+        **extra,
+    } | docs_trace, config.narrate_trace_evidence)
     for position, candidate in enumerate(shown, 1):
         await check()
         item = await _build_item(insight, job_id, query_text, position, candidate, verdicts[candidate.candidate_id],
                                  finalized.get(candidate.candidate_id), documents, scored[candidate.candidate_id],
-                                 classifier or model, config, outcome)
+                                 classifier or model, config, outcome, narratives.get(candidate.candidate_id),
+                                 candidate.candidate_id in final_unchecked)
         await results.add_item(item)
         outcome.items_written += 1
         if item.narrative_status is NarrativeStatus.GENERATED:
@@ -249,8 +334,9 @@ async def run_narrate_rubric(
 
 
 def config_dict(config: NarrateConfig) -> dict[str, object]:
-    """Настройки стадии для трассы: все поля, кроме функции проверки срока."""
-    return {f.name: getattr(config, f.name) for f in dataclasses.fields(config) if f.name != "llm_allowed"}
+    """Настройки стадии для трассы: все поля, кроме функции проверки срока и флага трассы (на отбор не влияет)."""
+    return {f.name: getattr(config, f.name) for f in dataclasses.fields(config)
+            if f.name not in ("llm_allowed", "narrate_trace_evidence")}
 
 
 def verdict_dict(verdict: JudgeVerdictView) -> dict[str, object]:
@@ -271,12 +357,66 @@ def _reason_row(candidate: CandidateView) -> list[object]:
     return [candidate.candidate_id, candidate.decision.value, candidate.decision_reason]
 
 
-async def _save_trace(results: ResultRepository, job_id: str, payload: dict[str, object]) -> None:
-    """Трасса стадии; сбой записи не обрывает выдачу, но виден в журнале (выгрузка отметит её отсутствие)."""
+async def _save_trace(results: ResultRepository, job_id: str, payload: dict[str, object],
+                      keep_previous: bool = False) -> None:
+    """Трасса стадии; сбой записи не обрывает выдачу, но виден в журнале (выгрузка отметит её отсутствие).
+    keep_previous (WS_NARRATE_TRACE_EVIDENCE): трасса прошлого прогона стадии остаётся как narrate@N."""
     try:
-        await results.save_trace(job_id, "narrate", payload)
+        if keep_previous:
+            await results.save_trace(job_id, "narrate", payload, keep_previous=True)
+        else:
+            await results.save_trace(job_id, "narrate", payload)
     except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
         log.error("stage.narrate_rubric.trace_failed", job_id=job_id, error=str(error)[:300])
+
+
+async def _evidence(
+    collector: CollectorClient, candidates: list[CandidateView], rest: list[CandidateView],
+    documents: dict[str, DocumentView], check: Callable[[], Awaitable[None]],
+) -> dict[str, list[list[object]]]:
+    """Документы каждого кандидата для трассы: [document_id, url, source_type, trust_level, loaded] по evidence[:8].
+    URL — из загруженных документов пула; кандидатам вне пула — один GetDocuments (≤ DOCUMENTS_BATCH, сначала
+    первые доказательства каждого кандидата)."""
+    known = dict(documents)
+    wanted: list[str] = []
+    for position in range(MAX_EVIDENCE):
+        for candidate in rest:
+            if position < len(candidate.evidence) and candidate.evidence[position].document_id not in known:
+                wanted.append(candidate.evidence[position].document_id)
+    wanted = list(dict.fromkeys(wanted))[:DOCUMENTS_BATCH]
+    if wanted:
+        await check()
+        try:
+            known.update({document.document_id: document for document in await collector.get_documents(wanted)})
+        except UpstreamUnavailable as error:
+            log.warning("stage.narrate_rubric.trace_documents", error=str(error)[:200])
+    return {c.candidate_id: [_evidence_row(e, known.get(e.document_id)) for e in c.evidence[:MAX_EVIDENCE]]
+            for c in candidates}
+
+
+def _evidence_row(evidence: EvidenceView, document: DocumentView | None) -> list[object]:
+    source = document if document is not None else evidence
+    return [evidence.document_id, document.url if document is not None else "", source.source_type,
+            str(getattr(source.trust_level, "value", source.trust_level)), document is not None]
+
+
+def _outcomes(
+    rows: list[ExcludedCandidate], groups: tuple[tuple[str, list[CandidateView]], ...], shown: list[CandidateView],
+    displayed: dict[str, float],
+) -> dict[str, list[object]]:
+    """Итог каждого кандидата: [этап, reason, decision, score, ранг выдачи (0 — не показан)].
+
+    reason, decision, score исключённых — как в excluded (шкала score по этапу: скор analyzer — not_in_pool,
+    prefilter, unjudged, card_review; вероятность классификатора — rubric, not_tried, text_failed; уверенность
+    финальной проверки — final_check); у показанных — уверенность карточки."""
+    stage_of = {c.candidate_id: stage for stage, group in groups for c in group}
+    result: dict[str, list[object]] = {
+        row.candidate_id: [stage_of.get(row.candidate_id, ""), row.decision_reason, row.decision.value, row.score, 0]
+        for row in rows}
+    for position, candidate in enumerate(shown, 1):
+        result[candidate.candidate_id] = ["shown", "RUBRIC_MODEL", Decision.WEAK_SIGNAL.value,
+                                          displayed[candidate.candidate_id], position]
+    return result
 
 
 def _docs(candidate: CandidateView, documents: dict[str, DocumentView]) -> tuple[DocumentView, ...]:
@@ -285,20 +425,34 @@ def _docs(candidate: CandidateView, documents: dict[str, DocumentView]) -> tuple
 
 
 async def _load_all(
-    collector: CollectorClient, pool: list[CandidateView], check: Callable[[], Awaitable[None]]
-) -> dict[str, DocumentView]:
-    """Документы всего пула пачками (GetDocuments принимает до 200 идентификаторов)."""
+    collector: CollectorClient, pool: list[CandidateView], check: Callable[[], Awaitable[None]], retry: bool = False,
+) -> tuple[dict[str, DocumentView], list[str], UpstreamUnavailable | None]:
+    """Документы всего пула пачками (GetDocuments принимает до 200 идентификаторов).
+
+    retry (WS_RUBRIC_DOCS_RETRY): пачки по DOCUMENTS_RETRY_BATCH с одним повтором; кроме документов — id,
+    не загруженные из-за сбоя, и последняя ошибка. Без retry сбой пачки пропускается, как раньше.
+    """
     identifiers = list(dict.fromkeys(e.document_id for c in pool for e in c.evidence[:MAX_EVIDENCE]))
+    size, attempts = (DOCUMENTS_RETRY_BATCH, 2) if retry else (DOCUMENTS_BATCH, 1)
     found: dict[str, DocumentView] = {}
-    for start in range(0, len(identifiers), DOCUMENTS_BATCH):
-        await check()
-        try:
-            batch = await collector.get_documents(identifiers[start : start + DOCUMENTS_BATCH])
-        except UpstreamUnavailable as error:
-            log.warning("stage.narrate_rubric.documents", error=str(error)[:200])
-            continue
-        found.update({document.document_id: document for document in batch})
-    return found
+    failed: list[str] = []
+    error: UpstreamUnavailable | None = None
+    for start in range(0, len(identifiers), size):
+        chunk = identifiers[start : start + size]
+        for attempt in range(1, attempts + 1):
+            await check()
+            try:
+                batch = await collector.get_documents(chunk)
+            except UpstreamUnavailable as failure:
+                log.warning("stage.narrate_rubric.documents", attempt=attempt, size=len(chunk),
+                            error=str(failure)[:200])
+                if attempt == attempts:
+                    failed.extend(chunk)
+                    error = failure
+                continue
+            found.update({document.document_id: document for document in batch})
+            break
+    return (found, failed, error) if retry else (found, [], None)
 
 
 async def _judge(
@@ -331,15 +485,56 @@ async def _finalize(
     """Пакетная доводка; карточки, не прошедшие проверку, в ответ не входят."""
     if not shown or not config.finalize_enabled:
         return {}
-    cards = [FinalizeRequestCard(c, _docs(c, documents)[:FINALIZE_SOURCES], verdicts[c.candidate_id].stage,
-                                 verdicts[c.candidate_id].trend,
-                                 f"{verdicts[c.candidate_id].technology_ru}: {verdicts[c.candidate_id].reason_ru}".strip(": "))
-             for c in shown]
+    cards = _request_cards(shown, documents, verdicts)
     try:
         return await insight.finalize_cards(query_text, cards)
     except (UpstreamUnavailable, StageFailed) as error:
         log.warning("stage.narrate_rubric.finalize_failed", error=str(error)[:200])
         return {}
+
+
+def _request_cards(
+    shown: list[CandidateView], documents: dict[str, DocumentView], verdicts: dict[str, JudgeVerdictView],
+) -> list[FinalizeRequestCard]:
+    return [FinalizeRequestCard(c, _docs(c, documents)[:FINALIZE_SOURCES], verdicts[c.candidate_id].stage,
+                                verdicts[c.candidate_id].trend,
+                                f"{verdicts[c.candidate_id].technology_ru}: {verdicts[c.candidate_id].reason_ru}".strip(": "))
+            for c in shown]
+
+
+async def _finalize_parts(
+    insight: InsightClient, query_text: str, batch: list[CandidateView], documents: dict[str, DocumentView],
+    verdicts: dict[str, JudgeVerdictView], config: NarrateConfig,
+) -> tuple[dict[str, FinalizedCardView], set[str]]:
+    """R-026: вызовы по ≤ FINALIZE_MAX_CARDS; сбой вызова — повтор частями по FINALIZE_RETRY_CARDS, успешные части
+    принимаются. Возвращает карточки и кандидатов, оставшихся без ответа (сбой RPC или срок задания)."""
+    produced: dict[str, FinalizedCardView] = {}
+    failed: set[str] = set()
+    if not batch or not config.finalize_enabled:
+        return produced, failed
+    calls = 0
+
+    async def call(part: list[CandidateView]) -> bool:
+        nonlocal calls
+        if calls and config.llm_allowed is not None and not config.llm_allowed():
+            return False  # срок задания: первый вызов проверен раундом, следующие не начинаются
+        calls += 1
+        try:
+            produced.update(await insight.finalize_cards(query_text, _request_cards(part, documents, verdicts)))
+        except (UpstreamUnavailable, StageFailed) as error:
+            log.warning("stage.narrate_rubric.finalize_failed", size=len(part), error=str(error)[:200])
+            return False
+        return True
+
+    for start in range(0, len(batch), FINALIZE_MAX_CARDS):
+        part = batch[start : start + FINALIZE_MAX_CARDS]
+        if await call(part):
+            continue
+        for small in range(0, len(part), FINALIZE_RETRY_CARDS):
+            chunk = part[small : small + FINALIZE_RETRY_CARDS]
+            if not await call(chunk):
+                failed.update(c.candidate_id for c in chunk)
+    return produced, failed
 
 
 def _excluded_rows(
@@ -393,25 +588,41 @@ FINAL_DROP = frozenset({"N-GEN", "N-MAT", "N-OVR", "N-OFF", "N-NOI", "N-HYP", "N
 async def _final_check(
     insight: InsightClient, query_text: str, batch: list[CandidateView], finalized: dict[str, FinalizedCardView],
     documents: dict[str, DocumentView],
-) -> dict[str, JudgeVerdictView]:
+) -> tuple[dict[str, JudgeVerdictView], set[str]]:
     """Рубрика по готовой карточке: название и описание — конкретная ранняя технология по теме? Общее, зрелое,
-    обзор и не по теме возвращаются для замены следующим кандидатом. Сбой проверки карточки не отбрасывает."""
+    обзор и не по теме возвращаются для замены следующим кандидатом. Сбой проверки карточки не отбрасывает:
+    карточки без вердикта (сбой или пропуск) возвращаются вторым значением."""
     items = []
     for candidate in batch:
         card = finalized.get(candidate.candidate_id)
         if card is None:
             continue
         docs = tuple(documents[d] for d in card.source_summaries if d in documents)
-        items.append(RubricRequestItem(replace(candidate, title_auto=card.title_ru[:200], keyphrases=()), docs,
-                                       f"Итоговая карточка. Название: {card.title_ru}. Описание: {card.description_ru}"))
+        items.append(_final_item(candidate, card.title_ru, card.description_ru, docs))
+    return await _judge_final(insight, query_text, items)
+
+
+def _final_item(
+    candidate: CandidateView, title_ru: str, description_ru: str, docs: tuple[DocumentView, ...],
+) -> RubricRequestItem:
+    """Запрос финальной проверки: название и описание готовой карточки и её источники."""
+    return RubricRequestItem(replace(candidate, title_auto=title_ru[:200], keyphrases=()), docs,
+                             f"Итоговая карточка. Название: {title_ru}. Описание: {description_ru}")
+
+
+async def _judge_final(
+    insight: InsightClient, query_text: str, items: list[RubricRequestItem],
+) -> tuple[dict[str, JudgeVerdictView], set[str]]:
+    """Вызов финальной проверки: (отклонённые кодами FINAL_DROP, оставшиеся без вердикта)."""
     if not items:
-        return {}
+        return {}, set()
     try:
         verdicts = await insight.judge_rubric(query_text, items, final_check=True)
     except (UpstreamUnavailable, StageFailed) as error:
         log.warning("stage.narrate_rubric.final_check_failed", error=str(error)[:200])
-        return {}
-    return {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP}
+        verdicts = {}
+    unchecked = {item.candidate.candidate_id for item in items if item.candidate.candidate_id not in verdicts}
+    return {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP}, unchecked
 
 
 def _review_dominated(
@@ -465,15 +676,20 @@ async def _build_item(
     insight: InsightClient | None, job_id: str, query_text: str, position: int, candidate: CandidateView,
     verdict: JudgeVerdictView, card: FinalizedCardView | None, documents: dict[str, DocumentView],
     scored: tuple[float, dict[str, float]], model: dict | None, config: NarrateConfig, outcome: NarrateOutcome,
+    narrative: NarrativeView | None = None, unchecked: bool = False,
 ) -> ResultItem:
-    """Элемент выдачи: уверенность и предикторы — локальная модель, тексты — пакетная доводка на русском."""
+    """Элемент выдачи: уверенность и предикторы — локальная модель, тексты — пакетная доводка на русском.
+    unchecked — финальная проверка не дала вердикта: пометка и уверенность как у U (R-025)."""
     prob, values = scored
+    code = "U" if unchecked else verdict.code
+    reason = ("финальная проверка карточки не дала вердикта" if unchecked and verdict.code == "R"
+              else "кандидат не признан слабым сигналом рубрикой")
     status = (f"Вероятность слабого сигнала по локальному классификатору: {prob:.0%}"
-              + (". " if verdict.code == "R" else " — кандидат не признан слабым сигналом рубрикой, требует экспертной проверки. ")
+              + (". " if code == "R" else f" — {reason}, требует экспертной проверки. ")
               + rubric.status_explanation(verdict, verdict.stage, verdict.trend))[:500]
     features = model_features(model, values, candidate)
     common = dict(job_id=job_id, rank=position, candidate_id=candidate.candidate_id,
-                  title_auto=candidate.title_auto[:200], score=display_score(prob, verdict.code, config.confidence_calibration),
+                  title_auto=candidate.title_auto[:200], score=display_score(prob, code, config.confidence_calibration),
                   decision_reason="RUBRIC_MODEL",
                   decision_explanation_ru=status, document_count=candidate.document_count, features=features,
                   predicted_stage=verdict.stage, predicted_trend=verdict.trend)
@@ -486,11 +702,9 @@ async def _build_item(
             explanation_ru=f"{card.why_ru}{companies} {card.stage_reason_ru} {card.trend_reason_ru}".strip(),
             narrative_status=NarrativeStatus.GENERATED, llm_provider=card.llm_provider, llm_model=card.llm_model,
             prompt_version=card.prompt_version, sources=build_sources(candidate, shown_sources, card.source_summaries))
-    use_llm = config.llm_allowed is None or config.llm_allowed()
-    if not use_llm:
-        outcome.deadline_fallbacks += 1
+    if narrative is None:  # резервная карточка, ещё не построенная для финальной проверки
+        narrative = await _fallback_narrative(insight, job_id, query_text, candidate, documents, config, outcome)
     docs = {d.document_id: d for d in _docs(candidate, documents)}
-    narrative = await _narrate_candidate(insight if use_llm else None, job_id, query_text, candidate, docs, config)
     return ResultItem(
         **common, title_ru=(narrative.title_ru or candidate.title_auto)[:200], description_ru=narrative.description_ru,
         advantage_ru=narrative.advantage_ru, case_example_ru=narrative.case_example_ru,
@@ -498,3 +712,15 @@ async def _build_item(
         narrative_status=NarrativeStatus(narrative.status), llm_provider=narrative.llm_provider,
         llm_model=narrative.llm_model, prompt_version=narrative.prompt_version,
         sources=build_sources(candidate, docs, narrative.source_summaries))
+
+
+async def _fallback_narrative(
+    insight: InsightClient | None, job_id: str, query_text: str, candidate: CandidateView,
+    documents: dict[str, DocumentView], config: NarrateConfig, outcome: NarrateOutcome,
+) -> NarrativeView:
+    """Тексты резервной карточки прежним генератором; если LLM не успеть до срока задания — экстрактивные."""
+    use_llm = config.llm_allowed is None or config.llm_allowed()
+    if not use_llm:
+        outcome.deadline_fallbacks += 1
+    docs = {d.document_id: d for d in _docs(candidate, documents)}
+    return await _narrate_candidate(insight if use_llm else None, job_id, query_text, candidate, docs, config)

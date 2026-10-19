@@ -24,10 +24,20 @@ INSIGHT_SCHEMA_FILE = "insight_llm_output.schema.json"
 EXPAND_SCHEMA_FILE = "expand_v2_llm_output.schema.json"
 JUDGE_PROMPT_VERSION = "judge_v1"
 JUDGE_SCHEMA_FILE = "judge_llm_output.schema.json"
-RUBRIC_PROMPT_VERSION = "judge_v6"
+RUBRIC_PROMPT_VERSION = "judge_v6"  # версия по умолчанию (рабочий режим до решения по оценке judge_v7)
+# Этап 5.2 (R-013): judge_v7 — критерий ранней стадии относится к самой технологии; свежая работа в давно сложившейся
+# задаче известным классом методов — N-MAT. Версия выбирается настройкой WS_RUBRIC_PROMPT_VERSION.
+# Этап 5.3 (R-013, R-028): judge_v8 — зрелость оценивается по области кандидата, и для возраста области судье разрешены
+# общеизвестные знания (judge_v6 и judge_v7 запрещали любые знания вне источников — в этом причина пропуска зрелых).
+RUBRIC_TEMPLATES = {"judge_v6": "judge_v6.j2", "judge_v7": "judge_v7.j2", "judge_v8": "judge_v8.j2"}
 RUBRIC_SCHEMA_FILE = "judge_v4_llm_output.schema.json"
 FINALIZE_PROMPT_VERSION = "finalize_v5"
 FINALIZE_SCHEMA_FILE = "finalize_v4_llm_output.schema.json"
+# Этап 5.3 (опыт R-022b/R-102): термины для проверки истории области по OpenAlex
+# Версия промпта — по ограничению БД insight.prompt_versions: ^[a-z]+_v[0-9]+$ (без подчёркиваний в основе имени).
+# «maturity_terms_v1» нарушало его, регистрация промптов при старте падала, и insight не запускался (18.10).
+MATURITY_TERMS_PROMPT_VERSION = "maturity_v1"
+MATURITY_TERMS_SCHEMA_FILE = "maturity_terms_v1_llm_output.schema.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,7 +53,10 @@ class PromptBundle:
 class PromptBuilder:
     """Загружает шаблоны и схемы, собирает промпты и считает их контрольные суммы."""
 
-    def __init__(self, prompts_dir: Path, schemas_dir: Path) -> None:
+    def __init__(self, prompts_dir: Path, schemas_dir: Path, rubric_version: str = RUBRIC_PROMPT_VERSION) -> None:
+        if rubric_version not in RUBRIC_TEMPLATES:
+            raise ValueError(f"неизвестная версия промпта рубрики: {rubric_version}")
+        self._rubric_version = rubric_version
         self._prompts_dir = Path(prompts_dir)
         self._schemas_dir = Path(schemas_dir)
         self._environment = Environment(
@@ -59,6 +72,7 @@ class PromptBuilder:
             JUDGE_SCHEMA_FILE: self._read_schema(JUDGE_SCHEMA_FILE),
             RUBRIC_SCHEMA_FILE: self._read_schema(RUBRIC_SCHEMA_FILE),
             FINALIZE_SCHEMA_FILE: self._read_schema(FINALIZE_SCHEMA_FILE),
+            MATURITY_TERMS_SCHEMA_FILE: self._read_schema(MATURITY_TERMS_SCHEMA_FILE),
         }
 
     def _read_schema(self, name: str) -> dict:
@@ -108,6 +122,30 @@ class PromptBuilder:
                 output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
                 description="Рубрика v4: код, критерии, стадия, тренд; извлечение технологии и профиля для "
                             "классификатора; строгие правила темы в финальной проверке готовой карточки",
+            ),
+            PromptDefinition(
+                prompt_version="judge_v7",
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v7.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубрика judge_v6 + критерий зрелости: ранняя стадия — у самой технологии; свежая работа "
+                            "в давно сложившейся задаче известным классом методов — N-MAT (этап 5.2, R-013)",
+            ),
+            PromptDefinition(
+                prompt_version="judge_v8",
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v8.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубрика judge_v6 + зрелость по области: область и её возраст по общеизвестным знаниям, "
+                            "вид новизны; раунд или запуск продукта зрелостью не считаются (этап 5.3, R-013, R-028)",
+            ),
+            PromptDefinition(
+                prompt_version=MATURITY_TERMS_PROMPT_VERSION,
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("maturity_terms_v1.j2"),
+                output_schema_version=f"{MATURITY_TERMS_SCHEMA_FILE}@1",
+                description="Термины на английском (ключевая технология и задача) для проверки истории области по "
+                            "публикациям OpenAlex (этап 5.3, опыт R-022b/R-102)",
             ),
             PromptDefinition(
                 prompt_version=FINALIZE_PROMPT_VERSION,
@@ -194,11 +232,16 @@ class PromptBuilder:
         """Промпт рубричной оценки: кандидаты с полным списком источников и сводкой их состава; `final_check` —
         финальная проверка готовых карточек со строгими правилами темы."""
         schema = self._schemas[RUBRIC_SCHEMA_FILE]
-        system = self._environment.get_template("judge_v6.j2").render(
+        system = self._environment.get_template(RUBRIC_TEMPLATES[self._rubric_version]).render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2), final_check=final_check
         )
         user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
-        return self._bundle(system, user, schema, RUBRIC_PROMPT_VERSION)
+        return self._bundle(system, user, schema, self._rubric_version)
+
+    @property
+    def rubric_version(self) -> str:
+        """Действующая версия промпта рубрики."""
+        return self._rubric_version
 
     def build_finalize_prompt(self, query_text: str, cards: Sequence[dict]) -> PromptBundle:
         """Промпт пакетной доводки показанных карточек."""
@@ -208,6 +251,15 @@ class PromptBuilder:
         )
         user = json.dumps({"query": query_text, "cards": list(cards)}, ensure_ascii=False)
         return self._bundle(system, user, schema, FINALIZE_PROMPT_VERSION)
+
+    def build_maturity_terms_prompt(self, cards: Sequence[dict]) -> PromptBundle:
+        """Промпт извлечения ключевой технологии и задачи карточек на английском (этап 5.3)."""
+        schema = self._schemas[MATURITY_TERMS_SCHEMA_FILE]
+        system = self._environment.get_template("maturity_terms_v1.j2").render(
+            schema=json.dumps(schema, ensure_ascii=False, indent=2)
+        )
+        user = json.dumps({"cards": list(cards)}, ensure_ascii=False)
+        return self._bundle(system, user, schema, MATURITY_TERMS_PROMPT_VERSION)
 
     @staticmethod
     def _bundle(system: str, user: str, schema: dict, version: str) -> PromptBundle:

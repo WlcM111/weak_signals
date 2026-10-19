@@ -74,7 +74,15 @@ class OrchestratorSettings(BaseServiceSettings):
     selection_mode: str = Field(default="legacy", pattern="^(legacy|rubric)$")
     # Пул рубричной оценки; в режиме rubric столько же кандидатов запрашивается у analyzer (v14: 40 → 80, до 100).
     rubric_pool: int = Field(default=150, ge=5, le=500)  # этап 5.0 (N13): было ≤ 100
+    rubric_pool_exclude_model_mature: bool = False
+    # U-02: одиночные научные работы, препринты и патенты — в пул рубрики (ранние исследования — слабые сигналы)
+    rubric_pool_research_singles: bool = True
+    # Этап 5.3: верхняя половина кандидатов по оценке модели analyzer — первой в выдаче (0 — прежний порядок)
+    rank_model_first_share: float = Field(default=0.5, ge=0.0, le=1.0)
+    rubric_docs_retry: bool = False
     finalize_enabled: bool = True
+    # R-026: сбой FinalizeCards — повтор частями ≤ 5, без карточки — в очередь следующего раунда; ≤ 30 за вызов
+    rubric_finalize_retry_small: bool = False
     rubric_legacy_fallback: bool = False
     rubric_fill_uncertain: bool = True
     stage_calibration: str = Field(default="1:2,2:3,3:4,4:4", pattern=r"^(\d:\d)(,\d:\d)*$")
@@ -84,13 +92,21 @@ class OrchestratorSettings(BaseServiceSettings):
     signal_model_path: str = str(SERVICE_ROOT / "config" / "signal_classifier.json")
     profile_model_path: str = str(SERVICE_ROOT / "config" / "profile_classifier.json")
     final_specificity_check: bool = False
+    # R-025: без вердикта финальной проверки (сбой, пропуск) — «требует проверки», как U; резервные — через неё же
+    final_check_fail_as_uncertain: bool = False
     confidence_calibration: bool = False
+    # R-003: документы (URL) и итог каждого кандидата в трассе narrate; прошлые прогоны стадии — narrate@N
+    narrate_trace_evidence: bool = False
+    # R-003: GET /api/v1/jobs/{job_id}/trace за API-ключом; false — маршрута нет
+    trace_api: bool = False
     rubric_min_cards: int = Field(default=3, ge=0, le=15)
     evidence_text_max_chars: int = Field(default=2000, ge=200, le=8000)
     prompt_version: str = "insight_v1"
     idempotency_ttl_hours: int = Field(default=24, ge=1, le=168)
     retention_interval_minutes: int = Field(default=60, ge=1, le=1440)
 
+    # R-049: строгий резервный перевод запроса без LLM; по умолчанию прежнее поведение.
+    query_fallback_strict: bool = False
     glossary_path: Path = SERVICE_ROOT / "config" / "glossary_ru_en.yaml"
     migrations_dir: Path = SERVICE_ROOT / "migrations"
 

@@ -142,7 +142,8 @@ class PromptBuilderTest(unittest.TestCase):
     def test_definitions_cover_both_prompts(self) -> None:
         versions = {definition.prompt_version for definition in self.builder.definitions()}
         self.assertEqual(versions, {INSIGHT_PROMPT_VERSION, EXPAND_PROMPT_VERSION, JUDGE_PROMPT_VERSION,
-                                    RUBRIC_PROMPT_VERSION, FINALIZE_PROMPT_VERSION})
+                                    RUBRIC_PROMPT_VERSION, "judge_v7", "judge_v8", "maturity_v1",
+                                    FINALIZE_PROMPT_VERSION})
         for definition in self.builder.definitions():
             self.assertEqual(len(definition.template_sha256), 64)
 

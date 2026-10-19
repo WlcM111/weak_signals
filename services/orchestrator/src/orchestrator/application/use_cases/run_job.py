@@ -64,6 +64,8 @@ class RunJobConfig:
     deadline_reserve_seconds: int = 120
     # Сколько может занять один вызов insight: LLM не вызывается, если до резерва осталось меньше.
     insight_call_seconds: int = 90
+    # R-049: строгий резервный перевод запроса (WS_QUERY_FALLBACK_STRICT).
+    query_fallback_strict: bool = False
     collect: CollectConfig = CollectConfig()
     analyze: AnalyzeConfig = AnalyzeConfig()
     narrate: NarrateConfig = NarrateConfig()
@@ -146,7 +148,10 @@ class RunJob:
                 "insight_call_seconds": self._config.insight_call_seconds,
                 "collect": plain(self._config.collect), "analyze": plain(self._config.analyze)})
             expansion = await self._timed(
-                "expand", durations, _bounded_expand(self._insight, job.query_text, self._glossary, EXPAND_TIMEOUT_SECONDS)
+                "expand",
+                durations,
+                _bounded_expand(self._insight, job.query_text, self._glossary, EXPAND_TIMEOUT_SECONDS,
+                                self._config.query_fallback_strict),
             )
             await self._trace(job.job_id, "expand", plain(expansion))
             await control.check()
@@ -360,7 +365,12 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         judge_order=base.judge_order,
         selection_mode=base.selection_mode,
         rubric_pool=base.rubric_pool,
+        rubric_pool_exclude_model_mature=base.rubric_pool_exclude_model_mature,
+        rubric_pool_research_singles=base.rubric_pool_research_singles,
+        rank_model_first_share=base.rank_model_first_share,
+        rubric_docs_retry=base.rubric_docs_retry,
         finalize_enabled=base.finalize_enabled,
+        rubric_finalize_retry_small=base.rubric_finalize_retry_small,
         rubric_legacy_fallback=base.rubric_legacy_fallback,
         rubric_fill_uncertain=base.rubric_fill_uncertain,
         stage_calibration=base.stage_calibration,
@@ -371,17 +381,21 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         signal_model_path=base.signal_model_path,
         profile_model_path=base.profile_model_path,
         final_check_enabled=base.final_check_enabled,
+        final_check_fail_as_uncertain=base.final_check_fail_as_uncertain,
         confidence_calibration=base.confidence_calibration,
+        narrate_trace_evidence=base.narrate_trace_evidence,
     )
 
 
-async def _bounded_expand(insight: InsightClient | None, query_text: str, glossary: Glossary, timeout: float):  # noqa: ANN201
+async def _bounded_expand(  # noqa: ANN201
+    insight: InsightClient | None, query_text: str, glossary: Glossary, timeout: float, strict: bool = False
+):
     """Расширение запроса с пределом времени; по таймауту — резервные термины (статистика это отражает)."""
     try:
-        return await asyncio.wait_for(run_expand(insight, query_text, glossary), timeout)
+        return await asyncio.wait_for(run_expand(insight, query_text, glossary, strict), timeout)
     except TimeoutError:
         get_logger("orchestrator.run_job").warning("stage.expand", used_fallback=True, reason="timeout")
-        return fallback_expansion(query_text, glossary)
+        return fallback_expansion(query_text, glossary, strict)
 
 
 class _JobControl:

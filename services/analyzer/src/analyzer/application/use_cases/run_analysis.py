@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import hashlib
 import threading
@@ -58,7 +59,7 @@ from analyzer.domain.features import (
     encyclopedia_features,
     lexical_features,
 )
-from analyzer.domain.keyphrases import candidate_phrases, fallback_title, select_by_mmr
+from analyzer.domain.keyphrases import candidate_phrases, fallback_title, select_by_mmr, without_nested
 from analyzer.domain.rules import (
     apply_exclusion_rules,
     decide_by_score,
@@ -132,6 +133,8 @@ class RunAnalysisConfig:
     cluster_threshold_min: float = 0.30
     cluster_threshold_max: float = 0.85
     preselect_by_model: bool = False
+    # U-04: доля мест предотбора по оценке модели; остальные — по близости к запросу (1.0 — только модель, как в 5.1)
+    preselect_model_share: float = 1.0
     candidate_relevance_outlier_mad: float = 0.0
     # Одиночные документы отраслевых СМИ и новостей остаются кандидатами (рыночные сигналы, режим rubric).
     keep_market_singletons: bool = False
@@ -150,6 +153,8 @@ class RunAnalysisConfig:
     evidence_max: int = 8
     keyphrases_top_k: int = 10
     encyclopedia_languages: tuple[str, ...] = ("ru", "en")
+    # R-023: правило 6б — только по title_auto, Wikipedia — без вложенных n-грамм; False — прежнее поведение.
+    mature_field_full_title: bool = False
     # Абляция вклада модели в живых прогонах: none | constant | shuffle (только для экспериментов).
     ml_score_ablation: str = "none"
 
@@ -563,6 +568,8 @@ class RunAnalysis:
         requests: list[tuple[int, str]] = []
         for view in views:
             titles = [view.title_auto, *view.keyphrases[:3]]
+            if self._config.mature_field_full_title:
+                titles = without_nested(titles)  # R-023: общая n-грамма внутри полной фразы не проверяется
             specific = [
                 title
                 for title in dict.fromkeys(title for title in titles if title)
@@ -585,7 +592,7 @@ class RunAnalysis:
                 except CollectorUnavailable as error:
                     _record_hits(self, language, [title for _, title in batch], None, str(error))
                     # отсутствие индикатора зрелости не должно ронять анализ целиком; один сбой
-                    # пачки не отменяет остальные, два подряд — прекращают проверку
+                    # пачки не отменяет остальные, три подряд (MAX_ENCYCLOPEDIA_FAILURES) — прекращают проверку
                     failures += 1
                     self._log.warning("analysis.encyclopedia_unavailable", error=str(error))
                     if failures >= MAX_ENCYCLOPEDIA_FAILURES:
@@ -680,11 +687,15 @@ class RunAnalysis:
         except Exception as error:  # noqa: BLE001 - отказ модели завершает анализ кодом MODEL_ERROR
             raise _ModelFailed(f"модель не смогла оценить кластеры: {error}") from error
         market = [any(document.source_type in MARKET_SINGLE_TYPES for document in view.documents) for view in views]
-        chosen = select_by_score([float(score) for score in scores], analysis.params.max_candidates, market,
-                                 self._config.market_reserved_candidates)
         relevance = [view.values.get("emb_sim_query", view.query_relevance) for view in views]
+        model_scores = [float(score) for score in scores]
+        chosen = select_mixed(model_scores, [float(value) for value in relevance], analysis.params.max_candidates,
+                              self._config.preselect_model_share, market, self._config.market_reserved_candidates)
+        top = max(model_scores) if model_scores else None
         self._log.info("analysis.preselect", clusters=len(views), chosen=len(chosen),
-                       best=round(float(max(scores)), 4) if len(scores) else None)
+                       best=round(top, 4) if top is not None else None,
+                       at_best=sum(1 for score in model_scores if top is not None and score >= top),
+                       model_share=self._config.preselect_model_share)
         return [views[position] for position in chosen], relevance
 
     def _decide(
@@ -717,7 +728,9 @@ class RunAnalysis:
                 view.documents,
                 thresholds,
                 analysis.params.min_evidence_documents,
-                titles=(view.title_auto, *view.keyphrases[:2]),
+                # R-023: правило 6б по флагу — только название кластера, без ключевых фраз-n-грамм
+                titles=(view.title_auto,) if self._config.mature_field_full_title
+                else (view.title_auto, *view.keyphrases[:2]),
             )
             for view in views
         }
@@ -1027,6 +1040,44 @@ def selection_relevance(vectors: np.ndarray, query_vector: np.ndarray, query_phr
     median = float(np.median(values))
     mad = float(np.median(np.abs(values - median))) * 1.4826
     return values, (median - outlier_mad * mad) if mad > 0 else float("-inf")
+
+
+def select_mixed(model_scores: Sequence[float], relevance: Sequence[float], limit: int, model_share: float,
+                 market: Sequence[bool], reserved: int) -> list[int]:
+    """U-04: кандидаты из двух рейтингов — по оценке модели и по близости к запросу — без повторов.
+
+    Квота модели — ceil(limit × model_share), близости — остальное; сначала до `reserved` лучших по модели с
+    заметками СМИ. Места, освободившиеся из-за пересечения рейтингов, дозаполняются поочерёдно из обоих рейтингов, так
+    что итог — min(limit, число кластеров). Равные оценки модели (в e2e51 лучшая оценка 1,0) упорядочиваются по
+    близости к запросу, равная близость — по оценке модели, затем по позиции: результат детерминирован.
+    """
+    count = len(model_scores)
+    size = max(0, min(limit, count))
+    if size == 0:
+        return []
+    by_model = sorted(range(count), key=lambda p: (-model_scores[p], -relevance[p], p))
+    by_relevance = sorted(range(count), key=lambda p: (-relevance[p], -model_scores[p], p))
+    picked: list[int] = [p for p in by_model if market[p]][: max(0, min(reserved, size))]
+    taken = set(picked)
+    quota_model = min(size, math.ceil(size * min(max(model_share, 0.0), 1.0)))
+    quotas = {"model": quota_model - len(picked), "relevance": size - quota_model}
+    cursors = {"model": iter(by_model), "relevance": iter(by_relevance)}
+
+    def take(channel: str) -> bool:
+        for position in cursors[channel]:
+            if position not in taken:
+                taken.add(position)
+                picked.append(position)
+                return True
+        return False
+
+    for channel in ("model", "relevance"):
+        while quotas[channel] > 0 and len(picked) < size and take(channel):
+            quotas[channel] -= 1
+    while len(picked) < size:  # пересечение рейтингов: дозаполнение из обоих
+        if not (take("model") or take("relevance")):
+            break
+    return sorted(picked)
 
 
 def select_by_score(scores: Sequence[float], limit: int, market: Sequence[bool], reserved: int) -> list[int]:
