@@ -15,10 +15,17 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from insight.application.json_output import OutputRejected, parse, validate
 from insight.application.prompt_builder import PromptBuilder
+from insight.application.use_cases.maturity_check import (
+    NOVELTY_RU,
+    MaturityCheck,
+    MaturityInput,
+    MaturityRule,
+    research_only,
+)
 from insight.domain.errors import ProviderError
 from insight.domain.values import Purpose
 from ws_common.logging import get_logger
@@ -191,10 +198,13 @@ def to_verdict(candidate_id: str, row: dict) -> RubricVerdict:
 class RubricJudge:
     """Сценарий рубричной оценки кандидатов пачками."""
 
-    def __init__(self, chain, prompts: PromptBuilder, batch_size: int = RUBRIC_BATCH) -> None:  # noqa: ANN001
+    def __init__(self, chain, prompts: PromptBuilder, batch_size: int = RUBRIC_BATCH,  # noqa: ANN001
+                 maturity: tuple[MaturityCheck, MaturityRule] | None = None) -> None:
         self._chain = chain
         self._prompts = prompts
         self._batch = max(1, min(batch_size, 12))
+        # Этап 5.4: второй проход зрелости для принятых кандидатов с научными источниками (None — выключен)
+        self._maturity = maturity
 
     async def execute(self, query_text: str, items: Sequence[RubricItem], final_check: bool = False) -> RubricOutcome:
         """Оценивает до MAX_ITEMS кандидатов пачками; неразборчиво отвеченная пачка повторяется по одному.
@@ -214,9 +224,43 @@ class RubricJudge:
                 for item in missing:
                     verdicts.update(await self._judge_chunk(query_text, [item], meta, final_check))
         ordered = tuple(verdicts[item.candidate_id] for item in items if item.candidate_id in verdicts)
+        if self._maturity is not None and not final_check:
+            ordered = await self._maturity_pass(items, ordered)
         log.info("rubric.done", requested=len(items), judged=len(ordered), provider=meta["provider"],
                  accepted=sum(1 for verdict in ordered if verdict.code == "R"), final_check=final_check)
         return RubricOutcome(ordered, meta["provider"], meta["model"], used_fallback=not ordered)
+
+    async def _maturity_pass(self, items: Sequence[RubricItem],
+                             verdicts: tuple[RubricVerdict, ...]) -> tuple[RubricVerdict, ...]:
+        """Этап 5.4: принятый (R) кандидат только с научными источниками → N-MAT, если задача давняя и широкая,
+        а новизна — улучшение известного или обзор. Сбой проверки оставляет вердикт без изменений."""
+        check, rule = self._maturity  # type: ignore[misc]
+        by_id = {item.candidate_id: item for item in items}
+        targets = [v for v in verdicts if v.code == "R"
+                   and research_only(s.source_type for s in by_id[v.candidate_id].sources)]
+        if not targets:
+            return verdicts
+        inputs = []
+        for verdict in targets:
+            item = by_id[verdict.candidate_id]
+            snippet = next((s.snippet for s in item.sources if s.snippet), "")
+            description = " ".join(part for part in (verdict.profile_ru or item.composition_ru, snippet[:300]) if part)
+            inputs.append(MaturityInput(verdict.candidate_id, verdict.technology_ru or item.title, description,
+                                        tuple(s.title for s in item.sources[:3])))
+        assessed = await check.assess(inputs)
+        result, mature = [], 0
+        for verdict in verdicts:
+            assessment = assessed.get(verdict.candidate_id)
+            if assessment is not None and rule.mature(assessment):
+                mature += 1
+                reason = (f"Проверка зрелости: задача «{assessment.task_en}» решается с {assessment.task_since_year} г.; "
+                          f"в работе — {NOVELTY_RU.get(assessment.novelty_type, assessment.novelty_type)}.")
+                result.append(replace(verdict, code="N-MAT", early_stage=False, reason_ru=reason[:300]))
+            else:
+                result.append(verdict)
+        log.info("rubric.maturity_check", checked=len(targets), assessed=len(assessed), mature=mature,
+                 misaligned=check.stats["misaligned"], failed_batches=check.stats["failed_batches"])
+        return tuple(result)
 
     async def _judge_chunk(
         self, query_text: str, chunk: list[RubricItem], meta: dict, final_check: bool = False

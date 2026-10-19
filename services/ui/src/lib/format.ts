@@ -263,19 +263,23 @@ export function jobProgressShare(status: string | undefined, done: number, total
 const RUBRIC_CODE_RU: Record<string, string> = {
   R: "релевантный слабый сигнал",
   U: "требует проверки",
-  N: "не слабый сигнал",
-  M: "зрелая технология",
-  H: "хайп или шум",
-  O: "не по теме запроса",
+  "N-OFF": "не по теме запроса",
+  "N-GEN": "общее понятие без конкретики",
+  "N-OVR": "обзор, прогноз или регулирование",
+  "N-MAT": "зрелая технология",
+  "N-NOI": "шум",
+  "N-HYP": "маркетинговый хайп",
+  "N-FUND": "новость о финансировании без описания технологии",
 };
 
 /** Текст причины исключения: перевод кода; длинные служебные коды не выводятся как одна строка без пробелов. */
 export function decisionReasonText(code?: string | null): string {
   if (!code) return "—";
   if (DECISION_REASON_RU[code]) return DECISION_REASON_RU[code];
-  const below = /^RUBRIC_BELOW_TOP_N_([A-Z]+)$/.exec(code);
+  // коды рубрики содержат дефис (N-OFF, N-MAT): прежний шаблон [A-Z]+ их не узнавал, и в таблице был сырой код
+  const below = /^RUBRIC_BELOW_TOP_N_([A-Z-]+)$/.exec(code);
   if (below) return `Вне первых карточек выдачи (рубрика: ${RUBRIC_CODE_RU[below[1]] ?? below[1]})`;
-  const final = /^RUBRIC_FINAL_([A-Z]+)$/.exec(code);
+  const final = /^RUBRIC_FINAL_([A-Z-]+)$/.exec(code);
   if (final) return `Отклонён финальной проверкой (${RUBRIC_CODE_RU[final[1]] ?? final[1]})`;
   return code.replace(/_/g, " ").toLowerCase();
 }

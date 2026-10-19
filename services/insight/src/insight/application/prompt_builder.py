@@ -38,6 +38,9 @@ FINALIZE_SCHEMA_FILE = "finalize_v4_llm_output.schema.json"
 # «maturity_terms_v1» нарушало его, регистрация промптов при старте падала, и insight не запускался (18.10).
 MATURITY_TERMS_PROMPT_VERSION = "maturity_v1"
 MATURITY_TERMS_SCHEMA_FILE = "maturity_terms_v1_llm_output.schema.json"
+# Этап 5.4: второй проход зрелости после рубрики — возраст задачи и вид новизны (версия по ограничению БД)
+MATURITY_CHECK_PROMPT_VERSION = "maturity_v2"
+MATURITY_CHECK_SCHEMA_FILE = "maturity_check_v1_llm_output.schema.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +76,7 @@ class PromptBuilder:
             RUBRIC_SCHEMA_FILE: self._read_schema(RUBRIC_SCHEMA_FILE),
             FINALIZE_SCHEMA_FILE: self._read_schema(FINALIZE_SCHEMA_FILE),
             MATURITY_TERMS_SCHEMA_FILE: self._read_schema(MATURITY_TERMS_SCHEMA_FILE),
+            MATURITY_CHECK_SCHEMA_FILE: self._read_schema(MATURITY_CHECK_SCHEMA_FILE),
         }
 
     def _read_schema(self, name: str) -> dict:
@@ -146,6 +150,14 @@ class PromptBuilder:
                 output_schema_version=f"{MATURITY_TERMS_SCHEMA_FILE}@1",
                 description="Термины на английском (ключевая технология и задача) для проверки истории области по "
                             "публикациям OpenAlex (этап 5.3, опыт R-022b/R-102)",
+            ),
+            PromptDefinition(
+                prompt_version=MATURITY_CHECK_PROMPT_VERSION,
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("maturity_check_v1.j2"),
+                output_schema_version=f"{MATURITY_CHECK_SCHEMA_FILE}@1",
+                description="Второй проход зрелости после рубрики: возраст и распространённость задачи и вид новизны "
+                            "кандидата с научными источниками (этап 5.4)",
             ),
             PromptDefinition(
                 prompt_version=FINALIZE_PROMPT_VERSION,
@@ -260,6 +272,15 @@ class PromptBuilder:
         )
         user = json.dumps({"cards": list(cards)}, ensure_ascii=False)
         return self._bundle(system, user, schema, MATURITY_TERMS_PROMPT_VERSION)
+
+    def build_maturity_check_prompt(self, items: Sequence[dict]) -> PromptBundle:
+        """Промпт второго прохода зрелости: возраст задачи и вид новизны (этап 5.4)."""
+        schema = self._schemas[MATURITY_CHECK_SCHEMA_FILE]
+        system = self._environment.get_template("maturity_check_v1.j2").render(
+            schema=json.dumps(schema, ensure_ascii=False, indent=2)
+        )
+        user = json.dumps({"candidates": list(items)}, ensure_ascii=False)
+        return self._bundle(system, user, schema, MATURITY_CHECK_PROMPT_VERSION)
 
     @staticmethod
     def _bundle(system: str, user: str, schema: dict, version: str) -> PromptBundle:

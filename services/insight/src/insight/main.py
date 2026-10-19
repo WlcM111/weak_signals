@@ -28,6 +28,7 @@ from insight.application.use_cases.generate_insight import GenerateConfig, Gener
 from insight.application.use_cases.finalize_cards import FinalizeCards
 from insight.application.use_cases.judge_candidates import JudgeCandidates
 from insight.application.use_cases.rubric_judge import RubricJudge
+from insight.application.use_cases.maturity_check import MaturityCheck, MaturityRule
 from insight.application.use_cases.get_provider_status import GetProviderStatus, RegisterPrompts
 from insight.config import InsightSettings
 from ws_common.clock import SystemClock
@@ -129,7 +130,10 @@ async def serve(settings: InsightSettings) -> int:
     )
     servicer = InsightServicer(
         judge_candidates=JudgeCandidates(chain, prompts),
-        rubric_judge=RubricJudge(chain, prompts),
+        rubric_judge=RubricJudge(chain, prompts, maturity=(
+            MaturityCheck(chain, prompts),
+            MaturityRule(settings.maturity_check_max_year, MaturityRule.parse_novelty(settings.maturity_check_novelty)),
+        ) if settings.maturity_check_enabled else None),
         finalize_cards=FinalizeCards(chain, prompts),
         expand_query=ExpandQuery(
             chain,
