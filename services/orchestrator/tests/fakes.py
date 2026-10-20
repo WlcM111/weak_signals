@@ -248,14 +248,27 @@ class InMemoryResultRepository:
         if job is None:
             return None
         stats = self.stats.get(job_id, JobStats())
+        items_done = len(self.items.get(job_id, []))
+        tracked_done = stats.narratives_generated + stats.narratives_fallback
+        if job.status.is_terminal and items_done > 0:
+            narratives_done = items_done
+            narratives_total = items_done
+        else:
+            narratives_total = (
+                min(stats.weak_signals_total, job.requested_top_n)
+                if job.requested_top_n > 0 and stats.weak_signals_total > 0
+                else stats.weak_signals_total
+            )
+            raw_done = max(items_done, tracked_done)
+            narratives_done = min(raw_done, narratives_total) if narratives_total > 0 else raw_done
         return JobProgress(
             stage=job.status,
             http_requests_total=stats.http_requests_total,
             sources_processed=stats.sources_processed,
             documents_collected=stats.documents_collected,
             candidates_found=stats.candidates_found,
-            narratives_done=len(self.items.get(job_id, [])),
-            narratives_total=stats.weak_signals_total,
+            narratives_done=narratives_done,
+            narratives_total=narratives_total,
         )
 
 

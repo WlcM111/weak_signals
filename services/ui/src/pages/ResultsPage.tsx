@@ -284,7 +284,7 @@ export default function ResultsPage() {
               <div className="waiting">
                 <div className="scope waiting__scope">
                   <div className="scope__screen">
-                    <SignalField mode="scan" />
+                    <SignalField />
                   </div>
                   <p className="scope__caption waiting__text">
                     Выдача появиться, как только начнётся формирование инсайтов
@@ -292,14 +292,29 @@ export default function ResultsPage() {
                 </div>
               </div>
             )
-          ) : !terminal && items.length === 0 ? (
-            <CandidateMatrixStage
-              candidatesFound={data.progress.candidates_found}
-              sourcesProcessed={data.progress.sources_processed}
-              done={data.progress.narratives_done}
-              total={data.progress.narratives_total}
-            />
-          ) : results.isLoading ? (
+          ) : !terminal ? (
+            items.length === 0 ? (
+              <CandidateMatrixStage
+                key={jobId}
+                candidatesFound={data.progress.candidates_found}
+                sourcesProcessed={data.progress.sources_processed}
+                done={data.progress.narratives_done}
+                total={data.progress.narratives_total}
+              />
+            ) : (
+              <div className="results__signals-wrap">
+                <CandidateMatrixStage
+                  key={jobId}
+                  candidatesFound={data.progress.candidates_found}
+                  sourcesProcessed={data.progress.sources_processed}
+                  done={data.progress.narratives_done}
+                  total={data.progress.narratives_total}
+                  compact
+                />
+                <SignalExplorer items={items} jobId={jobId} selectedId={activeId} onSelect={setSelectedId} />
+              </div>
+            )
+          ) : results.isLoading || (results.isFetching && items.length === 0 && data.progress.narratives_done > 0) ? (
             <SkeletonList rows={4} />
           ) : items.length === 0 ? (
             <EmptyState

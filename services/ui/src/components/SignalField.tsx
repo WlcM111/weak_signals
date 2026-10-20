@@ -5,7 +5,7 @@ import { cssVars } from "../lib/style";
 import { useSize } from "../lib/useSize";
 
 const SWEEP_TAIL = 96;
-const CYCLE_SECONDS = { live: 6, scan: 3.4 } as const;
+const CYCLE_SECONDS = { live: 6, scan: 6 } as const;
 const PEAKS: { at: number; height: number }[] = [
   { at: 0.13, height: 0.74 },
   { at: 0.34, height: 0.6 },

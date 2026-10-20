@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from orchestrator.application.dto import CandidateView, DocumentView, JudgeVerdictView
 from orchestrator.application.ports import (
@@ -19,7 +19,7 @@ from orchestrator.application.ports import (
 )
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem, SourceRow
 from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
-from orchestrator.domain.values import Decision, NarrativeStatus, SummaryKind
+from orchestrator.domain.values import Decision, JobStats, NarrativeStatus, SummaryKind
 from ws_common.logging import get_logger
 
 CANDIDATES_PAGE_SIZE = 50
@@ -29,6 +29,41 @@ MAX_SUMMARY = 400
 JUDGE_BATCH = 30  # этап 5.0.2: не больше MAX_ITEMS (40) insight за вызов
 _SENTENCE_END_RE = re.compile(r"[.!?…]\s")
 log = get_logger("orchestrator.stage.narrate")
+
+
+async def save_narrate_progress(
+    results: ResultRepository,
+    job_id: str,
+    *,
+    candidates_found: int,
+    done: int,
+    total: int,
+    weak_signals_confident: int | None = None,
+    narratives_generated: int | None = None,
+    narratives_fallback: int | None = None,
+) -> None:
+    """Обновляет промежуточный прогресс 4-го этапа в статистике задания."""
+    try:
+        current = await results.get_stats(job_id) or JobStats()
+        if not isinstance(current, JobStats):
+            current = JobStats()
+        bounded_total = max(0, total)
+        bounded_done = max(0, min(done, bounded_total) if bounded_total > 0 else done)
+        await results.set_stats(
+            job_id,
+            replace(
+                current,
+                candidates_found=candidates_found or current.candidates_found,
+                weak_signals_total=bounded_total,
+                weak_signals_confident=(
+                    current.weak_signals_confident if weak_signals_confident is None else weak_signals_confident
+                ),
+                narratives_generated=bounded_done if narratives_generated is None else narratives_generated,
+                narratives_fallback=0 if narratives_fallback is None else narratives_fallback,
+            ),
+        )
+    except Exception as error:  # noqa: BLE001 — сбой записи промежуточного прогресса не прерывает стадию
+        log.warning("stage.narrate.progress_failed", job_id=job_id, error=str(error)[:200])
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,6 +263,10 @@ async def run_narrate(
     outcome.candidates_found = len(weak) + len(excluded)
     outcome.weak_signals_total = len(weak)
     outcome.weak_signals_confident = sum(1 for item in weak if item.score >= 0.75)
+    target_total = min(config.top_n, len(weak))
+    await save_narrate_progress(
+        results, job_id, candidates_found=outcome.candidates_found, done=0, total=target_total
+    )
     outcome.excluded_written = await results.add_excluded(
         job_id,
         [
@@ -250,6 +289,10 @@ async def run_narrate(
         outcome.judge_rejected = len(rejected)
         outcome.weak_signals_total = len(weak)
         outcome.weak_signals_confident = sum(1 for item in weak if item.score >= 0.75)
+        target_total = min(config.top_n, len(weak))
+        await save_narrate_progress(
+            results, job_id, candidates_found=outcome.candidates_found, done=0, total=target_total
+        )
         outcome.excluded_written += await results.add_excluded(
             job_id,
             [
@@ -267,7 +310,8 @@ async def run_narrate(
             ],
         )
     shown_ids: list[list[object]] = []
-    for position, candidate in enumerate(weak[: config.top_n], 1):
+    selected_weak = weak[: config.top_n]
+    for position, candidate in enumerate(selected_weak, 1):
         await check()
         documents = await _load_documents(collector, candidate, outcome)
         use_llm = config.llm_allowed is None or config.llm_allowed()
@@ -309,10 +353,27 @@ async def run_narrate(
             outcome.narratives_generated += 1
         else:
             outcome.narratives_fallback += 1
+        await save_narrate_progress(
+            results,
+            job_id,
+            candidates_found=outcome.candidates_found,
+            done=outcome.items_written,
+            total=target_total,
+        )
+    await save_narrate_progress(
+        results,
+        job_id,
+        candidates_found=outcome.candidates_found,
+        done=outcome.items_written,
+        total=outcome.weak_signals_total,
+        weak_signals_confident=outcome.weak_signals_confident,
+        narratives_generated=outcome.narratives_generated,
+        narratives_fallback=outcome.narratives_fallback,
+    )
     try:
         await results.save_trace(job_id, "narrate_legacy", {
             "weak": [c.candidate_id for c in weak], "excluded": [[c.candidate_id, c.decision.value, c.decision_reason]
-                                                                 for c in excluded],
+                                                                  for c in excluded],
             "judge": {cid: {"verdict": v.verdict, "relevance": v.relevance} for cid, v in verdicts.items()},
             "judge_rejected": outcome.judge_rejected, "deadline_fallbacks": outcome.deadline_fallbacks,
             "shown": shown_ids})

@@ -2387,12 +2387,8 @@ summary::-webkit-details-marker {
   box-shadow: 0 0 6px var(--scope-cyan);
 }
 
-.sigfield--scan .sigfield__peak {
-  animation: peak-scan var(--cycle) linear var(--sync) infinite;
-}
-
 .sigfield--scan .sigfield__sweep line {
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 /* ===== Главная ===== */
@@ -6096,8 +6092,6 @@ button.spectrum__bar:hover {
 :root[data-motion-paused] .status__dot::after,
 :root[data-motion-paused] .query__running-dot::after,
 :root[data-motion-paused] .live__pulse::after,
-:root[data-motion-paused] .pipeline__marker::after,
-:root[data-motion-paused] .progress__bar::after,
 @keyframes node-pulse {
   0%,
   100% {
@@ -6111,6 +6105,8 @@ button.spectrum__bar:hover {
   }
 }
 
+:root[data-motion-paused] .pipeline__marker::after,
+:root[data-motion-paused] .progress__bar::after,
 :root[data-motion-paused] .matrix-cell--scan,
 :root[data-motion-paused] .score-form__wait::after {
   animation: none;

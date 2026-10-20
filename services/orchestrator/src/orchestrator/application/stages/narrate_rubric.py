@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import math
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -40,6 +41,7 @@ from orchestrator.application.stages.narrate import (
     build_sources,
     collect_candidates,
     run_narrate,
+    save_narrate_progress,
 )
 from orchestrator.domain.entities import ExcludedCandidate, FeatureRow, ResultItem
 from orchestrator.domain.errors import StageFailed, UpstreamUnavailable
@@ -119,6 +121,26 @@ async def run_narrate_rubric(
     outcome = NarrateOutcome(candidates_found=len(weak) + len(excluded))
     pool, rest = rubric.pool_candidates(weak, excluded, config.rubric_pool, config.rubric_pool_exclude_model_mature,
                                         config.rubric_pool_research_singles)
+    target_total = min(config.top_n, len(pool)) if pool else 0
+    progress_done = 0
+
+    async def _advance_progress(fraction: float) -> None:
+        nonlocal progress_done
+        if target_total <= 0:
+            return
+        cap = target_total - 1 if target_total > 1 else 0
+        clamped = max(0.0, min(1.0, fraction))
+        scaled = max(1 if clamped > 0 and cap > 0 else 0, int(round(clamped * target_total)))
+        next_done = min(cap, max(progress_done, scaled))
+        if next_done > progress_done:
+            progress_done = next_done
+            await save_narrate_progress(
+                results, job_id, candidates_found=outcome.candidates_found, done=progress_done, total=target_total
+            )
+
+    await save_narrate_progress(
+        results, job_id, candidates_found=outcome.candidates_found, done=0, total=target_total
+    )
     documents, unavailable, load_error = await _load_all(collector, pool, check, config.rubric_docs_retry)
     compositions = {c.candidate_id: rubric.composition_of(_docs(c, documents)) for c in pool}
     prefiltered: list[tuple[CandidateView, tuple[Decision, str, str]]] = []
@@ -144,7 +166,16 @@ async def run_narrate_rubric(
             "prefiltered": [[c.candidate_id, d.value, reason] for c, (d, reason, _) in prefiltered]} | docs_trace,
             config.narrate_trace_evidence)
         raise upstream_failure("collector", JobErrorCode.UPSTREAM_UNAVAILABLE, load_error)
-    raw = await _judge(insight, query_text, judged_pool, documents, compositions, config.llm_allowed)
+
+    judge_share = 0.60 if config.finalize_enabled else 0.85
+
+    async def _on_judge_batch(batch_index: int, total_batches: int) -> None:
+        if total_batches > 0:
+            await _advance_progress((batch_index / total_batches) * judge_share)
+
+    raw = await _judge(
+        insight, query_text, judged_pool, documents, compositions, config.llm_allowed, _on_judge_batch
+    )
     if not raw:
         log.warning("stage.narrate_rubric.judge_unavailable", pool=len(judged_pool))
         evidence = await _evidence(collector, weak + excluded, rest, documents, check) if config.narrate_trace_evidence else None
@@ -195,8 +226,9 @@ async def run_narrate_rubric(
     queue = list(ranked)
     rounds: list[dict[str, object]] = []
     deadline_cut = False
-    requeued: set[str] = set()  # R-026: возвращены в очередь после сбоя RPC (не больше одного раза)
-    for _ in range(FINALIZE_ROUNDS):
+    requeued: set[str] = set()  # R-026: возвращены в очередь следующего раунда после сбоя RPC (не больше одного раза)
+    target_cards = max(1, min(config.top_n, len(ranked)))
+    for round_index in range(FINALIZE_ROUNDS):
         need = config.top_n - len(finalized)
         if need <= 0 or not queue:
             break
@@ -217,6 +249,11 @@ async def run_narrate_rubric(
             tried.extend(batch)
             produced = await _finalize(insight, query_text, batch, documents, verdicts, config)
         finalized.update(produced)
+        await _advance_progress(
+            judge_share + (1.0 - judge_share) * 0.55 * max(
+                (round_index + 0.5) / FINALIZE_ROUNDS, min(1.0, len(finalized) / target_cards)
+            )
+        )
         # Правило обзоров — и по источникам готовой карточки: доводка оставляет источники, которые описывают
         # технологию, и в выдаче v12 ими оказывались обзоры («AI-Driven Predictive Maintenance» — три обзора).
         reviews = _review_dominated(batch, finalized, documents)
@@ -240,6 +277,11 @@ async def run_narrate_rubric(
                 finalized.pop(candidate_id, None)
             if flagged:
                 extra = extra | {"maturity_dropped": sorted(flagged)}
+        await _advance_progress(
+            judge_share + (1.0 - judge_share) * 0.90 * max(
+                (round_index + 1) / FINALIZE_ROUNDS, min(1.0, len(finalized) / target_cards)
+            )
+        )
         rounds.append({"batch": [c.candidate_id for c in batch], "finalized": sorted(produced),
                        "review_dropped": sorted(reviews), "final_dropped": sorted(checked)} | extra)
     if config.rubric_finalize_retry_small:  # повтор не состоялся (раунды или срок кончились) — RUBRIC_TEXT_FAILED
@@ -256,17 +298,18 @@ async def run_narrate_rubric(
     # технологии не отменяется тем, что описание не удалось довести (аудит 29.09: shown=3 при final_rejections=3).
     allowed = [c for c in ranked if c.candidate_id not in rejected]
     fallback = not shown and bool(allowed)
-    if fallback:  # пустой выдачи при допустимых кандидатах не бывает: прежний генератор карточек
+    if fallback:  # пустой выдачи при допустимых кандидатах не бывает: прежний генератором карточек
         shown, text_failed = allowed[: config.top_n], []
         queue = allowed[config.top_n :]
     narratives: dict[str, NarrativeView] = {}
     if fallback and config.final_check_enabled:
         # R-025: резервные карточки — через ту же финальную проверку по тексту построенной карточки; этап 5.4: при
         # любом значении fail_as_uncertain (раньше без него резервные карточки проходили мимо проверки зрелости)
-        for candidate in shown:
+        for index, candidate in enumerate(shown, 1):
             await check()
             narratives[candidate.candidate_id] = await _fallback_narrative(insight, job_id, query_text, candidate,
                                                                            documents, config, outcome)
+            await _advance_progress(judge_share + (1.0 - judge_share) * 0.85 * (index / max(1, len(shown))))
         requests = [_final_item(c, narratives[c.candidate_id].title_ru or c.title_auto,
                                 narratives[c.candidate_id].description_ru, _docs(c, documents)) for c in shown]
         if config.llm_allowed is None or config.llm_allowed():
@@ -355,6 +398,18 @@ async def run_narrate_rubric(
             outcome.narratives_generated += 1
         else:
             outcome.narratives_fallback += 1
+        if position < len(shown):
+            await _advance_progress(judge_share + (1.0 - judge_share) * (position / len(shown)))
+    await save_narrate_progress(
+        results,
+        job_id,
+        candidates_found=outcome.candidates_found,
+        done=outcome.items_written,
+        total=outcome.weak_signals_total,
+        weak_signals_confident=outcome.weak_signals_confident,
+        narratives_generated=outcome.narratives_generated,
+        narratives_fallback=outcome.narratives_fallback,
+    )
     log.info("stage.narrate_rubric", pool=len(pool), prefiltered=len(prefiltered), judged=len(judged),
              likely=outcome.weak_signals_total, tried=len(tried), finalized=len(finalized),
              review_dropped=len(review_dropped), shown=outcome.items_written, fallback=fallback, model=bool(model),
@@ -487,6 +542,7 @@ async def _load_all(
 async def _judge(
     insight: InsightClient, query_text: str, pool: list[CandidateView], documents: dict[str, DocumentView],
     compositions: dict[str, rubric.Composition], llm_allowed: Callable[[], bool] | None = None,
+    on_batch: Callable[[int, int], Awaitable[None]] | None = None,
 ) -> dict[str, JudgeVerdictView]:
     """Рубричная оценка пула частями по RUBRIC_CHUNK; недоступность — пустой словарь.
 
@@ -494,7 +550,8 @@ async def _judge(
     проверяется срок задания: если он не позволяет ещё один вызов LLM, оставшиеся кандидаты не оцениваются.
     """
     verdicts: dict[str, JudgeVerdictView] = {}
-    for start in range(0, len(pool), RUBRIC_CHUNK):
+    total_batches = max(1, (len(pool) + RUBRIC_CHUNK - 1) // RUBRIC_CHUNK) if pool else 0
+    for batch_index, start in enumerate(range(0, len(pool), RUBRIC_CHUNK), 1):
         if start and llm_allowed is not None and not llm_allowed():
             log.warning("stage.narrate_rubric.judge_deadline", judged=len(verdicts), left=len(pool) - start)
             break
@@ -504,6 +561,8 @@ async def _judge(
             verdicts.update(await insight.judge_rubric(query_text, items))
         except (UpstreamUnavailable, StageFailed) as error:
             log.warning("stage.narrate_rubric.judge_failed", start=start, size=len(items), error=str(error)[:200])
+        if on_batch is not None:
+            await on_batch(batch_index, total_batches)
     return verdicts
 
 

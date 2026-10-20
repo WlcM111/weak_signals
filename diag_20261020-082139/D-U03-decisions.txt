@@ -1,0 +1,52 @@
+              topic               |       decision        |   decision_reason   | candidates | with_evidence_note 
+----------------------------------+-----------------------+---------------------+------------+--------------------
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        255 |                  0
+ edge-вычисления и периферийный и | WEAK_SIGNAL           | MODEL_SCORE         |        137 |                  0
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         82 |                  0
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         18 |                  0
+ edge-вычисления и периферийный и | MATURE                | MODEL_SCORE         |          4 |                  0
+ edge-вычисления и периферийный и | MATURE                | MATURITY_LEXICON    |          2 |                  2
+ edge-вычисления и периферийный и | MATURE                | MARKET_LEADERS      |          1 |                  1
+ edge-вычисления и периферийный и | MATURE                | ENCYCLOPEDIA_MATURE |          1 |                  1
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        264 |                  0
+ защита и безопасность систем иск | WEAK_SIGNAL           | MODEL_SCORE         |        112 |                  0
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         84 |                  0
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         19 |                  0
+ защита и безопасность систем иск | MATURE                | MATURITY_LEXICON    |         14 |                  6
+ защита и безопасность систем иск | MATURE                | ENCYCLOPEDIA_MATURE |          4 |                  1
+ защита и безопасность систем иск | MATURE                | MARKET_LEADERS      |          1 |                  0
+ защита и безопасность систем иск | OFF_TOPIC             | LOW_QUERY_RELEVANCE |          1 |                  0
+ защита и безопасность систем иск | MATURE                | MODEL_SCORE         |          1 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        285 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         99 |                  0
+ индустриальный искусственный инт | WEAK_SIGNAL           | MODEL_SCORE         |         71 |                  0
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         37 |                  0
+ индустриальный искусственный инт | MATURE                | MATURITY_LEXICON    |          5 |                  3
+ индустриальный искусственный инт | MATURE                | ENCYCLOPEDIA_MATURE |          2 |                  1
+ индустриальный искусственный инт | MATURE                | MODEL_SCORE         |          1 |                  0
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        266 |                  0
+ инфраструктура для искусственног | WEAK_SIGNAL           | MODEL_SCORE         |        109 |                  0
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         88 |                  0
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         28 |                  0
+ инфраструктура для искусственног | MATURE                | MATURITY_LEXICON    |          3 |                  2
+ инфраструктура для искусственног | OFF_TOPIC             | LOW_QUERY_RELEVANCE |          2 |                  0
+ инфраструктура для искусственног | MATURE                | MODEL_SCORE         |          2 |                  0
+ инфраструктура для искусственног | MATURE                | ENCYCLOPEDIA_MATURE |          1 |                  0
+ инфраструктура для искусственног | MATURE                | MARKET_LEADERS      |          1 |                  1
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        228 |                  0
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |        111 |                  0
+ перспективные решения в финтехе  | WEAK_SIGNAL           | MODEL_SCORE         |        102 |                  0
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         28 |                  0
+ перспективные решения в финтехе  | MATURE                | MATURITY_LEXICON    |         16 |                  7
+ перспективные решения в финтехе  | MATURE                | MODEL_SCORE         |         10 |                  0
+ перспективные решения в финтехе  | MATURE                | ENCYCLOPEDIA_MATURE |          3 |                  1
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | MODEL_SCORE         |          1 |                  0
+ перспективные решения в финтехе  | MATURE                | MARKET_LEADERS      |          1 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE       |        270 |                  0
+ робототехника и физический искус | WEAK_SIGNAL           | MODEL_SCORE         |        121 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | NO_TRUSTED_SOURCE   |         78 |                  0
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | MODEL_SCORE         |         23 |                  0
+ робототехника и физический искус | MATURE                | MODEL_SCORE         |          6 |                  0
+ робототехника и физический искус | MATURE                | MATURITY_LEXICON    |          2 |                  1
+(48 rows)
+

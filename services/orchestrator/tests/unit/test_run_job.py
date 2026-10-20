@@ -258,6 +258,30 @@ class WorkerLoopTest(RunJobHarness):
         claimed = await self.jobs.claim_next("worker-2", 60, self.clock.now())
         self.assertIsNotNone(claimed)
 
+    async def test_progress_during_narrating_survives_reload_and_matches_completion(self) -> None:
+        run_job, job, query = self.build(top_n=2)
+        stored = await self.jobs.insert(query, job, "key-0014:submit", "hash", self.clock.now())
+        observed_during_narrate = []
+        orig_set_stats = self.results.set_stats
+
+        async def spy_set_stats(job_id: str, stats) -> None:  # noqa: ANN001
+            await orig_set_stats(job_id, stats)
+            if stored.status is JobStatus.NARRATING:
+                prog = await self.results.progress(job_id)
+                if prog is not None:
+                    observed_during_narrate.append((prog.narratives_done, prog.narratives_total))
+
+        self.results.set_stats = spy_set_stats  # type: ignore[method-assign]
+        status = await run_job.execute(stored, "worker-1")
+        self.assertIs(status, JobStatus.COMPLETED)
+        self.assertTrue(observed_during_narrate)
+        # Прогресс во время NARRATING имеет ненулевой total и растёт от 0 до total по мере генерации
+        self.assertTrue(all(total == 2 for _, total in observed_during_narrate))
+        self.assertIn((1, 2), observed_during_narrate)
+        final_prog = await self.results.progress(stored.job_id)
+        assert final_prog is not None
+        self.assertEqual((final_prog.narratives_done, final_prog.narratives_total), (2, 2))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -265,7 +265,11 @@ class PostgresResultRepository:
     async def progress(self, job_id: str) -> JobProgress | None:
         """Прогресс по записанным данным: статистика стадий и число готовых элементов."""
         async with self._pool.connection() as conn, conn.cursor() as cur:
-            await cur.execute("SELECT status FROM jobs WHERE job_id = %s", (job_id,))
+            await cur.execute(
+                "SELECT j.status, q.requested_top_n FROM jobs j "
+                "LEFT JOIN queries q ON q.query_id = j.query_id WHERE j.job_id = %s",
+                (job_id,),
+            )
             job_row = await cur.fetchone()
             if job_row is None:
                 return None
@@ -274,14 +278,29 @@ class PostgresResultRepository:
             await cur.execute(_COUNT_ITEMS, (job_id,))
             items_row = await cur.fetchone()
         stats = row_to_stats(dict(stats_row) if stats_row else None)
+        stage = JobStatus(job_row["status"])
+        requested_top_n = int(job_row.get("requested_top_n") or 0)
+        items_done = int(items_row["total"]) if items_row else 0
+        stats_done = stats.narratives_generated + stats.narratives_fallback
+        if stage.is_terminal and items_done > 0:
+            narratives_done = items_done
+            narratives_total = items_done
+        else:
+            narratives_total = (
+                min(stats.weak_signals_total, requested_top_n)
+                if requested_top_n > 0 and stats.weak_signals_total > 0
+                else stats.weak_signals_total
+            )
+            raw_done = max(items_done, stats_done)
+            narratives_done = min(raw_done, narratives_total) if narratives_total > 0 else raw_done
         return JobProgress(
-            stage=JobStatus(job_row["status"]),
+            stage=stage,
             http_requests_total=stats.http_requests_total,
             sources_processed=stats.sources_processed,
             documents_collected=stats.documents_collected,
             candidates_found=stats.candidates_found,
-            narratives_done=int(items_row["total"]) if items_row else 0,
-            narratives_total=stats.weak_signals_total,
+            narratives_done=narratives_done,
+            narratives_total=narratives_total,
         )
 
     async def save_trace(

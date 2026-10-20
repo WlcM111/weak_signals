@@ -190,7 +190,7 @@ class RunJob:
             )
             await self._trace(job.job_id, "collect", plain(collection))
             # Этап 5.0 (N06): счётчики сбора видны сразу, а не только после успешного завершения задания.
-            await self._save_progress(job.job_id, collection, None, expansion, durations)
+            await self._save_progress(job.job_id, collection, None, expansion, durations, job.requested_top_n)
             await control.check()
 
             await self._jobs.transition(job, JobStatus.ANALYZING, worker_id)
@@ -226,7 +226,7 @@ class RunJob:
                     remember_analysis,
                 ),
             )
-            await self._save_progress(job.job_id, collection, analysis, expansion, durations)
+            await self._save_progress(job.job_id, collection, analysis, expansion, durations, job.requested_top_n)
             await self._trace(job.job_id, "analyze", plain(analysis) | {"query_text": analysis_query(job.query_text, expansion)})
             await control.check()
 
@@ -305,12 +305,24 @@ class RunJob:
         except Exception as error:  # noqa: BLE001 - потеря трассы не должна стоить пользователю выдачи
             self._log.error("job.trace_failed", job_id=job_id, stage=stage, error=str(error)[:300])
 
-    async def _save_progress(self, job_id: str, collection, analysis, expansion, durations) -> None:  # noqa: ANN001
+    async def _save_progress(
+        self, job_id: str, collection, analysis, expansion, durations, requested_top_n: int = 0  # noqa: ANN001
+    ) -> None:
         """Промежуточная статистика задания (этап 5.0, N06): сбор и число кандидатов анализа."""
         try:
             stats = build_stats(collection, analysis, NarrateOutcome(), expansion, durations)
-            if analysis is not None:
-                stats = replace(stats, candidates_found=int(getattr(analysis, "candidates_scored", 0) or 0))
+            if analysis is not None and dataclasses.is_dataclass(stats):
+                candidates_found = int(getattr(analysis, "candidates_scored", 0) or 0)
+                weak_total = int(getattr(analysis, "weak_signals_total", 0) or 0)
+                if weak_total == 0 and requested_top_n > 0 and candidates_found > 0:
+                    weak_total = min(requested_top_n, candidates_found)
+                weak_confident = int(getattr(analysis, "weak_signals_confident", 0) or 0)
+                stats = replace(
+                    stats,
+                    candidates_found=candidates_found,
+                    weak_signals_total=weak_total,
+                    weak_signals_confident=weak_confident,
+                )
             await self._results.set_stats(job_id, stats)
         except Exception as error:  # noqa: BLE001 — статистика не должна срывать задание
             self._log.warning("job.progress_save_failed", job_id=job_id, error=str(error)[:200])
@@ -421,6 +433,8 @@ class _JobControl:
 
     async def keepalive(self) -> None:
         """Фоновое продление аренды раз в `heartbeat_seconds`, независимо от длительности шагов стадий."""
+        if self._config.heartbeat_seconds <= 0:
+            return
         while True:
             await asyncio.sleep(self._config.heartbeat_seconds)
             try:

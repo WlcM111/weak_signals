@@ -1,0 +1,121 @@
+              topic               |       decision        |       decision_reason        | excluded 
+----------------------------------+-----------------------+------------------------------+----------
+ edge-вычисления и периферийный и | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |      192
+ edge-вычисления и периферийный и | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |       78
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_R         |       53
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       35
+ edge-вычисления и периферийный и | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       31
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       12
+ edge-вычисления и периферийный и | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |        9
+ edge-вычисления и периферийный и | MATURE                | MATURE_LOCAL_MODEL           |        8
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |        7
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |        7
+ edge-вычисления и периферийный и | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |        5
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_TEXT_FAILED           |        4
+ edge-вычисления и периферийный и | MATURE                | MATURITY_LEXICON             |        2
+ edge-вычисления и периферийный и | MATURE                | ENCYCLOPEDIA_MATURE          |        1
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_UNJUDGED              |        1
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-GEN           |        1
+ edge-вычисления и периферийный и | MATURE                | MARKET_LEADERS               |        1
+ edge-вычисления и периферийный и | OFF_TOPIC             | RUBRIC_FINAL_N-OFF           |        1
+ edge-вычисления и периферийный и | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        1
+ edge-вычисления и периферийный и | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |        1
+ защита и безопасность систем иск | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |      173
+ защита и безопасность систем иск | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |       79
+ защита и безопасность систем иск | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       47
+ защита и безопасность систем иск | OFF_TOPIC             | RUBRIC_FINAL_N-OFF           |       26
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       22
+ защита и безопасность систем иск | MATURE                | MATURE_LOCAL_MODEL           |       17
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_R         |       17
+ защита и безопасность систем иск | MATURE                | MATURITY_LEXICON             |       14
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       14
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |       13
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |       11
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_TEXT_FAILED           |        5
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |        4
+ защита и безопасность систем иск | MATURE                | ENCYCLOPEDIA_MATURE          |        4
+ защита и безопасность систем иск | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |        4
+ защита и безопасность систем иск | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |        2
+ защита и безопасность систем иск | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        2
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-GEN           |        1
+ защита и безопасность систем иск | MATURE                | MARKET_LEADERS               |        1
+ защита и безопасность систем иск | INSUFFICIENT_EVIDENCE | RUBRIC_UNJUDGED              |        1
+ индустриальный искусственный инт | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |      205
+ индустриальный искусственный инт | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |       85
+ индустриальный искусственный инт | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       38
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       30
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       18
+ индустриальный искусственный инт | MATURE                | MATURE_LOCAL_MODEL           |       14
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |       14
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |        9
+ индустриальный искусственный инт | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |        9
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |        9
+ индустриальный искусственный инт | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |        7
+ индустриальный искусственный инт | OFF_TOPIC             | RUBRIC_FINAL_N-OFF           |        6
+ индустриальный искусственный инт | MATURE                | MATURITY_LEXICON             |        5
+ индустриальный искусственный инт | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        2
+ индустриальный искусственный инт | MATURE                | ENCYCLOPEDIA_MATURE          |        2
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-GEN           |        2
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_TEXT_FAILED           |        2
+ индустриальный искусственный инт | INSUFFICIENT_EVIDENCE | RUBRIC_UNJUDGED              |        2
+ индустриальный искусственный инт | HYPE_OR_NOISE         | RUBRIC_FINAL_N-FUND          |        1
+ инфраструктура для искусственног | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |      125
+ инфраструктура для искусственног | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |       81
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_R         |       72
+ инфраструктура для искусственног | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       46
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       24
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       23
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |       15
+ инфраструктура для искусственног | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |       15
+ инфраструктура для искусственног | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |       13
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |       12
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |        7
+ инфраструктура для искусственног | MATURE                | MATURITY_LEXICON             |        3
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_UNJUDGED              |        3
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_TEXT_FAILED           |        3
+ инфраструктура для искусственног | HYPE_OR_NOISE         | RUBRIC_FINAL_N-FUND          |        2
+ инфраструктура для искусственног | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        2
+ инфраструктура для искусственног | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-OVR           |        1
+ инфраструктура для искусственног | MATURE                | MATURE_LOCAL_MODEL           |        1
+ инфраструктура для искусственног | MATURE                | ENCYCLOPEDIA_MATURE          |        1
+ инфраструктура для искусственног | MATURE                | MARKET_LEADERS               |        1
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |      111
+ перспективные решения в финтехе  | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |       85
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       51
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_R         |       41
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       35
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       30
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |       18
+ перспективные решения в финтехе  | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |       16
+ перспективные решения в финтехе  | MATURE                | MATURITY_LEXICON             |       16
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |       11
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |        7
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |        7
+ перспективные решения в финтехе  | MATURE                | MATURE_LOCAL_MODEL           |        6
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_UNJUDGED              |        4
+ перспективные решения в финтехе  | MATURE                | ENCYCLOPEDIA_MATURE          |        3
+ перспективные решения в финтехе  | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        3
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-GEN           |        2
+ перспективные решения в финтехе  | MATURE                | MARKET_LEADERS               |        1
+ перспективные решения в финтехе  | OFF_TOPIC             | RUBRIC_FINAL_N-OFF           |        1
+ перспективные решения в финтехе  | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-OVR           |        1
+ перспективные решения в финтехе  | MATURE                | RUBRIC_FINAL_N-MAT           |        1
+ робототехника и физический искус | OFF_TOPIC             | RUBRIC_BELOW_TOP_N_N-OFF     |      110
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_R         |      104
+ робототехника и физический искус | HYPE_OR_NOISE         | RUBRIC_NO_INDEPENDENT_SOURCE |       65
+ робототехника и физический искус | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-FUND    |       58
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | SINGLE_SOURCE                |       22
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_U         |       15
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-GEN     |       15
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_REVIEWS               |       12
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_BELOW_TOP_N_N-OVR     |       11
+ робототехника и физический искус | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-NOI     |        9
+ робототехника и физический искус | MATURE                | RUBRIC_BELOW_TOP_N_N-MAT     |        8
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_TEXT_FAILED           |        7
+ робототехника и физический искус | HYPE_OR_NOISE         | RUBRIC_BELOW_TOP_N_N-HYP     |        6
+ робототехника и физический искус | OFF_TOPIC             | RUBRIC_FINAL_N-OFF           |        3
+ робототехника и физический искус | MATURE                | MATURITY_LEXICON             |        2
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-OVR           |        2
+ робототехника и физический искус | INSUFFICIENT_EVIDENCE | RUBRIC_FINAL_N-GEN           |        1
+(117 rows)
+

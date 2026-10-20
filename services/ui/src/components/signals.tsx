@@ -127,24 +127,40 @@ export function CandidateMatrixStage({
   const totalCandidates = candidatesFound > 0 ? candidatesFound : 300;
   const batchCount = Math.min(MAX_BATCH_CELLS, Math.max(1, Math.ceil(totalCandidates / RUBRIC_BATCH_SIZE)));
   const perBatch = Math.max(1, Math.ceil(totalCandidates / batchCount));
-  const minBatchFromProgress =
-    total > 0 && done > 0 ? Math.min(batchCount, Math.floor((done / total) * batchCount)) : 0;
+  // Реальный прогресс 4-го этапа: пока этап ещё выполняется (done < total), последний пакет не
+  // перекрашивается в бирюзовый раньше времени; все ячейки становятся бирюзовыми только при done >= total.
+  const targetBatch =
+    total > 0 && done > 0
+      ? done >= total
+        ? batchCount
+        : Math.min(batchCount - 1, Math.floor((done / total) * batchCount))
+      : 0;
 
-  const [activeBatch, setActiveBatch] = useState(minBatchFromProgress);
+  const [activeBatch, setActiveBatch] = useState(targetBatch);
+  const hydratedRef = useRef(total > 0);
 
   useEffect(() => {
-    setActiveBatch((prev) => Math.max(prev, minBatchFromProgress));
-  }, [minBatchFromProgress]);
-
-  useEffect(() => {
+    // При открытии или перезагрузке страницы сразу восстанавливаем текущий прогресс с сервера без сброса в 0.
+    if (!hydratedRef.current && total > 0) {
+      hydratedRef.current = true;
+      setActiveBatch(targetBatch);
+      return;
+    }
+    if (activeBatch > targetBatch) {
+      setActiveBatch(targetBatch);
+      return;
+    }
+    if (activeBatch === targetBatch) return;
+    if (document.documentElement.hasAttribute("data-motion-paused")) {
+      setActiveBatch(targetBatch);
+      return;
+    }
     const timer = window.setInterval(() => {
       if (document.documentElement.hasAttribute("data-motion-paused")) return;
-      // Не сбрасываем индекс в 0 по модулю (%), чтобы анимация по кандидатам не запускалась по кругу:
-      // проходим пакеты последовательно и переходим к финальной сборке карточек ТОП выдачи.
-      setActiveBatch((prev) => (prev < batchCount ? prev + 1 : prev));
-    }, 950);
+      setActiveBatch((prev) => (prev < targetBatch ? prev + 1 : prev));
+    }, 350);
     return () => window.clearInterval(timer);
-  }, [batchCount]);
+  }, [activeBatch, targetBatch, done, total]);
 
   const allBatchesChecked = activeBatch >= batchCount;
   const targetLabel = total > 0 ? `ТОП-${total}` : "ТОП выдачи";

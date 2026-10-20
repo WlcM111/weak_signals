@@ -481,6 +481,27 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         await self.narrate()  # без финальной проверки поля нет
         self.assertNotIn("final_missing", self.results.traces["job-1"]["narrate"])
 
+    async def test_narrate_rubric_persists_incremental_progress_for_reload_and_matrix(self) -> None:
+        snapshots: list[tuple[int, int]] = []
+        orig_set_stats = self.results.set_stats
+
+        async def record_stats(job_id: str, stats) -> None:  # noqa: ANN001
+            await orig_set_stats(job_id, stats)
+            snapshots.append((stats.narratives_generated + stats.narratives_fallback, stats.weak_signals_total))
+
+        self.results.set_stats = record_stats  # type: ignore[method-assign]
+        outcome = await self.narrate(final_check_enabled=True)
+        self.assertGreaterEqual(len(snapshots), 4)
+        # В начале этапа 4 фиксируется общий объём работы (total > 0, done == 0)
+        self.assertEqual(snapshots[0][0], 0)
+        self.assertGreater(snapshots[0][1], 0)
+        # На промежуточных шагах (_judge, _finalize, _final_check) прогресс монотонно растёт,
+        # но остаётся строго меньше total до полной записи карточек
+        intermediate = snapshots[1:-1]
+        self.assertTrue(all(0 < done < total for done, total in intermediate), f"Unexpected intermediate snapshots: {snapshots}")
+        # По завершении записи карточек done достигает числа записанных карточек
+        self.assertEqual(outcome.items_written, 3)
+
 
 class AnalyzePoolTest(unittest.IsolatedAsyncioTestCase):
     async def test_analyzer_gets_pool_size_as_max_candidates(self) -> None:
