@@ -295,6 +295,7 @@ export default function ResultsPage() {
           ) : !terminal && items.length === 0 ? (
             <CandidateMatrixStage
               candidatesFound={data.progress.candidates_found}
+              sourcesProcessed={data.progress.sources_processed}
               done={data.progress.narratives_done}
               total={data.progress.narratives_total}
             />
@@ -313,17 +314,7 @@ export default function ResultsPage() {
               }
             />
           ) : (
-            <div className="results__signals-wrap">
-              {!terminal ? (
-                <CandidateMatrixStage
-                  candidatesFound={data.progress.candidates_found}
-                  done={data.progress.narratives_done}
-                  total={data.progress.narratives_total}
-                  compact
-                />
-              ) : null}
-              <SignalExplorer items={items} jobId={jobId} selectedId={activeId} onSelect={setSelectedId} />
-            </div>
+            <SignalExplorer items={items} jobId={jobId} selectedId={activeId} onSelect={setSelectedId} />
           )}
         </div>
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ComponentType, MouseEvent } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
-import { api } from "./api/client";
+import { api, onApiAlive } from "./api/client";
 import { Banner } from "./components/ui";
 import { Logo } from "./components/Logo";
 import { IconBook, IconModel, IconPause, IconPlay, IconSearch, IconSignal } from "./components/icons";
@@ -16,7 +16,8 @@ import InsightPage from "./pages/InsightPage";
 import ModelPage from "./pages/ModelPage";
 import MethodologyPage from "./pages/MethodologyPage";
 
-const READINESS_INTERVAL_MS = 5000;
+const READINESS_INTERVAL_MS = 6000;
+const READINESS_FAIL_THRESHOLD = 3;
 
 const NAV: { to: string; label: string; Icon: ComponentType<{ size?: number }>; prefixes: string[] }[] = [
   { to: "/", label: "Обзор", Icon: IconSignal, prefixes: [] },
@@ -44,14 +45,43 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
+    let inFlight = false;
+    let failCount = 0;
+
+    const unsubscribe = onApiAlive(() => {
+      if (!active) return;
+      failCount = 0;
+      setApiReady(true);
+    });
+
     const check = async () => {
-      const ready = await api.readiness();
-      if (active) setApiReady(ready);
+      if (!active || inFlight) return;
+      inFlight = true;
+      try {
+        const ready = await api.readiness();
+        if (!active) return;
+        if (ready) {
+          failCount = 0;
+          setApiReady(true);
+        } else {
+          failCount += 1;
+          if (failCount >= READINESS_FAIL_THRESHOLD) {
+            setApiReady(false);
+          }
+        }
+      } finally {
+        inFlight = false;
+      }
     };
+
     void check();
-    const timer = setInterval(check, READINESS_INTERVAL_MS);
+    const timer = setInterval(() => {
+      void check();
+    }, READINESS_INTERVAL_MS);
+
     return () => {
       active = false;
+      unsubscribe();
       clearInterval(timer);
     };
   }, []);
@@ -113,7 +143,7 @@ export default function App() {
         {!apiReady ? (
           <div className="main__banner">
             <Banner kind="error" title="API недоступен">
-              Поиск и результаты временно не работают. Связь проверяется автоматически каждые 5 секунд —
+              Поиск и результаты временно не работают. Связь проверяется автоматически —
               обновлять страницу не нужно.
               <span className="banner__tech">
                 Для администратора: не отвечает сервис orchestrator-api, проверьте контейнеры командой{" "}

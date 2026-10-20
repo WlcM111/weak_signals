@@ -18,8 +18,8 @@ import { IconArrowRight, IconChevron, IconExternal, IconFilter } from "./icons";
 import { Progress, ScoreDial, Stat } from "./ui";
 
 const SPLIT_MIN_REM = 40;
-const MATRIX_TOTAL_CELLS = 36;
-const MATRIX_SIGNAL_INDICES = new Set([1, 4, 6, 9, 11, 14, 17, 19, 22, 25, 27, 30, 33, 35]);
+const RUBRIC_BATCH_SIZE = 20;
+const MAX_BATCH_CELLS = 15;
 
 /** Пояснение шкалы индекса уверенности. */
 export const SCORE_HINT =
@@ -110,25 +110,49 @@ export function JobProgressPanel({ status, done, total, progress, hint }: {
   );
 }
 
-/** Анимация матрицы отбора кандидатов (Воронка R / U / N) на этапе «Формирование инсайтов» (Вариант 5В). */
-export function CandidateMatrixStage({ candidatesFound, done, total, compact = false }: {
+/** Пакетная рубричная проверка кандидатов (по пачкам из 20 шт.) и синтез инсайтов на 4-м этапе (Зона 1, Вариант 1А). */
+export function CandidateMatrixStage({
+  candidatesFound,
+  sourcesProcessed = 0,
+  done,
+  total,
+  compact = false,
+}: {
   candidatesFound: number;
+  sourcesProcessed?: number;
   done: number;
   total: number;
   compact?: boolean;
 }) {
-  const [cursor, setCursor] = useState(0);
+  const totalCandidates = candidatesFound > 0 ? candidatesFound : 300;
+  const batchCount = Math.min(MAX_BATCH_CELLS, Math.max(1, Math.ceil(totalCandidates / RUBRIC_BATCH_SIZE)));
+  const perBatch = Math.max(1, Math.ceil(totalCandidates / batchCount));
+  const minBatchFromProgress =
+    total > 0 && done > 0 ? Math.min(batchCount, Math.floor((done / total) * batchCount)) : 0;
+
+  const [activeBatch, setActiveBatch] = useState(minBatchFromProgress);
+
+  useEffect(() => {
+    setActiveBatch((prev) => Math.max(prev, minBatchFromProgress));
+  }, [minBatchFromProgress]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (document.documentElement.hasAttribute("data-motion-paused")) return;
-      setCursor((prev) => (prev + 1) % (MATRIX_TOTAL_CELLS + 4));
-    }, 450);
+      // Не сбрасываем индекс в 0 по модулю (%), чтобы анимация по кандидатам не запускалась по кругу:
+      // проходим пакеты последовательно и переходим к финальной сборке карточек ТОП выдачи.
+      setActiveBatch((prev) => (prev < batchCount ? prev + 1 : prev));
+    }, 950);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [batchCount]);
 
-  const poolCount = candidatesFound > 0 ? formatNumber(candidatesFound) : String(MATRIX_TOTAL_CELLS);
+  const allBatchesChecked = activeBatch >= batchCount;
   const targetLabel = total > 0 ? `ТОП-${total}` : "ТОП выдачи";
+  const metaParts = [
+    sourcesProcessed > 0 ? `Источников: ${formatNumber(sourcesProcessed)}` : "",
+    `Кандидатов: ${formatNumber(totalCandidates)}`,
+    `Отбор в ${targetLabel}${done > 0 ? ` (готово: ${done})` : ""}`,
+  ].filter(Boolean);
 
   return (
     <div
@@ -139,31 +163,31 @@ export function CandidateMatrixStage({ candidatesFound, done, total, compact = f
       <div className="matrix-stage__head">
         <span className="matrix-stage__title">
           <span className="live__pulse" aria-hidden="true" />
-          Отбор и верификация пула кандидатов
+          {allBatchesChecked
+            ? `Пакеты кандидатов проверены — формируем итоговые карточки (${targetLabel})…`
+            : "Рубричная проверка и синтез инсайтов"}
         </span>
-        <span className="matrix-stage__meta">
-          Пул: {poolCount} кандидатов → {targetLabel}
-          {done > 0 ? ` (готово: ${done})` : ""}
-        </span>
+        <span className="matrix-stage__meta">{metaParts.join(" · ")}</span>
       </div>
       <div className="matrix-stage__grid" aria-hidden="true">
-        {Array.from({ length: MATRIX_TOTAL_CELLS }, (_, index) => {
-          const isSignal = MATRIX_SIGNAL_INDICES.has(index);
+        {Array.from({ length: batchCount }, (_, index) => {
+          const from = index * perBatch + 1;
+          const to = Math.min(totalCandidates, (index + 1) * perBatch);
           let stateClass = "";
-          let cellText = `C${index + 1}`;
-          if (index < cursor) {
-            if (isSignal) {
-              stateClass = "matrix-cell--signal";
-              cellText = `R${index + 1}`;
-            } else {
-              stateClass = "matrix-cell--drop";
-            }
-          } else if (index === cursor || index === cursor + 1) {
+          let statusText = "ожидает";
+          if (index < activeBatch) {
+            stateClass = "matrix-cell--signal";
+            statusText = "✓ проверен";
+          } else if (index === activeBatch) {
             stateClass = "matrix-cell--scan";
+            statusText = "● проверка…";
           }
           return (
             <div key={index} className={`matrix-cell ${stateClass}`}>
-              {cellText}
+              <strong className="matrix-cell__range">
+                № {from}–{to}
+              </strong>
+              <span className="matrix-cell__status">{statusText}</span>
             </div>
           );
         })}
@@ -171,15 +195,15 @@ export function CandidateMatrixStage({ candidatesFound, done, total, compact = f
       <div className="matrix-stage__legend">
         <span className="matrix-stage__legend-item">
           <span className="matrix-stage__swatch matrix-stage__swatch--signal" aria-hidden="true" />
-          Слабый сигнал (R)
+          Бирюзовый — пакет проверен (найдены сигналы)
         </span>
         <span className="matrix-stage__legend-item">
           <span className="matrix-stage__swatch matrix-stage__swatch--scan" aria-hidden="true" />
-          Идёт синтез описания
+          Фиолетовый — проверяется моделью сейчас
         </span>
         <span className="matrix-stage__legend-item">
           <span className="matrix-stage__swatch matrix-stage__swatch--drop" aria-hidden="true" />
-          Отсеян (зрелое / шум)
+          Тёмный — ожидает очереди
         </span>
       </div>
     </div>

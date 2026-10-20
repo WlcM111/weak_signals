@@ -4252,27 +4252,37 @@ button.spectrum__bar:hover {
 
 .matrix-stage__grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 0.38rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
 }
 
 @container scope (max-width: 34rem) {
   .matrix-stage__grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .matrix-cell {
-  display: grid;
-  place-items: center;
-  height: 1.75rem;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 0.45rem;
   background: rgb(255 255 255 / 6%);
-  color: var(--scope-ink-3);
-  font-family: var(--font-mono);
-  font-size: max(12px, 0.72rem);
+  color: var(--scope-ink-2);
+  font-size: max(12px, 0.74rem);
+  line-height: 1.25;
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+
+.matrix-cell__range {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.matrix-cell__status {
+  opacity: 0.88;
 }
 
 .matrix-cell--scan {

@@ -10,7 +10,23 @@ import type {
 } from "./types";
 
 export const REQUEST_TIMEOUT_MS = 10_000;
+export const READINESS_TIMEOUT_MS = 8_000;
 export const SCORE_TIMEOUT_MS = 100_000;
+
+type ApiAliveListener = () => void;
+const aliveListeners = new Set<ApiAliveListener>();
+
+/** Подписка на успешные ответы API, чтобы автоматически сбрасывать счётчик сбоев связи. */
+export function onApiAlive(listener: ApiAliveListener): () => void {
+  aliveListeners.add(listener);
+  return () => {
+    aliveListeners.delete(listener);
+  };
+}
+
+function notifyApiAlive(): void {
+  aliveListeners.forEach((listener) => listener());
+}
 
 /** Ошибка вызова API с человекочитаемым русским сообщением. */
 export class ApiCallError extends Error {
@@ -83,6 +99,9 @@ async function request<T>(
   }
   clearTimeout(timer);
 
+  if (response.status < 500) {
+    notifyApiAlive();
+  }
   if (response.status === 204) return undefined as T;
   const payload: unknown = await response.json().catch(() => null);
 
@@ -155,7 +174,11 @@ export const api = {
   /** `GET /readyz` — доступность API для баннера в шапке. */
   async readiness(): Promise<boolean> {
     try {
-      const response = await fetch("/readyz", { signal: AbortSignal.timeout(5000) });
+      const response = await fetch("/readyz", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(READINESS_TIMEOUT_MS),
+      });
+      if (response.ok) notifyApiAlive();
       return response.ok;
     } catch {
       return false;

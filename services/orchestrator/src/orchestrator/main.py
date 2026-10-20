@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import signal
 import sys
+import time
 from typing import Any
 
 from orchestrator.adapters.inbound.http.deps import ApiKeyGuard, RateLimiter
@@ -36,6 +37,7 @@ from ws_common.metrics import render_metrics
 from ws_common.migrate import apply_migrations
 
 SCHEMA = "orchestrator"
+READINESS_CACHE_TTL_SECONDS = 3.0  # UX-2: короткий кеш готовности против шторма пингов от вкладок UI
 log = get_logger("orchestrator.main")
 
 
@@ -92,13 +94,19 @@ def build_handlers(context: dict[str, Any], settings: OrchestratorSettings) -> A
     """Собирает обработчики HTTP из сценариев."""
     jobs = context["jobs"]
     results = context["results"]
+    last_ready_ok_at = 0.0
 
     async def readiness() -> dict[str, bool]:
-        """Готовность: доступность БД."""
+        """Готовность: доступность БД (с коротким кешем против шторма пингов от вкладок UI)."""
+        nonlocal last_ready_ok_at
+        now = time.monotonic()
+        if now - last_ready_ok_at < READINESS_CACHE_TTL_SECONDS:
+            return {"database": True}
         try:
             await jobs.count_pending()
         except Exception:  # noqa: BLE001 - любая ошибка означает неготовность
             return {"database": False}
+        last_ready_ok_at = time.monotonic()
         return {"database": True}
 
     return ApiHandlers(
