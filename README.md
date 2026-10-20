@@ -77,7 +77,7 @@ curl -fs http://127.0.0.1:8080/readyz && echo " — API готов"
 
 ```bash
 pip install -r requirements-local.txt
-export PYTHONPATH=ml/src:services/insight/src:services/orchestrator/src:services/analyzer/src:services/collector/src:libs/ws_common/src
+export PYTHONPATH=ml/src:services/insight/src:services/orchestrator/src:services/analyzer/src:services/collector/src:libs/ws_common/src:libs/ws_contracts/src
 
 python -m ml.cli build-dataset                     # 225 строк: 100 позитивов + 125 негативов
 python -m ml.cli leak-check                        # контроль утечки разметки
