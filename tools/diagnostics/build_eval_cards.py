@@ -45,7 +45,8 @@ def main() -> int:
         sources = card.get("sources") or []
         snippet = next((texts[s["url"]] for s in sources if texts.get(s.get("url") or "")), "")
         with_text += bool(snippet)
-        rows.append({"group_id": group_id, "title": card["title_ru"], "label": 1 if verdict in WEAK else 0,
+        rows.append({"group_id": group_id, "title": card["title_ru"], "description": card.get("description_ru") or "",
+                     "label": 1 if verdict in WEAK else 0,
                      "label_kind": verdict, "domain_tag": TOPICS[index][1], "topic": card["topic"],
                      "split": "holdout" if int(hashlib.sha1(group_id.encode()).hexdigest(), 16) % 5 == 0 else "dev",
                      "observation_text": (snippet or " | ".join(s.get("title") or "" for s in sources))[:400],

@@ -110,7 +110,8 @@ async def serve(settings: InsightSettings) -> int:
     applied = await apply_migrations(pool, SCHEMA, settings.migrations_dir)
     log.info("migrations.applied", versions=applied)
 
-    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version)
+    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version,
+                            settings.rubric_final_prompt_version)
     await RegisterPrompts(PostgresPromptRegistry(pool), prompts).execute()
     providers = build_providers(settings)
     chain = ProviderChain(

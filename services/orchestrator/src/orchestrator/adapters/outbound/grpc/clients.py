@@ -12,6 +12,7 @@ from weaksignals.insight.v1 import insight_pb2, insight_pb2_grpc
 
 from orchestrator.adapters.outbound.grpc import mappers
 from orchestrator.application.dto import (
+    MaturityScoresView,
     FinalizedCardView,
     FinalizeRequestCard,
     JudgeVerdictView,
@@ -201,6 +202,15 @@ class GrpcAnalyzerClient:
         except grpc.aio.AioRpcError as error:
             raise _fail("ScoreText", error) from error
         return mappers.to_score_view(response)
+
+    async def score_maturity(self, texts: Sequence[str]) -> MaturityScoresView:
+        """Этап 5.5: оценки локальной модели зрелости для текстов готовых карточек."""
+        request = analyzer_pb2.ScoreMaturityRequest(texts=list(texts))
+        try:
+            response = await self._stub.ScoreMaturity(request, timeout=INSIGHT_DEADLINE, metadata=_md())
+        except grpc.aio.AioRpcError as error:
+            raise _fail("ScoreMaturity", error) from error
+        return MaturityScoresView(tuple(response.scores), response.threshold, response.model_version)
 
 
 class GrpcInsightClient:

@@ -41,6 +41,18 @@ DOMAIN_QUERY = {
 }
 
 
+# Этап 5.4: рыночные источники карточки — как MARKET_EVIDENCE в orchestrator (narrate_rubric) и в замере.
+MARKET_EVIDENCE = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT", "CORPORATE_BLOG",
+                             "GOVERNMENT"})
+
+
+def market_sources(row: dict) -> int:
+    """1 — у карточки есть рыночный источник (для защиты рыночных карточек от N-MAT финальной проверки)."""
+    types = [ref.get("source_type", "") for ref in row.get("evidence_refs") or []]
+    types += [source_type(domain(url))[0] for url in row.get("source_urls") or [] if url]
+    return int(any(kind in MARKET_EVIDENCE for kind in types))
+
+
 def domain(url: str) -> str:
     return (urlsplit(url or "").hostname or "").removeprefix("www.")
 
@@ -74,8 +86,9 @@ def a_item(row: dict) -> RubricItem:
                       f"Источников {len(sources)}: " + ", ".join(sorted({s.domain or 'без ссылки' for s in sources})))
 
 
-def b_item(row: dict) -> RubricItem:
-    """Строка датасета B v2 → кандидат: название карточки и её доказательства (название, тип, дата, площадка)."""
+def b_item(row: dict, final_check: bool = False) -> RubricItem:
+    """Строка датасета B v2 → кандидат: название карточки и её доказательства (название, тип, дата, площадка);
+    `final_check` — как финальная проверка orchestrator: состав «Итоговая карточка. Название: …. Описание: …»."""
     refs = row.get("evidence_refs") or []
     sources = tuple(
         RubricSource(document_id=f"{row['group_id']}-{index}", title=ref.get("title", ""),
@@ -86,7 +99,9 @@ def b_item(row: dict) -> RubricItem:
                      domain=domain(ref.get("url", "")))
         for index, ref in enumerate(refs[:6])
     )
-    return RubricItem(row["group_id"], row.get("title", ""), (), sources, "")
+    composition = (f"Итоговая карточка. Название: {row.get('title', '')}. Описание: {row.get('description', '')}"
+                   if final_check else "")
+    return RubricItem(row["group_id"], row.get("title", ""), (), sources, composition)
 
 
 def classification(y_true: Sequence[int], y_pred: Sequence[int]) -> dict:
@@ -173,7 +188,7 @@ def summarize(dataset: str, rows: list[dict], verdicts: dict[str, RubricVerdict]
             "stage_pred": verdict.stage if verdict else "", "trend_true": row.get("trend_ordinal") or "",
             "trend_pred": verdict.trend if verdict else "", "confidence": verdict.confidence if verdict else "",
             "reason_ru": verdict.reason_ru if verdict else "", "title": row.get("title", "")[:200],
-            "topic": row.get("topic", row.get("domain_tag", "")),
+            "topic": row.get("topic", row.get("domain_tag", "")), "market_sources": market_sources(row),
             "technology_ru": verdict.technology_ru if verdict else "", "profile_ru": verdict.profile_ru if verdict else ""})
         if verdict is None or label is None:
             continue
@@ -257,11 +272,12 @@ async def run(args: argparse.Namespace) -> int:
     rows = load(args.input)
     if args.limit:
         rows = rows[: args.limit]
-    items = [a_item(row) if args.dataset == "a" else b_item(row) for row in rows]
+    items = [a_item(row) if args.dataset == "a" else b_item(row, args.final_check) for row in rows]
     pool = build_pool(settings.pg_dsn, min_size=1, max_size=2, statement_timeout_ms=settings.pg_statement_timeout_ms,
                       application_name=f"{settings.service_name}-eval")
     await pool.open(wait=True, timeout=30)
-    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version)
+    prompts = PromptBuilder(settings.prompts_dir, settings.schemas_dir, settings.rubric_prompt_version,
+                            settings.rubric_final_prompt_version)
     await RegisterPrompts(PostgresPromptRegistry(pool), prompts).execute()
     chain = ProviderChain(build_providers(settings), PostgresLLMCallLog(pool), SystemClock(), ChainConfig(
         timeout_seconds=settings.llm_timeout_seconds, temperature=settings.llm_temperature,
@@ -274,14 +290,15 @@ async def run(args: argparse.Namespace) -> int:
     provider = model = ""
     for query, group in grouped(args.dataset, rows, items).items():
         for start in range(0, len(group), MAX_ITEMS):
-            outcome = await judge.execute(args.query or query, group[start : start + MAX_ITEMS])
+            outcome = await judge.execute(args.query or query, group[start : start + MAX_ITEMS], args.final_check)
             verdicts.update({verdict.candidate_id: verdict for verdict in outcome.verdicts})
             provider, model = outcome.provider or provider, outcome.model or model
             print(f"оценено {len(verdicts)} из {len(items)} ({query[:40]})", flush=True)
     await pool.close()
     verdicts = calibrated(verdicts, args.stage_calibration, args.trend_calibration)
     metrics, predictions = summarize(args.dataset, rows, verdicts)
-    metrics.update({"provider": provider, "model": model, "prompt_version": prompts.rubric_version, "label": args.label})
+    metrics.update({"provider": provider, "model": model, "label": args.label, "final_check": args.final_check,
+                    "prompt_version": prompts.final_version if args.final_check else prompts.rubric_version})
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     stem = f"rubric_{args.dataset}_{args.label}"
@@ -304,6 +321,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--stage-calibration", default="", help='калибровка стадии, например "1:2,2:3,3:4,4:4"')
     parser.add_argument("--trend-calibration", default="", help='калибровка тренда, например "1:2,2:3,3:3"')
+    parser.add_argument("--final-check", action="store_true",
+                        help="режим финальной проверки готовой карточки (WS_RUBRIC_FINAL_PROMPT_VERSION), датасет b")
     return asyncio.run(run(parser.parse_args(argv)))
 
 

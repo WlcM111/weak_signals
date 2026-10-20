@@ -217,6 +217,15 @@ class ModelInfoView:
 
 
 @dataclass(frozen=True, slots=True)
+class MaturityScoresView:
+    """Этап 5.5: оценки локальной модели зрелости analyzer; пустая версия — модель не загружена."""
+
+    scores: tuple[float, ...]
+    threshold: float
+    model_version: str
+
+
+@dataclass(frozen=True, slots=True)
 class ScoreTextView:
     """Результат прокси `AnalyzerService.ScoreText`."""
 

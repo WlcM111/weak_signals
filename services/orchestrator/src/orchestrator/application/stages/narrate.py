@@ -55,6 +55,8 @@ class NarrateConfig:
     rubric_pool_research_singles: bool = False
     # rubric: доля кандидатов с лучшей оценкой модели analyzer, которые ставятся в выдаче первыми (этап 5.3; 0 — выкл.)
     rank_model_first_share: float = 0.0
+    # этап 5.5: локальная модель зрелости analyzer по готовым карточкам с научными источниками (выкл. по умолчанию)
+    maturity_filter_enabled: bool = False
     # rubric: пачки GetDocuments ≤ 50 с одним повтором; сбой загрузки — не «нет источников» (R-027)
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True
@@ -80,6 +82,11 @@ class NarrateConfig:
     final_check_enabled: bool = False
     # R-025: карточка без вердикта финальной проверки помечается «требует проверки» (как U); резервные — через неё же.
     final_check_fail_as_uncertain: bool = False
+    # Этап 5.4: N-MAT финальной проверки убирает карточку только при уверенности судьи не ниже порога (0 — всегда).
+    final_mature_min_confidence: float = 0.0
+    # Этап 5.4: N-MAT финальной проверки убирает только карточки без рыночных источников (СМИ, пресс-релизы, блоги
+    # компаний, регуляторы): рыночный факт — признак ранней стадии по условиям кейса; false — любые карточки.
+    final_mature_research_only: bool = True
     # Уверенность принятого рубрикой сигнала ≥ 50 %: 0,5 + 0,5 × вероятность модели; прочих — 0,5 × вероятность.
     confidence_calibration: bool = False
     # R-003: в трассе narrate — документы (URL) и итог каждого кандидата; прошлый прогон стадии — narrate@N.

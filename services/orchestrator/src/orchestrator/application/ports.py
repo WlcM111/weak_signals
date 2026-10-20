@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Protocol
 
 from orchestrator.application.dto import (
+    MaturityScoresView,
     FinalizedCardView,
     FinalizeRequestCard,
     JudgeVerdictView,
@@ -150,6 +151,9 @@ class AnalyzerClient(Protocol):
 
     async def score_text(self, title: str, description: str, with_enrichment: bool) -> ScoreTextView:
         """Прямой скоринг описания технологии."""
+
+    async def score_maturity(self, texts: Sequence[str]) -> MaturityScoresView:
+        """Этап 5.5: вероятность «зрелая технология» для текстов готовых карточек (локальная модель analyzer)."""
 
 
 class InsightClient(Protocol):

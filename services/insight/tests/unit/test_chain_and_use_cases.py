@@ -355,7 +355,7 @@ class ProviderStatusTest(unittest.IsolatedAsyncioTestCase):
     async def test_register_prompts(self) -> None:
         registry = InMemoryPromptRegistry()
         count = await RegisterPrompts(registry, PromptBuilder(PROMPTS, SCHEMAS)).execute()
-        self.assertEqual(count, 9)  # insight, expand, judge_v1, рубрика v6–v8, доводка, термины и проверка зрелости
+        self.assertEqual(count, 12)  # insight, expand, judge_v1, рубрика v6–v11, доводка, термины и проверка зрелости
         purposes = {definition.purpose for definition in registry.definitions}
         self.assertEqual({item.value for item in purposes}, {"insight", "expand", "judge"})
 

@@ -29,7 +29,14 @@ RUBRIC_PROMPT_VERSION = "judge_v6"  # версия по умолчанию (ра
 # задаче известным классом методов — N-MAT. Версия выбирается настройкой WS_RUBRIC_PROMPT_VERSION.
 # Этап 5.3 (R-013, R-028): judge_v8 — зрелость оценивается по области кандидата, и для возраста области судье разрешены
 # общеизвестные знания (judge_v6 и judge_v7 запрещали любые знания вне источников — в этом причина пропуска зрелых).
-RUBRIC_TEMPLATES = {"judge_v6": "judge_v6.j2", "judge_v7": "judge_v7.j2", "judge_v8": "judge_v8.j2"}
+# Этап 5.4 (зрелые в выдаче): judge_v9 — финальная проверка готовой карточки с критерием зрелости пары «механизм —
+# задача» по общим знаниям; N-MAT только при уверенности. Версия финальной проверки — WS_RUBRIC_FINAL_PROMPT_VERSION.
+# judge_v10 — то же, но N-MAT только при массовом практическом применении пары; многолетняя исследовательская
+# активность зрелостью не считается (judge_v9 на замере терял слабые сигналы-исследования). judge_v11 — judge_v10 без
+# требования N-GEN для карточки-области в финальной проверке (на наборе организаторов задевало широкие сигналы).
+RUBRIC_TEMPLATES = {"judge_v6": "judge_v6.j2", "judge_v7": "judge_v7.j2", "judge_v8": "judge_v8.j2",
+                    "judge_v9": "judge_v9.j2", "judge_v10": "judge_v10.j2", "judge_v11": "judge_v11.j2"}
+RUBRIC_FINAL_PROMPT_VERSION = "judge_v11"  # версия финальной проверки в рабочей настройке (этап 5.4)
 RUBRIC_SCHEMA_FILE = "judge_v4_llm_output.schema.json"
 FINALIZE_PROMPT_VERSION = "finalize_v5"
 FINALIZE_SCHEMA_FILE = "finalize_v4_llm_output.schema.json"
@@ -56,10 +63,17 @@ class PromptBundle:
 class PromptBuilder:
     """Загружает шаблоны и схемы, собирает промпты и считает их контрольные суммы."""
 
-    def __init__(self, prompts_dir: Path, schemas_dir: Path, rubric_version: str = RUBRIC_PROMPT_VERSION) -> None:
-        if rubric_version not in RUBRIC_TEMPLATES:
-            raise ValueError(f"неизвестная версия промпта рубрики: {rubric_version}")
+    def __init__(
+        self, prompts_dir: Path, schemas_dir: Path, rubric_version: str = RUBRIC_PROMPT_VERSION,
+        final_version: str = "",
+    ) -> None:
+        """`final_version` — версия финальной проверки готовой карточки; пусто — та же, что `rubric_version`."""
+        final_version = final_version or rubric_version
+        for version in (rubric_version, final_version):
+            if version not in RUBRIC_TEMPLATES:
+                raise ValueError(f"неизвестная версия промпта рубрики: {version}")
         self._rubric_version = rubric_version
+        self._final_version = final_version
         self._prompts_dir = Path(prompts_dir)
         self._schemas_dir = Path(schemas_dir)
         self._environment = Environment(
@@ -142,6 +156,30 @@ class PromptBuilder:
                 output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
                 description="Рубрика judge_v6 + зрелость по области: область и её возраст по общеизвестным знаниям, "
                             "вид новизны; раунд или запуск продукта зрелостью не считаются (этап 5.3, R-013, R-028)",
+            ),
+            PromptDefinition(
+                prompt_version="judge_v9",
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v9.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубрика judge_v8 + зрелость пары «механизм — задача» для финальной проверки готовой "
+                            "карточки: возраст и массовость по общим знаниям, N-MAT только при уверенности (этап 5.4)",
+            ),
+            PromptDefinition(
+                prompt_version="judge_v10",
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v10.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубрика judge_v9, но N-MAT только при массовом практическом применении пары «механизм — "
+                            "задача» с названным признаком; исследовательская активность зрелостью не считается (5.4)",
+            ),
+            PromptDefinition(
+                prompt_version="judge_v11",
+                purpose=Purpose.JUDGE,
+                template_sha256=self.template_sha256("judge_v11.j2"),
+                output_schema_version=f"{RUBRIC_SCHEMA_FILE}@1",
+                description="Рубрика judge_v10 без требования N-GEN для карточки-области в финальной проверке; "
+                            "массово применяемая область целиком — N-MAT (этап 5.4)",
             ),
             PromptDefinition(
                 prompt_version=MATURITY_TERMS_PROMPT_VERSION,
@@ -244,16 +282,22 @@ class PromptBuilder:
         """Промпт рубричной оценки: кандидаты с полным списком источников и сводкой их состава; `final_check` —
         финальная проверка готовых карточек со строгими правилами темы."""
         schema = self._schemas[RUBRIC_SCHEMA_FILE]
-        system = self._environment.get_template(RUBRIC_TEMPLATES[self._rubric_version]).render(
+        version = self._final_version if final_check else self._rubric_version
+        system = self._environment.get_template(RUBRIC_TEMPLATES[version]).render(
             schema=json.dumps(schema, ensure_ascii=False, indent=2), final_check=final_check
         )
         user = json.dumps({"query": query_text, "candidates": list(candidates)}, ensure_ascii=False)
-        return self._bundle(system, user, schema, self._rubric_version)
+        return self._bundle(system, user, schema, version)
 
     @property
     def rubric_version(self) -> str:
         """Действующая версия промпта рубрики."""
         return self._rubric_version
+
+    @property
+    def final_version(self) -> str:
+        """Версия промпта финальной проверки готовой карточки."""
+        return self._final_version
 
     def build_finalize_prompt(self, query_text: str, cards: Sequence[dict]) -> PromptBundle:
         """Промпт пакетной доводки показанных карточек."""

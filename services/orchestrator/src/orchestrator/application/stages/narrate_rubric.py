@@ -182,7 +182,10 @@ async def run_narrate_rubric(
     ranked = eligible
     finalized: dict[str, FinalizedCardView] = {}
     final_dropped: dict[str, JudgeVerdictView] = {}
+    maturity_dropped: dict[str, tuple[float, float, str]] = {}  # этап 5.5: оценка, порог, версия модели
     final_unchecked: set[str] = set()
+    final_missing: set[str] = set()  # этап 5.4: без вердикта финальной проверки — в трассе при любом режиме
+    final_mature_kept: dict[str, str] = {}  # этап 5.4: N-MAT не убрал карточку — почему (рынок, уверенность)
     review_dropped: dict[str, tuple[Decision, str, str]] = {}
     tried: list[CandidateView] = []
     queue = list(ranked)
@@ -218,22 +221,32 @@ async def run_narrate_rubric(
             finalized.pop(candidate_id, None)
         checked: dict[str, JudgeVerdictView] = {}
         if config.final_check_enabled:
-            checked, unchecked = await _final_check(insight, query_text, batch, finalized, documents)
+            checked, unchecked, kept = await _final_check(insight, query_text, batch, finalized, documents, config)
             final_dropped.update(checked)
+            final_missing.update(unchecked)
+            final_mature_kept.update(kept)
             for candidate_id in final_dropped:
                 finalized.pop(candidate_id, None)
             if config.final_check_fail_as_uncertain:  # без вердикта — «требует проверки», не принятый R (R-025)
                 final_unchecked.update(unchecked)
+        if config.maturity_filter_enabled:  # этап 5.5: локальная модель зрелости по готовой карточке
+            flagged = await _maturity_filter(analyzer, batch, finalized, documents)
+            maturity_dropped.update(flagged)
+            for candidate_id in flagged:
+                finalized.pop(candidate_id, None)
+            if flagged:
+                extra = extra | {"maturity_dropped": sorted(flagged)}
         rounds.append({"batch": [c.candidate_id for c in batch], "finalized": sorted(produced),
                        "review_dropped": sorted(reviews), "final_dropped": sorted(checked)} | extra)
     if config.rubric_finalize_retry_small:  # повтор не состоялся (раунды или срок кончились) — RUBRIC_TEXT_FAILED
         tried.extend(c for c in queue if c.candidate_id in requeued)
         queue = [c for c in queue if c.candidate_id not in requeued]
-    rejected = final_dropped.keys() | review_dropped.keys()
+    rejected = final_dropped.keys() | review_dropped.keys() | maturity_dropped.keys()
     rank_of = {c.candidate_id: i for i, c in enumerate(ranked)}
     shown = sorted((c for c in tried if c.candidate_id in finalized), key=lambda c: rank_of[c.candidate_id])
     text_failed = [c for c in tried if c.candidate_id not in finalized and c.candidate_id not in rejected]
     dropped_final = [c for c in tried if c.candidate_id in final_dropped]
+    dropped_maturity = [c for c in tried if c.candidate_id in maturity_dropped]
     dropped_reviews = [(c, review_dropped[c.candidate_id]) for c in tried if c.candidate_id in review_dropped]
     # Резервная ветка берёт только не отклонённых финальной проверкой и правилом обзоров: решение о недопустимости
     # технологии не отменяется тем, что описание не удалось довести (аудит 29.09: shown=3 при final_rejections=3).
@@ -243,8 +256,9 @@ async def run_narrate_rubric(
         shown, text_failed = allowed[: config.top_n], []
         queue = allowed[config.top_n :]
     narratives: dict[str, NarrativeView] = {}
-    if fallback and config.final_check_enabled and config.final_check_fail_as_uncertain:
-        # R-025: резервные карточки — через ту же финальную проверку по тексту построенной карточки
+    if fallback and config.final_check_enabled:
+        # R-025: резервные карточки — через ту же финальную проверку по тексту построенной карточки; этап 5.4: при
+        # любом значении fail_as_uncertain (раньше без него резервные карточки проходили мимо проверки зрелости)
         for candidate in shown:
             await check()
             narratives[candidate.candidate_id] = await _fallback_narrative(insight, job_id, query_text, candidate,
@@ -252,11 +266,15 @@ async def run_narrate_rubric(
         requests = [_final_item(c, narratives[c.candidate_id].title_ru or c.title_auto,
                                 narratives[c.candidate_id].description_ru, _docs(c, documents)) for c in shown]
         if config.llm_allowed is None or config.llm_allowed():
-            dropped, unchecked = await _judge_final(insight, query_text, requests)
+            dropped, unchecked, kept = await _judge_final(insight, query_text, requests, config)
+            final_mature_kept.update(kept)
         else:  # срок не позволяет вызов LLM: карточки остаются непроверенными
             dropped, unchecked = {}, {c.candidate_id for c in shown}
         final_dropped.update(dropped)
-        final_unchecked.update(unchecked)
+        if config.final_check_fail_as_uncertain:
+            final_unchecked.update(unchecked)
+        else:  # прежнее поведение: без вердикта карточка остаётся принятой; в трассе — final_missing
+            final_missing.update(unchecked)
         dropped_final += [c for c in shown if c.candidate_id in dropped]
         shown = [c for c in shown if c.candidate_id not in dropped]
     # Код показа: карточка без вердикта финальной проверки показывается как U — «требует проверки» (R-025).
@@ -272,9 +290,11 @@ async def run_narrate_rubric(
     outcome.judge_rejected = len(prefiltered)
     evidence = await _evidence(collector, weak + excluded, rest, documents, check) if config.narrate_trace_evidence else None
     rows = _excluded_rows(rest, prefiltered + dropped_reviews, unjudged, queue + below, text_failed, verdicts, scored,
-                          dropped_final, final_dropped)
+                          dropped_final, final_dropped, dropped_maturity, maturity_dropped)
     outcome.excluded_written = await results.add_excluded(job_id, rows)
     extra: dict[str, object] = {}
+    if config.maturity_filter_enabled:
+        extra["maturity_dropped"] = {cid: round(score, 4) for cid, (score, _, _) in maturity_dropped.items()}
     if evidence is not None:
         displayed = {c.candidate_id: display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
                                                    config.confidence_calibration) for c in shown}
@@ -308,6 +328,8 @@ async def run_narrate_rubric(
         "review_dropped": {cid: [decision.value, reason] for cid, (decision, reason, _) in review_dropped.items()},
         "final_dropped": {cid: {"code": v.code, "reason_ru": v.reason_ru} for cid, v in final_dropped.items()},
         **({"final_unchecked": sorted(final_unchecked)} if config.final_check_fail_as_uncertain else {}),
+        **({"final_missing": sorted(final_missing | final_unchecked),
+            "final_mature_kept": final_mature_kept} if config.final_check_enabled else {}),
         "fallback": fallback,
         "shown": [[position, c.candidate_id, display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
                                                            config.confidence_calibration),
@@ -547,6 +569,8 @@ def _excluded_rows(
     scored: dict[str, tuple[float, dict[str, float]]],
     dropped_final: list[CandidateView] | None = None,
     final_dropped: dict[str, JudgeVerdictView] | None = None,
+    dropped_maturity: list[CandidateView] | None = None,
+    maturity_dropped: dict[str, tuple[float, float, str]] | None = None,
 ) -> list[ExcludedCandidate]:
     """Исключённые кандидаты с причинами (ТЗ: причины исключения зрелых и нерелевантных кандидатов)."""
     rows: list[ExcludedCandidate] = []
@@ -579,16 +603,64 @@ def _excluded_rows(
         add(candidate, rubric.CODE_DECISION.get(verdict.code, Decision.INSUFFICIENT_EVIDENCE), f"RUBRIC_FINAL_{verdict.code}",
             f"Финальная проверка готовой карточки: {rubric.CODE_RU.get(verdict.code, verdict.code)}. {verdict.reason_ru}",
             verdict.confidence)
+    for candidate in dropped_maturity or []:
+        score, threshold, version = (maturity_dropped or {})[candidate.candidate_id]
+        add(candidate, Decision.MATURE, "MATURE_LOCAL_MODEL",
+            f"Локальная модель зрелости ({version}): вероятность зрелой технологии {score:.0%} при пороге {threshold:.0%}; "
+            "проверяются только карточки с научными источниками.", score)
     return rows
 
 
+# Этап 5.5: та же сборка текста, что при обучении (analyzer.train_maturity.card_text), и те же рыночные типы источников
+MATURITY_MARKET_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT", "CORPORATE_BLOG",
+                                   "GOVERNMENT"})
+
+
+def maturity_card_text(title: str, description: str, source_titles: list[str]) -> str:
+    sources = "; ".join(t[:120] for t in source_titles[:3])
+    return f"{title}. {description[:600]} Источники: {sources}"
+
+
+async def _maturity_filter(
+    analyzer: AnalyzerClient, batch: list[CandidateView], finalized: dict[str, FinalizedCardView],
+    documents: dict[str, DocumentView],
+) -> dict[str, tuple[float, float, str]]:
+    """Готовые карточки пачки только с научными источниками, которые локальная модель считает зрелыми.
+    Карточки с СМИ и пресс-релизами не проверяются; сбой analyzer или отсутствие модели ничего не исключают."""
+    items: list[tuple[str, str]] = []
+    for candidate in batch:
+        card = finalized.get(candidate.candidate_id)
+        if card is None:
+            continue
+        docs = [documents[doc_id] for doc_id in card.source_summaries if doc_id in documents]
+        if not docs or {d.source_type for d in docs} & MATURITY_MARKET_TYPES:
+            continue
+        items.append((candidate.candidate_id, maturity_card_text(card.title_ru, card.description_ru,
+                                                                  [d.title for d in docs])))
+    if not items:
+        return {}
+    try:
+        view = await analyzer.score_maturity([text for _, text in items])
+    except Exception as error:  # noqa: BLE001 - сбой проверки не должен менять выдачу
+        log.warning("narrate.maturity_failed", reason=type(error).__name__, detail=str(error)[:200])
+        return {}
+    if not view.model_version or len(view.scores) != len(items):
+        return {}
+    flagged = {cid: (score, view.threshold, view.model_version)
+               for (cid, _), score in zip(items, view.scores, strict=True) if score > view.threshold}
+    log.info("narrate.maturity_filter", checked=len(items), dropped=len(flagged), model=view.model_version)
+    return flagged
+
+
 FINAL_DROP = frozenset({"N-GEN", "N-MAT", "N-OVR", "N-OFF", "N-NOI", "N-HYP", "N-FUND"})
+# Этап 5.4: рыночные источники карточки — то же деление, что в замере (tools/diagnostics/build_maturity_set.py).
+MARKET_EVIDENCE = rubric.MARKET_TYPES | {"CORPORATE_BLOG", "GOVERNMENT"}
 
 
 async def _final_check(
     insight: InsightClient, query_text: str, batch: list[CandidateView], finalized: dict[str, FinalizedCardView],
-    documents: dict[str, DocumentView],
-) -> tuple[dict[str, JudgeVerdictView], set[str]]:
+    documents: dict[str, DocumentView], config: NarrateConfig,
+) -> tuple[dict[str, JudgeVerdictView], set[str], dict[str, str]]:
     """Рубрика по готовой карточке: название и описание — конкретная ранняя технология по теме? Общее, зрелое,
     обзор и не по теме возвращаются для замены следующим кандидатом. Сбой проверки карточки не отбрасывает:
     карточки без вердикта (сбой или пропуск) возвращаются вторым значением."""
@@ -599,7 +671,7 @@ async def _final_check(
             continue
         docs = tuple(documents[d] for d in card.source_summaries if d in documents)
         items.append(_final_item(candidate, card.title_ru, card.description_ru, docs))
-    return await _judge_final(insight, query_text, items)
+    return await _judge_final(insight, query_text, items, config)
 
 
 def _final_item(
@@ -611,18 +683,30 @@ def _final_item(
 
 
 async def _judge_final(
-    insight: InsightClient, query_text: str, items: list[RubricRequestItem],
-) -> tuple[dict[str, JudgeVerdictView], set[str]]:
-    """Вызов финальной проверки: (отклонённые кодами FINAL_DROP, оставшиеся без вердикта)."""
+    insight: InsightClient, query_text: str, items: list[RubricRequestItem], config: NarrateConfig,
+) -> tuple[dict[str, JudgeVerdictView], set[str], dict[str, str]]:
+    """Вызов финальной проверки: (отклонённые кодами FINAL_DROP, оставшиеся без вердикта, N-MAT, который карточку
+    не убрал, — с причиной: рыночные источники или уверенность ниже порога, этап 5.4)."""
     if not items:
-        return {}, set()
+        return {}, set(), {}
     try:
         verdicts = await insight.judge_rubric(query_text, items, final_check=True)
     except (UpstreamUnavailable, StageFailed) as error:
         log.warning("stage.narrate_rubric.final_check_failed", error=str(error)[:200])
         verdicts = {}
     unchecked = {item.candidate.candidate_id for item in items if item.candidate.candidate_id not in verdicts}
-    return {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP}, unchecked
+    market = {item.candidate.candidate_id for item in items
+              if any(document.source_type in MARKET_EVIDENCE for document in item.documents)}
+    kept: dict[str, str] = {}
+    for cid, verdict in verdicts.items():
+        if verdict.code != "N-MAT":
+            continue
+        if config.final_mature_research_only and cid in market:
+            kept[cid] = "рыночные источники"
+        elif verdict.confidence < config.final_mature_min_confidence:
+            kept[cid] = f"уверенность {verdict.confidence:.2f} < {config.final_mature_min_confidence:.2f}"
+    dropped = {cid: verdict for cid, verdict in verdicts.items() if verdict.code in FINAL_DROP and cid not in kept}
+    return dropped, unchecked, kept
 
 
 def _review_dominated(

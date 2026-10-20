@@ -18,6 +18,7 @@ BASELINE_KEYS = {
     "path", "config", "models", "candidates", "pool", "rest", "prefiltered", "judged", "raw_stage_trend", "unjudged",
     "probabilities", "accepted", "uncertain_fill", "below", "rounds", "deadline_cut", "not_tried", "text_failed",
     "review_dropped", "final_dropped", "fallback", "shown",
+    "final_missing", "final_mature_kept",  # этап 5.4: при включённой финальной проверке
 }
 OK = dict(on_topic=True, concrete=True, early_stage=True, verifiable=True)
 

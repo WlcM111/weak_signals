@@ -59,6 +59,11 @@ class AnalyzerServiceStub(object):
                 request_serializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextRequest.SerializeToString,
                 response_deserializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextResponse.FromString,
                 _registered_method=True)
+        self.ScoreMaturity = channel.unary_unary(
+                '/weaksignals.analyzer.v1.AnalyzerService/ScoreMaturity',
+                request_serializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityRequest.SerializeToString,
+                response_deserializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityResponse.FromString,
+                _registered_method=True)
         self.GetModelInfo = channel.unary_unary(
                 '/weaksignals.analyzer.v1.AnalyzerService/GetModelInfo',
                 request_serializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.GetModelInfoRequest.SerializeToString,
@@ -104,6 +109,13 @@ class AnalyzerServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ScoreMaturity(self, request, context):
+        """Прямой скоринг произвольного описания технологии (оценка на скрытом датасете организаторов, UI «проверить»). Deadline 20 s (90 s при with_enrichment). Retry: да.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetModelInfo(self, request, context):
         """Сведения об активной модели и её метриках. Deadline 5 s. Retry: да.
         """
@@ -138,6 +150,11 @@ def add_AnalyzerServiceServicer_to_server(servicer, server):
                     servicer.ScoreText,
                     request_deserializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextRequest.FromString,
                     response_serializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextResponse.SerializeToString,
+            ),
+            'ScoreMaturity': grpc.unary_unary_rpc_method_handler(
+                    servicer.ScoreMaturity,
+                    request_deserializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityRequest.FromString,
+                    response_serializer=weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityResponse.SerializeToString,
             ),
             'GetModelInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetModelInfo,
@@ -280,6 +297,33 @@ class AnalyzerService(object):
             '/weaksignals.analyzer.v1.AnalyzerService/ScoreText',
             weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextRequest.SerializeToString,
             weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreTextResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ScoreMaturity(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/weaksignals.analyzer.v1.AnalyzerService/ScoreMaturity',
+            weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityRequest.SerializeToString,
+            weaksignals_dot_analyzer_dot_v1_dot_analyzer__pb2.ScoreMaturityResponse.FromString,
             options,
             channel_credentials,
             insecure,

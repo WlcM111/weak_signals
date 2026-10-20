@@ -79,6 +79,8 @@ class OrchestratorSettings(BaseServiceSettings):
     rubric_pool_research_singles: bool = True
     # Этап 5.3: верхняя половина кандидатов по оценке модели analyzer — первой в выдаче (0 — прежний порядок)
     rank_model_first_share: float = Field(default=0.5, ge=0.0, le=1.0)
+    # Этап 5.5: локальная модель зрелости analyzer после доводки карточек (включать после обучения модели)
+    maturity_filter_enabled: bool = False
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True
     # R-026: сбой FinalizeCards — повтор частями ≤ 5, без карточки — в очередь следующего раунда; ≤ 30 за вызов
@@ -94,6 +96,10 @@ class OrchestratorSettings(BaseServiceSettings):
     final_specificity_check: bool = False
     # R-025: без вердикта финальной проверки (сбой, пропуск) — «требует проверки», как U; резервные — через неё же
     final_check_fail_as_uncertain: bool = False
+    # Этап 5.4: N-MAT финальной проверки убирает карточку только при уверенности судьи не ниже порога (0 — всегда)
+    final_mature_min_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    # Этап 5.4: N-MAT финальной проверки убирает только карточки без рыночных источников; false — любые карточки
+    final_mature_research_only: bool = True
     confidence_calibration: bool = False
     # R-003: документы (URL) и итог каждого кандидата в трассе narrate; прошлые прогоны стадии — narrate@N
     narrate_trace_evidence: bool = False

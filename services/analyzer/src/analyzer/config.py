@@ -29,6 +29,8 @@ class AnalyzerSettings(BaseServiceSettings):
     embedding_batch_size: int = Field(default=32, ge=1, le=256)
     torch_threads: int = Field(default=4, ge=1, le=32)
     hf_home: Path = Path("/hf-cache")
+    # Этап 5.5: файл локальной модели зрелости в model_store_dir (python -m analyzer.train_maturity); нет файла — выкл.
+    maturity_model_file: str = "maturity_bgem3_v1.json"
 
     analyzer_workers: int = Field(default=1, ge=1, le=8)
     analyzer_max_pending: int = Field(default=20, ge=1, le=500)

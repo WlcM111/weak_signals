@@ -422,6 +422,18 @@ class FakeAnalyzer:
             feature_names=("lex_emergence_score",),
         )
 
+    async def score_maturity(self, texts):  # noqa: ANN001, ANN201
+        """Этап 5.5: оценки по подстрокам `maturity_scores`; пустой словарь — модели нет."""
+        from orchestrator.application.dto import MaturityScoresView  # noqa: PLC0415
+        rules = getattr(self, "maturity_scores", {})
+        if getattr(self, "maturity_error", None) is not None:
+            raise self.maturity_error
+        self.maturity_calls = [*getattr(self, "maturity_calls", []), list(texts)]
+        if not rules:
+            return MaturityScoresView((), 0.0, "")
+        scores = tuple(next((v for k, v in rules.items() if k in text), 0.1) for text in texts)
+        return MaturityScoresView(scores, 0.7, "test-v1")
+
     async def score_text(self, title, description, with_enrichment):  # noqa: ANN001, ANN201
         """Прямой скоринг."""
         return ScoreTextView(

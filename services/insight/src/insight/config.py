@@ -23,7 +23,12 @@ class InsightSettings(BaseServiceSettings):
     # эксперимента) и модель, чьи ответы принимаются из кеша (пусто — любая).
     expand_cache_ttl_hours: int = Field(default=168, ge=0, le=8760)
     # Этап 5.2 (R-013): версия промпта рубрики — judge_v6 (по умолчанию) или judge_v7 (критерий зрелости)
-    rubric_prompt_version: str = Field(default="judge_v6", pattern="^judge_v(6|7|8)$")
+    rubric_prompt_version: str = Field(default="judge_v6", pattern="^judge_v(6|7|8|9|10|11)$")
+    # Этап 5.4 (другой разбор): версия финальной проверки готовой карточки; judge_v11 — зрелость пары «механизм —
+    # задача» по массовому практическому применению. По умолчанию judge_v6: включать judge_v11 только после замера на
+    # GigaChat (final_check_compare.py) — на прокси Claude версии ведут себя иначе, чем на GigaChat (judge_v8: прокси
+    # снял 55 зрелых и 90 слабых, GigaChat — 1 зрелую и 2 слабых на 145 карточках pf).
+    rubric_final_prompt_version: str = Field(default="judge_v6", pattern="^judge_v(6|7|8|9|10|11)$")
     # Этап 5.4: второй проход зрелости после рубрики (выключен до проверки eval_maturity_check на разметке)
     maturity_check_enabled: bool = False
     maturity_check_max_year: int = Field(default=2015, ge=1950, le=2026)

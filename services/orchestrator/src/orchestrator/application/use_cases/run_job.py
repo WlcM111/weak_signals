@@ -368,6 +368,7 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         rubric_pool_exclude_model_mature=base.rubric_pool_exclude_model_mature,
         rubric_pool_research_singles=base.rubric_pool_research_singles,
         rank_model_first_share=base.rank_model_first_share,
+        maturity_filter_enabled=base.maturity_filter_enabled,
         rubric_docs_retry=base.rubric_docs_retry,
         finalize_enabled=base.finalize_enabled,
         rubric_finalize_retry_small=base.rubric_finalize_retry_small,
@@ -382,6 +383,8 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         profile_model_path=base.profile_model_path,
         final_check_enabled=base.final_check_enabled,
         final_check_fail_as_uncertain=base.final_check_fail_as_uncertain,
+        final_mature_min_confidence=base.final_mature_min_confidence,
+        final_mature_research_only=base.final_mature_research_only,
         confidence_calibration=base.confidence_calibration,
         narrate_trace_evidence=base.narrate_trace_evidence,
     )

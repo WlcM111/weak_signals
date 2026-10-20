@@ -52,6 +52,20 @@ class EvalRubricTest(unittest.TestCase):
                                   "language_code": "en", "source_key": "openalex"}]}
         item = ev.b_item(row)
         self.assertEqual((item.sources[0].domain, item.sources[0].published), ("nature.com", "2025-01-02"))
+        self.assertEqual(item.composition_ru, "")
+        # этап 5.4: режим финальной проверки — тот же состав, что у orchestrator (_final_item)
+        final = ev.b_item({**row, "description": "Описание."}, final_check=True)
+        self.assertEqual(final.composition_ru, "Итоговая карточка. Название: Лидар. Описание: Описание.")
+        self.assertEqual(final.sources, item.sources)
+
+    def test_market_sources_flag_matches_orchestrator_split(self) -> None:
+        # этап 5.4: N-MAT снимает только карточки без рыночных источников — в замере то же деление
+        science = {"evidence_refs": [{"source_type": "SCIENTIFIC_PUBLICATION"}, {"source_type": "PATENT"}]}
+        self.assertEqual(ev.market_sources(science), 0)
+        self.assertEqual(ev.market_sources({"evidence_refs": [*science["evidence_refs"],
+                                                              {"source_type": "CORPORATE_BLOG"}]}), 1)
+        self.assertEqual(ev.market_sources({"source_urls": ["https://arxiv.org/abs/1"]}), 0)
+        self.assertEqual(ev.market_sources(A_POS), 1)  # siliconangle.com — отраслевое СМИ
 
 
 if __name__ == "__main__":

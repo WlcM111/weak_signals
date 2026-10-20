@@ -245,3 +245,15 @@
 | WS_MATURITY_CHECK_ENABLED | true/false | false | | этап 5.4: второй проход зрелости после рубрики для кандидатов с научными источниками |
 | WS_MATURITY_CHECK_MAX_YEAR | 1950–2026 | 2015 | | задача «давняя», если её решают с этого года или раньше (значение — из maturity_check_eval.py) |
 | WS_MATURITY_CHECK_NOVELTY | список | improvement,survey | | виды новизны, при которых давняя широкая задача считается зрелой |
+| WS_MATURITY_FILTER_ENABLED | true/false | false | | этап 5.5: orchestrator отсеивает готовые карточки с научными источниками, которые локальная модель зрелости считает зрелыми |
+| WS_MATURITY_MODEL_FILE | имя файла | maturity_bgem3_v1.json | | этап 5.5: файл локальной модели зрелости в хранилище моделей analyzer |
+
+## Этап 5.4 — зрелые технологии в выдаче (19.10.2026)
+
+Действует в режиме `WS_SELECTION_MODE=rubric` при `WS_FINAL_SPECIFICITY_CHECK=true`.
+
+| Переменная | Диапазон | По умолчанию | Секрет | Назначение |
+| --- | --- | --- | --- | --- |
+| WS_RUBRIC_FINAL_PROMPT_VERSION | judge_v6 … judge_v11 | judge_v6 | | insight: версия промпта финальной проверки готовой карточки; judge_v11 — N-MAT только при массовом практическом применении пары «механизм — задача» с названным признаком; judge_v9, judge_v10 — варианты замера; judge_v6 — прежнее поведение; judge_v11 включать после замера на GigaChat |
+| WS_FINAL_MATURE_RESEARCH_ONLY | true/false | true | | orchestrator: N-MAT финальной проверки убирает только карточки без рыночных источников; рыночные остаются, причина — в трассе `final_mature_kept` |
+| WS_FINAL_MATURE_MIN_CONFIDENCE | 0–1 | 0 | | orchestrator: N-MAT убирает карточку только при уверенности судьи не ниже порога; 0 — не применяется (у GigaChat уверенность насыщена) |

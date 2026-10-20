@@ -90,6 +90,8 @@ def main() -> int:
     mean_cut = sum(cuts) / len(cuts) if cuts else 0.0
     mean_loss = sum(losses) / len(losses) if losses else 1.0
     decision = "ВНЕДРЯТЬ" if cuts and mean_cut >= MIN_CUT and mean_loss <= MAX_LOSS else "НЕ ВНЕДРЯТЬ"
+    if coverage < 0.9:  # 19.10: решение вынесено при покрытии 22 % — теперь отказ
+        decision = f"НЕДОСТАТОЧНО ДАННЫХ: модель оценила {coverage:.0%} научных карточек (нужно ≥ 90 %)"
     print(f"\nИТОГ: в среднем зрелых убрано {mean_cut:.0%}, слабых сигналов потеряно {mean_loss:.0%} → {decision}")
     final = choose(cards)
     cut, n_m, lost, n_w = metrics(final, cards)

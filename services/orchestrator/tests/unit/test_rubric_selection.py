@@ -330,11 +330,27 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(self.UNCHECKED in i.decision_explanation_ru for i in items))
         self.assertNotIn(True, self.insight.rubric_modes)  # вызова LLM после срока нет
 
-    async def test_fallback_skips_final_check_when_flag_off(self) -> None:
+    async def test_fallback_cards_are_final_checked_when_flag_off(self) -> None:
+        # этап 5.4: резервная ветка не обходит проверку зрелости; без вердикта карточка остаётся принятой, как раньше
         self.finalizable = set()
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto.endswith("(нарратив)"):
+                if candidate.candidate_id == self.good_a.candidate_id:
+                    return dict(code="N-MAT", stage=4, trend=1, confidence=0.9)
+                if candidate.candidate_id == self.good_b.candidate_id:
+                    return None
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
         await self.narrate(final_check_enabled=True)
-        self.assertEqual(len(self.results.items["job-1"]), 3)  # прежнее поведение
-        self.assertEqual(self.insight.rubric_modes, [False])
+        items = {i.candidate_id: i for i in self.results.items["job-1"]}
+        self.assertEqual(set(items), {self.good_b.candidate_id, self.market.candidate_id})
+        self.assertNotIn("требует экспертной проверки", items[self.good_b.candidate_id].decision_explanation_ru)
+        self.assertEqual(self.insight.rubric_modes, [False, True])
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_missing"], [self.good_b.candidate_id])
+        self.assertNotIn("final_unchecked", narrate)
 
     async def test_card_built_mostly_on_reviews_is_not_shown(self) -> None:
         # v12: карточке «AI-Driven Predictive Maintenance» доводка оставила из её источников три обзора
@@ -391,6 +407,79 @@ class RubricNarrateFlowTest(unittest.IsolatedAsyncioTestCase):
         await self.narrate(signal_model_path="", rubric_min_probability=0.0)
         items = self.results.items["job-1"]
         self.assertTrue(items and items[0].features[0].feature_name.startswith("lm_"))
+
+    async def test_final_n_mat_removes_card_and_it_never_returns(self) -> None:
+        # этап 5.4: зрелость, найденная финальной проверкой готовой карточки, убирает её из выдачи на штатном пути
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id == self.good_a.candidate_id:
+                return dict(code="N-MAT", stage=1, trend=1, confidence=0.9)
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        await self.narrate(final_check_enabled=True, confidence_calibration=True)
+        shown = {i.candidate_id for i in self.results.items["job-1"]}
+        self.assertNotIn(self.good_a.candidate_id, shown)
+        self.assertIn(self.good_b.candidate_id, shown)
+        excluded = {e.candidate_id: e.decision_reason for e in self.results.excluded["job-1"]}
+        self.assertEqual(excluded[self.good_a.candidate_id], "RUBRIC_FINAL_N-MAT")
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_dropped"][self.good_a.candidate_id]["code"], "N-MAT")
+        self.assertEqual(narrate["final_missing"], [])
+
+    async def test_final_n_mat_below_confidence_threshold_keeps_card(self) -> None:
+        # этап 5.4: неуверенная зрелость не убирает сигнал; уверенная — убирает; порог 0 — прежнее поведение
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id == self.good_a.candidate_id:
+                return dict(code="N-MAT", stage=1, trend=1, confidence=0.6)
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id == self.good_b.candidate_id:
+                return dict(code="N-MAT", stage=1, trend=1, confidence=0.8)
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        await self.narrate(final_check_enabled=True, final_mature_min_confidence=0.7)
+        shown = {i.candidate_id for i in self.results.items["job-1"]}
+        self.assertIn(self.good_a.candidate_id, shown)
+        self.assertNotIn(self.good_b.candidate_id, shown)
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_mature_kept"], {self.good_a.candidate_id: "уверенность 0.60 < 0.70"})
+        self.assertEqual(list(narrate["final_dropped"]), [self.good_b.candidate_id])
+        self.results = InMemoryResultRepository()
+        await self.narrate(final_check_enabled=True)
+        shown = {i.candidate_id for i in self.results.items["job-1"]}
+        self.assertFalse({self.good_a.candidate_id, self.good_b.candidate_id} & shown)
+
+    async def test_final_n_mat_keeps_card_with_market_sources(self) -> None:
+        # этап 5.4: рыночный факт (раунд, пилот, продукт) — признак ранней стадии; зрелость пары карточку не снимает
+        base_rule = self.insight.rubric_rule
+
+        def rule(candidate):  # noqa: ANN001, ANN202
+            if candidate.title_auto == "Фотонный лидар" and candidate.candidate_id in (self.market.candidate_id,
+                                                                                       self.good_b.candidate_id):
+                return dict(code="N-MAT", stage=1, trend=1, confidence=0.9)
+            return base_rule(candidate)
+        self.insight.rubric_rule = rule
+        await self.narrate(final_check_enabled=True)
+        shown = {i.candidate_id for i in self.results.items["job-1"]}
+        self.assertIn(self.market.candidate_id, shown)  # источник — отраслевое СМИ
+        self.assertNotIn(self.good_b.candidate_id, shown)  # только научная публикация
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_mature_kept"], {self.market.candidate_id: "рыночные источники"})
+        self.results = InMemoryResultRepository()
+        await self.narrate(final_check_enabled=True, final_mature_research_only=False)
+        self.assertNotIn(self.market.candidate_id, {i.candidate_id for i in self.results.items["job-1"]})
+
+    async def test_final_missing_is_traced_even_when_flag_off(self) -> None:
+        # этап 5.4 (гипотеза H-FAILOPEN): карточки без вердикта финальной проверки видны в трассе; выдача прежняя
+        self.final_check_skips({self.good_b.candidate_id})
+        await self.narrate(final_check_enabled=True)
+        narrate = self.results.traces["job-1"]["narrate"]
+        self.assertEqual(narrate["final_missing"], [self.good_b.candidate_id])
+        self.assertIn(self.good_b.candidate_id, {i.candidate_id for i in self.results.items["job-1"]})
+        self.results = InMemoryResultRepository()
+        await self.narrate()  # без финальной проверки поля нет
+        self.assertNotIn("final_missing", self.results.traces["job-1"]["narrate"])
 
 
 class AnalyzePoolTest(unittest.IsolatedAsyncioTestCase):

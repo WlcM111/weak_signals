@@ -19,6 +19,7 @@ from analyzer.application.use_cases.get_analysis import GetAnalysis
 from analyzer.application.use_cases.get_model_info import GetModelInfo
 from analyzer.application.use_cases.list_candidates import ListCandidates
 from analyzer.application.use_cases.score_text import ScoreText
+from analyzer.application.use_cases.score_maturity import ScoreMaturity
 from analyzer.application.use_cases.start_analysis import StartAnalysis
 from analyzer.application.validation import (
     validate_cancel_reason,
@@ -60,7 +61,9 @@ class AnalyzerServicer(analyzer_pb2_grpc.AnalyzerServiceServicer):
         cancel_analysis: CancelAnalysis,
         score_text: ScoreText,
         get_model_info: GetModelInfo,
+        score_maturity: ScoreMaturity | None = None,
     ) -> None:
+        self._score_maturity = score_maturity
         self._start_analysis = start_analysis
         self._get_analysis = get_analysis
         self._list_candidates = list_candidates
@@ -159,6 +162,15 @@ class AnalyzerServicer(analyzer_pb2_grpc.AnalyzerServiceServicer):
         except AppError as error:
             self._abort(context, error)
         return to_proto_model_info(version, feature_names)
+
+    def ScoreMaturity(  # noqa: N802 - имя RPC из контракта
+        self, request: analyzer_pb2.ScoreMaturityRequest, context: grpc.ServicerContext
+    ) -> analyzer_pb2.ScoreMaturityResponse:
+        """Этап 5.5: вероятность «зрелая технология» для текстов карточек; нет модели — пустой ответ."""
+        if self._score_maturity is None or not request.texts:
+            return analyzer_pb2.ScoreMaturityResponse()
+        scores, threshold, version = self._score_maturity.execute(list(request.texts))
+        return analyzer_pb2.ScoreMaturityResponse(scores=scores, threshold=threshold, model_version=version)
 
     def _abort(self, context: grpc.ServicerContext, error: AppError) -> None:
         """Переводит прикладную ошибку в статус gRPC с `error_code` в trailing metadata."""

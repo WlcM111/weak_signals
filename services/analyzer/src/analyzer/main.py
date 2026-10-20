@@ -32,6 +32,7 @@ from analyzer.application.use_cases.get_analysis import GetAnalysis
 from analyzer.application.use_cases.get_model_info import GetModelInfo
 from analyzer.application.use_cases.list_candidates import ListCandidates
 from analyzer.application.use_cases.run_analysis import RunAnalysis, RunAnalysisConfig
+from analyzer.application.use_cases.score_maturity import ScoreMaturity
 from analyzer.application.use_cases.score_text import ScoreText
 from analyzer.application.use_cases.start_analysis import StartAnalysis
 from analyzer.config import AnalyzerSettings
@@ -115,6 +116,8 @@ def serve(settings: AnalyzerSettings) -> int:
             collector, embedder, holder, lexicons, clock, settings.enrichment_timeout_seconds, metrics
         ),
         get_model_info=GetModelInfo(holder),
+        score_maturity=ScoreMaturity(settings.model_store_dir / settings.maturity_model_file, settings.hf_home,
+                                     settings.embedding_batch_size),
     )
     run_analysis = RunAnalysis(
         analyses=analyses,

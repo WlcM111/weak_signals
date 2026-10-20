@@ -19,6 +19,9 @@ service AnalyzerService {
   rpc ScoreText(ScoreTextRequest) returns (ScoreTextResponse);
   // Сведения об активной модели и её метриках. Deadline 5 s. Retry: да.
   rpc GetModelInfo(GetModelInfoRequest) returns (GetModelInfoResponse);
+  // Этап 5.5: вероятность «зрелая технология» для готовых карточек — локальная модель (эмбеддинги bge-m3 +
+  // логистическая регрессия, обучена на ручной разметке). Пустой model_version — модель не загружена.
+  rpc ScoreMaturity(ScoreMaturityRequest) returns (ScoreMaturityResponse);
 }
 
 // Решение по кандидату.
@@ -201,4 +204,14 @@ message GetModelInfoResponse {
   google.protobuf.Timestamp trained_at = 6;
   ModelMetrics metrics = 7;
   repeated string feature_names = 8;
+}
+
+message ScoreMaturityRequest {
+  repeated string texts = 1;  // 1..60 текстов карточек: «название. описание Источники: заголовки»; каждый ≤ 2000 символов
+}
+
+message ScoreMaturityResponse {
+  repeated double scores = 1;  // по одному на текст, 0..1; пусто, если модель не загружена
+  double threshold = 2;        // порог модели: оценка выше — «зрелая технология»
+  string model_version = 3;    // версия файла модели; пусто — модель не загружена
 }
