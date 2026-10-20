@@ -83,6 +83,8 @@ class OrchestratorSettings(BaseServiceSettings):
     maturity_filter_enabled: bool = False
     # Порядок карточек в выдаче (20.10.2026): по индексу уверенности; model_first — прежний порядок этапа 5.3
     display_order: str = Field(default="confidence", pattern="^(confidence|model_first)$")
+    # 20.10.2026: фильтр по дате публикации (дней; 0 — выключен): научный кандидат без свежих источников исключается
+    stale_filter_days: int = Field(default=0, ge=0, le=3650)
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True
     # R-026: сбой FinalizeCards — повтор частями ≤ 5, без карточки — в очередь следующего раунда; ≤ 30 за вызов

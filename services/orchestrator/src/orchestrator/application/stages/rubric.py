@@ -21,7 +21,7 @@ import re
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlsplit
 
 from orchestrator.application.dto import CandidateView, DocumentView, JudgeVerdictView
@@ -131,6 +131,32 @@ def composition_ru(composition: Composition) -> str:
             f"{composition.independent}, рыночных (СМИ, аналитика, пресс-релизы) {composition.market}. "
             f"Публикации по годам: {years}. Источников с рыночными фактами (инвестиции, пилоты, партнёрства, "
             f"внедрения): {composition.market_mentions}.")
+
+
+# 20.10.2026: фильтр по дате публикации. Кандидат только с научными, патентными и кодовыми источниками, у которого
+# самый свежий источник старше порога, — давно не развивающаяся тема. Источники СМИ и пресс-релизы защищают кандидата.
+# Замер на ручной разметке (свежий научный источник старше 540 дней): s56 — зрелых 6 из 55, слабых 8 из 176;
+# pf — зрелых 8 из 35, слабых 9 из 89. Порог 365 дней теряет 10–16 % слабых — больше допуска.
+STALE_MARKET_TYPES = frozenset({"NEWS", "INDUSTRY_MEDIA", "PRESS_RELEASE", "ANALYTICAL_REPORT", "CORPORATE_BLOG",
+                                "GOVERNMENT"})
+
+
+def stale_verdict(docs: Sequence[DocumentView], days: int, today: date) -> tuple[Decision, str, str] | None:
+    """Исключение до LLM, если все источники научные, а самый свежий из них старше `days` дней; иначе None.
+
+    Нет порога (0), есть хоть один рыночный источник или ни у одного источника нет даты — кандидат не трогается."""
+    if days <= 0 or not docs or any(d.source_type in STALE_MARKET_TYPES for d in docs):
+        return None
+    dated = [d.published_at for d in docs if d.published_at is not None]
+    if not dated:
+        return None
+    newest = max(dated)
+    age = (today - newest.date()).days
+    if age <= days:
+        return None
+    return (Decision.MATURE, "STALE_PUBLICATIONS",
+            f"Самый свежий из {len(dated)} научных источников опубликован {newest:%d.%m.%Y} — {age} дн. назад "
+            f"(порог {days} дн.): новых работ по теме давно нет.")
 
 
 def prefilter(composition: Composition, check_reviews: bool = True) -> tuple[Decision, str, str] | None:

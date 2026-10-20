@@ -48,6 +48,7 @@ export const DECISION_REASON_RU: Record<string, string> = {
   RUBRIC_TEXT_FAILED: "Карточку не удалось заполнить по источникам",
   RUBRIC_MODEL: "Решение рубрики и локальной модели",
   MATURE_LOCAL_MODEL: "Зрелая технология (локальная модель зрелости)",
+  STALE_PUBLICATIONS: "Давно нет новых работ по теме (фильтр по дате публикации)",
   MODEL_SCORE: "Решение калиброванной модели",
   SEMANTIC_JUDGE: "Смысловая оценка кандидата моделью",
   LOW_QUERY_RELEVANCE: "Низкая релевантность запросу",

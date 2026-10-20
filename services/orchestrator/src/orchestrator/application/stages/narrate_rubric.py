@@ -16,6 +16,7 @@ import dataclasses
 import hashlib
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 
 from orchestrator.application.dto import (
@@ -123,11 +124,14 @@ async def run_narrate_rubric(
     prefiltered: list[tuple[CandidateView, tuple[Decision, str, str]]] = []
     judged_pool: list[CandidateView] = []
     lost = set(unavailable)
+    today = datetime.now(UTC).date()
     for candidate in pool:
         verdict = rubric.prefilter(compositions[candidate.candidate_id])
         if not compositions[candidate.candidate_id].total and lost.intersection(
                 e.document_id for e in candidate.evidence[:MAX_EVIDENCE]):
             verdict = DOCS_UNAVAILABLE  # источники есть, но не загрузились: не «нет источников»
+        if verdict is None and config.stale_filter_days > 0:  # 20.10.2026: фильтр по дате публикации
+            verdict = rubric.stale_verdict(_docs(candidate, documents), config.stale_filter_days, today)
         (prefiltered.append((candidate, verdict)) if verdict else judged_pool.append(candidate))
     docs_trace = {"documents_unavailable": unavailable} if config.rubric_docs_retry else {}
     if load_error is not None and not judged_pool:

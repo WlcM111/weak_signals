@@ -33,7 +33,7 @@ export function SignalField({ mode = "live", label }: { mode?: "live" | "scan"; 
   const geometry = useMemo(() => {
     if (width < 60 || height < 60) return null;
     const random = seeded(11);
-    const top = height * 0.12;
+    const top = height * (label ? 0.22 : 0.12);
     const base = height * 0.86;
     const span = base - top;
     const threshold = base - span * 0.5;
@@ -55,10 +55,22 @@ export function SignalField({ mode = "live", label }: { mode?: "live" | "scan"; 
     }
     const columns = Array.from({ length: 9 }, (_, index) => ((index + 1) * width) / 10);
     return { top, base, threshold, peaks, ticks, columns };
-  }, [width, height]);
+  }, [width, height, label]);
 
   return (
     <div ref={ref} className={`sigfield sigfield--${mode}`} aria-hidden="true">
+      {label ? (
+        <div className="sigfield__legend">
+          <span className="sigfield__badge sigfield__badge--threshold">
+            <span className="sigfield__badge-dash" />
+            {label}
+          </span>
+          <span className="sigfield__badge sigfield__badge--peaks">
+            <span className="sigfield__badge-dot" />
+            пики слабых сигналов
+          </span>
+        </div>
+      ) : null}
       {geometry ? (
         <svg
           key={`${width}x${height}`}
@@ -148,11 +160,6 @@ export function SignalField({ mode = "live", label }: { mode?: "live" | "scan"; 
             );
           })}
         </svg>
-      ) : null}
-      {geometry && label ? (
-        <span className="sigfield__label" style={{ top: geometry.threshold }}>
-          {label}
-        </span>
       ) : null}
     </div>
   );

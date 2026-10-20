@@ -59,6 +59,9 @@ class NarrateConfig:
     maturity_filter_enabled: bool = False
     # порядок карточек в выдаче: confidence — по индексу уверенности; model_first — модель analyzer первой (этап 5.3)
     display_order: str = "confidence"
+    # 20.10.2026: кандидат только с научными источниками, самый свежий из которых старше N дней, исключается до LLM
+    # (0 — выключено)
+    stale_filter_days: int = 0
     # rubric: пачки GetDocuments ≤ 50 с одним повтором; сбой загрузки — не «нет источников» (R-027)
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True

@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import type {
-  Decision, EvidenceKind, ExcludedCandidate, Feature, JobStatus, ResultItemSummary, ResultStats, Source,
+  Decision, EvidenceKind, ExcludedCandidate, Feature, JobProgress, JobStatus, ResultItemSummary, ResultStats, Source,
 } from "../api/types";
 import {
   CONFIDENCE_BAND_RU, CONFIDENT_SCORE, DECISION_RU, DIRECTION_RU, decisionReasonText, isConfident,
-  JOB_STATUS_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, STAGE_HINT_RU, TRUST_LEVEL_RU,
+  JOB_STATUS_RU, LANGUAGE_RU, NARRATIVE_STATUS_RU, SOURCE_TYPE_RU, TRUST_LEVEL_RU,
   confidenceChipClass, formatDate, formatNumber, isSafeLink, jobProgressShare, linkHost,
   narrativeChipClass, percent, splitTitle, summaryMark, translate, trustChipClass,
 } from "../lib/format";
@@ -18,6 +18,8 @@ import { IconArrowRight, IconChevron, IconExternal, IconFilter } from "./icons";
 import { Progress, ScoreDial, Stat } from "./ui";
 
 const SPLIT_MIN_REM = 40;
+const MATRIX_TOTAL_CELLS = 36;
+const MATRIX_SIGNAL_INDICES = new Set([1, 4, 6, 9, 11, 14, 17, 19, 22, 25, 27, 30, 33, 35]);
 
 /** Пояснение шкалы индекса уверенности. */
 export const SCORE_HINT =
@@ -59,12 +61,41 @@ export function readableFeature(feature: Feature): { label: string; hint: string
 
 /* ---------- ход задания ---------- */
 
-export function JobProgressPanel({ status, done, total, hint }: {
+function liveFactsText(status: JobStatus, done: number, total: number, progress?: JobProgress): string {
+  if (!progress) return "";
+  if (status === "COLLECTING") {
+    const parts = [
+      `документов: ${formatNumber(progress.documents_collected)}`,
+      `запросов: ${formatNumber(progress.http_requests_total)}`,
+      progress.sources_processed ? `источников: ${progress.sources_processed}` : "",
+    ].filter(Boolean);
+    return parts.join(" · ");
+  }
+  if (status === "ANALYZING") {
+    return [
+      `документов: ${formatNumber(progress.documents_collected)}`,
+      `кандидатов: ${formatNumber(progress.candidates_found)}`,
+    ].join(" · ");
+  }
+  if (status === "NARRATING") {
+    return [
+      progress.candidates_found ? `кандидатов: ${formatNumber(progress.candidates_found)}` : "",
+      `готово инсайтов: ${done} из ${total || "—"}`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+  return "";
+}
+
+export function JobProgressPanel({ status, done, total, progress, hint }: {
   status: JobStatus;
   done: number;
   total: number;
+  progress?: JobProgress;
   hint?: string;
 }) {
+  const meta = hint ?? liveFactsText(status, done, total, progress);
   return (
     <div className="live">
       <div className="live__line">
@@ -72,14 +103,85 @@ export function JobProgressPanel({ status, done, total, hint }: {
           <span className="live__pulse" aria-hidden="true" />
           {translate(JOB_STATUS_RU, status)}
         </span>
-        <span className="live__hint">{hint ?? translate(STAGE_HINT_RU, status)}</span>
+        {meta ? <span className="live__hint">{meta}</span> : null}
       </div>
       <Progress share={jobProgressShare(status, done, total)} label="Ход выполнения задания" />
-      {status === "NARRATING" ? (
-        <p className="live__note">
-          Готово инсайтов: {done} из {total || "—"}. Сигналы появляются в списке по мере готовности.
-        </p>
-      ) : null}
+    </div>
+  );
+}
+
+/** Анимация матрицы отбора кандидатов (Воронка R / U / N) на этапе «Формирование инсайтов» (Вариант 5В). */
+export function CandidateMatrixStage({ candidatesFound, done, total, compact = false }: {
+  candidatesFound: number;
+  done: number;
+  total: number;
+  compact?: boolean;
+}) {
+  const [cursor, setCursor] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.documentElement.hasAttribute("data-motion-paused")) return;
+      setCursor((prev) => (prev + 1) % (MATRIX_TOTAL_CELLS + 4));
+    }, 450);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const poolCount = candidatesFound > 0 ? formatNumber(candidatesFound) : String(MATRIX_TOTAL_CELLS);
+  const targetLabel = total > 0 ? `ТОП-${total}` : "ТОП выдачи";
+
+  return (
+    <div
+      className={`scope matrix-stage ${compact ? "matrix-stage--compact" : ""}`}
+      role="status"
+      aria-live="polite"
+    >
+      <div className="matrix-stage__head">
+        <span className="matrix-stage__title">
+          <span className="live__pulse" aria-hidden="true" />
+          Отбор и верификация пула кандидатов
+        </span>
+        <span className="matrix-stage__meta">
+          Пул: {poolCount} кандидатов → {targetLabel}
+          {done > 0 ? ` (готово: ${done})` : ""}
+        </span>
+      </div>
+      <div className="matrix-stage__grid" aria-hidden="true">
+        {Array.from({ length: MATRIX_TOTAL_CELLS }, (_, index) => {
+          const isSignal = MATRIX_SIGNAL_INDICES.has(index);
+          let stateClass = "";
+          let cellText = `C${index + 1}`;
+          if (index < cursor) {
+            if (isSignal) {
+              stateClass = "matrix-cell--signal";
+              cellText = `R${index + 1}`;
+            } else {
+              stateClass = "matrix-cell--drop";
+            }
+          } else if (index === cursor || index === cursor + 1) {
+            stateClass = "matrix-cell--scan";
+          }
+          return (
+            <div key={index} className={`matrix-cell ${stateClass}`}>
+              {cellText}
+            </div>
+          );
+        })}
+      </div>
+      <div className="matrix-stage__legend">
+        <span className="matrix-stage__legend-item">
+          <span className="matrix-stage__swatch matrix-stage__swatch--signal" aria-hidden="true" />
+          Слабый сигнал (R)
+        </span>
+        <span className="matrix-stage__legend-item">
+          <span className="matrix-stage__swatch matrix-stage__swatch--scan" aria-hidden="true" />
+          Идёт синтез описания
+        </span>
+        <span className="matrix-stage__legend-item">
+          <span className="matrix-stage__swatch matrix-stage__swatch--drop" aria-hidden="true" />
+          Отсеян (зрелое / шум)
+        </span>
+      </div>
     </div>
   );
 }

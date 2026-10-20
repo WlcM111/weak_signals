@@ -9,11 +9,14 @@ import type { Results } from "../api/types";
 import {
   JOB_STATUS_RU, formatDate, formatNumber, isTerminal, jobErrorText, partialReasons, translate,
 } from "../lib/format";
+import { buildResearchReport, researchReportFileName } from "../lib/report";
 import { Banner, EmptyState, SkeletonList, StatusPill } from "../components/ui";
-import { ExcludedPanel, JobProgressPanel, SignalExplorer, StatsRow } from "../components/signals";
+import {
+  CandidateMatrixStage, ExcludedPanel, JobProgressPanel, SignalExplorer, StatsRow,
+} from "../components/signals";
 import { RunTimeline, duration } from "../components/timeline";
 import { SignalField } from "../components/SignalField";
-import { IconPlus, IconStop } from "../components/icons";
+import { IconDownload, IconPlus, IconStop } from "../components/icons";
 import { scrollBehavior } from "../lib/style";
 
 const POLL_MS = 3000;
@@ -38,6 +41,8 @@ export default function ResultsPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("signals");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportDone, setExportDone] = useState(0);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const tabButtons = useRef<Record<Tab, HTMLButtonElement | null>>({ signals: null, excluded: null });
 
@@ -128,6 +133,41 @@ export default function ResultsPage() {
     results.data ? `${formatNumber(results.data.stats.candidates_found)} кандидатов` : "",
   ].filter(Boolean);
 
+  async function downloadResearchMarkdown() {
+    if (!results.data || exporting) return;
+    setExporting(true);
+    setExportDone(0);
+    try {
+      const fullItems = await Promise.all(
+        items.map((summary) =>
+          queryClient
+            .fetchQuery({
+              queryKey: ["item", summary.item_id],
+              queryFn: () => api.getResultItem(summary.item_id),
+            })
+            .then((loaded) => {
+              setExportDone((prev) => prev + 1);
+              return loaded;
+            })
+            .catch(() => {
+              setExportDone((prev) => prev + 1);
+              return null;
+            }),
+        ),
+      );
+      const markdown = buildResearchReport(data, results.data, fullItems, took);
+      const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = researchReportFileName(data);
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className={`page results ${terminal ? "results--done" : "results--running"}`}>
       <header className="results__head">
@@ -144,6 +184,17 @@ export default function ResultsPage() {
           </div>
         </div>
         <div className="results__actions">
+          {results.data && items.length > 0 ? (
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={exporting}
+              onClick={() => void downloadResearchMarkdown()}
+            >
+              <IconDownload size={18} />
+              {exporting ? `Собираем отчёт… (${exportDone}/${items.length})` : "Скачать Markdown"}
+            </button>
+          ) : null}
           <Link className="btn btn--ghost" to="/search">
             <IconPlus size={18} />
             Новый запрос
@@ -166,6 +217,7 @@ export default function ResultsPage() {
               status={data.status}
               done={data.progress.narratives_done}
               total={data.progress.narratives_total}
+              progress={data.progress}
             />
           </div>
         ) : null}
@@ -231,26 +283,29 @@ export default function ResultsPage() {
             ) : (
               <div className="waiting">
                 <div className="scope waiting__scope">
-                  <SignalField mode="scan" />
+                  <div className="scope__screen">
+                    <SignalField mode="scan" />
+                  </div>
+                  <p className="scope__caption waiting__text">
+                    Выдача появиться, как только начнётся формирование инсайтов
+                  </p>
                 </div>
-                <p className="waiting__text">
-                  Выдача появится, как только начнётся формирование инсайтов. Страница обновляется
-                  автоматически каждые 3 секунды — обновлять вручную не нужно.
-                </p>
               </div>
             )
+          ) : !terminal && items.length === 0 ? (
+            <CandidateMatrixStage
+              candidatesFound={data.progress.candidates_found}
+              done={data.progress.narratives_done}
+              total={data.progress.narratives_total}
+            />
           ) : results.isLoading ? (
             <SkeletonList rows={4} />
           ) : items.length === 0 ? (
             <EmptyState
-              title={terminal ? "Слабые сигналы не найдены" : "Слабых сигналов пока нет"}
-              hint={
-                terminal
-                  ? "По этому запросу ни один кандидат не прошёл отбор. Причины — на вкладке исключённых кандидатов."
-                  : "Инсайты ещё формируются — сигналы появятся здесь по мере готовности"
-              }
+              title="Слабые сигналы не найдены"
+              hint="По этому запросу ни один кандидат не прошёл отбор. Причины — на вкладке исключённых кандидатов."
               action={
-                terminal && excluded.length > 0 ? (
+                excluded.length > 0 ? (
                   <button type="button" className="btn btn--ghost" onClick={() => openTab("excluded")}>
                     Показать исключённых
                   </button>
@@ -258,7 +313,17 @@ export default function ResultsPage() {
               }
             />
           ) : (
-            <SignalExplorer items={items} jobId={jobId} selectedId={activeId} onSelect={setSelectedId} />
+            <div className="results__signals-wrap">
+              {!terminal ? (
+                <CandidateMatrixStage
+                  candidatesFound={data.progress.candidates_found}
+                  done={data.progress.narratives_done}
+                  total={data.progress.narratives_total}
+                  compact
+                />
+              ) : null}
+              <SignalExplorer items={items} jobId={jobId} selectedId={activeId} onSelect={setSelectedId} />
+            </div>
           )}
         </div>
 
@@ -301,7 +366,7 @@ export default function ResultsPage() {
             </Banner>
           ) : null}
 
-          <details className="run__log" open={!terminal || !results.data || items.length === 0}>
+          <details className="run__log" open={terminal && (!results.data || items.length === 0)}>
             <summary className="run__summary">
               Ход задания
               {terminal ? <span className="run__summary-state">{translate(JOB_STATUS_RU, data.status)}</span> : null}
