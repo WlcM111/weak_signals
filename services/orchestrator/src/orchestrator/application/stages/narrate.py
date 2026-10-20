@@ -57,6 +57,8 @@ class NarrateConfig:
     rank_model_first_share: float = 0.0
     # этап 5.5: локальная модель зрелости analyzer по готовым карточкам с научными источниками (выкл. по умолчанию)
     maturity_filter_enabled: bool = False
+    # порядок карточек в выдаче: confidence — по индексу уверенности; model_first — модель analyzer первой (этап 5.3)
+    display_order: str = "confidence"
     # rubric: пачки GetDocuments ≤ 50 с одним повтором; сбой загрузки — не «нет источников» (R-027)
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True

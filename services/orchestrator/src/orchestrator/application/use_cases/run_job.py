@@ -369,6 +369,7 @@ def _narrate_config(base: NarrateConfig, top_n: int, llm_allowed: Callable[[], b
         rubric_pool_research_singles=base.rubric_pool_research_singles,
         rank_model_first_share=base.rank_model_first_share,
         maturity_filter_enabled=base.maturity_filter_enabled,
+        display_order=base.display_order,
         rubric_docs_retry=base.rubric_docs_retry,
         finalize_enabled=base.finalize_enabled,
         rubric_finalize_retry_small=base.rubric_finalize_retry_small,

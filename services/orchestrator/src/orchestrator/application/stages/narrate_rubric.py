@@ -280,6 +280,9 @@ async def run_narrate_rubric(
     # Код показа: карточка без вердикта финальной проверки показывается как U — «требует проверки» (R-025).
     shown_code = {c.candidate_id: "U" if c.candidate_id in final_unchecked else verdicts[c.candidate_id].code
                   for c in shown}
+    shown = display_order(shown, {c.candidate_id: display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
+                                                                config.confidence_calibration) for c in shown},
+                          config.display_order)
     outcome.weak_signals_total = sum(1 for c in judged if verdicts[c.candidate_id].code == "R")
     # «Уверены более чем на 75 %» — по той же уверенности, что показана в карточках (с калибровкой, если включена).
     # Считаются только показанные карточки: счётчик стоит рядом со списком «Найденные слабые сигналы», и число
@@ -298,7 +301,7 @@ async def run_narrate_rubric(
     if evidence is not None:
         displayed = {c.candidate_id: display_score(scored[c.candidate_id][0], shown_code[c.candidate_id],
                                                    config.confidence_calibration) for c in shown}
-        extra = {"evidence": evidence, "outcome": _outcomes(rows, (
+        extra = extra | {"evidence": evidence, "outcome": _outcomes(rows, (
             ("not_in_pool", rest), ("prefilter", [c for c, _ in prefiltered]), ("unjudged", unjudged),
             ("rubric", below), ("not_tried", queue), ("text_failed", text_failed),
             ("card_review", [c for c, _ in dropped_reviews]), ("final_check", dropped_final)), shown, displayed)}
@@ -609,6 +612,20 @@ def _excluded_rows(
             f"Локальная модель зрелости ({version}): вероятность зрелой технологии {score:.0%} при пороге {threshold:.0%}; "
             "проверяются только карточки с научными источниками.", score)
     return rows
+
+
+def display_order(shown: list[CandidateView], scores: dict[str, float], order: str) -> list[CandidateView]:
+    """Порядок карточек в выдаче (20.10.2026).
+
+    `confidence` — по индексу уверенности, который видит пользователь, по убыванию; при равенстве — прежний порядок.
+    Какие карточки попали в первые top_n, решает прежнее ранжирование («модель analyzer первой», этап 5.3), меняется
+    только порядок внутри выдачи. `model_first` — прежний порядок: сначала кандидаты, которых выше оценила модель
+    analyzer. По прогону s56: в первых 15 на тему он даёт 69 % слабых сигналов и 10 зрелых, порядок по уверенности —
+    66 % и 20 зрелых.
+    """
+    if order != "confidence":
+        return list(shown)
+    return sorted(shown, key=lambda candidate: -scores.get(candidate.candidate_id, 0.0))
 
 
 # Этап 5.5: та же сборка текста, что при обучении (analyzer.train_maturity.card_text), и те же рыночные типы источников

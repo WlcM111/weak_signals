@@ -167,6 +167,7 @@ def build_run_job(context: dict[str, Any], settings: OrchestratorSettings) -> Ru
                 rubric_pool_research_singles=settings.rubric_pool_research_singles,
                 rank_model_first_share=settings.rank_model_first_share,
                 maturity_filter_enabled=settings.maturity_filter_enabled,
+                display_order=settings.display_order,
                 rubric_docs_retry=settings.rubric_docs_retry,
                 finalize_enabled=settings.finalize_enabled,
                 rubric_finalize_retry_small=settings.rubric_finalize_retry_small,

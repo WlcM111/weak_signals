@@ -81,6 +81,8 @@ class OrchestratorSettings(BaseServiceSettings):
     rank_model_first_share: float = Field(default=0.5, ge=0.0, le=1.0)
     # Этап 5.5: локальная модель зрелости analyzer после доводки карточек (включать после обучения модели)
     maturity_filter_enabled: bool = False
+    # Порядок карточек в выдаче (20.10.2026): по индексу уверенности; model_first — прежний порядок этапа 5.3
+    display_order: str = Field(default="confidence", pattern="^(confidence|model_first)$")
     rubric_docs_retry: bool = False
     finalize_enabled: bool = True
     # R-026: сбой FinalizeCards — повтор частями ≤ 5, без карточки — в очередь следующего раунда; ≤ 30 за вызов

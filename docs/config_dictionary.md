@@ -257,3 +257,4 @@
 | WS_RUBRIC_FINAL_PROMPT_VERSION | judge_v6 … judge_v11 | judge_v6 | | insight: версия промпта финальной проверки готовой карточки; judge_v11 — N-MAT только при массовом практическом применении пары «механизм — задача» с названным признаком; judge_v9, judge_v10 — варианты замера; judge_v6 — прежнее поведение; judge_v11 включать после замера на GigaChat |
 | WS_FINAL_MATURE_RESEARCH_ONLY | true/false | true | | orchestrator: N-MAT финальной проверки убирает только карточки без рыночных источников; рыночные остаются, причина — в трассе `final_mature_kept` |
 | WS_FINAL_MATURE_MIN_CONFIDENCE | 0–1 | 0 | | orchestrator: N-MAT убирает карточку только при уверенности судьи не ниже порога; 0 — не применяется (у GigaChat уверенность насыщена) |
+| WS_DISPLAY_ORDER | confidence/model_first | confidence | | порядок карточек в выдаче: по индексу уверенности или прежний «модель analyzer первой» |
